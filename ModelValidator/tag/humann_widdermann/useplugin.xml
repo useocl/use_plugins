@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?use version="2.4.0"?>
+<plugin name="Kodkod-Plugin" version="0.5">
+	<actions>
+		<action
+			label="Use Kodkod"
+			icon="resources/KodkodIcon.gif"
+			class="org.tzi.use.kodkod.main.ActionKodkod"
+			tooltip="Use Kodkod"
+			menu="View"
+			menuitem="Kodkod"
+			toolbaritem="plugins"
+			id="org.tzi.use.kodkod.main.ActionKodkod">
+		</action>
+	</actions>
+</plugin>

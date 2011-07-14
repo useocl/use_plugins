@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Plugin-Name: Kodkod-Plugin
+Plugin-Version: 0.1
+Main-Class: org.tzi.use.kodkod.main.KodkodPlugin
+Plugin-Publisher: Torsten Humann

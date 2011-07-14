@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<project name="FatJar Kodkod-Plugin.jar" default="main" basedir=".">
+    <target name="main">
+        <fatjar.build output="..\use_trunk\lib\plugins\Kodkod-Plugin.jar">
+    		<fatjar.manifest manifestfile="META-INF\MANIFEST.MF"/>
+            <fatjar.filesource path=".\bin" relpath="">
+                <fatjar.exclude relpath=".svn/"/>
+                <fatjar.exclude relpath="org/.svn/"/>
+                <fatjar.exclude relpath="org/tzi/.svn/"/>
+                <fatjar.exclude relpath="org/tzi/use/.svn/"/>
+                <fatjar.exclude relpath="org/tzi/use/kodkod/.svn/"/>
+                <fatjar.exclude relpath="org/tzi/use/kodkod/main/.svn/"/>
+            	<fatjar.exclude relpath="org/tzi/use/kodkod/gui/.svn/"/>
+            </fatjar.filesource>
+            <fatjar.filesource path=".\src" relpath="">
+    			<fatjar.exclude relpath=".svn/"/>
+    			<fatjar.exclude relpath="org/.svn/"/>
+    			<fatjar.exclude relpath="org/tzi/.svn/"/>
+    			<fatjar.exclude relpath="org/tzi/use/.svn/"/>
+    			<fatjar.exclude relpath="org/tzi/use/kodkod/.svn/"/>
+    			<fatjar.exclude relpath="org/tzi/use/kodkod/main/.svn/"/>
+            	<fatjar.exclude relpath="org/tzi/use/kodkod/gui/.svn/"/>
+            </fatjar.filesource>
+            <fatjar.filesource path=".\resources" relpath="resources">
+    			<fatjar.exclude relpath="resources/.svn/"/>
+    		</fatjar.filesource>
+            <fatjar.filesource path=".\useplugin.xml" relpath=""/>
+    		<fatjar.jarsource file=".\lib\kodkod.jar" relpath="">
+    			<fatjar.exclude relpath="solvers.zip"/>
+    		    	<fatjar.exclude relpath="examples.jar"/>
+    		</fatjar.jarsource>
+		<fatjar.jarsource file=".\lib\org.sat4j.core.jar" relpath="">
+    			<fatjar.exclude relpath="sat4j.version"/>
+    		    	<fatjar.exclude relpath="plugin.properties"/>
+			<fatjar.exclude relpath="overview.html"/>
+    		    	<fatjar.exclude relpath="about.html"/>
+		</fatjar.jarsource>    		
+        </fatjar.build>
+    <delete dir="__"/>
+    </target>
+</project>
