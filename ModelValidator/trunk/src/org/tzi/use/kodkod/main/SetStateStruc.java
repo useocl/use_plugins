@@ -2,6 +2,7 @@ package org.tzi.use.kodkod.main;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.value.ObjectValue;
+import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.ocl.value.VarBindings;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MSystem;
@@ -203,9 +205,9 @@ public class SetStateStruc{
 							hasNoUndefinedValue = false;
 						}
 					}
-					if(!curSystem.state().hasLinkBetweenObjects(ass, (MObject[]) obj) && hasNoUndefinedValue){
+					if(!curSystem.state().hasLinkBetweenObjects(ass, obj) && hasNoUndefinedValue){
 						try {
-							MLinkInsertionStatement assCmd = new MLinkInsertionStatement(ass, expr);
+							MLinkInsertionStatement assCmd = new MLinkInsertionStatement(ass, obj, Collections.<List<Value>>emptyList());
 							curSystem.evaluateStatement(assCmd);
 //							MCmdInsertLink assCmd = new MCmdInsertLink(curSystem.state(), expr, ass);
 //							curSystem.executeCmd(assCmd);

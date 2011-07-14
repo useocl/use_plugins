@@ -3,8 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/kodkod.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Dokumente und Einstellungen/Todde/Eigene Dateien/Uni/Diplomarbeit/USE svn/build/lib/use.jar"/>
-	<classpathentry kind="lib" path="C:/Dokumente und Einstellungen/Todde/Eigene Dateien/Uni/Diplomarbeit/USE svn/build/lib/use-gui.jar"/>
-	<classpathentry kind="lib" path="C:/Dokumente und Einstellungen/Todde/Eigene Dateien/Uni/Diplomarbeit/USE svn/build/lib/use-runtime.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/use_trunk"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

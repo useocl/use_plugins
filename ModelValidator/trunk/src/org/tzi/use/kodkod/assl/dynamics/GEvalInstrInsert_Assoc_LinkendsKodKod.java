@@ -23,6 +23,7 @@ package org.tzi.use.kodkod.assl.dynamics;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -132,7 +133,7 @@ public class GEvalInstrInsert_Assoc_LinkendsKodKod extends GEvalInstruction
         }
         
         MStatement statement = 
-        	new MLinkInsertionStatement(association, participants);
+        	new MLinkInsertionStatement(association, participants, Collections.<List<MRValue>>emptyList());
         
         MStatement inverseStatement;
 
