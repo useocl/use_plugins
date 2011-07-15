@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="use-work/lib/plugins/monitor.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/use-monitor-plugin/plugin.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" manifestLocation="/use-monitor-plugin/META-INF/MANIFEST.MF" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <file path="/use-monitor-plugin/useplugin.xml"/>
+        <javaElement handleIdentifier="=use-monitor-plugin/src"/>
+        <folder path="/use-monitor-plugin/META-INF"/>
+    </selectedElements>
+</jardesc>

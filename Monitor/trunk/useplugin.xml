@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?use version="3.0.0"?>
+<plugin name="Monitor-Plugin" version="0.1" publisher="Lars Hamann">
+	<commands>
+		<command class="org.tzi.use.monitor.cmd.StartMonitorCmd"
+			id="org.tzi.use.monitor.cmd.StartMonitorCmd" shellcmd="monitor start"
+			label="Start Monitoring" help="Starts monitoring of a JVM application">
+		</command>
+		<command class="org.tzi.use.monitor.cmd.PauseMonitorCmd"
+			id="org.tzi.use.monitor.cmd.PauseMonitorCmd" shellcmd="monitor pause"
+			label="Pause Monitoring" help="Pauses monitoring of a JVM application">
+		</command>
+		<command class="org.tzi.use.monitor.cmd.ResumeMonitorCmd"
+			id="org.tzi.use.monitor.cmd.ResumeMonitorCmd" shellcmd="monitor resume"
+			label="Resume Monitoring" help="Resumes monitoring of a paused JVM application">
+		</command>
+		<command class="org.tzi.use.monitor.cmd.EndMonitorCmd"
+			id="org.tzi.use.monitor.cmd.EndMonitorCmd" shellcmd="monitor end"
+			label="End Monitoring" help="Ends monitoring of a JVM application">
+		</command>
+	</commands>
+</plugin>

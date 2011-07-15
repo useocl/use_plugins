@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Plugin-Name: Monitor
+Plugin-Version: 0.1
+Plugin-Publisher: Lars Hamann
+Main-Class: org.tzi.use.monitor.MonitorPlugin
+Class-Path: ../tools.jar
