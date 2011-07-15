@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?use version="2.4.0"?>
-<plugin name="Kodkod-Plugin" version="0.5">
+<?use version="3.0.0RC3"?>
+<plugin name="USE Model Validator" version="0.1.0">
 	<actions>
 		<action
-			label="Use Kodkod"
-			icon="resources/KodkodIcon.gif"
-			class="org.tzi.use.kodkod.main.ActionKodkod"
-			tooltip="Use Kodkod"
+			label="Model Validator"
+			icon="resources/mv.gif"
+			class="org.tzi.use.modelvalidator.main.ActionModelValidator"
+			tooltip="Model Validator"
 			menu="View"
-			menuitem="Kodkod"
+			menuitem="Model Validator"
 			toolbaritem="plugins"
-			id="org.tzi.use.kodkod.main.ActionKodkod">
+			id="org.tzi.use.modelvalidator.main.ActionModelValidator">
 		</action>
 	</actions>
 </plugin>

@@ -1,4 +1,4 @@
-package org.tzi.use.kodkod.main;
+package org.tzi.use.modelvalidator.main;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -23,9 +23,9 @@ import org.tzi.use.uml.sys.MSystem;
  * corresponding Plugin Action Delegate in the application
  * @author Torsten Humann
  */
-public class ActionKodkod implements IPluginActionDelegate {
+public class ActionModelValidator implements IPluginActionDelegate {
 
-	public ActionKodkod(){
+	public ActionModelValidator(){
 	}
 
 	//Action Method called from the Action Proxy
@@ -52,7 +52,6 @@ public class ActionKodkod implements IPluginActionDelegate {
 			kv.setVisible(true);
 			ViewFrame vf = new ViewFrame("Model Validator", kv, "");
 			vf.setSize(new Dimension(600, 600));
-
 			JComponent c = (JComponent) vf.getContentPane();
 			c.setLayout(new BorderLayout());
 			c.add(new JScrollPane(kv), BorderLayout.CENTER);

@@ -98,7 +98,6 @@ public class KodkodView extends JPanel implements View{
 	
 	public KodkodView(MainWindow curMainWin, MSystem system){
 		super(new BorderLayout());
-		
 		solvNumber = 0;
 		
 		curMainWindow = curMainWin;
@@ -133,7 +132,7 @@ public class KodkodView extends JPanel implements View{
 		myAssClaButtonPanel.setLayout(new FlowLayout());
 		
 		myRunButton = new JButton();
-		myRunButton.setText("run Kodkod");
+		myRunButton.setText("run Model Validator");
 		myRunButton.setPreferredSize(new Dimension(200, 25));
 		myRunButton.addMouseListener(new MouseAdapter(){
 			public void mouseReleased(MouseEvent e){
