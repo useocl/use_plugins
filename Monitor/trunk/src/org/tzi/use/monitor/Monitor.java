@@ -218,6 +218,8 @@ public class Monitor {
 		System.out.println("Setting operation breakpoints");
 		registerOperationBreakPoints();
 		
+		this.instanceMapping = new HashMap<ObjectReference, MObject>();
+		
 		breakpointWatcher = new Thread(new Runnable() {
 			@Override
 			public void run() {
