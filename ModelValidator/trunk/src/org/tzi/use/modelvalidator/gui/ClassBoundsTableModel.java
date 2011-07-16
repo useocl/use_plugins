@@ -41,18 +41,22 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 
 	}
 
+	@Override
 	public int getColumnCount() {
 		return columnTitles.size();
 	}
 
+	@Override
 	public String getColumnName(int columnIndex) {
 		return columnTitles.get(columnIndex);
 	}
 
+	@Override
 	public int getRowCount() {
 		return rows.size();
 	}
 
+	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Row row = rows.get(rowIndex);
 		switch (columnIndex) {
@@ -68,14 +72,45 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 			return row.getMaximumNumberOfObjects();
 		default:
 			return "Not handled!";
-
 		}
 	}
 
 	@Override
-	public Class<?> getColumnClass(int arg0) {
-		// TODO Auto-generated method stub
-		return super.getColumnClass(arg0);
+	public Class<?> getColumnClass(int columnIndex) {
+		switch(columnIndex) {
+		case 0:
+			return String.class;
+		case 1:
+			return String.class;
+		case 2:
+			return String.class;
+		case 3:
+			return Integer.class;
+		case 4:
+			return Integer.class;
+		default:
+			return String.class;
+		}
+	}
+	
+	@Override
+	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+		switch(columnIndex) {
+		case 1:
+			rows.get(rowIndex).setConcreteObjectsLower((String)aValue);
+			return;
+		case 2:
+			rows.get(rowIndex).setConcreteObjectsUpper((String)aValue);
+			return;
+		case 3:
+			rows.get(rowIndex).setMinimumNumberOfObjects((Integer)aValue);
+			return;
+		case 4:
+			rows.get(rowIndex).setMaximumNumberOfObjects((Integer)aValue);
+			return;
+		default:
+			return;
+		}
 	}
 
 	private static class Row {
@@ -109,6 +144,7 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 		}
 
 		public void setConcreteObjectsLower(String concreteObjectsLower) {
+			System.out.println(concreteObjectsLower);
 			this.concreteObjectsLower = concreteObjectsLower;
 		}
 
@@ -117,6 +153,7 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 		}
 
 		public void setConcreteObjectsUpper(String concreteObjectsUpper) {
+			System.out.println(concreteObjectsUpper);
 			this.concreteObjectsUpper = concreteObjectsUpper;
 		}
 
@@ -125,6 +162,7 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 		}
 
 		public void setMinimumNumberOfObjects(int minimumNumberOfObjects) {
+			System.out.println(minimumNumberOfObjects);
 			this.minimumNumberOfObjects = minimumNumberOfObjects;
 		}
 
@@ -133,6 +171,7 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 		}
 
 		public void setMaximumNumberOfObjects(int maximumNumberOfObjects) {
+			System.out.println(maximumNumberOfObjects);
 			this.maximumNumberOfObjects = maximumNumberOfObjects;
 		}
 

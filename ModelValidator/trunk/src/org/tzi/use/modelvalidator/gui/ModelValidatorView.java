@@ -1,6 +1,8 @@
 package org.tzi.use.modelvalidator.gui;
 
 import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -35,6 +37,14 @@ public class ModelValidatorView extends JPanel implements View {
 
 		JTable classBoundsTable = new JTable(new ClassBoundsTableModel(system));
 		JScrollPane classBoundsTablePane = new JScrollPane(classBoundsTable);
+		
+		classBoundsTable.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if(e.getClickCount() == 2){
+					System.out.println("Test!");
+				}
+			}
+		});
 		
 		classBoundsPanel.add(classBoundsTablePane, BorderLayout.CENTER);
 	}
