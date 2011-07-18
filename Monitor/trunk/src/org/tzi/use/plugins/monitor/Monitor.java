@@ -19,7 +19,7 @@
 
 // $Id$
 
-package org.tzi.use.monitor;
+package org.tzi.use.plugins.monitor;
 
 import java.io.IOException;
 import java.util.ArrayList;

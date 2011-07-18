@@ -1,4 +1,4 @@
-package org.tzi.use.monitor;
+package org.tzi.use.plugins.monitor;
 
 import org.tzi.use.runtime.IPlugin;
 import org.tzi.use.runtime.IPluginRuntime;
