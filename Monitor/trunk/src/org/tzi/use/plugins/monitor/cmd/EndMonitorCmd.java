@@ -8,8 +8,8 @@ public class EndMonitorCmd implements IPluginShellCmdDelegate {
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
-		if (!MonitorPlugin.getInstance().checkMonitoring()) return;
-		MonitorPlugin.getInstance().endMonitor();
+		if (!MonitorPlugin.getMonitorPluginInstance().checkMonitoring()) return;
+		MonitorPlugin.getMonitorPluginInstance().endMonitor();
 	}
 
 }

@@ -9,7 +9,7 @@ public class StartMonitorCmd implements IPluginShellCmdDelegate {
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
-		if (MonitorPlugin.getInstance().getMonitor() != null) {
+		if (MonitorPlugin.getMonitorPluginInstance().getMonitor().isRunning()) {
     		Log.error("Already monitioring an application. Please stop before starting a new monitor.");
     		return;
     	}
@@ -33,8 +33,7 @@ public class StartMonitorCmd implements IPluginShellCmdDelegate {
     		return;
     	}
     	
-		MonitorPlugin.getInstance().startMonitor(pluginCommand.getSession().system(), host, port);
-		MonitorPlugin.getInstance().getMonitor().start();
+		MonitorPlugin.getMonitorPluginInstance().startMonitor(pluginCommand.getSession().system(), host, port);
 	}
 
 }

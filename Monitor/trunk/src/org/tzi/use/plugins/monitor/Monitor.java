@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -103,11 +104,11 @@ public class Monitor {
 	/**
 	 * The host name where the monitored VM is running on
 	 */
-	private final String host;
+	private String host;
 	/**
 	 * The port where the monitored VM is providing debugging events
 	 */
-	private final int port;
+	private int port;
 	/**
 	 * The USE system which provides information about the relevant
 	 * classes and operations to listen for.
@@ -121,7 +122,11 @@ public class Monitor {
 	 * True when monitoring, e.g., USE monitor is connected
 	 * to a VM
 	 */
-    private boolean isRunning;
+    private boolean isRunning = false;
+    /**
+	 * True when monitoring and vm is paused
+	 */
+    private boolean isPaused = false;
     
     private SocketAttachingConnector connector;
     
@@ -145,6 +150,8 @@ public class Monitor {
     
     private int countAttributes;
     
+    private List<IMonitorStateListener> stateListener = new LinkedList<IMonitorStateListener>();
+    
     /**
      * When true, Soil statements are used for system state manipulation.
      * Otherwise the objects are created directly by using operations of
@@ -152,7 +159,9 @@ public class Monitor {
      */
     private boolean useSoil = true;
     
-    public Monitor(MSystem system, String host, String port) {
+    public Monitor() { }
+    
+    public void configure(MSystem system, String host, String port) {
     	MElementAnnotation modelAnnotation = system.model().getAnnotation("Monitor");
     	
     	if ("".equals(host)) {
@@ -180,6 +189,10 @@ public class Monitor {
     
     public boolean isRunning() {
     	return this.isRunning;
+    }
+    
+    public boolean isPaused() {
+    	return this.isRunning && this.isPaused;
     }
     
     private String getJavaClassName(MClass cls) {
@@ -262,6 +275,7 @@ public class Monitor {
 		breakpointWatcher.start();
 		
 		monitoredVM.resume();
+		onMonitorStart();
     }
 
     public void pause() {
@@ -278,6 +292,9 @@ public class Monitor {
     	
     	long end = System.currentTimeMillis();
     	Log.println("Read " + countInstances + " instances and " + countLinks + " links in " + (end - start) + "ms.");
+    	
+    	isPaused = true;
+    	onMonitorPause();
     }
 
     public void resume() {
@@ -289,6 +306,8 @@ public class Monitor {
 		}
     	
     	monitoredVM.resume();
+    	isPaused = false;
+    	onMonitorResume();
     }
     
     public void end() {
@@ -297,6 +316,7 @@ public class Monitor {
     	
     	instanceMapping = null;
     	isRunning = false;
+    	onMonitorEnd();
     }
     
     public boolean hasSnapshot() {
@@ -1086,6 +1106,41 @@ public class Monitor {
 			}
 			
 		}
-    	
+    }
+    
+    public void addStateChangedListener(IMonitorStateListener listener) {
+    	this.stateListener.add(listener);
+    }
+    
+    public void removeStateChangedListener(IMonitorStateListener listener) {
+    	this.stateListener.remove(listener);
+    }
+    
+    protected void onMonitorStart() {
+    	for (IMonitorStateListener listener : stateListener) {
+    		listener.monitorStarted(this);
+    		listener.monitorStateChanged(this);
+    	}
+    }
+    
+    protected void onMonitorPause() {
+    	for (IMonitorStateListener listener : stateListener) {
+    		listener.monitorPaused(this);
+    		listener.monitorStateChanged(this);
+    	}
+    }
+    
+    protected void onMonitorResume() {
+    	for (IMonitorStateListener listener : stateListener) {
+    		listener.monitorResumed(this);
+    		listener.monitorStateChanged(this);
+    	}
+    }
+    
+    protected void onMonitorEnd() {
+    	for (IMonitorStateListener listener : stateListener) {
+    		listener.monitorEnded(this);
+    		listener.monitorStateChanged(this);
+    	}
     }
 }

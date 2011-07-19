@@ -8,8 +8,8 @@ public class ResumeMonitorCmd implements IPluginShellCmdDelegate {
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
-		if (MonitorPlugin.getInstance().checkMonitoring()) return;
-		MonitorPlugin.getInstance().getMonitor().resume();
+		if (!MonitorPlugin.getMonitorPluginInstance().getMonitor().isPaused()) return;
+		MonitorPlugin.getMonitorPluginInstance().getMonitor().resume();
 	}
 
 }

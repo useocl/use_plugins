@@ -8,8 +8,8 @@ public class PauseMonitorCmd implements IPluginShellCmdDelegate {
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
-		if (!MonitorPlugin.getInstance().checkMonitoring()) return;
-		MonitorPlugin.getInstance().getMonitor().pause();
+		if (!MonitorPlugin.getMonitorPluginInstance().checkMonitoring()) return;
+		MonitorPlugin.getMonitorPluginInstance().getMonitor().pause();
 	}
 
 }

@@ -11,8 +11,9 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <file path="/use-monitor-plugin/useplugin.xml"/>
-        <javaElement handleIdentifier="=use-monitor-plugin/src"/>
+        <folder path="/use-monitor-plugin/resources"/>
         <folder path="/use-monitor-plugin/META-INF"/>
+        <javaElement handleIdentifier="=use-monitor-plugin/src"/>
+        <file path="/use-monitor-plugin/useplugin.xml"/>
     </selectedElements>
 </jardesc>

@@ -1,20 +1,17 @@
 package org.tzi.use.plugins.monitor;
 
-import org.tzi.use.runtime.IPlugin;
-import org.tzi.use.runtime.IPluginRuntime;
+import org.tzi.use.runtime.impl.Plugin;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.util.Log;
 
-public class MonitorPlugin implements IPlugin {
+public class MonitorPlugin extends Plugin {
 
 	private static String PLUGIN_NAME = "Monitor";
 	
-	private static MonitorPlugin pluginSingleton;
+	private Monitor monitor = new Monitor();
 	
-	private Monitor monitor = null;
-	
-	public static MonitorPlugin getInstance() {
-		return pluginSingleton;
+	public static MonitorPlugin getMonitorPluginInstance() {
+		return (MonitorPlugin)pluginInstance;
 	}
 	
 	@Override
@@ -22,21 +19,17 @@ public class MonitorPlugin implements IPlugin {
 		return PLUGIN_NAME;
 	}
 
-	@Override
-	public void run(IPluginRuntime pluginRuntime) throws Exception {
-		pluginSingleton = this;
-	}
-
 	public Monitor getMonitor() {
 		return monitor;
 	}
 	
 	public void startMonitor(MSystem system, String host, String port) {
-		this.monitor = new Monitor(system, host, port);
+		this.monitor.configure(system, host, port);
+		this.monitor.start();
 	}
 
 	public boolean checkMonitoring() {
-		if (monitor == null || !monitor.isRunning()) {
+		if (!monitor.isRunning()) {
     		Log.error("No monitoring is running. Please use 'monitor start' to begin monitoring.");
     		return false;
     	}
@@ -46,6 +39,5 @@ public class MonitorPlugin implements IPlugin {
 
 	public void endMonitor() {
 		monitor.end();
-		monitor = null;
 	}
 }

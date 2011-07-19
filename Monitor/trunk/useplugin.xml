@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?use version="3.0.0"?>
-<plugin name="Monitor-Plugin" version="0.1" publisher="Lars Hamann">
+<plugin name="Monitor" version="0.1" publisher="Lars Hamann">
+    <actions>
+    	<action label="Show Monitor Control" icon="resources/Monitor.png"
+			class="org.tzi.use.plugins.monitor.gui.ActionShowMonitorControl" tooltip="Show monitor control"
+			menu="View" menuitem="Monitor control" toolbaritem="plugins"
+			id="org.tzi.use.gui.plugins.monitor.gui.ActionShowMonitorControl">
+		</action>
+    </actions>
 	<commands>
 		<command class="org.tzi.use.plugins.monitor.cmd.StartMonitorCmd"
 			id="org.tzi.use.monitor.cmd.StartMonitorCmd" shellcmd="monitor start"
