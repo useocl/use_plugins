@@ -275,6 +275,9 @@ public class Monitor {
 		breakpointWatcher.start();
 		
 		monitoredVM.resume();
+		isRunning = true;
+		isPaused = false;
+		
 		onMonitorStart();
     }
 
@@ -316,6 +319,7 @@ public class Monitor {
     	
     	instanceMapping = null;
     	isRunning = false;
+    	isPaused = false;
     	onMonitorEnd();
     }
     
@@ -344,7 +348,6 @@ public class Monitor {
     	
     	try {
 			monitoredVM = connector.attach(args);
-			isRunning = true;
 		} catch (IOException e) {
 			throw new MonitorException("Could not connect to virtual machine", e);
 		} catch (IllegalConnectorArgumentsException e) {
