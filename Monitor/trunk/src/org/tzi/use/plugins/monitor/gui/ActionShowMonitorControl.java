@@ -23,7 +23,7 @@ public class ActionShowMonitorControl implements IPluginActionDelegate {
 		// Getting MainWindow object from Proxy
 		MainWindow fMainWindow = pluginAction.getParent();
 		
-		MonitorControlView view = new MonitorControlView(fMainWindow, pluginAction.getSession().system());
+		MonitorControlView view = new MonitorControlView(fMainWindow, pluginAction.getSession());
 		view.setVisible(true);
 	}
 

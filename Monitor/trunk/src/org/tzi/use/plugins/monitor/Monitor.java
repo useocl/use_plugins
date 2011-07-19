@@ -23,13 +23,22 @@ package org.tzi.use.plugins.monitor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Stack;
 
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.tzi.use.main.Session;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationEnd;
@@ -100,7 +109,7 @@ import com.sun.tools.jdi.SocketAttachingConnector;
  * 
  * @author lhamann
  */
-public class Monitor {
+public class Monitor implements ChangeListener {
 	/**
 	 * The host name where the monitored VM is running on
 	 */
@@ -110,10 +119,10 @@ public class Monitor {
 	 */
 	private int port;
 	/**
-	 * The USE system which provides information about the relevant
+	 * The USE session which provides information about the relevant
 	 * classes and operations to listen for.
 	 */
-	private MSystem system;
+	private Session session;
 	/**
 	 * The monitored virtual machine
 	 */
@@ -152,6 +161,10 @@ public class Monitor {
     
     private List<IMonitorStateListener> stateListener = new LinkedList<IMonitorStateListener>();
     
+    private boolean isResetting = false;
+    
+    private long maxInstances = 10000;
+    
     /**
      * When true, Soil statements are used for system state manipulation.
      * Otherwise the objects are created directly by using operations of
@@ -161,8 +174,15 @@ public class Monitor {
     
     public Monitor() { }
     
-    public void configure(MSystem system, String host, String port) {
-    	MElementAnnotation modelAnnotation = system.model().getAnnotation("Monitor");
+    private MSystem getSystem() {
+    	return session.system();
+    }
+    
+    public void configure(Session session, String host, String port) {
+    	this.session = session;
+    	this.session.addChangeListener(this);
+    	
+    	MElementAnnotation modelAnnotation = getSystem().model().getAnnotation("Monitor");
     	
     	if ("".equals(host)) {
     		if (modelAnnotation != null && modelAnnotation.hasAnnotationValue("host")) {
@@ -183,8 +203,6 @@ public class Monitor {
     	} else {
     		this.port = Integer.parseInt(port);
     	}
-    	
-    	this.system = system;
     }
     
     public boolean isRunning() {
@@ -195,6 +213,12 @@ public class Monitor {
     	return this.isRunning && this.isPaused;
     }
     
+    protected void doUSEReset() {
+    	isResetting = true;
+    	session.reset();
+    	isResetting = false;
+    }
+    
     private String getJavaClassName(MClass cls) {
     	String classPackage = cls.getAnnotationValue("Monitor", "package");
     	String className = cls.getAnnotationValue("Monitor", "name");
@@ -203,10 +227,18 @@ public class Monitor {
     		className = cls.name();
     	
     	if (classPackage == "")
-    		classPackage = system.model().getAnnotationValue("Monitor", "defaultPackage");
+    		classPackage = getSystem().model().getAnnotationValue("Monitor", "defaultPackage");
     	
     	return classPackage + "." + className;
     }
+    
+    private String getJavaFieldName(MAttribute a) {
+		String name = a.getAnnotationValue("Monitor", "name");
+		if (name == "") {
+			name = a.name();
+		}
+		return name;
+	}
     
     private void waitForUserInput() {
     	synchronized (failedOperationLock) {
@@ -218,7 +250,9 @@ public class Monitor {
 		}
     }
     
-    public void start() {
+    public void start(boolean suspend) {
+    	doUSEReset();
+    	
     	try {
 			attachToVM();
 		} catch (MonitorException e) {
@@ -279,11 +313,22 @@ public class Monitor {
 		isPaused = false;
 		
 		onMonitorStart();
+		
+		if (suspend) {
+			pause(false);
+		}
     }
 
     public void pause() {
+    	pause(true);
+    }
+    
+    protected void pause(boolean doReset) {
     	monitoredVM.suspend();
-		system.reset();
+		
+    	if (doReset) {
+    		doUSEReset();
+    	}
     	
 		long start = System.currentTimeMillis();
 		countInstances = 0;
@@ -358,7 +403,7 @@ public class Monitor {
 	}
     
 	private void registerClassPrepareEvents() {
-		for (MClass cls : system.model().classes()) {
+		for (MClass cls : getSystem().model().classes()) {
 			String javaClassName = getJavaClassName(cls);
 			
 			ClassPrepareRequest req = monitoredVM.eventRequestManager().createClassPrepareRequest();
@@ -373,7 +418,7 @@ public class Monitor {
 	 * of all currently loaded classes in the VM.
 	 */
     private void registerOperationBreakPoints() {
-    	for (MClass cls : system.model().classes()) {
+    	for (MClass cls : getSystem().model().classes()) {
     		registerOperationBreakPoints(cls);
     	}
     }
@@ -413,7 +458,13 @@ public class Monitor {
 			}
 			
 			for (MAttribute a : cls.attributes()) {
-				Field f = refType.fieldByName(a.name());
+				String aName = getJavaFieldName(a);
+				Field f = refType.fieldByName(aName);
+				if (f == null) {
+					Log.warn("Unknown attribute " + StringUtil.inQuotes(a.name()));
+					continue;
+				}
+				
 				ModificationWatchpointRequest req = monitoredVM.eventRequestManager().createModificationWatchpointRequest(f);
 				req.setSuspendPolicy(EventRequest.SUSPEND_NONE);
 				req.enable();
@@ -432,15 +483,60 @@ public class Monitor {
 			}
 		}
 	}
-    
+
 	private void registerOperationBreakPoints(ReferenceType refType) {
 		// Get the last element of the qualified name
 		String name = refType.name();
 		name = name.substring(name.lastIndexOf(".") + 1);
 		
-		MClass cls = system.model().getClass(name);
+		MClass cls = getSystem().model().getClass(name);
 		if (cls != null) {
 			registerOperationBreakPoints(cls);
+		}
+	}
+	
+	private Map<MClass, Set<ReferenceType>> classMappings;
+	
+	/**
+	 * Constructs a map which maps each use class
+	 * to the reference types that must be read. 
+	 */
+	private void setupClassMappings() {
+		Collection<MClass> useClasses = getSystem().model().classes();
+		classMappings = new HashMap<MClass, Set<ReferenceType>>(useClasses.size());
+		
+		// Build a map of Java names to USE classes
+		Map<String, MClass> classNamesMap = new HashMap<String, MClass>(useClasses.size());
+		for (MClass useClass : useClasses) {
+			classNamesMap.put(getJavaClassName(useClass), useClass);
+			classMappings.put(useClass, new HashSet<ReferenceType>());
+		}
+		
+		for (ReferenceType type : monitoredVM.allClasses()) {
+			if (!(type instanceof ClassType)) continue;
+				
+			ClassType cType = (ClassType)type;
+			
+			if (classNamesMap.containsKey(cType.name())) {
+				MClass useClass = classNamesMap.get(cType.name());
+				Set<ReferenceType> javaClasses = classMappings.get(useClass);
+				javaClasses.add(cType);
+				
+				if (useClass.getAnnotationValue("Monitor", "ignoreSubclasses").equals("true"))
+					continue;
+
+				Stack<ClassType> toDo = new Stack<ClassType>();
+				toDo.push(cType);
+				while (!toDo.isEmpty()) {
+					ClassType toCheck = toDo.pop();
+					for (ClassType subType : toCheck.subclasses()) {
+						if (!classNamesMap.containsKey(subType.name())) {
+							javaClasses.add(subType);
+						}
+						toDo.push(subType);
+					}
+				}
+			}
 		}
 	}
 	
@@ -448,9 +544,10 @@ public class Monitor {
 		long start = System.currentTimeMillis();
 		
 		instanceMapping = new HashMap<ObjectReference, MObject>();
+		setupClassMappings();
 		
 		// Create current system state
-    	for (MClass cls : system.model().classes()) {
+    	for (MClass cls : getSystem().model().classes()) {
     		readInstances(cls);
     	}
     	
@@ -461,32 +558,48 @@ public class Monitor {
 				+ "ms (" + (double)countInstances / ((double)duration / 1000) + " instances/s).");
     	
     	readAttributtesAndLinks();
+    	classMappings = null;
 	}
 	
     private void readInstances(MClass cls) {
-    	ReferenceType refType = getReferenceClass(cls);
     	
-    	if (refType == null) {
+    	// Find all subclasses of the reference type which are not modeled in
+    	// the USE file, because instances() only returns concrete instances
+    	// of a type (and not of subclasses) 
+    	Set<ReferenceType> typesToRead = classMappings.get(cls);
+
+    	if (typesToRead.isEmpty()) {
 			Log.debug("Java class "
 					+ StringUtil.inQuotes(getJavaClassName(cls))
 					+ " could not be found for USE class "
 					+ StringUtil.inQuotes(cls.name())
 					+ ". Maybe not loaded, yet.");
-    	} else {
-    		List<ObjectReference> refInstances = refType.instances(10000);
-    		
-    		for (ObjectReference objRef : refInstances) {
-    			try {
-    				createInstance(cls, objRef);
+			return;
+    	}
+
+		for (ReferenceType refType : typesToRead) {
+	    	List<ObjectReference> refInstances = refType.instances(getMaxInstances());
+			
+			for (ObjectReference objRef : refInstances) {
+				try {
+					createInstance(cls, objRef);
 					++countInstances;
 				} catch (MSystemException e) {
 					Log.error(e);
 					return;
 				}
-    		}
-    	}
+			}
+		}
     }
 
+	public long getMaxInstances() {
+		return maxInstances;
+	}
+
+	public void setMaxInstances(long newValue) {
+		maxInstances = newValue;
+	}
+	
 	/**
 	 * @param cls
 	 * @param objRef
@@ -496,11 +609,11 @@ public class Monitor {
 			throws MSystemException {
 		if (useSoil) {
 			MNewObjectStatement stmt = new MNewObjectStatement(cls);
-			system.evaluateStatement(stmt);
+			getSystem().evaluateStatement(stmt);
 			instanceMapping.put(objRef, stmt.getCreatedObject());
 		} else {
-			String name = system.state().uniqueObjectNameForClass(cls);
-			MObject o = system.state().createObject(cls, name);
+			String name = getSystem().state().uniqueObjectNameForClass(cls);
+			MObject o = getSystem().state().createObject(cls, name);
 			instanceMapping.put(objRef, o);
 		}
 	}
@@ -560,12 +673,12 @@ public class Monitor {
     			List<MAssociationEnd> ends = new ArrayList<MAssociationEnd>(end.association().associationEnds());
     			ends.remove(end);
     			
-    			List<MObject> objects = system.state().getNavigableObjects(useObject, ends.get(0), end, Collections.<Value>emptyList());
+    			List<MObject> objects = getSystem().state().getNavigableObjects(useObject, ends.get(0), end, Collections.<Value>emptyList());
     			
     			if (objects.size() > 0) {
     				MLinkDeletionStatement delStmt = new MLinkDeletionStatement(end.association(), objects.get(0), useObject);
 	    			try {
-	    				system.evaluateStatement(delStmt);
+	    				getSystem().evaluateStatement(delStmt);
 					} catch (MSystemException e) {
 						Log.warn("Link of association " + StringUtil.inQuotes(end.association()) + " could not be deleted. Reason: " + e.getMessage());
 						return;
@@ -592,7 +705,7 @@ public class Monitor {
 						MLinkInsertionStatement createStmt = new MLinkInsertionStatement(
 								end.association(), linkObjects, Collections.<List<Value>>emptyList()
 						);
-						system.evaluateStatement(createStmt);
+						getSystem().evaluateStatement(createStmt);
 					} catch (MSystemException e) {
 						Log.warn("Could not create new link");
 					}
@@ -604,7 +717,7 @@ public class Monitor {
 					new ExpObjRef(useObject), attr, v);
     		
 			try {
-				system.evaluateStatement(stmt);
+				getSystem().evaluateStatement(stmt);
 			} catch (MSystemException e) {
 				Log.warn("Attribute " + StringUtil.inQuotes(attr.toString()) + " could not be set!");
 			}
@@ -622,7 +735,7 @@ public class Monitor {
      */
     private void readAttributes(ObjectReference objRef, MObject o) {
     	for (MAttribute attr : o.cls().allAttributes()) {
-    		Field field = objRef.referenceType().fieldByName(attr.name());
+    		Field field = objRef.referenceType().fieldByName(getJavaFieldName(attr));
     		
     		if (field != null) {
     			com.sun.jdi.Value val = objRef.getValue(field);
@@ -631,9 +744,9 @@ public class Monitor {
     				if (useSoil) {
     					MAttributeAssignmentStatement stmt = 
     						new MAttributeAssignmentStatement(o, attr, v);
-    					system.evaluateStatement(stmt);
+    					getSystem().evaluateStatement(stmt);
     				} else {
-    					o.state(system.state()).setAttributeValue(attr, v);
+    					o.state(getSystem().state()).setAttributeValue(attr, v);
     				}
     				++countAttributes;
     			} catch (IllegalArgumentException e) {
@@ -694,7 +807,11 @@ public class Monitor {
     					reachableEnds = ass.navigableEndsFrom(cls);
     					break;
     				} catch (IllegalArgumentException e) {
-    					cls = cls.parents().iterator().next();
+    					Iterator<MClass> parentIter = cls.parents().iterator(); 
+    					if (parentIter.hasNext())
+    						cls = cls.parents().iterator().next();
+    					else
+    						break;
     				}
     			}
     			
@@ -807,13 +924,13 @@ public class Monitor {
 		
 		// Maybe the link is already created by reading the other instance
 		try {
-			if (!system.state().hasLink(end.association(), linkedObjects, qv)) {
+			if (!getSystem().state().hasLink(end.association(), linkedObjects, qv)) {
 				if (useSoil) {
 					MLinkInsertionStatement stmt = 
 						new MLinkInsertionStatement(end.association(), linkedObjects.toArray(new MObject[2]), qv);
-					system.evaluateStatement(stmt);
+					getSystem().evaluateStatement(stmt);
 				} else {
-					system.state().createLink(end.association(), linkedObjects, qv);
+					getSystem().state().createLink(end.association(), linkedObjects, qv);
 				}
 				++countLinks;
 			}
@@ -945,14 +1062,14 @@ public class Monitor {
 		
 		Log.debug("getUSEClass: " + className);
 		
-		MClass cls = system.model().getClass(className);
+		MClass cls = getSystem().model().getClass(className);
 		
 		if (cls == null) {
 			// Find class by annotated value
-			for (MClass aCls : system.model().classes()) {
+			for (MClass aCls : getSystem().model().classes()) {
 				className = aCls.getAnnotationValue("Monitor", "className");
 				if (className != "") {
-					cls = system.model().getClass(className);
+					cls = getSystem().model().getClass(className);
 					if (cls != null)
 						break;
 				}
@@ -1009,7 +1126,7 @@ public class Monitor {
 				new ExpObjRef(self), useOperation, arguments, ppcHandler );
     	
     	try {
-			system.evaluateStatement(operationCall);
+    		getSystem().evaluateStatement(operationCall);
 		} catch (MSystemException e) {
 			Log.error(e.getMessage());
 			return false;
@@ -1023,22 +1140,22 @@ public class Monitor {
     }
     
     private boolean onMethodExit(MethodExitEvent exitEvent) {
-    	if (!exitEvent.method().name().equals(system.getCurrentOperation().getOperation().name()))
+    	if (!exitEvent.method().name().equals(getSystem().getCurrentOperation().getOperation().name()))
     		return true;
     	
     	ExpressionWithValue result = null;
 		this.monitoredVM.eventRequestManager().deleteEventRequest(exitEvent.request());
     	
-    	if (system.getCurrentOperation().getOperation().hasResultType()) {
+    	if (getSystem().getCurrentOperation().getOperation().hasResultType()) {
 			result = new ExpressionWithValue(getUSEValue(
-					exitEvent.returnValue(), system.getCurrentOperation()
+					exitEvent.returnValue(), getSystem().getCurrentOperation()
 							.getOperation().resultType().isObjectType()));
 		}
 
 		MExitOperationStatement stmt = new MExitOperationStatement(result, ppcHandler);
     	
 		try {
-			system.evaluateStatement(stmt);
+			getSystem().evaluateStatement(stmt);
 		} catch (MSystemException e) {
 			return false;
 		}
@@ -1146,4 +1263,11 @@ public class Monitor {
     		listener.monitorStateChanged(this);
     	}
     }
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		if (!isResetting && isRunning()) {
+			end();
+		}
+	}
 }

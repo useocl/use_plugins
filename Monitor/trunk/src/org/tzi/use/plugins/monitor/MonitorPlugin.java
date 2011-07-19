@@ -1,7 +1,7 @@
 package org.tzi.use.plugins.monitor;
 
+import org.tzi.use.main.Session;
 import org.tzi.use.runtime.impl.Plugin;
-import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.util.Log;
 
 public class MonitorPlugin extends Plugin {
@@ -23,9 +23,9 @@ public class MonitorPlugin extends Plugin {
 		return monitor;
 	}
 	
-	public void startMonitor(MSystem system, String host, String port) {
-		this.monitor.configure(system, host, port);
-		this.monitor.start();
+	public void startMonitor(Session session, String host, String port, boolean suspend) {
+		this.monitor.configure(session, host, port);
+		this.monitor.start(suspend);
 	}
 
 	public boolean checkMonitoring() {

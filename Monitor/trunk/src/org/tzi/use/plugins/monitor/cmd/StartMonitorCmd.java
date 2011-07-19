@@ -29,11 +29,11 @@ public class StartMonitorCmd implements IPluginShellCmdDelegate {
     	} else if (args.length == 0) {
     		Log.println("Using default value for remote debugger: localhost:6001");
     	} else {
-    		Log.println("Wrong number of arguments. Usage: start monitor [hostname:]port");
+    		Log.println("Wrong number of arguments. Usage: start monitor [hostname:]port [suspend]");
     		return;
     	}
     	
-		MonitorPlugin.getMonitorPluginInstance().startMonitor(pluginCommand.getSession().system(), host, port);
+		MonitorPlugin.getMonitorPluginInstance().startMonitor(pluginCommand.getSession(), host, port, false);
 	}
 
 }

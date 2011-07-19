@@ -20,21 +20,24 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.tzi.use.gui.main.MainWindow;
+import org.tzi.use.main.Session;
 import org.tzi.use.plugins.monitor.AbstractMonitorStateListener;
+import org.tzi.use.plugins.monitor.IMonitorStateListener;
 import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorPlugin;
-import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.StateChangeListener;
 
 import sun.awt.VerticalBagLayout;
 
 @SuppressWarnings("serial")
-public class MonitorControlView extends JDialog implements StateChangeListener {
+public class MonitorControlView extends JDialog implements StateChangeListener, ChangeListener {
 
-	private MSystem system;
+	private Session session;
 	
 	private JButton button_Play;
 	private JToggleButton button_Pause;
@@ -43,13 +46,18 @@ public class MonitorControlView extends JDialog implements StateChangeListener {
 	private JTextField text_host;
 	private JTextField text_port;
 	private JCheckBox check_suspend;
+	private JLabel label_useModel;
 	
-	public MonitorControlView(MainWindow parent, MSystem system) {
+	private IMonitorStateListener stateChangeListener;
+	
+	public MonitorControlView(MainWindow parent, Session session) {
 		super(parent, "Monitor Control");
-		this.system = system;
+		this.session = session;
+		session.addChangeListener(this);
+		
 		initGUI();
 		
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().addStateChangedListener(new AbstractMonitorStateListener() {
+		stateChangeListener = new AbstractMonitorStateListener() {
 			/* (non-Javadoc)
 			 * @see org.tzi.use.plugins.monitor.AbstractMonitorStateListener#monitorStateChanged(org.tzi.use.plugins.monitor.Monitor)
 			 */
@@ -57,7 +65,9 @@ public class MonitorControlView extends JDialog implements StateChangeListener {
 			public void monitorStateChanged(Monitor source) {
 				configureComponents();
 			}
-		});
+		};
+		
+		MonitorPlugin.getMonitorPluginInstance().getMonitor().addStateChangedListener(stateChangeListener);
 	}
 	
 	private void initGUI() {
@@ -76,12 +86,8 @@ public class MonitorControlView extends JDialog implements StateChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				MonitorControlView.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 				
-				MonitorPlugin.getMonitorPluginInstance().getMonitor().configure(system, text_host.getText(), text_port.getText());
-				MonitorPlugin.getMonitorPluginInstance().getMonitor().start();
-				
-				if (check_suspend.isSelected()) {
-					MonitorPlugin.getMonitorPluginInstance().getMonitor().pause();
-				}
+				MonitorPlugin.getMonitorPluginInstance().getMonitor().configure(session, text_host.getText(), text_port.getText());
+				MonitorPlugin.getMonitorPluginInstance().getMonitor().start(check_suspend.isSelected());
 				
 				MonitorControlView.this.setCursor(Cursor.getDefaultCursor());
 			}
@@ -145,9 +151,9 @@ public class MonitorControlView extends JDialog implements StateChangeListener {
 		info.add(new JLabel("USE model:"), cLabel);
 		cLabel.gridy++;
 		
-		JLabel label = new JLabel(system.model().name());
-		label.setFont(getFont().deriveFont(Font.BOLD));
-		info.add(label, cData);
+		label_useModel = new JLabel(session.system().model().name());
+		label_useModel.setFont(getFont().deriveFont(Font.BOLD));
+		info.add(label_useModel, cData);
 		cData.gridy++;
 		
 		info.add(new JLabel("Remote host:"), cLabel);
@@ -192,6 +198,20 @@ public class MonitorControlView extends JDialog implements StateChangeListener {
 	
 	@Override
 	public void stateChanged(StateChangeEvent e) {
-		// TODO Auto-generated method stub
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see java.awt.Window#dispose()
+	 */
+	@Override
+	public void dispose() {
+		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeStateChangedListener(stateChangeListener);
+		super.dispose();
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		this.label_useModel.setText(session.system().model().name());
 	}
 }
