@@ -80,20 +80,28 @@ public class ModelValidatorView extends JPanel implements View {
 		for (ClassBoundsTableModel.Row row : classBoundsTableModel.getRows()) {
 			String concatConcreteMandatoryObjects = row
 					.getConcreteObjectsMandatoryFix()
-					+ ", "
-					+ row.getConcreteObjectsMandatoryAdditional();
-			List<String> concreteMandatoryObjects = new ArrayList<String>(
-					Arrays.asList(concatConcreteMandatoryObjects));
+					+ ","
+					+ row.getConcreteObjectsMandatoryAdditional().replaceAll(
+							" ", "");
+			List<String> concreteMandatoryObjects = new ArrayList<String>();
+			if (!concatConcreteMandatoryObjects.isEmpty()) {
+				concreteMandatoryObjects = new ArrayList<String>(
+						Arrays.asList(concatConcreteMandatoryObjects.split(",")));
+			}
 
-			List<String> concreteOptionalObjects = new ArrayList<String>(
-					Arrays.asList(row.getConcreteObjectsOptional()));
+			List<String> concreteOptionalObjects = new ArrayList<String>();
+			if (!row.getConcreteObjectsOptional().isEmpty()) {
+				concreteOptionalObjects = new ArrayList<String>(
+						Arrays.asList(row.getConcreteObjectsOptional()
+								.replaceAll(" ", "").split(",")));
+			}
 
 			classConfigurations.add(new ClassConfiguration(row.getCls(),
 					concreteMandatoryObjects, concreteOptionalObjects, row
 							.getMinimumNumberOfObjects(), row
 							.getMaximumNumberOfObjects()));
 		}
-		
+
 		ModelValidator modelValidator = new ModelValidator(classConfigurations);
 		modelValidator.translateUML();
 	}

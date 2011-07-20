@@ -1,6 +1,7 @@
 package org.tzi.use.modelvalidator.main;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import kodkod.ast.Relation;
@@ -21,6 +22,8 @@ public class ModelValidator {
 	public void translateUML() {
 		createClassRelations();
 		createObjectAtoms();
+		System.out.println(classRelations);
+		System.out.println(atoms);
 	}
 
 	private void createClassRelations() {
@@ -34,18 +37,21 @@ public class ModelValidator {
 		for (ClassConfiguration classConfiguration : classConfigurations) {
 			for (String concreteMandatoryObject : classConfiguration
 					.getConcreteMandatoryObjects()) {
-				atoms.add(concreteMandatoryObject);
+				atoms.add("Object_" + concreteMandatoryObject);
 			}
+			Iterator<String> concreteOptionalObjectIter = classConfiguration
+					.getConcreteOptionalObjects().iterator();
 			for (int i = classConfiguration.getConcreteMandatoryObjects()
 					.size(); i < classConfiguration.getMaximumNumberOfObjects(); i++) {
-				
+				if (concreteOptionalObjectIter.hasNext()) {
+					atoms.add("Object_" + concreteOptionalObjectIter.next());
+				} else {
+					atoms.add("Object_"
+							+ classConfiguration.getCls().name().toLowerCase()
+							+ (i + 1));
+				}
 			}
 		}
-		// for (int i = 0; i < person_specific_o.size(); i++) {
-		// atoms.add("Object_" + person_specific_o.get(i));
-		// }
-		// for (int i = person_specific_o.size(); i < person_max_o; i++) {
-		// atoms.add("Object_person" + (i + 1));
-		// }
+	 min number erhöhen bei concrete mandatory additional
 	}
 }
