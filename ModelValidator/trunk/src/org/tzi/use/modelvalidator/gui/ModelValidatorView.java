@@ -18,6 +18,7 @@ import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.views.View;
 import org.tzi.use.modelvalidator.configuration.ClassConfiguration;
 import org.tzi.use.modelvalidator.main.Main;
+import org.tzi.use.modelvalidator.main.ModelValidator;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.StateChangeEvent;
 
@@ -92,6 +93,9 @@ public class ModelValidatorView extends JPanel implements View {
 							.getMinimumNumberOfObjects(), row
 							.getMaximumNumberOfObjects()));
 		}
+		
+		ModelValidator modelValidator = new ModelValidator(classConfigurations);
+		modelValidator.translateUML();
 	}
 
 	public void stateChanged(StateChangeEvent e) {
