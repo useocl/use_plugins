@@ -3,23 +3,33 @@ package org.tzi.use.modelvalidator.gui;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.JOptionPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.uml.sys.StateChangeEvent;
+import org.tzi.use.uml.sys.StateChangeListener;
 import org.tzi.use.util.StringUtil;
 
-public class ClassBoundsTableModel extends AbstractTableModel {
+public class ClassBoundsTableModel extends AbstractTableModel implements
+		StateChangeListener {
 	private static final long serialVersionUID = 1L;
 
 	private List<Row> rows = new ArrayList<Row>();
 	private List<String> columnTitles;
 
 	public ClassBoundsTableModel(MSystem system) {
+		system.addChangeListener(this);
+
 		ArrayList<MClass> classes = new ArrayList<MClass>(system.model()
 				.classes());
 		Collections.sort(classes, new Comparator<MClass>() {
@@ -33,12 +43,22 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 		}
 
 		columnTitles = new ArrayList<String>();
-		columnTitles.add("Class");
-		columnTitles.add("Concrete objects (lower)");
-		columnTitles.add("Concrete objects (upper)");
-		columnTitles.add("Minimum number of objects");
-		columnTitles.add("Maximum number of objects");
+		columnTitles.add("class");
+		columnTitles.add("concrete mandatory (fix)");
+		columnTitles.add("concrete mandatory (additional)");
+		columnTitles.add("concrete optional");
+		columnTitles.add("min number");
+		columnTitles.add("max number");
 
+	}
+
+	@Override
+	public int getRowCount() {
+		return rows.size();
+	}
+	
+	public List<Row> getRows() {
+		return rows;
 	}
 
 	@Override
@@ -52,8 +72,8 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 	}
 
 	@Override
-	public int getRowCount() {
-		return rows.size();
+	public boolean isCellEditable(int rowIndex, int columnIndex) {
+		return columnIndex > 1;
 	}
 
 	@Override
@@ -63,12 +83,14 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 		case 0:
 			return row.getCls().name();
 		case 1:
-			return row.getConcreteObjectsLower();
+			return row.getConcreteObjectsMandatoryFix();
 		case 2:
-			return row.getConcreteObjectsUpper();
+			return row.getConcreteObjectsMandatoryAdditional();
 		case 3:
-			return row.getMinimumNumberOfObjects();
+			return row.getConcreteObjectsOptional();
 		case 4:
+			return row.getMinimumNumberOfObjects();
+		case 5:
 			return row.getMaximumNumberOfObjects();
 		default:
 			return "Not handled!";
@@ -76,59 +98,68 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 	}
 
 	@Override
-	public Class<?> getColumnClass(int columnIndex) {
-		switch(columnIndex) {
-		case 0:
-			return String.class;
-		case 1:
-			return String.class;
-		case 2:
-			return String.class;
-		case 3:
-			return Integer.class;
-		case 4:
-			return Integer.class;
-		default:
-			return String.class;
-		}
-	}
-	
-	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-		switch(columnIndex) {
-		case 1:
-			rows.get(rowIndex).setConcreteObjectsLower((String)aValue);
-			return;
+		switch (columnIndex) {
 		case 2:
-			rows.get(rowIndex).setConcreteObjectsUpper((String)aValue);
+			rows.get(rowIndex).setConcreteObjectsMandatoryAdditional(
+					(String) aValue);
 			return;
 		case 3:
-			rows.get(rowIndex).setMinimumNumberOfObjects((Integer)aValue);
+			rows.get(rowIndex).setConcreteObjectsOptional((String) aValue);
 			return;
 		case 4:
-			rows.get(rowIndex).setMaximumNumberOfObjects((Integer)aValue);
+			if (aValue == null)
+				aValue = 0;
+			rows.get(rowIndex).setMinimumNumberOfObjects((Integer) aValue);
+			return;
+		case 5:
+			if (aValue == null)
+				aValue = 0;
+			rows.get(rowIndex).setMaximumNumberOfObjects((Integer) aValue);
 			return;
 		default:
 			return;
 		}
 	}
 
-	private static class Row {
+	@Override
+	public Class<?> getColumnClass(int columnIndex) {
+		switch (columnIndex) {
+		case 4:
+			return Integer.class;
+		case 5:
+			return Integer.class;
+		default:
+			return String.class;
+		}
+	}
+
+	public static class Row {
+
 		private MClass cls;
-		private String concreteObjectsLower = "";
-		private String concreteObjectsUpper = "";
+		private String concreteObjectsMandatoryFix = "";
+		private String concreteObjectsMandatoryAdditional = "";
+		private String concreteObjectsOptional = "";
 		private int minimumNumberOfObjects = 0;
 		private int maximumNumberOfObjects = 0;
 
+		private MSystem system;
+
 		public Row(MClass cls, MSystem system) {
 			this.cls = cls;
+			this.system = system;
+			init();
+		}
+
+		public void init() {
 			Set<MObject> objects = system.state().objectsOfClass(cls);
 
 			this.minimumNumberOfObjects = objects.size();
-			this.maximumNumberOfObjects = minimumNumberOfObjects;
+			if (minimumNumberOfObjects > maximumNumberOfObjects) {
+				this.maximumNumberOfObjects = minimumNumberOfObjects;
+			}
 
-			this.concreteObjectsLower = StringUtil.fmtSeq(objects, ", ");
-			this.concreteObjectsUpper = concreteObjectsLower;
+			this.concreteObjectsMandatoryFix = StringUtil.fmtSeq(objects, ", ");
 		}
 
 		public MClass getCls() {
@@ -139,22 +170,30 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 			this.cls = cls;
 		}
 
-		public String getConcreteObjectsLower() {
-			return concreteObjectsLower;
+		public String getConcreteObjectsMandatoryFix() {
+			return concreteObjectsMandatoryFix;
 		}
 
-		public void setConcreteObjectsLower(String concreteObjectsLower) {
-			System.out.println(concreteObjectsLower);
-			this.concreteObjectsLower = concreteObjectsLower;
+		public void setConcreteObjectsMandatoryFix(
+				String concreteObjectsMandatoryFix) {
+			this.concreteObjectsMandatoryFix = concreteObjectsMandatoryFix;
 		}
 
-		public String getConcreteObjectsUpper() {
-			return concreteObjectsUpper;
+		public String getConcreteObjectsMandatoryAdditional() {
+			return concreteObjectsMandatoryAdditional;
 		}
 
-		public void setConcreteObjectsUpper(String concreteObjectsUpper) {
-			System.out.println(concreteObjectsUpper);
-			this.concreteObjectsUpper = concreteObjectsUpper;
+		public void setConcreteObjectsMandatoryAdditional(
+				String concreteObjectsMandatoryAdditional) {
+			this.concreteObjectsMandatoryAdditional = concreteObjectsMandatoryAdditional;
+		}
+
+		public String getConcreteObjectsOptional() {
+			return concreteObjectsOptional;
+		}
+
+		public void setConcreteObjectsOptional(String concreteObjectsOptional) {
+			this.concreteObjectsOptional = concreteObjectsOptional;
 		}
 
 		public int getMinimumNumberOfObjects() {
@@ -162,7 +201,6 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 		}
 
 		public void setMinimumNumberOfObjects(int minimumNumberOfObjects) {
-			System.out.println(minimumNumberOfObjects);
 			this.minimumNumberOfObjects = minimumNumberOfObjects;
 		}
 
@@ -171,9 +209,30 @@ public class ClassBoundsTableModel extends AbstractTableModel {
 		}
 
 		public void setMaximumNumberOfObjects(int maximumNumberOfObjects) {
-			System.out.println(maximumNumberOfObjects);
 			this.maximumNumberOfObjects = maximumNumberOfObjects;
 		}
 
+		public void refresh() {
+			init();
+		}
+
+	}
+
+	@Override
+	public void stateChanged(StateChangeEvent e) {
+		List<MObject> newOrDeletedObjects = e.getDeletedObjects();
+		newOrDeletedObjects.addAll(e.getNewObjects());
+		Set<MClass> involvedClasses = new HashSet<MClass>();
+		for (MObject obj : newOrDeletedObjects) {
+			involvedClasses.add(obj.cls());
+		}
+		for (MClass cls : involvedClasses) {
+			for (Row row : rows) {
+				if (row.getCls().equals(cls))
+					row.refresh();
+			}
+		}
+
+		this.fireTableChanged(new TableModelEvent(this));
 	}
 }

@@ -1,9 +1,14 @@
 package org.tzi.use.modelvalidator.gui;
 
 import java.awt.BorderLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -11,12 +16,13 @@ import javax.swing.JTable;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.views.View;
+import org.tzi.use.modelvalidator.configuration.ClassConfiguration;
+import org.tzi.use.modelvalidator.main.Main;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.StateChangeEvent;
 
 /**
  * @author Mirco Kuhlmann
- * @author Torsten Humann
  */
 
 public class ModelValidatorView extends JPanel implements View {
@@ -24,34 +30,71 @@ public class ModelValidatorView extends JPanel implements View {
 
 	private MSystem system;
 
+	ClassBoundsTableModel classBoundsTableModel;
+
 	public ModelValidatorView(MainWindow mainWindow, MSystem system) {
 		super(new BorderLayout());
 		this.system = system;
 		system.addChangeListener(this);
-		
+
+		JPanel searchBoundsPanel = new JPanel(new BorderLayout());
+		this.add(searchBoundsPanel, BorderLayout.CENTER);
+
 		JTabbedPane modelValidatorTabs = new JTabbedPane();
-		this.add(modelValidatorTabs, BorderLayout.CENTER);
-		
+		searchBoundsPanel.add(modelValidatorTabs, BorderLayout.CENTER);
+
 		JPanel classBoundsPanel = new JPanel(new BorderLayout());
 		modelValidatorTabs.add("Class Bounds", classBoundsPanel);
 
-		JTable classBoundsTable = new JTable(new ClassBoundsTableModel(system));
-		JScrollPane classBoundsTablePane = new JScrollPane(classBoundsTable);
-		
-		classBoundsTable.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
-				if(e.getClickCount() == 2){
-					System.out.println("Test!");
-				}
+		classBoundsTableModel = new ClassBoundsTableModel(system);
+		JTable classBoundsTable = new JTable(classBoundsTableModel);
+		classBoundsTableModel.addTableModelListener(classBoundsTable);
+		classBoundsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		classBoundsTable.setRowSelectionAllowed(false);
+		classBoundsTable.setColumnSelectionAllowed(false);
+		classBoundsPanel.add(new JScrollPane(classBoundsTable),
+				BorderLayout.CENTER);
+
+		JPanel actionButtonPanel = new JPanel();
+		this.add(actionButtonPanel, BorderLayout.SOUTH);
+
+		JButton startSearchButton = new JButton("Start Search", new ImageIcon(
+				Main.getInstance().getResource("resources/startSearch.png")));
+		actionButtonPanel.add(startSearchButton);
+
+		startSearchButton.addActionListener(new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				startKodkod();
 			}
 		});
-		
-		classBoundsPanel.add(classBoundsTablePane, BorderLayout.CENTER);
+
+	}
+
+	private void startKodkod() {
+		List<ClassConfiguration> classConfigurations = new ArrayList<ClassConfiguration>();
+
+		for (ClassBoundsTableModel.Row row : classBoundsTableModel.getRows()) {
+			String concatConcreteMandatoryObjects = row
+					.getConcreteObjectsMandatoryFix()
+					+ ", "
+					+ row.getConcreteObjectsMandatoryAdditional();
+			List<String> concreteMandatoryObjects = new ArrayList<String>(
+					Arrays.asList(concatConcreteMandatoryObjects));
+
+			List<String> concreteOptionalObjects = new ArrayList<String>(
+					Arrays.asList(row.getConcreteObjectsOptional()));
+
+			classConfigurations.add(new ClassConfiguration(row.getCls(),
+					concreteMandatoryObjects, concreteOptionalObjects, row
+							.getMinimumNumberOfObjects(), row
+							.getMaximumNumberOfObjects()));
+		}
 	}
 
 	public void stateChanged(StateChangeEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void detachModel() {

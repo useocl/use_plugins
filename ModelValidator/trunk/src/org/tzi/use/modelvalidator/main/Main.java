@@ -1,7 +1,6 @@
 package org.tzi.use.modelvalidator.main;
 
 import org.tzi.use.runtime.IPlugin;
-import org.tzi.use.runtime.IPluginRuntime;
 import org.tzi.use.runtime.impl.Plugin;
 
 /**
@@ -17,7 +16,4 @@ public class Main extends Plugin implements IPlugin {
 		return PLUGIN_ID;
 	}
 
-	public void run(IPluginRuntime pluginRuntime) throws Exception {
-		// Nothing to initialize
-	}
 }
