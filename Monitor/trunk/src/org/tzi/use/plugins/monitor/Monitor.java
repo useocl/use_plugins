@@ -161,6 +161,8 @@ public class Monitor implements ChangeListener {
     
     private List<IMonitorStateListener> stateListener = new LinkedList<IMonitorStateListener>();
     
+    private List<IProgressListener> snapshotProgressListener = new LinkedList<IProgressListener>();
+    
     private boolean isResetting = false;
     
     private long maxInstances = 10000;
@@ -508,13 +510,15 @@ public class Monitor implements ChangeListener {
 		// Build a map of Java names to USE classes
 		Map<String, MClass> classNamesMap = new HashMap<String, MClass>(useClasses.size());
 		for (MClass useClass : useClasses) {
-			classNamesMap.put(getJavaClassName(useClass), useClass);
-			classMappings.put(useClass, new HashSet<ReferenceType>());
+			if (!useClass.getAnnotationValue("Monitor", "ignore").equals("true")) {
+				classNamesMap.put(getJavaClassName(useClass), useClass);
+				classMappings.put(useClass, new HashSet<ReferenceType>());
+			}
 		}
 		
 		for (ReferenceType type : monitoredVM.allClasses()) {
 			if (!(type instanceof ClassType)) continue;
-				
+
 			ClassType cType = (ClassType)type;
 			
 			if (classNamesMap.containsKey(cType.name())) {
@@ -532,8 +536,8 @@ public class Monitor implements ChangeListener {
 					for (ClassType subType : toCheck.subclasses()) {
 						if (!classNamesMap.containsKey(subType.name())) {
 							javaClasses.add(subType);
+							toDo.push(subType);
 						}
-						toDo.push(subType);
 					}
 				}
 			}
@@ -542,13 +546,21 @@ public class Monitor implements ChangeListener {
 	
 	private void readInstances() {
 		long start = System.currentTimeMillis();
+		Collection<MClass> classes = getSystem().model().classes();
+		
+		onSnapshotStart("Initializing...", classes.size());
 		
 		instanceMapping = new HashMap<ObjectReference, MObject>();
 		setupClassMappings();
 		
+		ProgressArgs args = new ProgressArgs("Reading instances", 0, classes.size());
 		// Create current system state
-    	for (MClass cls : getSystem().model().classes()) {
-    		readInstances(cls);
+    	for (MClass cls : classes) {
+    		onSnapshotProgress(args);
+    		if (!cls.getAnnotationValue("Monitor", "ignore").equals("true")) {
+    			readInstances(cls);
+    		}
+    		args.setCurrent(args.getCurrent() + 1);
     	}
     	
     	long end = System.currentTimeMillis();
@@ -557,6 +569,8 @@ public class Monitor implements ChangeListener {
 		Log.println(" Created " + countInstances + " instances in " + duration
 				+ "ms (" + (double)countInstances / ((double)duration / 1000) + " instances/s).");
     	
+		onSnapshotEnd();
+		
     	readAttributtesAndLinks();
     	classMappings = null;
 	}
@@ -581,6 +595,8 @@ public class Monitor implements ChangeListener {
 	    	List<ObjectReference> refInstances = refType.instances(getMaxInstances());
 			
 			for (ObjectReference objRef : refInstances) {
+				if (objRef.isCollected()) continue;
+				
 				try {
 					createInstance(cls, objRef);
 					++countInstances;
@@ -626,11 +642,23 @@ public class Monitor implements ChangeListener {
     private void readAttributtesAndLinks() {
     	long start = System.currentTimeMillis();
 
+    	int progressEnd = instanceMapping.size() * 2;
+    	onSnapshotStart("Reading attributes and links...", progressEnd);
+    	ProgressArgs args = new ProgressArgs("Reading attributes", progressEnd);
+    	// Maximum number of progress calls 50
+    	int step = progressEnd / 50;
+    	int counter = 0;
     	
     	for (Map.Entry<ObjectReference, MObject> entry : instanceMapping.entrySet()) {
     		readAttributes(entry.getKey(), entry.getValue());
+    		
+    		if (counter % step == 0) {
+    			args.setCurrent(counter);
+    			onSnapshotProgress(args);
+    		}
+    		counter++;
     	}
-    	
+    	    	
     	long end = System.currentTimeMillis();
     	long duration = (end - start);
 		Log.println(" Setting " + countAttributes + " attributes took " + duration + "ms ("
@@ -640,7 +668,15 @@ public class Monitor implements ChangeListener {
 		
     	for (Map.Entry<ObjectReference, MObject> entry : instanceMapping.entrySet()) {
     		readLinks(entry.getKey(), entry.getValue());
+    		
+    		if (counter % step == 0) {
+    			args.setCurrent(counter);
+    			onSnapshotProgress(args);
+    		}
+    		counter++;
     	}
+    	
+    	onSnapshotEnd();
     	
     	end = System.currentTimeMillis();
     	duration = (end - start);
@@ -735,30 +771,60 @@ public class Monitor implements ChangeListener {
      */
     private void readAttributes(ObjectReference objRef, MObject o) {
     	for (MAttribute attr : o.cls().allAttributes()) {
-    		Field field = objRef.referenceType().fieldByName(getJavaFieldName(attr));
     		
-    		if (field != null) {
-    			com.sun.jdi.Value val = objRef.getValue(field);
-    			Value v = getUSEValue(val, attr.type().isObjectType()); 
-    			try {
-    				if (useSoil) {
-    					MAttributeAssignmentStatement stmt = 
-    						new MAttributeAssignmentStatement(o, attr, v);
-    					getSystem().evaluateStatement(stmt);
-    				} else {
-    					o.state(getSystem().state()).setAttributeValue(attr, v);
-    				}
-    				++countAttributes;
-    			} catch (IllegalArgumentException e) {
-    				Log.error("Error setting attribute value:" + e.getMessage());
-    			} catch (MSystemException e) {
-    				Log.error("Error setting attribute value:" + e.getMessage());
-				}
+    		if (!readSpecialAttributeValue(objRef, o, attr)) {
+	    		Field field = objRef.referenceType().fieldByName(getJavaFieldName(attr));
+	    		
+	    		if (field != null) {
+	    			com.sun.jdi.Value val = objRef.getValue(field);
+	    			Value v = getUSEValue(val, attr.type().isObjectType()); 
+	    			try {
+	    				if (useSoil) {
+	    					MAttributeAssignmentStatement stmt = 
+	    						new MAttributeAssignmentStatement(o, attr, v);
+	    					getSystem().evaluateStatement(stmt);
+	    				} else {
+	    					o.state(getSystem().state()).setAttributeValue(attr, v);
+	    				}
+	    				++countAttributes;
+	    			} catch (IllegalArgumentException e) {
+	    				Log.error("Error setting attribute value:" + e.getMessage());
+	    			} catch (MSystemException e) {
+	    				Log.error("Error setting attribute value:" + e.getMessage());
+					}
+	    		}
     		}
     	}
     }
 
     /**
+     * Checks the attribute for special annotations and reads the corresponding
+     * value if such an annotation is present, e. g., <code>@Monitor(value="classname")</code> 
+     * for the name of the instance type.
+     * @param objRef
+     * @param o
+     * @param attr
+     * @return <code>true</code>, if the attribtue <code>attr</code> has a special value  
+     */
+    private boolean readSpecialAttributeValue(ObjectReference objRef,
+			MObject o, MAttribute attr) {
+    	
+    	String annotation = attr.getAnnotationValue("Monitor", "value");
+    	if (annotation.equals("")) return false;
+    	
+		Value v = UndefinedValue.instance; 
+		if (annotation.equals("classname")) {
+			v = new StringValue(objRef.referenceType().name());
+		} else {
+			v = new StringValue("undefined special value " + StringUtil.inQuotes(annotation));
+		}
+
+		o.state(getSystem().state()).setAttributeValue(attr, v);
+		
+		return true;
+	}
+
+	/**
      * Returns the mapped USE value of <code>javaValue</code>.
      * Java-value of type {@link ObjectReference} are tried to be mapped to
      * corresponding USE-objects. If no object is found <code>UndefinedValue</code>
@@ -1264,6 +1330,33 @@ public class Monitor implements ChangeListener {
     	}
     }
 
+    public void addSnapshotProgressListener(IProgressListener listener) {
+    	this.snapshotProgressListener.add(listener);
+    }
+    
+    public void removeSnapshotProgressListener(IProgressListener listener) {
+    	this.snapshotProgressListener.remove(listener);
+    }
+    
+    protected void onSnapshotStart(String description, int numClasses) {
+    	ProgressArgs args = new ProgressArgs(description, numClasses);
+    	for (IProgressListener listener : this.snapshotProgressListener) {
+    		listener.progressStart(args);
+    	}
+    }
+    
+    protected void onSnapshotProgress(ProgressArgs args) {
+    	for (IProgressListener listener : this.snapshotProgressListener) {
+    		listener.progress(args);
+    	}
+    }
+    
+    protected void onSnapshotEnd() {
+    	for (IProgressListener listener : this.snapshotProgressListener) {
+    		listener.progressEnd();
+    	}
+    }
+    
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		if (!isResetting && isRunning()) {

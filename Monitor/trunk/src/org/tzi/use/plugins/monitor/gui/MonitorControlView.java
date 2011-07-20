@@ -1,5 +1,6 @@
 package org.tzi.use.plugins.monitor.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -16,6 +17,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
@@ -27,15 +29,17 @@ import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.monitor.AbstractMonitorStateListener;
 import org.tzi.use.plugins.monitor.IMonitorStateListener;
+import org.tzi.use.plugins.monitor.IProgressListener;
 import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorPlugin;
+import org.tzi.use.plugins.monitor.ProgressArgs;
 import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.StateChangeListener;
 
 import sun.awt.VerticalBagLayout;
 
 @SuppressWarnings("serial")
-public class MonitorControlView extends JDialog implements StateChangeListener, ChangeListener {
+public class MonitorControlView extends JDialog implements StateChangeListener, ChangeListener, IProgressListener {
 
 	private Session session;
 	
@@ -47,6 +51,9 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	private JTextField text_port;
 	private JCheckBox check_suspend;
 	private JLabel label_useModel;
+	
+	private JProgressBar progressbar;
+	private JLabel label_status;
 	
 	private IMonitorStateListener stateChangeListener;
 	
@@ -68,6 +75,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		};
 		
 		MonitorPlugin.getMonitorPluginInstance().getMonitor().addStateChangedListener(stateChangeListener);
+		MonitorPlugin.getMonitorPluginInstance().getMonitor().addSnapshotProgressListener(this);
 	}
 	
 	private void initGUI() {
@@ -84,12 +92,25 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		button_Play.addActionListener(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				MonitorControlView.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-				
-				MonitorPlugin.getMonitorPluginInstance().getMonitor().configure(session, text_host.getText(), text_port.getText());
-				MonitorPlugin.getMonitorPluginInstance().getMonitor().start(check_suspend.isSelected());
-				
-				MonitorControlView.this.setCursor(Cursor.getDefaultCursor());
+				Thread t = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						MonitorControlView.this.setCursor(Cursor
+								.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+						MonitorPlugin
+								.getMonitorPluginInstance()
+								.getMonitor()
+								.configure(session, text_host.getText(),
+										text_port.getText());
+						MonitorPlugin.getMonitorPluginInstance().getMonitor()
+								.start(check_suspend.isSelected());
+
+						MonitorControlView.this.setCursor(Cursor
+								.getDefaultCursor());
+					}
+				});
+				t.start();
 			}
 		});
 		buttonPanel.add(button_Play);
@@ -101,14 +122,25 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		button_Pause.addActionListener(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				MonitorControlView.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-				
-				if (MonitorPlugin.getMonitorPluginInstance().getMonitor().isPaused())
-					MonitorPlugin.getMonitorPluginInstance().getMonitor().resume();
-				else
-					MonitorPlugin.getMonitorPluginInstance().getMonitor().pause();
-				
-				MonitorControlView.this.setCursor(Cursor.getDefaultCursor());
+				Thread t = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						MonitorControlView.this.setCursor(Cursor
+								.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+						if (MonitorPlugin.getMonitorPluginInstance()
+								.getMonitor().isPaused())
+							MonitorPlugin.getMonitorPluginInstance()
+									.getMonitor().resume();
+						else
+							MonitorPlugin.getMonitorPluginInstance()
+									.getMonitor().pause();
+
+						MonitorControlView.this.setCursor(Cursor
+								.getDefaultCursor());
+					}
+				});
+				t.run();
 			}
 		});
 		buttonPanel.add(button_Pause);
@@ -174,6 +206,13 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		info.add(check_suspend, cData);
 		
 		backPanel.add(info);
+				
+		JPanel progress = new JPanel(new BorderLayout(3, 2));
+		progressbar = new JProgressBar();
+		progress.add(progressbar, BorderLayout.NORTH);
+		label_status = new JLabel("Ready");
+		progress.add(label_status, BorderLayout.SOUTH);
+		backPanel.add(progress);
 		
 		configureComponents();
 		
@@ -207,11 +246,37 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	@Override
 	public void dispose() {
 		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeStateChangedListener(stateChangeListener);
+		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeSnapshotProgressListener(this);
 		super.dispose();
 	}
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		this.label_useModel.setText(session.system().model().name());
+	}
+
+	@Override
+	public void progressStart(ProgressArgs args) {
+		this.progressbar.setMaximum(args.getEnd());
+		this.progressbar.setMinimum(0);
+		this.progressbar.setValue(0);
+		this.progressbar.invalidate();
+		
+		this.label_status.setText(args.getDescription());
+	}
+
+	@Override
+	public void progress(ProgressArgs args) {
+		this.progressbar.setValue(args.getCurrent());
+		
+		this.label_status.setText(args.getDescription());
+	}
+
+	@Override
+	public void progressEnd() {
+		this.progressbar.setValue(0);
+		this.progressbar.invalidate();
+		
+		this.label_status.setText("Ready");
 	}
 }
