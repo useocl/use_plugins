@@ -14,17 +14,19 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.table.TableCellEditor;
 
 import kodkod.engine.Solution;
+import kodkod.engine.Solution.Outcome;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.views.View;
 import org.tzi.use.modelvalidator.configuration.ClassConfiguration;
 import org.tzi.use.modelvalidator.main.Main;
 import org.tzi.use.modelvalidator.main.ModelValidator;
+import org.tzi.use.modelvalidator.solution.ModelValidatorSolution;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.StateChangeEvent;
+import org.tzi.use.uml.sys.soil.MNewObjectStatement;
 
 /**
  * @author Mirco Kuhlmann
@@ -124,9 +126,15 @@ public class ModelValidatorView extends JPanel implements View {
 					classConfigurations);
 			modelValidator.translateUML();
 			Solution solution = modelValidator.startSearch();
-			
-			System.out.println(solution);
-
+			if (solution.outcome().equals(Outcome.TRIVIALLY_UNSATISFIABLE)
+					|| solution.outcome().equals(Outcome.UNSATISFIABLE)) {
+				JOptionPane.showMessageDialog(this,
+						"Kein valider Snapshot gefunden.");
+			} else {
+				ModelValidatorSolution modelValidatorSolution = new ModelValidatorSolution(
+						solution, classConfigurations);
+				modelValidatorSolution.setSnapshot(system);
+			}
 		} else {
 			JOptionPane
 					.showMessageDialog(

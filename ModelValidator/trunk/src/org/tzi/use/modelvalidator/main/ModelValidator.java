@@ -31,9 +31,7 @@ public class ModelValidator {
 
 	public void translateUML() {
 		createClassRelations();
-		System.out.println(classRelations);
 		createObjectAtoms();
-		System.out.println(atoms);
 
 		final Universe universe = new Universe(atoms);
 		final TupleFactory factory = universe.factory();
@@ -58,7 +56,6 @@ public class ModelValidator {
 		final Formula configuration = Formula.TRUE;
 
 		final Formula show = Formula.and(uml, ocl, configuration);
-		System.out.println(bounds);
 		return solver.solve(show, bounds);
 		
 	}
