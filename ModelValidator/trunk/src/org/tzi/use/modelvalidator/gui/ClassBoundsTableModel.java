@@ -158,10 +158,7 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 			if (minimumNumberOfObjects > maximumNumberOfObjects) {
 				this.maximumNumberOfObjects = minimumNumberOfObjects;
 			}
-
-			if (!objects.isEmpty()) {
-				setConcreteObjectsMandatoryFix(StringUtil.fmtSeq(objects, ", "));
-			}
+			setConcreteObjectsMandatoryFix(StringUtil.fmtSeq(objects, ", "));
 		}
 
 		public MClass getCls() {
@@ -178,7 +175,11 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 
 		public void setConcreteObjectsMandatoryFix(
 				String concreteObjectsMandatoryFix) {
-			this.concreteObjectsMandatoryFix = concreteObjectsMandatoryFix;
+			if (concreteObjectsMandatoryFix.equals("")) {
+				this.concreteObjectsMandatoryFix = null;
+			} else {
+				this.concreteObjectsMandatoryFix = concreteObjectsMandatoryFix;
+			}
 			if (getNumberOfMandatoryObjects() > minimumNumberOfObjects) {
 				setMinimumNumberOfObjects(getNumberOfMandatoryObjects());
 			}
@@ -190,7 +191,11 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 
 		public void setConcreteObjectsMandatoryAdditional(
 				String concreteObjectsMandatoryAdditional) {
-			this.concreteObjectsMandatoryAdditional = concreteObjectsMandatoryAdditional;
+			if (concreteObjectsMandatoryAdditional.equals("")) {
+				this.concreteObjectsMandatoryAdditional = null;
+			} else {
+				this.concreteObjectsMandatoryAdditional = concreteObjectsMandatoryAdditional;
+			}
 			if (getNumberOfMandatoryObjects() > minimumNumberOfObjects) {
 				setMinimumNumberOfObjects(getNumberOfMandatoryObjects());
 			}
@@ -201,7 +206,11 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 		}
 
 		public void setConcreteObjectsOptional(String concreteObjectsOptional) {
-			this.concreteObjectsOptional = concreteObjectsOptional;
+			if (concreteObjectsOptional.equals("")) {
+				this.concreteObjectsOptional = null;
+			} else {
+				this.concreteObjectsOptional = concreteObjectsOptional;
+			}
 		}
 
 		public int getMinimumNumberOfObjects() {

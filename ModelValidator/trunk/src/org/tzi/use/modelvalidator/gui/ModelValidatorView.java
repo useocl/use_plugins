@@ -9,10 +9,14 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.table.TableCellEditor;
+
+import kodkod.engine.Solution;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.views.View;
@@ -77,37 +81,58 @@ public class ModelValidatorView extends JPanel implements View {
 	private void startKodkod() {
 		List<ClassConfiguration> classConfigurations = new ArrayList<ClassConfiguration>();
 
+		boolean universeNotEmpty = false;
 		for (ClassBoundsTableModel.Row row : classBoundsTableModel.getRows()) {
-			List<String> concreteObjectsMandatory = new ArrayList<String>();
-			if (row.getConcreteObjectsMandatoryFix() != null) {
-				List<String> concreteObjectsMandatoryFix = Arrays.asList(row
-						.getConcreteObjectsMandatoryFix().replaceAll(" ", "")
-						.split(","));
-				concreteObjectsMandatory.addAll(concreteObjectsMandatoryFix);
-			}
-			if (row.getConcreteObjectsMandatoryAdditional() != null) {
-				List<String> concreteObjectsMandatoryAdditional = Arrays
-						.asList(row.getConcreteObjectsMandatoryAdditional()
-								.replaceAll(" ", "").split(","));
-				concreteObjectsMandatory
-						.addAll(concreteObjectsMandatoryAdditional);
-			}
-
-			List<String> concreteObjectsOptional = new ArrayList<String>();
-			if (row.getConcreteObjectsOptional() != null) {
-				concreteObjectsOptional = new ArrayList<String>(
-						Arrays.asList(row.getConcreteObjectsOptional()
-								.replaceAll(" ", "").split(",")));
-			}
-
-			classConfigurations.add(new ClassConfiguration(row.getCls(),
-					concreteObjectsMandatory, concreteObjectsOptional, row
-							.getMinimumNumberOfObjects(), row
-							.getMaximumNumberOfObjects()));
+			universeNotEmpty = universeNotEmpty
+					|| row.getMaximumNumberOfObjects() > 0;
 		}
 
-		ModelValidator modelValidator = new ModelValidator(classConfigurations);
-		modelValidator.translateUML();
+		if (universeNotEmpty) {
+
+			for (ClassBoundsTableModel.Row row : classBoundsTableModel
+					.getRows()) {
+				List<String> concreteObjectsMandatory = new ArrayList<String>();
+				if (row.getConcreteObjectsMandatoryFix() != null) {
+					List<String> concreteObjectsMandatoryFix = Arrays
+							.asList(row.getConcreteObjectsMandatoryFix()
+									.replaceAll(" ", "").split(","));
+					concreteObjectsMandatory
+							.addAll(concreteObjectsMandatoryFix);
+				}
+				if (row.getConcreteObjectsMandatoryAdditional() != null) {
+					List<String> concreteObjectsMandatoryAdditional = Arrays
+							.asList(row.getConcreteObjectsMandatoryAdditional()
+									.replaceAll(" ", "").split(","));
+					concreteObjectsMandatory
+							.addAll(concreteObjectsMandatoryAdditional);
+				}
+
+				List<String> concreteObjectsOptional = new ArrayList<String>();
+				if (row.getConcreteObjectsOptional() != null) {
+					concreteObjectsOptional = new ArrayList<String>(
+							Arrays.asList(row.getConcreteObjectsOptional()
+									.replaceAll(" ", "").split(",")));
+				}
+
+				classConfigurations.add(new ClassConfiguration(row.getCls(),
+						concreteObjectsMandatory, concreteObjectsOptional, row
+								.getMinimumNumberOfObjects(), row
+								.getMaximumNumberOfObjects()));
+			}
+
+			ModelValidator modelValidator = new ModelValidator(
+					classConfigurations);
+			modelValidator.translateUML();
+			Solution solution = modelValidator.startSearch();
+			
+			System.out.println(solution);
+
+		} else {
+			JOptionPane
+					.showMessageDialog(
+							this,
+							"Die maximale Anzahl an Objekten muss für mindestens eine Klasse größer als 0 sein.");
+		}
 	}
 
 	public void stateChanged(StateChangeEvent e) {
