@@ -56,7 +56,7 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 	public int getRowCount() {
 		return rows.size();
 	}
-	
+
 	public List<Row> getRows() {
 		return rows;
 	}
@@ -137,9 +137,9 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 	public static class Row {
 
 		private MClass cls;
-		private String concreteObjectsMandatoryFix = "";
-		private String concreteObjectsMandatoryAdditional = "";
-		private String concreteObjectsOptional = "";
+		private String concreteObjectsMandatoryFix = null;
+		private String concreteObjectsMandatoryAdditional = null;
+		private String concreteObjectsOptional = null;
 		private int minimumNumberOfObjects = 0;
 		private int maximumNumberOfObjects = 0;
 
@@ -159,7 +159,9 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 				this.maximumNumberOfObjects = minimumNumberOfObjects;
 			}
 
-			this.concreteObjectsMandatoryFix = StringUtil.fmtSeq(objects, ", ");
+			if (!objects.isEmpty()) {
+				setConcreteObjectsMandatoryFix(StringUtil.fmtSeq(objects, ", "));
+			}
 		}
 
 		public MClass getCls() {
@@ -177,6 +179,9 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 		public void setConcreteObjectsMandatoryFix(
 				String concreteObjectsMandatoryFix) {
 			this.concreteObjectsMandatoryFix = concreteObjectsMandatoryFix;
+			if (getNumberOfMandatoryObjects() > minimumNumberOfObjects) {
+				setMinimumNumberOfObjects(getNumberOfMandatoryObjects());
+			}
 		}
 
 		public String getConcreteObjectsMandatoryAdditional() {
@@ -186,6 +191,9 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 		public void setConcreteObjectsMandatoryAdditional(
 				String concreteObjectsMandatoryAdditional) {
 			this.concreteObjectsMandatoryAdditional = concreteObjectsMandatoryAdditional;
+			if (getNumberOfMandatoryObjects() > minimumNumberOfObjects) {
+				setMinimumNumberOfObjects(getNumberOfMandatoryObjects());
+			}
 		}
 
 		public String getConcreteObjectsOptional() {
@@ -201,7 +209,12 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 		}
 
 		public void setMinimumNumberOfObjects(int minimumNumberOfObjects) {
-			this.minimumNumberOfObjects = minimumNumberOfObjects;
+			if (minimumNumberOfObjects >= getNumberOfMandatoryObjects()) {
+				this.minimumNumberOfObjects = minimumNumberOfObjects;
+				if (minimumNumberOfObjects > maximumNumberOfObjects) {
+					setMaximumNumberOfObjects(minimumNumberOfObjects);
+				}
+			}
 		}
 
 		public int getMaximumNumberOfObjects() {
@@ -209,11 +222,24 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 		}
 
 		public void setMaximumNumberOfObjects(int maximumNumberOfObjects) {
-			this.maximumNumberOfObjects = maximumNumberOfObjects;
+			if (maximumNumberOfObjects >= minimumNumberOfObjects) {
+				this.maximumNumberOfObjects = maximumNumberOfObjects;
+			}
 		}
 
 		public void refresh() {
 			init();
+		}
+
+		private int getNumberOfMandatoryObjects() {
+			int sum = 0;
+			if (concreteObjectsMandatoryFix != null) {
+				sum += concreteObjectsMandatoryFix.split(",").length;
+			}
+			if (concreteObjectsMandatoryAdditional != null) {
+				sum += concreteObjectsMandatoryAdditional.split(",").length;
+			}
+			return sum;
 		}
 
 	}
@@ -232,7 +258,6 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 					row.refresh();
 			}
 		}
-
 		this.fireTableChanged(new TableModelEvent(this));
 	}
 }

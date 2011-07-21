@@ -52,6 +52,5 @@ public class ModelValidator {
 				}
 			}
 		}
-	 min number erhöhen bei concrete mandatory additional
 	}
 }

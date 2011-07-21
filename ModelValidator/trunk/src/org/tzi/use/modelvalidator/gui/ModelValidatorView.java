@@ -78,26 +78,30 @@ public class ModelValidatorView extends JPanel implements View {
 		List<ClassConfiguration> classConfigurations = new ArrayList<ClassConfiguration>();
 
 		for (ClassBoundsTableModel.Row row : classBoundsTableModel.getRows()) {
-			String concatConcreteMandatoryObjects = row
-					.getConcreteObjectsMandatoryFix()
-					+ ","
-					+ row.getConcreteObjectsMandatoryAdditional().replaceAll(
-							" ", "");
-			List<String> concreteMandatoryObjects = new ArrayList<String>();
-			if (!concatConcreteMandatoryObjects.isEmpty()) {
-				concreteMandatoryObjects = new ArrayList<String>(
-						Arrays.asList(concatConcreteMandatoryObjects.split(",")));
+			List<String> concreteObjectsMandatory = new ArrayList<String>();
+			if (row.getConcreteObjectsMandatoryFix() != null) {
+				List<String> concreteObjectsMandatoryFix = Arrays.asList(row
+						.getConcreteObjectsMandatoryFix().replaceAll(" ", "")
+						.split(","));
+				concreteObjectsMandatory.addAll(concreteObjectsMandatoryFix);
+			}
+			if (row.getConcreteObjectsMandatoryAdditional() != null) {
+				List<String> concreteObjectsMandatoryAdditional = Arrays
+						.asList(row.getConcreteObjectsMandatoryAdditional()
+								.replaceAll(" ", "").split(","));
+				concreteObjectsMandatory
+						.addAll(concreteObjectsMandatoryAdditional);
 			}
 
-			List<String> concreteOptionalObjects = new ArrayList<String>();
-			if (!row.getConcreteObjectsOptional().isEmpty()) {
-				concreteOptionalObjects = new ArrayList<String>(
+			List<String> concreteObjectsOptional = new ArrayList<String>();
+			if (row.getConcreteObjectsOptional() != null) {
+				concreteObjectsOptional = new ArrayList<String>(
 						Arrays.asList(row.getConcreteObjectsOptional()
 								.replaceAll(" ", "").split(",")));
 			}
 
 			classConfigurations.add(new ClassConfiguration(row.getCls(),
-					concreteMandatoryObjects, concreteOptionalObjects, row
+					concreteObjectsMandatory, concreteObjectsOptional, row
 							.getMinimumNumberOfObjects(), row
 							.getMaximumNumberOfObjects()));
 		}
