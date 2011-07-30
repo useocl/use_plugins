@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="lib" path="/usr/lib/java/lib/tools.jar" sourcepath="/usr/lib/java/src.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Program Files/Java/jdk-6u22-docs.zip!/docs/jdk/api/jpda/jdi"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/use_trunk"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

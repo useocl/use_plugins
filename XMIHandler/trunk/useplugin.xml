@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?use version="3.0.0"?>
+<plugin name="XMIHandler" version="0.1" publisher="Emil Huseynli">
+    <actions>
+      <action label="Show XMIHandler" icon="resources/XMIHandler.png"
+      class="org.tzi.use.plugins.xmihandler.gui.ActionShowXMIHandlerControl" tooltip="Show XMIHanlder control"
+      menu="View" menuitem="XMIHandler control" toolbaritem="plugins"
+      id="org.tzi.use.plugins.xmihandler.gui.ActionShowXMIHandlerControl">
+    </action>    
+    </actions>
+	<commands>
+	</commands>
+</plugin>

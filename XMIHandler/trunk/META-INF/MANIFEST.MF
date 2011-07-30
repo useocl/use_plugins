@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Plugin-Name: XMIHandler
+Plugin-Version: 0.1
+Plugin-Publisher: Emil Huseynli
+Main-Class: org.tzi.use.plugins.xmihandler.XMIHandlerPlugin
+Class-Path: ../tools.jar
