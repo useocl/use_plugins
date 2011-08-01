@@ -2,22 +2,18 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/usr/lib/java/lib/tools.jar" sourcepath="/usr/lib/java/src.zip">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/C:/Program Files/Java/jdk-6u22-docs.zip!/docs/jdk/api/jpda/jdi"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/use_trunk"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.common_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.ecore.change.edit_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.ecore.change_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.ecore.edit_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.ecore.xmi_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.exporter_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.importer.ecore_2.4.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.importer_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.edit_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/opt/eclipse/plugins/org.eclipse.emf.ecore_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.common_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.ecore_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.ecore.change_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.ecore.change.edit_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.ecore.edit_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.ecore.xmi_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.edit_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.exporter_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.importer_2.5.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.emf.importer.ecore_2.4.0.v200906151043.jar"/>
+	<classpathentry kind="lib" path="lib/tools.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
