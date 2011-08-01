@@ -3,4 +3,15 @@ Plugin-Name: XMIHandler
 Plugin-Version: 0.1
 Plugin-Publisher: Emil Huseynli
 Main-Class: org.tzi.use.plugins.xmihandler.XMIHandlerPlugin
-Class-Path: ../tools.jar
+Class-Path: ../tools.jar 
+ ../org.eclipse.emf.ecore_2.5.0.v200906151043.jar 
+ ../org.eclipse.emf.ecore.xmi_2.5.0.v200906151043.jar 
+ ../org.eclipse.emf.common_2.5.0.v200906151043.jar 
+ ../org.eclipse.emf.ecore.change.edit_2.5.0.v200906151043.jar  
+ ../org.eclipse.emf.ecore.edit_2.5.0.v200906151043.jar 
+ ../org.eclipse.emf.ecore_2.5.0.v200906151043.jar 
+ ../org.eclipse.emf.edit_2.5.0.v200906151043.jar 
+ ../org.eclipse.emf.exporter_2.5.0.v200906151043.jar 
+ ../org.eclipse.emf.importer.ecore_2.4.0.v200906151043.jar 
+ ../org.eclipse.emf.importer_2.5.0.v200906151043.jar 
+ ../org.eclipse.emf_2.5.0.v200906151043.jar 
