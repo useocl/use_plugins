@@ -10,6 +10,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -48,9 +52,19 @@ public class XMIHandlerControlView extends JDialog implements StateChangeListene
 
 	  // Create a resource for this file.
 	  Resource resource = resourceSet.createResource(fileURI);
-
+	  
+	  EcoreFactory ecoreFactory = EcoreFactory.eINSTANCE;
+	  EClass purchaseOrderClass = ecoreFactory.createEClass();
+	  purchaseOrderClass.setName("PurchaseOrder");
+	  EAttribute shipTo = ecoreFactory.createEAttribute();
+	  shipTo.setName("shipTo");
+	  shipTo.setEType(EcorePackage.Literals.ESTRING);
+	  purchaseOrderClass.getEStructuralFeatures().add(shipTo);
+	  
+	  resource.getContents().add(purchaseOrderClass);
+	  
 	  // Add the book and writer objects to the contents.
-
+	  //resource.getContents().add(book);
 	  // Save the contents of the resource to the file system.
 	  try
 	  {
