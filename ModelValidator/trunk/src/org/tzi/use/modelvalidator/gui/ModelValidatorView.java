@@ -38,18 +38,23 @@ public class ModelValidatorView extends JPanel implements View {
 	private MSystem system;
 
 	ClassBoundsTableModel classBoundsTableModel;
+	AttributeBoundsTableModel attributeBoundsTableModel;
+	DomainTableModel domainTableModel;
 
 	public ModelValidatorView(MainWindow mainWindow, MSystem system) {
 		super(new BorderLayout());
 		this.system = system;
 		system.addChangeListener(this);
 
+		// main panel
 		JPanel searchBoundsPanel = new JPanel(new BorderLayout());
 		this.add(searchBoundsPanel, BorderLayout.CENTER);
 
+		// tabbed pane 
 		JTabbedPane modelValidatorTabs = new JTabbedPane();
 		searchBoundsPanel.add(modelValidatorTabs, BorderLayout.CENTER);
 
+		// class panel
 		JPanel classBoundsPanel = new JPanel(new BorderLayout());
 		modelValidatorTabs.add("Class Bounds", classBoundsPanel);
 
@@ -61,7 +66,34 @@ public class ModelValidatorView extends JPanel implements View {
 		classBoundsTable.setColumnSelectionAllowed(false);
 		classBoundsPanel.add(new JScrollPane(classBoundsTable),
 				BorderLayout.CENTER);
+		
+		// attribute panel
+		JPanel attributeBoundsPanel = new JPanel(new BorderLayout());
+		modelValidatorTabs.add("Attribute Bounds", attributeBoundsPanel);
 
+		attributeBoundsTableModel = new AttributeBoundsTableModel(system);
+		JTable attributeBoundsTable = new JTable(attributeBoundsTableModel);
+		attributeBoundsTableModel.addTableModelListener(attributeBoundsTable);
+		attributeBoundsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		attributeBoundsTable.setRowSelectionAllowed(false);
+		attributeBoundsTable.setColumnSelectionAllowed(false);
+		attributeBoundsPanel.add(new JScrollPane(attributeBoundsTable),
+				BorderLayout.CENTER);
+		
+		// domain panel
+		JPanel domainPanel = new JPanel(new BorderLayout());
+		modelValidatorTabs.add("Attribute Domains", domainPanel);
+		
+		domainTableModel = new DomainTableModel(system);
+		JTable domainTable = new JTable(domainTableModel);
+		domainTableModel.addTableModelListener(domainTable);
+		domainTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		domainTable.setRowSelectionAllowed(false);
+		domainTable.setColumnSelectionAllowed(false);
+		domainPanel.add(new JScrollPane(domainTable),
+				BorderLayout.CENTER);
+		
+		// search panel
 		JPanel actionButtonPanel = new JPanel();
 		this.add(actionButtonPanel, BorderLayout.SOUTH);
 

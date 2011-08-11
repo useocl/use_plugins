@@ -154,7 +154,8 @@ public class ClassBoundsTableModel extends AbstractTableModel implements
 		public void init() {
 			Set<MObject> objects = system.state().objectsOfClass(cls);
 
-			this.minimumNumberOfObjects = objects.size();
+			if(minimumNumberOfObjects < objects.size()) 
+				this.minimumNumberOfObjects = objects.size();
 			if (minimumNumberOfObjects > maximumNumberOfObjects) {
 				this.maximumNumberOfObjects = minimumNumberOfObjects;
 			}
