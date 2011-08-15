@@ -15,3 +15,24 @@ Class-Path: ../tools.jar
  ../org.eclipse.emf.importer.ecore_2.4.0.v200906151043.jar 
  ../org.eclipse.emf.importer_2.5.0.v200906151043.jar 
  ../org.eclipse.emf_2.5.0.v200906151043.jar 
+ ../org.eclipse.uml2.codegen.ecore.source_1.5.0.v200905151700.jar 
+ ../org.eclipse.uml2.codegen.ecore_1.5.0.v200905151700.jar 
+ ../org.eclipse.uml2.common.edit.source_1.5.0.v200905041045.jar 
+ ../org.eclipse.uml2.common.edit_1.5.0.v200905041045.jar 
+ ../org.eclipse.uml2.common.source_1.5.0.v200905041045.jar 
+ ../org.eclipse.uml2.common_1.5.0.v200905041045.jar 
+ ../org.eclipse.uml2.source_3.0.0.v200905041045.jar 
+ ../org.eclipse.uml2.uml.ecore.exporter.source_2.3.0.v200905041045.jar 
+ ../org.eclipse.uml2.uml.ecore.exporter_2.3.0.v200905041045.jar 
+ ../org.eclipse.uml2.uml.ecore.importer.source_2.3.0.v200905041045.jar 
+ ../org.eclipse.uml2.uml.ecore.importer_2.3.0.v200905041045.jar 
+ ../org.eclipse.uml2.uml.edit.source_3.0.0.v200905041045.jar 
+ ../org.eclipse.uml2.uml.edit_3.0.0.v200905041045.jar 
+ ../org.eclipse.uml2.uml.editor.source_3.0.0.v200905041045.jar 
+ ../org.eclipse.uml2.uml.editor_3.0.0.v200905041045.jar 
+ ../org.eclipse.uml2.uml.resources.source_3.0.0.v200906011111.jar 
+ ../org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar 
+ ../org.eclipse.uml2.uml.source_3.0.1.v200908281330.jar 
+ ../org.eclipse.uml2.uml_3.0.1.v200908281330.jar 
+ ../org.eclipse.uml2_3.0.0.v200905041045.jar 
+ ../org.eclipse.uml2tools_0.8.0.v200906190654.jar 
