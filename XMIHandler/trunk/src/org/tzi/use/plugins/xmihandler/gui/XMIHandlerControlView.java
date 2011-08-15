@@ -10,17 +10,16 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.uml2.uml.Model;
-import org.eclipse.uml2.uml.Profile;
-import org.eclipse.uml2.uml.Stereotype;
-import org.eclipse.uml2.uml.UMLFactory;
-import org.eclipse.uml2.uml.UMLPackage;
-import org.eclipse.uml2.uml.UMLPackage.Literals;
-import org.eclipse.uml2.uml.resource.UMLResource;
+import org.eclipse.emf.ecore.xmi.XMIResource;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
 import org.tzi.use.uml.mm.MAssociation;
@@ -37,6 +36,18 @@ public class XMIHandlerControlView extends JDialog implements StateChangeListene
 
 	private Session session;
 	
+	class CustomXMIResourceFactoryImpl extends XMIResourceFactoryImpl
+	{
+	  @Override
+	  public Resource createResource(URI uri) {
+	    XMIResourceFactoryImpl resFactory = new XMIResourceFactoryImpl();
+	    XMIResource resource = (XMIResource) resFactory.createResource(uri);
+	    resource.setXMIVersion("1.2");
+	    return resource;
+	  }
+	  
+	}
+	
 	public XMIHandlerControlView(MainWindow parent, Session session) {
 		super(parent, "XMIHandler Control");
 		this.session = session;
@@ -48,34 +59,17 @@ public class XMIHandlerControlView extends JDialog implements StateChangeListene
 	private void testEMF(MModel model) {
 	// Create a resource set.
 	  ResourceSet resourceSet = new ResourceSetImpl();
-	  
-	  UMLPackage.eINSTANCE.getName();
-	  
-	  resourceSet.getPackageRegistry().put(UMLPackage.eNS_URI, UMLPackage.eINSTANCE);
-	  
-	  resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(UMLResource.FILE_EXTENSION, UMLResource.Factory.INSTANCE);
- 
-	  URI uri = URI.createURI("jar:file:/home/stalker/uni/Masterarbeit/xmihandler_repo/lib/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar!/");
-	  resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.LIBRARIES_PATHMAP), uri.appendSegment("libraries").appendSegment(""));
-	  resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.METAMODELS_PATHMAP), uri.appendSegment("metamodels").appendSegment(""));
-	  resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.PROFILES_PATHMAP), uri.appendSegment("profiles").appendSegment(""));
-	  
 
+	  // Register the default resource factory -- only needed for stand-alone!
+	  resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(
+	    Resource.Factory.Registry.DEFAULT_EXTENSION, new CustomXMIResourceFactoryImpl());
+	  
 	  // Get the URI of the model file.
-	  URI fileURI = URI.createFileURI(new File("mylibrary.uml").getAbsolutePath());
+	  URI fileURI = URI.createFileURI(new File("mylibrary.xmi").getAbsolutePath());
 	  System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>" + fileURI.path());
 
 	  // Create a resource for this file.
 	  Resource resource = resourceSet.createResource(fileURI);
-
-	  Model umlMetamodel = (Model) EcoreUtil.getObjectByType(resourceSet.getResource(URI.createURI( UMLResource.UML_METAMODEL_URI), true ).getContents(), Literals.PACKAGE);
-    System.out.println( "umlMetamodel = " + umlMetamodel );
-
-	   final Model sampleModel = UMLFactory.eINSTANCE.createModel();
-	   sampleModel.setName( "Sample Model" );
-
-	   final Profile sampleProfile = UMLFactory.eINSTANCE.createProfile();
-	   sampleProfile.setName( "Sample Profile" );	  
 	  
 	  for (MClass mClass : model.classes())
 	  {
@@ -91,19 +85,21 @@ public class XMIHandlerControlView extends JDialog implements StateChangeListene
 
 	  }
 	  
-	   resource.getContents().add( sampleModel );
-	   resource.getContents().add( sampleProfile );
-	   
-	   final Stereotype ejbStereo = sampleProfile.createOwnedStereotype( "EJB" );
-	   extendMetaclass( umlMetamodel, sampleProfile, UMLPackage.Literals.CLASS.getName(), ejbStereo );
-
-	   sampleProfile.define();
-
-	   final org.eclipse.uml2.uml.Package samplePackage = sampleModel.createNestedPackage( "sample" );
-	   samplePackage.applyProfile( sampleProfile );
-
-	   final org.eclipse.uml2.uml.Class sampleClass = samplePackage.createOwnedClass( "TimeEntry", false );
-	   sampleClass.applyStereotype( ejbStereo );	   
+	  EcoreFactory ecoreFactory = EcoreFactory.eINSTANCE;
+	  EClass purchaseOrderClass = ecoreFactory.createEClass();
+	  purchaseOrderClass.setName("PurchaseOrder");
+	  EAttribute shipTo = ecoreFactory.createEAttribute();
+	  shipTo.setName("shipTo");
+	  shipTo.setEType(EcorePackage.Literals.ESTRING);
+	  purchaseOrderClass.getEStructuralFeatures().add(shipTo);
+	  
+	  EPackage poPackage = ecoreFactory.createEPackage();
+	  poPackage.setName("po");
+	  poPackage.setNsPrefix("po");
+	  poPackage.setNsURI("http://www.example.com/SimplePO");
+	  poPackage.getEClassifiers().add(purchaseOrderClass);
+	  
+	  resource.getContents().add(poPackage);
 	  
 	  // Add the book and writer objects to the contents.
 	  //resource.getContents().add(book);
@@ -114,28 +110,6 @@ public class XMIHandlerControlView extends JDialog implements StateChangeListene
 	  }
 	  catch (IOException e) {}	  
 	}
-	
-	 private static void extendMetaclass( final Model umlMetamodel,
-       final Profile profile,
-       final String name,
-       final Stereotype stereotype )
-{
-	   // The isRequired argument must be false, otherwise all classes will inherit the stereotype
-	   //  by default
-	   stereotype.createExtension( referenceMetaclass( umlMetamodel, profile, name ), false );
-}
-
-private static org.eclipse.uml2.uml.Class referenceMetaclass( final Model umlMetamodel,
-                                final Profile profile,
-                                final String name )
-{
-  final org.eclipse.uml2.uml.Class metaclass = (org.eclipse.uml2.uml.Class) umlMetamodel.getOwnedType( name );
-  if ( !profile.getReferencedMetaclasses().contains( metaclass ) )
-  {
-    profile.createMetaclassReference( metaclass );
-  }
-  return metaclass;
-}	
 	
 	private void initGUI() {
 		JPanel backPanel = new JPanel(new VerticalBagLayout());
