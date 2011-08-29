@@ -4,7 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
@@ -20,13 +22,13 @@ import kodkod.engine.Solution.Outcome;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.views.View;
+import org.tzi.use.modelvalidator.configuration.AttributeConfiguration;
 import org.tzi.use.modelvalidator.configuration.ClassConfiguration;
 import org.tzi.use.modelvalidator.main.Main;
 import org.tzi.use.modelvalidator.main.ModelValidator;
 import org.tzi.use.modelvalidator.solution.ModelValidatorSolution;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.StateChangeEvent;
-import org.tzi.use.uml.sys.soil.MNewObjectStatement;
 
 /**
  * @author Mirco Kuhlmann
@@ -50,7 +52,7 @@ public class ModelValidatorView extends JPanel implements View {
 		JPanel searchBoundsPanel = new JPanel(new BorderLayout());
 		this.add(searchBoundsPanel, BorderLayout.CENTER);
 
-		// tabbed pane 
+		// tabbed pane
 		JTabbedPane modelValidatorTabs = new JTabbedPane();
 		searchBoundsPanel.add(modelValidatorTabs, BorderLayout.CENTER);
 
@@ -66,7 +68,7 @@ public class ModelValidatorView extends JPanel implements View {
 		classBoundsTable.setColumnSelectionAllowed(false);
 		classBoundsPanel.add(new JScrollPane(classBoundsTable),
 				BorderLayout.CENTER);
-		
+
 		// attribute panel
 		JPanel attributeBoundsPanel = new JPanel(new BorderLayout());
 		modelValidatorTabs.add("Attribute Bounds", attributeBoundsPanel);
@@ -79,20 +81,19 @@ public class ModelValidatorView extends JPanel implements View {
 		attributeBoundsTable.setColumnSelectionAllowed(false);
 		attributeBoundsPanel.add(new JScrollPane(attributeBoundsTable),
 				BorderLayout.CENTER);
-		
+
 		// domain panel
 		JPanel domainPanel = new JPanel(new BorderLayout());
 		modelValidatorTabs.add("Attribute Domains", domainPanel);
-		
+
 		domainTableModel = new DomainTableModel(system);
 		JTable domainTable = new JTable(domainTableModel);
 		domainTableModel.addTableModelListener(domainTable);
 		domainTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		domainTable.setRowSelectionAllowed(false);
 		domainTable.setColumnSelectionAllowed(false);
-		domainPanel.add(new JScrollPane(domainTable),
-				BorderLayout.CENTER);
-		
+		domainPanel.add(new JScrollPane(domainTable), BorderLayout.CENTER);
+
 		// search panel
 		JPanel actionButtonPanel = new JPanel();
 		this.add(actionButtonPanel, BorderLayout.SOUTH);
@@ -114,6 +115,7 @@ public class ModelValidatorView extends JPanel implements View {
 
 	private void startKodkod() {
 		List<ClassConfiguration> classConfigurations = new ArrayList<ClassConfiguration>();
+		List<AttributeConfiguration> attributeConfigurations = new ArrayList<AttributeConfiguration>();
 
 		boolean universeNotEmpty = false;
 		for (ClassBoundsTableModel.Row row : classBoundsTableModel.getRows()) {
@@ -154,6 +156,57 @@ public class ModelValidatorView extends JPanel implements View {
 								.getMaximumNumberOfObjects()));
 			}
 
+			for (AttributeBoundsTableModel.Row row : attributeBoundsTableModel
+					.getRows()) {
+
+				Map<String, String> concreteMandatoryValueMap = new HashMap<String, String>();
+
+				for (String objectValuePair : Arrays.asList(row
+						.getConcreteValuesMandatoryFix().split(", "))) {
+					String object = objectValuePair.split("->")[0];
+					String value = objectValuePair.split("->")[1];
+					// only if getUndefinedFix == true, undefined attribute
+					// values must remain undefined in a valid solution
+					if (row.getUndefinedFix() || !value.equals("Undefined")) {
+						concreteMandatoryValueMap.put(object, value);
+					}
+				}
+
+				List<String> domainValues = new ArrayList<String>();
+
+				String namedDomain = null;
+
+				for (DomainTableModel.Row domRow : domainTableModel.getRows()) {
+					if (domRow.getDomain() != null && row.getDomain() != null) {
+						if (domRow.getDomain().equals(row.getDomain()))
+							namedDomain = domRow.getValues();
+					}
+				}
+
+				if (namedDomain != null) {
+					domainValues = new ArrayList<String>(
+							Arrays.asList(namedDomain.replaceAll(" ", "")
+									.split(",")));
+				} else {
+					System.out.println("no Domain:" + row.getAttr());
+				}
+
+				attributeConfigurations.add(new AttributeConfiguration(row
+						.getAttr(), concreteMandatoryValueMap, row
+						.getUndefinedFix(), row.getSetElementsFix(),
+						domainValues, row.getMinimumNumberOfDefinedValues(),
+						row.getMaximumNumberOfDefinedValues()));
+
+				System.out.println(row.getAttr());
+				System.out.println(concreteMandatoryValueMap);
+				System.out.println(row.getUndefinedFix());
+				System.out.println(row.getSetElementsFix());
+				System.out.println(domainValues);
+				System.out.println(row.getMinimumNumberOfDefinedValues());
+				System.out.println(row.getMaximumNumberOfDefinedValues());
+				System.out.println("----------------");
+			}
+
 			ModelValidator modelValidator = new ModelValidator(
 					classConfigurations);
 			modelValidator.translateUML();
@@ -167,6 +220,7 @@ public class ModelValidatorView extends JPanel implements View {
 						solution, classConfigurations);
 				modelValidatorSolution.setSnapshot(system);
 			}
+
 		} else {
 			JOptionPane
 					.showMessageDialog(

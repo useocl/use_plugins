@@ -104,9 +104,9 @@ public class AttributeBoundsTableModel extends AbstractTableModel implements
 		case 5:
 			return row.getDomain();
 		case 6:
-			return row.getMinimumNumberOfAttributes();
+			return row.getMinimumNumberOfDefinedValues();
 		case 7:
-			return row.getMaximumNumberOfAttributes();
+			return row.getMaximumNumberOfDefinedValues();
 		default:
 			return "Not handled!";
 		}
@@ -127,12 +127,12 @@ public class AttributeBoundsTableModel extends AbstractTableModel implements
 		case 6:
 			if (aValue == null)
 				aValue = 0;
-			rows.get(rowIndex).setMinimumNumberOfAttributes((Integer) aValue);
+			rows.get(rowIndex).setMinimumNumberOfDefinedValues((Integer) aValue);
 			return;
 		case 7:
 			if (aValue == null)
 				aValue = 0;
-			rows.get(rowIndex).setMaximumNumberOfAttributes((Integer) aValue);
+			rows.get(rowIndex).setMaximumNumberOfDefinedValues((Integer) aValue);
 			return;
 		default:
 			return;
@@ -162,8 +162,8 @@ public class AttributeBoundsTableModel extends AbstractTableModel implements
 		private Boolean undefinedFix = false;
 		private Boolean setElementsFix = null;
 		private String domain = null;
-		private int minimumNumberOfAttributes = 0;
-		private int maximumNumberOfAttributes = 0;
+		private int minimumNumberOfDefinedValues = 0;
+		private int maximumNumberOfDefinedValues = 0;
 
 		private MSystem system;
 
@@ -210,10 +210,10 @@ public class AttributeBoundsTableModel extends AbstractTableModel implements
 				setSetElementsFix(false);
 			}
 
-			if (getMinimumNumberOfAttributes() < concreteDefinedValues)
-				setMinimumNumberOfAttributes(concreteDefinedValues);
-			if (minimumNumberOfAttributes > maximumNumberOfAttributes)
-				setMaximumNumberOfAttributes(concreteDefinedValues);
+			if (getMinimumNumberOfDefinedValues() < concreteDefinedValues)
+				setMinimumNumberOfDefinedValues(concreteDefinedValues);
+			if (minimumNumberOfDefinedValues > maximumNumberOfDefinedValues)
+				setMaximumNumberOfDefinedValues(concreteDefinedValues);
 		}
 
 		public MClass getCls() {
@@ -269,20 +269,20 @@ public class AttributeBoundsTableModel extends AbstractTableModel implements
 			this.domain = domain;
 		}
 
-		public int getMinimumNumberOfAttributes() {
-			return minimumNumberOfAttributes;
+		public int getMinimumNumberOfDefinedValues() {
+			return minimumNumberOfDefinedValues;
 		}
 
-		public void setMinimumNumberOfAttributes(int minimumNumberOfAttributes) {
-			this.minimumNumberOfAttributes = minimumNumberOfAttributes;
+		public void setMinimumNumberOfDefinedValues(int minimumNumberOfDefinedValues) {
+			this.minimumNumberOfDefinedValues = minimumNumberOfDefinedValues;
 		}
 
-		public int getMaximumNumberOfAttributes() {
-			return maximumNumberOfAttributes;
+		public int getMaximumNumberOfDefinedValues() {
+			return maximumNumberOfDefinedValues;
 		}
 
-		public void setMaximumNumberOfAttributes(int maximumNumberOfAttributes) {
-			this.maximumNumberOfAttributes = maximumNumberOfAttributes;
+		public void setMaximumNumberOfDefinedValues(int maximumNumberOfDefinedValues) {
+			this.maximumNumberOfDefinedValues = maximumNumberOfDefinedValues;
 		}
 
 		public void refresh() {
