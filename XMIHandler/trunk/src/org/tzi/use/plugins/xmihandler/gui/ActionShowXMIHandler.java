@@ -11,19 +11,19 @@ import org.tzi.use.runtime.gui.IPluginActionDelegate;
  * @author Emil Huseynli
  * 
  */
-public class ActionShowXMIHandlerControl implements IPluginActionDelegate {
+public class ActionShowXMIHandler implements IPluginActionDelegate {
 
 	/**
 	 * Default constructor
 	 */
-	public ActionShowXMIHandlerControl() {	}
+	public ActionShowXMIHandler() {	}
 	
 	@Override
 	public void performAction(IPluginAction pluginAction) {
 		// Getting MainWindow object from Proxy
 		MainWindow fMainWindow = pluginAction.getParent();
 		
-		XMIHandlerControlView view = new XMIHandlerControlView(fMainWindow, pluginAction.getSession());
+		XMIHandlerView view = new XMIHandlerView(fMainWindow, pluginAction.getSession());
 		view.setVisible(true);
 	}
 

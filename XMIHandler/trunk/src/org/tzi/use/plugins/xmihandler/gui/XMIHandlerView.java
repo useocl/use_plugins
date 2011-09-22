@@ -10,11 +10,13 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -32,17 +34,20 @@ import org.eclipse.uml2.uml.UMLFactory;
 import org.eclipse.uml2.uml.resource.UMLResource;
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
+import org.tzi.use.uml.mm.MAggregationKind;
 import org.tzi.use.uml.mm.MAssociation;
+import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.mm.MMultiplicity;
 import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.StateChangeListener;
 
 import sun.awt.VerticalBagLayout;
 
 @SuppressWarnings("serial")
-public class XMIHandlerControlView extends JDialog implements StateChangeListener, ChangeListener{
+public class XMIHandlerView extends JDialog implements StateChangeListener, ChangeListener{
 
 	private Session session;
 	private static File fileToProcess = null;
@@ -56,15 +61,15 @@ public class XMIHandlerControlView extends JDialog implements StateChangeListene
   private JRadioButton exportRadioBtn;
   private JButton processBtn;  
 	
-	public XMIHandlerControlView(MainWindow parent, Session theSession) {
-		super(parent, "XMIHandler Control");
+	public XMIHandlerView(MainWindow parent, Session theSession) {
+		super(parent, "XMIHandler");
 		this.session = theSession;
 		session.addChangeListener(this);
 		initGUI();
 	}
 	
 	public static void main (String[] args) {
-	  new XMIHandlerControlView(null, null);
+	  new XMIHandlerView(null, null);
 //	  testXMIExport ();
 //    testXMIImport ();	  
 	}
@@ -86,67 +91,93 @@ public class XMIHandlerControlView extends JDialog implements StateChangeListene
 	  
 	  // Get the URI of the model file.
 	  URI fileURI = URI.createFileURI(file.getAbsolutePath());
-	  System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>" + fileURI.path());
 
 	  // Create a resource for this file.
 	  Resource resource = resourceSet.createResource(fileURI);
 	  
-    final Model companyModel = UMLFactory.eINSTANCE.createModel();
-    companyModel.setName(model.name());
+    final Model theModel = UMLFactory.eINSTANCE.createModel();
+    theModel.setName(model.name());
     
     final org.eclipse.uml2.uml.Class sampleClass = UMLFactory.eINSTANCE.createClass();
     sampleClass.setName("Test");
-    
+
     for (MClass mClass : model.classes())                                                                                                                                                       
     {                                                                                                                                                                                           
-      System.out.println ("Class: " + mClass.name());                                                                                                                                           
+      org.eclipse.uml2.uml.Class theClass = theModel.createOwnedClass(mClass.name(), mClass.isAbstract());      
       for (MAttribute mAttribute : mClass.attributes())                                                                                                                                         
       {                                                                                                                                                                                         
-        System.out.println (" " + mAttribute.name());                                                                                                                                           
-      }                                                                                                                                                                                         
-      for (MAssociation mAssociation : mClass.associations())                                                                                                                                   
-      {                                                                                                                                                                                         
-        System.out.println (" " + mAssociation.name());                                                                                                                                         
-      }                                                                                                                                                                                         
-                                                                                                                                                                                                
-    }              	  
+        System.out.println (" " + mAttribute.name());
+        PrimitiveType theType = (PrimitiveType)theModel.getOwnedType(mAttribute.type().shortName());         
+        if (theType == null) {
+          theType = theModel.createOwnedPrimitiveType(mAttribute.type().shortName());
+        }
 
-	  org.eclipse.uml2.uml.Class employeeClass = companyModel.createOwnedClass("Employee", false);
-    org.eclipse.uml2.uml.Class departmentClass = companyModel.createOwnedClass("Department", false);	  
-    org.eclipse.uml2.uml.Class projectClass = companyModel.createOwnedClass("Project", false);
+        theClass.createOwnedAttribute(mAttribute.name(), theType);
+      }
+      
+    }
     
-    PrimitiveType stringPrimitiveType = companyModel.createOwnedPrimitiveType("String");
-    PrimitiveType integerPrimitiveType = companyModel.createOwnedPrimitiveType("Integer");    
-    
-    employeeClass.createOwnedAttribute("name", stringPrimitiveType);
-    employeeClass.createOwnedAttribute("salary", integerPrimitiveType);
-    
-    departmentClass.createOwnedAttribute("name", stringPrimitiveType);
-    departmentClass.createOwnedAttribute("location", stringPrimitiveType);
-    departmentClass.createOwnedAttribute("budget", integerPrimitiveType);    
-    
-    projectClass.createOwnedAttribute("name", stringPrimitiveType);
-    projectClass.createOwnedAttribute("budget", integerPrimitiveType);    
-	  
-    org.eclipse.uml2.uml.Association worksInAssoc = 
-      employeeClass.createAssociation(true, AggregationKind.NONE_LITERAL, "Department", 0, LiteralUnlimitedNatural.UNLIMITED, 
-        departmentClass, false, AggregationKind.NONE_LITERAL, "Employee", 1, LiteralUnlimitedNatural.UNLIMITED);
-    
-    worksInAssoc.setName("WorksIn");
-    
-    org.eclipse.uml2.uml.Association worksOnAssoc = 
-      employeeClass.createAssociation(true, AggregationKind.NONE_LITERAL, "Project", 0, LiteralUnlimitedNatural.UNLIMITED, 
-        projectClass, false, AggregationKind.NONE_LITERAL, "Employee", 0, LiteralUnlimitedNatural.UNLIMITED);
-    
-    worksOnAssoc.setName("WorksOn");
-    
-    org.eclipse.uml2.uml.Association controlsAssoc = 
-      departmentClass.createAssociation(true, AggregationKind.NONE_LITERAL, "Project", 1, 1, 
-        projectClass, false, AggregationKind.NONE_LITERAL, "Department", 0, LiteralUnlimitedNatural.UNLIMITED);
-    
-    controlsAssoc.setName("Controls");    
-    
-	  resource.getContents().add(companyModel);
+    for (MAssociation mAssociation : model.associations())                                                                                                                                   
+    {
+          MAssociationEnd leftEnd = mAssociation.associationEnds().get(0);
+          MAssociationEnd rightEnd = mAssociation.associationEnds().get(1);          
+          org.eclipse.uml2.uml.Class leftEndClass = (org.eclipse.uml2.uml.Class)theModel.getOwnedMember(leftEnd.cls().name());          
+          org.eclipse.uml2.uml.Class rightEndClass = (org.eclipse.uml2.uml.Class)theModel.getOwnedMember(rightEnd.cls().name());
+          
+          AggregationKind leftEndAggregationKind = AggregationKind.NONE_LITERAL;
+          switch (leftEnd.aggregationKind()) {
+            case MAggregationKind.COMPOSITION: leftEndAggregationKind = AggregationKind.COMPOSITE_LITERAL; break;
+            case MAggregationKind.AGGREGATION: leftEndAggregationKind = AggregationKind.SHARED_LITERAL; break;           
+          }
+          
+          AggregationKind rightEndAggregationKind = AggregationKind.NONE_LITERAL;
+          switch (rightEnd.aggregationKind()) {
+            case MAggregationKind.COMPOSITION: rightEndAggregationKind = AggregationKind.COMPOSITE_LITERAL; break;
+            case MAggregationKind.AGGREGATION: rightEndAggregationKind = AggregationKind.SHARED_LITERAL; break;           
+          }
+          
+          int leftEndLower = 0;
+          int leftEndUpper = 0;
+          
+          if (leftEnd.multiplicity().toString().equals(MMultiplicity.ONE.toString())) {
+            leftEndLower = 1;
+            leftEndUpper = 1;
+          } else if (leftEnd.multiplicity().toString().equals(MMultiplicity.ONE_MANY.toString())) {
+            leftEndLower = 1;
+            leftEndUpper = LiteralUnlimitedNatural.UNLIMITED;            
+          } else if (leftEnd.multiplicity().toString().equals(MMultiplicity.ZERO_MANY.toString())) {
+            leftEndLower = 0;
+            leftEndUpper = LiteralUnlimitedNatural.UNLIMITED;            
+          } else if (leftEnd.multiplicity().toString().equals(MMultiplicity.ZERO_ONE.toString())) {
+            leftEndLower = 0;
+            leftEndUpper = 1;            
+          }
+          
+          int rightEndLower = 0;
+          int rightEndUpper = 0;
+          
+          if (rightEnd.multiplicity().toString().equals(MMultiplicity.ONE.toString())) {
+            rightEndLower = 1;
+            rightEndUpper = 1;
+          } else if (rightEnd.multiplicity().toString().equals(MMultiplicity.ONE_MANY.toString())) {
+            rightEndLower = 1;
+            rightEndUpper = LiteralUnlimitedNatural.UNLIMITED;            
+          } else if (rightEnd.multiplicity().toString().equals(MMultiplicity.ZERO_MANY.toString())) {
+            rightEndLower = 0;
+            rightEndUpper = LiteralUnlimitedNatural.UNLIMITED;            
+          } else if (rightEnd.multiplicity().toString().equals(MMultiplicity.ZERO_ONE.toString())) {
+            rightEndLower = 0;
+            rightEndUpper = 1;            
+          }          
+          
+        org.eclipse.uml2.uml.Association assoc = 
+        leftEndClass.createAssociation(rightEnd.isNavigable(), leftEndAggregationKind, rightEnd.name(), leftEndLower, leftEndUpper, 
+          rightEndClass, leftEnd.isNavigable(), rightEndAggregationKind, leftEnd.name(), rightEndLower, rightEndUpper);
+        
+        assoc.setName(mAssociation.name());
+    }
+
+	  resource.getContents().add(theModel);
 	  
 	  // Save the contents of the resource to the file system.
 	  try
@@ -240,7 +271,8 @@ public class XMIHandlerControlView extends JDialog implements StateChangeListene
     selectBtn.addActionListener(new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        JFileChooser fc = new JFileChooser();        
+        JFileChooser fc = new JFileChooser();
+        fc.setFileFilter(new FileNameExtensionFilter("XMI Files", "xmi"));
         int returnVal = fc.showOpenDialog(null);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -275,6 +307,12 @@ public class XMIHandlerControlView extends JDialog implements StateChangeListene
     processBtn.addActionListener(new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
+        if (fileToProcess == null)
+        {
+          JOptionPane.showMessageDialog(null, "Please select an output xmi file first", "No output file", JOptionPane.WARNING_MESSAGE);
+          return;
+        }
+        
         if (exportRadioBtn.isSelected())
         {
           exportXMI(fileToProcess, session.system().model());          

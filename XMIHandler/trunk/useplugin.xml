@@ -3,9 +3,9 @@
 <plugin name="XMIHandler" version="0.1" publisher="Emil Huseynli">
     <actions>
       <action label="Show XMIHandler" icon="resources/XMIHandler.png"
-      class="org.tzi.use.plugins.xmihandler.gui.ActionShowXMIHandlerControl" tooltip="Show XMIHanlder control"
+      class="org.tzi.use.plugins.xmihandler.gui.ActionShowXMIHandler" tooltip="Show XMIHanlder control"
       menu="View" menuitem="XMIHandler control" toolbaritem="plugins"
-      id="org.tzi.use.plugins.xmihandler.gui.ActionShowXMIHandlerControl">
+      id="org.tzi.use.plugins.xmihandler.gui.ActionShowXMIHandler">
     </action>    
     </actions>
 	<commands>
