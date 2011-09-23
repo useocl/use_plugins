@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
@@ -39,8 +40,13 @@ import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MMultiplicity;
+import org.tzi.use.uml.mm.ModelFactory;
+import org.tzi.use.uml.ocl.expr.VarDecl;
+import org.tzi.use.uml.ocl.type.TypeFactory;
+import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.StateChangeListener;
 
@@ -84,7 +90,7 @@ public class XMIHandlerView extends JDialog implements StateChangeListener, Chan
 	  
 	  resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(Resource.Factory.Registry.DEFAULT_EXTENSION, UMLResource.Factory.INSTANCE);
  
-	  URI uri = URI.createURI("jar:file:/home/stalker/uni/Masterarbeit/xmihandler_repo/lib/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar!/");
+	  URI uri = URI.createURI("jar:file:lib/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar!/");
 	  resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.LIBRARIES_PATHMAP), uri.appendSegment("libraries").appendSegment(""));
 	  resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.METAMODELS_PATHMAP), uri.appendSegment("metamodels").appendSegment(""));
 	  resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.PROFILES_PATHMAP), uri.appendSegment("profiles").appendSegment(""));
@@ -106,7 +112,6 @@ public class XMIHandlerView extends JDialog implements StateChangeListener, Chan
       org.eclipse.uml2.uml.Class theClass = theModel.createOwnedClass(mClass.name(), mClass.isAbstract());      
       for (MAttribute mAttribute : mClass.attributes())                                                                                                                                         
       {                                                                                                                                                                                         
-        System.out.println (" " + mAttribute.name());
         PrimitiveType theType = (PrimitiveType)theModel.getOwnedType(mAttribute.type().shortName());         
         if (theType == null) {
           theType = theModel.createOwnedPrimitiveType(mAttribute.type().shortName());
@@ -171,8 +176,8 @@ public class XMIHandlerView extends JDialog implements StateChangeListener, Chan
           }          
           
         org.eclipse.uml2.uml.Association assoc = 
-        leftEndClass.createAssociation(rightEnd.isNavigable(), leftEndAggregationKind, rightEnd.name(), leftEndLower, leftEndUpper, 
-          rightEndClass, leftEnd.isNavigable(), rightEndAggregationKind, leftEnd.name(), rightEndLower, rightEndUpper);
+        leftEndClass.createAssociation(leftEnd.isNavigable(), leftEndAggregationKind, leftEnd.name(), leftEndLower, leftEndUpper, 
+          rightEndClass, rightEnd.isNavigable(), rightEndAggregationKind, rightEnd.name(), rightEndLower, rightEndUpper);
         
         assoc.setName(mAssociation.name());
     }
@@ -187,7 +192,7 @@ public class XMIHandlerView extends JDialog implements StateChangeListener, Chan
 	  catch (IOException e) {} 
 	}
 	
-  private static void importXMI(File file, MModel model) {
+  private static void importXMI(File file, Session session) {
     // Create a resource set.
     ResourceSet resourceSet = new ResourceSetImpl();
     
@@ -197,7 +202,7 @@ public class XMIHandlerView extends JDialog implements StateChangeListener, Chan
     
     resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(Resource.Factory.Registry.DEFAULT_EXTENSION, UMLResource.Factory.INSTANCE);
  
-    URI uri = URI.createURI("jar:file:/home/stalker/uni/Masterarbeit/xmihandler_repo/lib/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar!/");
+    URI uri = URI.createURI("jar:file:lib/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar!/");
     resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.LIBRARIES_PATHMAP), uri.appendSegment("libraries").appendSegment(""));
     resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.METAMODELS_PATHMAP), uri.appendSegment("metamodels").appendSegment(""));
     resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.PROFILES_PATHMAP), uri.appendSegment("profiles").appendSegment(""));
@@ -214,27 +219,94 @@ public class XMIHandlerView extends JDialog implements StateChangeListener, Chan
     }
     catch (IOException e) {}    
 
-    final Model companyModel = (Model)resource.getContents().get(0);
-    System.out.println (companyModel.getName());
-        
-    for (Type type : companyModel.getOwnedTypes())
+    final Model theModel = (Model)resource.getContents().get(0);
+    
+    ModelFactory modelFactory = new ModelFactory ();
+    MModel model = modelFactory.createModel(theModel.getName());
+    MSystem system = new MSystem(model);
+
+    session.setSystem(system);
+    
+    for (Type type : theModel.getOwnedTypes())
     {
-      System.out.println (type.getQualifiedName());
       
       if (type instanceof org.eclipse.uml2.uml.Class)
       {
+        org.eclipse.uml2.uml.Class theClass = (org.eclipse.uml2.uml.Class) type;
+        MClass cls = modelFactory.createClass(theClass.getName(), theClass.isAbstract());
+        try {
+          model.addClass(cls);
+        } catch (MInvalidModelException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        
         for (Property prop : ((org.eclipse.uml2.uml.Class) type).getAllAttributes())
         {
-          System.out.println (prop.getQualifiedName());
+          MAttribute attr = null;
+          if (prop.getType().getName().equals("String")) {
+            attr = modelFactory.createAttribute(prop.getName(), TypeFactory.mkString());
+          } else if (prop.getType().getName().equals("Integer")) {
+            attr = modelFactory.createAttribute(prop.getName(), TypeFactory.mkInteger());
+          }
+          if (attr != null) {
+            try {
+              cls.addAttribute(attr);
+            } catch (MInvalidModelException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+          }
         }
       }
+      
       if (type instanceof Association)
       {
-        for (Property t : ((Association)type).getAllAttributes())
-        {
-          System.out.println ("---------" + t.getLowerValue().stringValue());
-          System.out.println ("---------" + t.getUpperValue().stringValue());
+        Association theAssoc = (Association) type;
+        
+        List<VarDecl> emptyQualifiers = Collections.emptyList();
+        
+        MAssociation assoc = modelFactory.createAssociation(theAssoc.getName());
+        
+        Property leftEnd = theAssoc.getAllAttributes().get(0);
+        Property rightEnd = theAssoc.getAllAttributes().get(1);        
+        
+        MClass leftEndClass = model.getClass(leftEnd.getClass_().getName());
+        MClass rightEndClass = model.getClass(rightEnd.getClass_().getName());
+        
+        MMultiplicity m1 = modelFactory.createMultiplicity();
+        MMultiplicity m2 = modelFactory.createMultiplicity();
+        
+        m1.addRange(leftEnd.getLower(), leftEnd.getUpper());
+        m2.addRange(rightEnd.getLower(), rightEnd.getUpper());
+        
+        int leftEndAggregationKind = MAggregationKind.NONE;
+        switch (leftEnd.getAggregation()) {
+          case COMPOSITE_LITERAL: leftEndAggregationKind = MAggregationKind.COMPOSITION; break;
+          case SHARED_LITERAL: leftEndAggregationKind = MAggregationKind.AGGREGATION; break;           
+        }        
+        
+        int rightEndAggregationKind = MAggregationKind.NONE;
+        switch (rightEnd.getAggregation()) {
+          case COMPOSITE_LITERAL: rightEndAggregationKind = MAggregationKind.COMPOSITION; break;
+          case SHARED_LITERAL: rightEndAggregationKind = MAggregationKind.AGGREGATION; break;           
+        }        
+        
+        MAssociationEnd assocLeftEnd = modelFactory.createAssociationEnd(leftEndClass, leftEndClass.name(), m1,
+            leftEndAggregationKind, leftEnd.isOrdered(), emptyQualifiers);
+        
+        MAssociationEnd assocRightEnd = modelFactory.createAssociationEnd(rightEndClass, rightEndClass.name(), m2,
+          rightEndAggregationKind, rightEnd.isOrdered(), emptyQualifiers);        
+        
+        try {
+          assoc.addAssociationEnd(assocLeftEnd);
+          assoc.addAssociationEnd(assocRightEnd);
+          model.addAssociation(assoc);          
+        } catch (MInvalidModelException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
         }
+
       }
     }
     
@@ -317,7 +389,7 @@ public class XMIHandlerView extends JDialog implements StateChangeListener, Chan
         {
           exportXMI(fileToProcess, session.system().model());          
         } else if (importRadioBtn.isSelected()) {
-          importXMI(fileToProcess, session.system().model());          
+          importXMI(fileToProcess, session);
         }
       }
     });    
