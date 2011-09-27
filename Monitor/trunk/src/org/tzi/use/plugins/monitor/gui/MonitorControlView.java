@@ -9,6 +9,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.net.URL;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
@@ -18,12 +19,16 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.JTree;
 import javax.swing.SwingConstants;
-import javax.swing.border.TitledBorder;
+import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
@@ -33,10 +38,11 @@ import org.tzi.use.plugins.monitor.IProgressListener;
 import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorPlugin;
 import org.tzi.use.plugins.monitor.ProgressArgs;
+import org.tzi.use.uml.mm.MAttribute;
+import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.StateChangeListener;
-
-import sun.awt.VerticalBagLayout;
 
 @SuppressWarnings("serial")
 public class MonitorControlView extends JDialog implements StateChangeListener, ChangeListener, IProgressListener {
@@ -79,11 +85,11 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	}
 	
 	private void initGUI() {
-		JPanel backPanel = new JPanel(new VerticalBagLayout());
+		JPanel backPanel = new JPanel(new BorderLayout(3,2));
 		this.getContentPane().add(backPanel);
 		
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		backPanel.add(buttonPanel);
+		backPanel.add(buttonPanel, BorderLayout.NORTH);
 		
 		URL iconUrl = MonitorPlugin.getInstance().getResource("resources/play.png");
 		button_Play = new JButton("Play", new ImageIcon(iconUrl));
@@ -92,12 +98,9 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		button_Play.addActionListener(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Thread t = new Thread(new Runnable() {
+				MonitorSwingWorker worker = new MonitorSwingWorker() {
 					@Override
-					public void run() {
-						MonitorControlView.this.setCursor(Cursor
-								.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
+					protected void doMonitorInBackground() {
 						MonitorPlugin
 								.getMonitorPluginInstance()
 								.getMonitor()
@@ -105,12 +108,10 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 										text_port.getText());
 						MonitorPlugin.getMonitorPluginInstance().getMonitor()
 								.start(check_suspend.isSelected());
-
-						MonitorControlView.this.setCursor(Cursor
-								.getDefaultCursor());
 					}
-				});
-				t.start();
+					
+				};
+				worker.execute();
 			}
 		});
 		buttonPanel.add(button_Play);
@@ -122,12 +123,9 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		button_Pause.addActionListener(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Thread t = new Thread(new Runnable() {
+				MonitorSwingWorker worker = new MonitorSwingWorker() {
 					@Override
-					public void run() {
-						MonitorControlView.this.setCursor(Cursor
-								.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
+					protected void doMonitorInBackground() {
 						if (MonitorPlugin.getMonitorPluginInstance()
 								.getMonitor().isPaused())
 							MonitorPlugin.getMonitorPluginInstance()
@@ -135,12 +133,9 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 						else
 							MonitorPlugin.getMonitorPluginInstance()
 									.getMonitor().pause();
-
-						MonitorControlView.this.setCursor(Cursor
-								.getDefaultCursor());
 					}
-				});
-				t.run();
+				};
+				worker.execute();
 			}
 		});
 		buttonPanel.add(button_Pause);
@@ -157,69 +152,118 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		});
 		buttonPanel.add(button_Stop);
 		
-		JPanel info = new JPanel(new GridBagLayout());
-		info.setBorder(new TitledBorder("Information"));
-		GridBagConstraints cLabel = new GridBagConstraints();
-		GridBagConstraints cData = new GridBagConstraints();
+		JTabbedPane tabs = new JTabbedPane();
+		backPanel.add(tabs, BorderLayout.CENTER);
 		
-		cLabel.gridx = 0;
-		cLabel.gridy = 0;
-		cLabel.anchor = GridBagConstraints.WEST;
-		cLabel.fill = GridBagConstraints.NONE;
-		cLabel.weightx = 0;
-		cLabel.insets = new Insets(3, 3, 3, 3);
-		cLabel.ipadx = 5;
-		cLabel.ipady = 3;
+		{
+			JPanel tapPanel = new JPanel(new BorderLayout());
+			JPanel info = new JPanel(new GridBagLayout());
+			GridBagConstraints cLabel = new GridBagConstraints();
+			GridBagConstraints cData = new GridBagConstraints();
+			
+			cLabel.gridx = 0;
+			cLabel.gridy = 0;
+			cLabel.anchor = GridBagConstraints.NORTHWEST;
+			cLabel.fill = GridBagConstraints.NONE;
+			cLabel.weightx = 0;
+			cLabel.insets = new Insets(3, 3, 3, 3);
+			cLabel.ipadx = 5;
+			cLabel.ipady = 3;
+						
+			cData.gridx = 1;
+			cData.gridy = 0;
+			cData.anchor = GridBagConstraints.NORTHWEST;
+			cData.fill = GridBagConstraints.HORIZONTAL;
+			cData.weightx = 1;
+			cData.insets = new Insets(3, 3, 3, 3);
+			cData.ipadx = 5;
+			cData.ipady = 3;
+			
+			info.add(new JLabel("USE model:"), cLabel);
+			cLabel.gridy++;
+			
+			label_useModel = new JLabel(session.system().model().name());
+			label_useModel.setFont(getFont().deriveFont(Font.BOLD));
+			info.add(label_useModel, cData);
+			cData.gridy++;
+			
+			info.add(new JLabel("Remote host:"), cLabel);
+			cLabel.gridy++;
+	
+			text_host = new JTextField("localhost");
+			info.add(text_host, cData);
+			cData.gridy++;
+	
+			info.add(new JLabel("Port:"), cLabel);
+			cLabel.gridy++;
+	
+			text_port = new JTextField("6000");
+			info.add(text_port, cData);
+			cData.gridy++;
+	
+			check_suspend = new JCheckBox("Suspend at connect", true);
+			info.add(check_suspend, cData);
+			
+			tapPanel.add(info, BorderLayout.NORTH);
+			tabs.addTab("Information", tapPanel);
+		}
 		
-		cData.gridx = 1;
-		cData.gridy = 0;
-		cData.anchor = GridBagConstraints.WEST;
-		cData.fill = GridBagConstraints.HORIZONTAL;
-		cData.weightx = 1;
-		cData.insets = new Insets(3, 3, 3, 3);
-		cData.ipadx = 5;
-		cData.ipady = 3;
+		{
+			JPanel progress = new JPanel(new BorderLayout(3, 2));
+			progressbar = new JProgressBar();
+			progress.add(progressbar, BorderLayout.NORTH);
+			label_status = new JLabel("Ready");
+			progress.add(label_status, BorderLayout.SOUTH);
+			backPanel.add(progress, BorderLayout.SOUTH);
+		}
 		
-		info.add(new JLabel("USE model:"), cLabel);
-		cLabel.gridy++;
-		
-		label_useModel = new JLabel(session.system().model().name());
-		label_useModel.setFont(getFont().deriveFont(Font.BOLD));
-		info.add(label_useModel, cData);
-		cData.gridy++;
-		
-		info.add(new JLabel("Remote host:"), cLabel);
-		cLabel.gridy++;
-
-		text_host = new JTextField("localhost");
-		info.add(text_host, cData);
-		cData.gridy++;
-
-		info.add(new JLabel("Port:"), cLabel);
-		cLabel.gridy++;
-
-		text_port = new JTextField("6000");
-		info.add(text_port, cData);
-		cData.gridy++;
-
-		check_suspend = new JCheckBox("Suspend at connect", true);
-		info.add(check_suspend, cData);
-		
-		backPanel.add(info);
-				
-		JPanel progress = new JPanel(new BorderLayout(3, 2));
-		progressbar = new JProgressBar();
-		progress.add(progressbar, BorderLayout.NORTH);
-		label_status = new JLabel("Ready");
-		progress.add(label_status, BorderLayout.SOUTH);
-		backPanel.add(progress);
-		
+		{
+			JPanel modelPanel = new JPanel(new BorderLayout());
+			DefaultMutableTreeNode root = createModelNodes();
+			JTree modelTree = new JTree(root);
+			
+			modelPanel.add(new JScrollPane(modelTree), BorderLayout.CENTER);
+			
+			tabs.addTab("Model", modelPanel);
+		}
 		configureComponents();
 		
 		this.pack();
 		this.setMinimumSize(this.getSize());
 	}
 
+	private DefaultMutableTreeNode createModelNodes() {
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode(session.system().model(), true);
+		
+		for (MClass cls : session.system().model().classes()) {
+			DefaultMutableTreeNode classNode = new DefaultMutableTreeNode(cls, true); 
+			root.add(classNode);
+
+			List<MAttribute> attributes = cls.attributes();
+			if (!attributes.isEmpty()) {
+				DefaultMutableTreeNode attributesNode = new DefaultMutableTreeNode("Attributes");
+				
+				classNode.add(attributesNode);
+	
+				for (MAttribute attr : attributes) {
+					attributesNode.add(new DefaultMutableTreeNode(attr));
+				}
+			}
+			
+			List<MOperation> operations = cls.operations();
+			if (!operations.isEmpty()) {
+				DefaultMutableTreeNode operationsNode = new DefaultMutableTreeNode("Operations");
+				classNode.add(operationsNode);
+	
+				for (MOperation op : operations) {
+					operationsNode.add(new DefaultMutableTreeNode(op));
+				}
+			}
+		}
+		
+		return root;
+	}
+	
 	private void configureComponents() {
 		Monitor monitor = MonitorPlugin.getMonitorPluginInstance().getMonitor();
 		boolean isMonitoring = monitor.isRunning();
@@ -245,6 +289,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	 */
 	@Override
 	public void dispose() {
+		session.removeChangeListener(this);
 		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeStateChangedListener(stateChangeListener);
 		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeSnapshotProgressListener(this);
 		super.dispose();
@@ -252,7 +297,10 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		this.label_useModel.setText(session.system().model().name());
+		if (session.hasSystem())
+			this.label_useModel.setText(session.system().model().name());
+		else
+			this.label_useModel.setText("No USE file loaded");
 	}
 
 	@Override
@@ -278,5 +326,33 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		this.progressbar.invalidate();
 		
 		this.label_status.setText("Ready");
+	}
+
+	protected abstract class MonitorSwingWorker extends SwingWorker<Void, Void> {
+		/* (non-Javadoc)
+		 * @see javax.swing.SwingWorker#doInBackground()
+		 */
+		@Override
+		protected final Void doInBackground() throws Exception {
+			button_Pause.setEnabled(false);
+			button_Play.setEnabled(false);
+			button_Stop.setEnabled(false);
+			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+						
+			doMonitorInBackground();
+			
+			return null;
+		}
+
+		protected abstract void doMonitorInBackground();
+		
+		/* (non-Javadoc)
+		 * @see javax.swing.SwingWorker#done()
+		 */
+		@Override
+		protected void done() {
+			configureComponents();
+			setCursor(Cursor.getDefaultCursor());
+		}
 	}
 }

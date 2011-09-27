@@ -68,6 +68,7 @@ import org.tzi.use.uml.sys.soil.MExitOperationStatement;
 import org.tzi.use.uml.sys.soil.MLinkDeletionStatement;
 import org.tzi.use.uml.sys.soil.MLinkInsertionStatement;
 import org.tzi.use.uml.sys.soil.MNewObjectStatement;
+import org.tzi.use.uml.sys.soil.MRValue;
 import org.tzi.use.util.Log;
 import org.tzi.use.util.StringUtil;
 
@@ -238,6 +239,14 @@ public class Monitor implements ChangeListener {
 		String name = a.getAnnotationValue("Monitor", "name");
 		if (name == "") {
 			name = a.name();
+		}
+		return name;
+	}
+    
+    private String getJavaFieldName(MAssociationEnd end) {
+		String name = end.getAnnotationValue("Monitor", "name");
+		if (name == "") {
+			name = end.nameAsRolename();
 		}
 		return name;
 	}
@@ -545,7 +554,6 @@ public class Monitor implements ChangeListener {
 	}
 	
 	private void readInstances() {
-		long start = System.currentTimeMillis();
 		Collection<MClass> classes = getSystem().model().classes();
 		
 		onSnapshotStart("Initializing...", classes.size());
@@ -553,6 +561,7 @@ public class Monitor implements ChangeListener {
 		instanceMapping = new HashMap<ObjectReference, MObject>();
 		setupClassMappings();
 		
+		long start = System.currentTimeMillis();
 		ProgressArgs args = new ProgressArgs("Reading instances", 0, classes.size());
 		// Create current system state
     	for (MClass cls : classes) {
@@ -565,9 +574,10 @@ public class Monitor implements ChangeListener {
     	
     	long end = System.currentTimeMillis();
     	long duration = (end - start);
-    	
-		Log.println(" Created " + countInstances + " instances in " + duration
-				+ "ms (" + (double)countInstances / ((double)duration / 1000) + " instances/s).");
+    	long instPerSecond = Math.round((double)countInstances / ((double)duration / 1000));
+		
+    	Log.println(" Created " + countInstances + " instances in " + duration
+				+ "ms (" + instPerSecond + " instances/s).");
     	
 		onSnapshotEnd();
 		
@@ -712,7 +722,8 @@ public class Monitor implements ChangeListener {
     			List<MObject> objects = getSystem().state().getNavigableObjects(useObject, ends.get(0), end, Collections.<Value>emptyList());
     			
     			if (objects.size() > 0) {
-    				MLinkDeletionStatement delStmt = new MLinkDeletionStatement(end.association(), objects.get(0), useObject);
+    				//FIXME: Qualifier values empty
+    				MLinkDeletionStatement delStmt = new MLinkDeletionStatement(end.association(), new MObject[]{objects.get(0), useObject}, Collections.<List<MRValue>>emptyList());
 	    			try {
 	    				getSystem().evaluateStatement(delStmt);
 					} catch (MSystemException e) {
@@ -848,7 +859,7 @@ public class Monitor implements ChangeListener {
 		} else if (javaValue instanceof StringReference) {
 			v = new StringValue(((StringReference)javaValue).value());
 		} else if (javaValue instanceof IntegerValue) {
-			v = new org.tzi.use.uml.ocl.value.IntegerValue(((IntegerValue)javaValue).intValue());
+			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf(((IntegerValue)javaValue).intValue());
 		} else if (javaValue instanceof BooleanValue) {
 			boolean b = ((BooleanValue)javaValue).booleanValue();
 			v = org.tzi.use.uml.ocl.value.BooleanValue.get(b);
@@ -897,7 +908,7 @@ public class Monitor implements ChangeListener {
 	}
     
     private void readLink(ObjectReference objRef, MObject source, MAssociationEnd end) {
-    	Field field = objRef.referenceType().fieldByName(end.nameAsRolename());
+    	Field field = objRef.referenceType().fieldByName(getJavaFieldName(end));
     	
     	if (field == null) {
     		return;
@@ -922,8 +933,8 @@ public class Monitor implements ChangeListener {
 							com.sun.jdi.Value elementValue2 = arrayValues2.get(index2);
 							
 							qualifierValues = new ArrayList<org.tzi.use.uml.ocl.value.Value>(2);
-							qualifierValues.add(new org.tzi.use.uml.ocl.value.IntegerValue(index1));
-							qualifierValues.add(new org.tzi.use.uml.ocl.value.IntegerValue(index2));
+							qualifierValues.add(org.tzi.use.uml.ocl.value.IntegerValue.valueOf(index1));
+							qualifierValues.add(org.tzi.use.uml.ocl.value.IntegerValue.valueOf(index2));
 							refTarget = (ObjectReference)elementValue2;
 							
 							if (refTarget != null) {
@@ -938,7 +949,7 @@ public class Monitor implements ChangeListener {
 						refTarget = (ObjectReference)elementValue;
 						if (refTarget != null) {
 							qualifierValues = new ArrayList<org.tzi.use.uml.ocl.value.Value>(1);
-							qualifierValues.add(new org.tzi.use.uml.ocl.value.IntegerValue(index1));
+							qualifierValues.add(org.tzi.use.uml.ocl.value.IntegerValue.valueOf(index1));
 							
 				    		MObject target = instanceMapping.get(refTarget);
 
