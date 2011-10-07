@@ -1,6 +1,7 @@
 package org.tzi.use.plugins.monitor.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -12,6 +13,7 @@ import java.net.URL;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -29,6 +31,7 @@ import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
@@ -40,9 +43,11 @@ import org.tzi.use.plugins.monitor.MonitorPlugin;
 import org.tzi.use.plugins.monitor.ProgressArgs;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.StateChangeListener;
+import org.tzi.use.util.StringUtil;
 
 @SuppressWarnings("serial")
 public class MonitorControlView extends JDialog implements StateChangeListener, ChangeListener, IProgressListener {
@@ -221,11 +226,13 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			JPanel modelPanel = new JPanel(new BorderLayout());
 			DefaultMutableTreeNode root = createModelNodes();
 			JTree modelTree = new JTree(root);
+			modelTree.setCellRenderer(new ModelCellRenderer());
 			
 			modelPanel.add(new JScrollPane(modelTree), BorderLayout.CENTER);
 			
 			tabs.addTab("Model", modelPanel);
 		}
+		
 		configureComponents();
 		
 		this.pack();
@@ -233,30 +240,37 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	}
 
 	private DefaultMutableTreeNode createModelNodes() {
-		DefaultMutableTreeNode root = new DefaultMutableTreeNode(session.system().model(), true);
+		ModelTreeNode<MModel> root = new ModelTreeNode<MModel>(false, session.system().model(), true);
+		
+		StringUtil.IElementFormatter<MOperation> opFormatter = new StringUtil.IElementFormatter<MOperation>() {
+			@Override
+			public String format(MOperation element) {
+				return element.signature();
+			}
+		};
 		
 		for (MClass cls : session.system().model().classes()) {
-			DefaultMutableTreeNode classNode = new DefaultMutableTreeNode(cls, true); 
+			ModelTreeNode<MClass> classNode = new ModelTreeNode<MClass>(false, cls, true); 
 			root.add(classNode);
 
 			List<MAttribute> attributes = cls.attributes();
 			if (!attributes.isEmpty()) {
-				DefaultMutableTreeNode attributesNode = new DefaultMutableTreeNode("Attributes");
+				ModelTreeNode<String> attributesNode = new ModelTreeNode<String>(false, "Attributes");
 				
 				classNode.add(attributesNode);
 	
 				for (MAttribute attr : attributes) {
-					attributesNode.add(new DefaultMutableTreeNode(attr));
+					attributesNode.add(new ModelTreeNode<MAttribute>(true, attr));
 				}
 			}
 			
 			List<MOperation> operations = cls.operations();
 			if (!operations.isEmpty()) {
-				DefaultMutableTreeNode operationsNode = new DefaultMutableTreeNode("Operations");
+				ModelTreeNode<String> operationsNode = new ModelTreeNode<String>(false, "Operations");
 				classNode.add(operationsNode);
 	
 				for (MOperation op : operations) {
-					operationsNode.add(new DefaultMutableTreeNode(op));
+					operationsNode.add(new ModelTreeNode<MOperation>(true, op, opFormatter));
 				}
 			}
 		}
@@ -264,6 +278,114 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		return root;
 	}
 	
+	private static class ModelTreeNode<T> extends DefaultMutableTreeNode {
+		private StringUtil.IElementFormatter<T> formatter;
+		private T userObject;
+		private boolean isSelectable;
+		private boolean isSelected;
+		
+		public ModelTreeNode(boolean isSelectable, T userObject) {
+			this(isSelectable, userObject, true, null);
+		}
+		
+		public ModelTreeNode(boolean isSelectable, T userObject, StringUtil.IElementFormatter<T> formatter) {
+			this(isSelectable, userObject, true, formatter);
+		}
+		
+		public ModelTreeNode(boolean isSelectable, T userObject, boolean allowsChildren) {
+			this(isSelectable, userObject, allowsChildren, null);
+		}
+		
+		public ModelTreeNode(boolean isSelectable, T userObject, boolean allowsChildren, StringUtil.IElementFormatter<T> formatter) {
+			super(userObject, allowsChildren);
+			this.userObject = userObject;
+			this.formatter = formatter;
+			this.isSelectable = isSelectable;
+			this.setSelected(false);
+		}
+
+		/* (non-Javadoc)
+		 * @see javax.swing.tree.DefaultMutableTreeNode#toString()
+		 */
+		@Override
+		public String toString() {
+			if (formatter != null)
+				return formatter.format(userObject);
+			
+			return super.toString();
+		}
+
+		public boolean isSelectable() {
+			return isSelectable;
+		}
+
+		public boolean isSelected() {
+			return isSelected;
+		}
+
+		public void setSelected(boolean isSelected) {
+			this.isSelected = isSelected;
+		}
+	}
+	
+	/**
+     * This renderer shows different icons for the different user object types.
+     */
+    private static class ModelCellRenderer extends DefaultTreeCellRenderer {
+    	
+    	private static Icon iconSelected;
+    	private static Icon iconNotSelected;
+    	
+    	private static Icon iconClass;
+    	private static Icon iconOperations;
+    	private static Icon iconAttributes;
+
+		static {
+    		iconSelected =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/Selected.gif"));
+    		iconNotSelected =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/NotSelected.gif"));
+    		
+    		iconClass =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/MClass.gif"));
+    		iconOperations =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/Operations.gif"));
+    		iconAttributes =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/Attributes.gif"));
+    	}
+    	
+		public Component getTreeCellRendererComponent(JTree tree, Object value,
+				boolean sel, boolean expanded, boolean leaf, int row,
+				boolean hasFocus) {
+			super.getTreeCellRendererComponent(tree, value, sel, expanded,
+					leaf, row, hasFocus);
+			
+			ModelTreeNode<?> node = (ModelTreeNode<?>) value;
+			
+			if (node.isSelectable()) {
+				if (node.isSelected()) {
+					setIcon(iconSelected);
+				} else {
+					setIcon(iconNotSelected);
+				}
+			} else {
+				setIcon(getIconForModelObject(node.getUserObject()));
+			}
+			
+			return this;
+		}
+
+		private Icon getIconForModelObject(Object userObject) {
+			if (userObject instanceof MClass) {
+				return iconClass;
+			} else if (userObject instanceof String) {
+				if (userObject.toString().equals("Operations")) {
+					return iconOperations;
+				}
+				if (userObject.toString().equals("Attributes")) {
+					return iconAttributes;
+				}
+			}
+			
+			return null;
+		}
+    }
+
 	private void configureComponents() {
 		Monitor monitor = MonitorPlugin.getMonitorPluginInstance().getMonitor();
 		boolean isMonitoring = monitor.isRunning();
