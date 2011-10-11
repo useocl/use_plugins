@@ -3,4 +3,4 @@ Plugin-Name: Monitor
 Plugin-Version: 0.1
 Plugin-Publisher: Lars Hamann
 Main-Class: org.tzi.use.plugins.monitor.MonitorPlugin
-Class-Path: ../tools.jar
+Class-Path: ../tools.jar ../lablib-checkboxtree-3.2.jar

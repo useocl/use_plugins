@@ -1,5 +1,9 @@
 package org.tzi.use.plugins.monitor.gui;
 
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.CheckboxTree;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.DefaultCheckboxTreeCellRenderer;
+import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -10,7 +14,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.net.URL;
-import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -28,10 +33,10 @@ import javax.swing.JToggleButton;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
@@ -41,6 +46,7 @@ import org.tzi.use.plugins.monitor.IProgressListener;
 import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorPlugin;
 import org.tzi.use.plugins.monitor.ProgressArgs;
+import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
@@ -65,6 +71,8 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	
 	private JProgressBar progressbar;
 	private JLabel label_status;
+	
+	private CheckboxTree modelTree;
 	
 	private IMonitorStateListener stateChangeListener;
 	
@@ -225,8 +233,9 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		{
 			JPanel modelPanel = new JPanel(new BorderLayout());
 			DefaultMutableTreeNode root = createModelNodes();
-			JTree modelTree = new JTree(root);
+			modelTree = new CheckboxTree(root);
 			modelTree.setCellRenderer(new ModelCellRenderer());
+			modelTree.getCheckingModel().setCheckingMode(TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK);
 			
 			modelPanel.add(new JScrollPane(modelTree), BorderLayout.CENTER);
 			
@@ -249,11 +258,14 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			}
 		};
 		
-		for (MClass cls : session.system().model().classes()) {
+		// The default comparsion of MModelElement is compare the names
+		SortedSet<MClass> sortedClasses = new TreeSet<MClass>(session.system().model().classes());
+		
+		for (MClass cls : sortedClasses) {
 			ModelTreeNode<MClass> classNode = new ModelTreeNode<MClass>(false, cls, true); 
 			root.add(classNode);
 
-			List<MAttribute> attributes = cls.attributes();
+			SortedSet<MAttribute> attributes = new TreeSet<MAttribute>(cls.attributes());
 			if (!attributes.isEmpty()) {
 				ModelTreeNode<String> attributesNode = new ModelTreeNode<String>(false, "Attributes");
 				
@@ -264,7 +276,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 				}
 			}
 			
-			List<MOperation> operations = cls.operations();
+			SortedSet<MOperation> operations = new TreeSet<MOperation>(cls.operations());
 			if (!operations.isEmpty()) {
 				ModelTreeNode<String> operationsNode = new ModelTreeNode<String>(false, "Operations");
 				classNode.add(operationsNode);
@@ -275,6 +287,11 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			}
 		}
 		
+		for (MAssociation assoc : session.system().model().associations()) {
+			ModelTreeNode<MAssociation> assocNode = new ModelTreeNode<MAssociation>(true, assoc, true); 
+			root.add(assocNode);
+		}
+		
 		return root;
 	}
 	
@@ -282,8 +299,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		private StringUtil.IElementFormatter<T> formatter;
 		private T userObject;
 		private boolean isSelectable;
-		private boolean isSelected;
-		
+				
 		public ModelTreeNode(boolean isSelectable, T userObject) {
 			this(isSelectable, userObject, true, null);
 		}
@@ -301,7 +317,6 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			this.userObject = userObject;
 			this.formatter = formatter;
 			this.isSelectable = isSelectable;
-			this.setSelected(false);
 		}
 
 		/* (non-Javadoc)
@@ -318,54 +333,41 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		public boolean isSelectable() {
 			return isSelectable;
 		}
-
-		public boolean isSelected() {
-			return isSelected;
-		}
-
-		public void setSelected(boolean isSelected) {
-			this.isSelected = isSelected;
-		}
 	}
 	
 	/**
      * This renderer shows different icons for the different user object types.
      */
-    private static class ModelCellRenderer extends DefaultTreeCellRenderer {
+    private static class ModelCellRenderer extends DefaultCheckboxTreeCellRenderer {
     	
-    	private static Icon iconSelected;
-    	private static Icon iconNotSelected;
-    	
+    	private static Icon iconAssociation;
     	private static Icon iconClass;
     	private static Icon iconOperations;
     	private static Icon iconAttributes;
 
 		static {
-    		iconSelected =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/Selected.gif"));
-    		iconNotSelected =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/NotSelected.gif"));
-    		
-    		iconClass =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/MClass.gif"));
-    		iconOperations =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/Operations.gif"));
-    		iconAttributes =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/Attributes.gif"));
+    		iconClass       =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/MClass.gif"));
+    		iconAssociation =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/MAssociation.gif"));
+    		iconOperations  =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/Operations.gif"));
+    		iconAttributes  =  new ImageIcon(MonitorPlugin.getInstance().getResource("resources/Attributes.gif"));
     	}
     	
 		public Component getTreeCellRendererComponent(JTree tree, Object value,
 				boolean sel, boolean expanded, boolean leaf, int row,
 				boolean hasFocus) {
-			super.getTreeCellRendererComponent(tree, value, sel, expanded,
-					leaf, row, hasFocus);
-			
+
 			ModelTreeNode<?> node = (ModelTreeNode<?>) value;
 			
-			if (node.isSelectable()) {
-				if (node.isSelected()) {
-					setIcon(iconSelected);
-				} else {
-					setIcon(iconNotSelected);
-				}
-			} else {
-				setIcon(getIconForModelObject(node.getUserObject()));
-			}
+			this.checkBox.setBackground(UIManager.getColor("Tree.textBackground"));
+			
+			Icon theIcon = getIconForModelObject(node.getUserObject()); 
+			
+			setClosedIcon(theIcon);
+			setOpenIcon(theIcon);
+			setLeafIcon(theIcon);
+			
+			super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+			this.checkBox.setEnabled(node.isSelectable());
 			
 			return this;
 		}
@@ -373,6 +375,8 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		private Icon getIconForModelObject(Object userObject) {
 			if (userObject instanceof MClass) {
 				return iconClass;
+			} else if (userObject instanceof MAssociation) {
+				return iconAssociation;
 			} else if (userObject instanceof String) {
 				if (userObject.toString().equals("Operations")) {
 					return iconOperations;

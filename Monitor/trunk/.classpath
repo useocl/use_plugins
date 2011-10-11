@@ -8,5 +8,6 @@
 			<attribute name="javadoc_location" value="jar:file:/C:/Program Files/Java/jdk-6u22-docs.zip!/docs/jdk/api/jpda/jdi"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/lablib-checkboxtree-3.2.jar" sourcepath="lib/lablib-checkboxtree-3.2-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
