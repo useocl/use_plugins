@@ -5,6 +5,7 @@ import it.cnr.imaa.essi.lablib.gui.checkboxtree.DefaultCheckboxTreeCellRenderer;
 import it.cnr.imaa.essi.lablib.gui.checkboxtree.TreeCheckingModel;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
@@ -14,8 +15,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.net.URL;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -29,6 +33,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
@@ -36,16 +41,21 @@ import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.monitor.AbstractMonitorStateListener;
-import org.tzi.use.plugins.monitor.IMonitorStateListener;
-import org.tzi.use.plugins.monitor.IProgressListener;
+import org.tzi.use.plugins.monitor.LogListener;
 import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorPlugin;
+import org.tzi.use.plugins.monitor.MonitorStateListener;
 import org.tzi.use.plugins.monitor.ProgressArgs;
+import org.tzi.use.plugins.monitor.ProgressListener;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
@@ -56,7 +66,7 @@ import org.tzi.use.uml.sys.StateChangeListener;
 import org.tzi.use.util.StringUtil;
 
 @SuppressWarnings("serial")
-public class MonitorControlView extends JDialog implements StateChangeListener, ChangeListener, IProgressListener {
+public class MonitorControlView extends JDialog implements StateChangeListener, ChangeListener, ProgressListener, LogListener {
 
 	private Session session;
 	
@@ -74,7 +84,10 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	
 	private CheckboxTree modelTree;
 	
-	private IMonitorStateListener stateChangeListener;
+	private JTextPane logArea;
+	private JCheckBox check_showDebugMessages;
+	
+	private MonitorStateListener stateChangeListener;
 	
 	public MonitorControlView(MainWindow parent, Session session) {
 		super(parent, "Monitor Control");
@@ -240,6 +253,29 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			modelPanel.add(new JScrollPane(modelTree), BorderLayout.CENTER);
 			
 			tabs.addTab("Model", modelPanel);
+		}
+		
+		{
+			JPanel logPanel = new JPanel(new BorderLayout());
+			
+			JPanel logButtonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			logButtonsPanel.add(new JButton(new AbstractAction("Clear") {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					logArea.setText("");
+				}
+			}));
+			
+			check_showDebugMessages = new JCheckBox("Show debug messages"); 
+			logButtonsPanel.add(check_showDebugMessages);
+			
+			logPanel.add(logButtonsPanel, BorderLayout.NORTH);
+			
+			logArea = new JTextPane();
+			logArea.setEditable(false);
+			logPanel.add(new JScrollPane(logArea), BorderLayout.CENTER);	
+			tabs.addTab("Log", logPanel);
+			MonitorPlugin.getMonitorPluginInstance().getMonitor().addLogListener(this);
 		}
 		
 		configureComponents();
@@ -418,6 +454,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		session.removeChangeListener(this);
 		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeStateChangedListener(stateChangeListener);
 		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeSnapshotProgressListener(this);
+		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeLogListener(this);
 		super.dispose();
 	}
 
@@ -480,5 +517,45 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			configureComponents();
 			setCursor(Cursor.getDefaultCursor());
 		}
+	}
+
+	private SimpleAttributeSet debugStyle = new SimpleAttributeSet();
+	private SimpleAttributeSet infoStyle = new SimpleAttributeSet();
+	private SimpleAttributeSet warningStyle = new SimpleAttributeSet();
+	private SimpleAttributeSet errorStyle = new SimpleAttributeSet();
+	
+	{
+		StyleConstants.setForeground(debugStyle, Color.GRAY);
+		StyleConstants.setForeground(infoStyle, new Color(0,127,14));
+		StyleConstants.setForeground(warningStyle, new Color(255,216,0));
+		StyleConstants.setForeground(errorStyle, Color.RED);
+	}
+	
+	@Override
+	public void newLogMessage(Object source, Level level, String message) {
+		if (level.intValue() < Level.INFO.intValue()
+				&& !check_showDebugMessages.isSelected())
+			return;
+		
+		Date now = Calendar.getInstance().getTime();
+		String toLog = String.format("%1$TT [%2$s]: %3$s", now, level, message);
+		
+		SimpleAttributeSet style;
+		if (level.equals(Level.SEVERE))
+			style = errorStyle;
+		else if (level == Level.WARNING)
+			style = warningStyle;
+		else if (level == Level.INFO)
+			style = infoStyle;
+		else
+			style = debugStyle;
+				
+		Document doc = logArea.getDocument();
+		if (doc.getLength() > 0)
+			toLog = StringUtil.NEWLINE + toLog;
+		
+		try {
+			doc.insertString(doc.getLength(), toLog, style);
+		} catch (BadLocationException e) { }
 	}
 }

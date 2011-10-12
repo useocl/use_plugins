@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.logging.Level;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -45,6 +46,8 @@ import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MElementAnnotation;
+import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.mm.MModelElement;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.MPrePostCondition;
@@ -108,7 +111,7 @@ import com.sun.tools.jdi.SocketAttachingConnector;
  * It connects to the virtual machine and keeps track of
  * operation calls and instance creation when attached.
  * 
- * @author lhamann
+ * @author Lars Hamann
  */
 public class Monitor implements ChangeListener {
 	/**
@@ -122,6 +125,8 @@ public class Monitor implements ChangeListener {
 	/**
 	 * The USE session which provides information about the relevant
 	 * classes and operations to listen for.
+	 * The session is required (and not only the {@link MModel}), because
+	 * the monitor has to react on changes like loading another model.
 	 */
 	private Session session;
 	/**
@@ -134,10 +139,13 @@ public class Monitor implements ChangeListener {
 	 */
     private boolean isRunning = false;
     /**
-	 * True when monitoring and vm is paused
+	 * True when monitoring and the VM is paused
 	 */
     private boolean isPaused = false;
     
+    /**
+     * The connector used to connect to the JVM.
+     */
     private SocketAttachingConnector connector;
     
     /**
@@ -150,107 +158,193 @@ public class Monitor implements ChangeListener {
      */
     private Map<ObjectReference, MObject> instanceMapping;
     
+    /**
+     * Has a snapshot been taken already?
+     */
+    private boolean hasSnapshot = false;
+    
+    /**
+     * A lock to wait for user input after an operation has
+     * failed the pre- or postcondition checks.
+     */
     private Object failedOperationLock = new Object();
     
+    /**
+     * True if an operation call or return has failed.
+     */
     private boolean hasFailedOperation = false;
     
+    /**
+     * For statistics: Number of read instances.
+     */
     private int countInstances;
     
+    /**
+     * For statistics: Number of read links.
+     */
     private int countLinks;
     
+    /**
+     * For statistics: Number of read attribute values.
+     */
     private int countAttributes;
     
-    private List<IMonitorStateListener> stateListener = new LinkedList<IMonitorStateListener>();
+    /**
+     * List of listeners interested in state changes of the monitor. 
+     */
+    private List<MonitorStateListener> stateListener = new LinkedList<MonitorStateListener>();
     
-    private List<IProgressListener> snapshotProgressListener = new LinkedList<IProgressListener>();
+    /**
+     * Collection of listeners that listen for the snapshot taking progress.
+     */
+    private List<ProgressListener> snapshotProgressListener = new LinkedList<ProgressListener>();
     
+    /**
+     * Collection of listeners that listen for messages.
+     */
+    private List<LogListener> logListener = new LinkedList<LogListener>();
+    
+    /**
+     * When the monitor resets the system state, this variable is set to true.
+     * Otherwise the state change event of the {@link Session} would force
+     * a reset of the monitor.
+     */
     private boolean isResetting = false;
     
+    /**
+     * The maximum number of instances which are read for a single type.
+     */
     private long maxInstances = 10000;
     
     /**
      * When true, Soil statements are used for system state manipulation.
      * Otherwise the objects are created directly by using operations of
-     * system and systemstate
+     * system and system state
      */
     private boolean useSoil = true;
     
+    /**
+     * Provides helper functions to get qualified names of
+     * model elements.
+     */
+    private IdentifierMappingHelper mappingHelper;
+    
+    /**
+     * A cache for the model classes to runtime types mappings.
+     * A single model class can be represented by more then one
+     * runtime type, because the runtime sub classes could be ignored
+     * in the model.
+     */
+    private Map<MClass, Set<ReferenceType>> classMappings;
+    
+    /**
+     * A map containing a collection of {@link ModelBreakpoint}s for
+     * {@link MModelElement}s.  
+     */
+    private Map<MModelElement, Collection<ModelBreakpoint>> modelBreakPoints = new HashMap<MModelElement, Collection<ModelBreakpoint>>();
+            
     public Monitor() { }
     
+    /**
+     * Returns the {@link MSystem} used by the monitor.
+     * @return The <code>MSystem</code> used by this monitor.
+     */
     private MSystem getSystem() {
     	return session.system();
     }
     
+    /**
+     * Configures the monitor to attach to the specified <code>host</code> on <code>port</code>
+     * using the provided session.
+     * <p>
+     * If <code>host</code> is <code>null</code> or an empty string the current {@link MModel} is queried
+     * for an annotation value <code>@Monitor(host="...")</code>. If no such annotation is present, <code>localhost</code>
+     * is used.
+     * </p> 
+     * <p>
+     * If <code>port</code> is <code>null</code> or an empty string the current {@link MModel} is queried
+     * for an annotation value <code>@Monitor(port="...")</code>. If no such annotation is present <code>6000</code>
+     * is used.
+     * </p>
+     * @param session The USE session to use for the monitoring process. The monitor reacts on state changes of the session.
+     * @param host The host which runs a JVM with enabled remote debugger capabilities.
+     * @param port The port the JVM is listening for remote debugger connections.
+     * @throws IllegalArgumentException If an invalid port number is provided as an argument or specified in the model annotation.
+     */
     public void configure(Session session, String host, String port) {
     	this.session = session;
     	this.session.addChangeListener(this);
+    	this.mappingHelper = new IdentifierMappingHelper(session.system().model());
     	
     	MElementAnnotation modelAnnotation = getSystem().model().getAnnotation("Monitor");
     	
-    	if ("".equals(host)) {
-    		if (modelAnnotation != null && modelAnnotation.hasAnnotationValue("host")) {
-    			this.host = modelAnnotation.getAnnotationValue("host");
-    		} else {
-    			this.host = "localhost";
-    		}
-    	} else {
-    		this.host = host;
-    	}
+		if (host == null || host.equals("")) {
+			if (modelAnnotation != null
+					&& modelAnnotation.hasAnnotationValue("host")) {
+				this.host = modelAnnotation.getAnnotationValue("host");
+			} else {
+				this.host = "localhost";
+			}
+		} else {
+			this.host = host;
+		}
     	
-    	if ("".equals(port)) {
-    		if (modelAnnotation != null && modelAnnotation.hasAnnotationValue("port")) {
-    			this.port = Integer.parseInt( modelAnnotation.getAnnotationValue("port") );
-    		} else {
-    			this.port = 6000;
-    		}
-    	} else {
-    		this.port = Integer.parseInt(port);
-    	}
+		if (port == null || port.equals("")) {
+			if (modelAnnotation != null
+					&& modelAnnotation.hasAnnotationValue("port")) {
+				try {
+					this.port = Integer.parseInt(modelAnnotation
+							.getAnnotationValue("port"));
+				} catch (NumberFormatException e) {
+					throw new IllegalArgumentException(
+							"Invalid port specified in model annotation: "
+									+ modelAnnotation
+											.getAnnotationValue("port"));
+				}
+			} else {
+				this.port = 6000;
+			}
+		} else {
+			try {
+				this.port = Integer.parseInt(port);
+			} catch (NumberFormatException e) {
+				throw new IllegalArgumentException(port
+						+ " is not a valid port number.");
+			}
+		}
     }
     
+    /**
+     * The current state of the monitor (<strong>not of the JVM!</strong>).<br/>
+     * When a the monitor is connected to a JVM this getter returns <code>true</code>.
+     * @return <code>true</code> if the monitor is connected.
+     */
     public boolean isRunning() {
     	return this.isRunning;
     }
     
+    /**
+     * Returns <code>true</code> if the monitor is connected to a JVM and
+     * the JVM is suspended.
+     * @return <code>true</code> if the JVM is suspended.
+     */
     public boolean isPaused() {
     	return this.isRunning && this.isPaused;
     }
     
+    /**
+     * Resets the session. Sets {@link #isResetting} to <code>true</code> before the reset and
+     * <code>false</code> afterwards.
+     */
     protected void doUSEReset() {
     	isResetting = true;
     	session.reset();
     	isResetting = false;
     }
     
-    private String getJavaClassName(MClass cls) {
-    	String classPackage = cls.getAnnotationValue("Monitor", "package");
-    	String className = cls.getAnnotationValue("Monitor", "name");
-    	
-    	if (className == "")
-    		className = cls.name();
-    	
-    	if (classPackage == "")
-    		classPackage = getSystem().model().getAnnotationValue("Monitor", "defaultPackage");
-    	
-    	return classPackage + "." + className;
-    }
-    
-    private String getJavaFieldName(MAttribute a) {
-		String name = a.getAnnotationValue("Monitor", "name");
-		if (name == "") {
-			name = a.name();
-		}
-		return name;
-	}
-    
-    private String getJavaFieldName(MAssociationEnd end) {
-		String name = end.getAnnotationValue("Monitor", "name");
-		if (name == "") {
-			name = end.nameAsRolename();
-		}
-		return name;
-	}
-    
+    /**
+     * Waits until {@link #failedOperationLock} is released.
+     */
     private void waitForUserInput() {
     	synchronized (failedOperationLock) {
     		try {
@@ -261,79 +355,60 @@ public class Monitor implements ChangeListener {
 		}
     }
     
+    /**
+     * Starts the monitoring process.
+     * In detail the following steps are executed:
+     * <ol>
+     *   <li>Reset of the USE session.</li>
+     *   <li>Connect to the VM with the settings provided to {@link #configure(Session, String, String)}. </li>
+     *   <li>Register for important events in the VM</li>
+     *   <li>Resume the VM</li>
+     *   <li>If <code>suspend</code> is <code>true</code> call {@link #pause(boolean)} without reseting.</li>
+     * </ol> 
+     * @param suspend If <code>true</code> the VM is suspended directly after a connection was established.
+     */
     public void start(boolean suspend) {
+    	// We need a clean system
     	doUSEReset();
+    	this.instanceMapping = new HashMap<ObjectReference, MObject>();
+    	this.hasSnapshot = false;
     	
     	try {
 			attachToVM();
 		} catch (MonitorException e) {
-			Log.error(e);
+			fireNewLogMessage(Level.SEVERE, "Error connecting to the VM: " + e.getMessage());
 			return;
 		}
 		
 		registerClassPrepareEvents();
 		
-		System.out.println("Setting operation breakpoints");
 		registerOperationBreakPoints();
 		
-		this.instanceMapping = new HashMap<ObjectReference, MObject>();
-		
-		breakpointWatcher = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (isRunning) {
-					try {
-						EventSet events = monitoredVM.eventQueue().remove();
-						for (com.sun.jdi.event.Event e : events) {
-							if (e instanceof BreakpointEvent) {
-								BreakpointEvent be = (BreakpointEvent)e;
-								boolean opCallResult = onMethodCall(be);
-								if (!opCallResult) {
-									hasFailedOperation = true;
-									waitForUserInput();
-								}
-							} else if (e instanceof ClassPrepareEvent) {
-								ClassPrepareEvent ce = (ClassPrepareEvent)e;
-								registerOperationBreakPoints(ce.referenceType());
-								Log.debug("Registering operations of prepared Java class " + ce.referenceType().name() + ".");
-							} else if (e instanceof ModificationWatchpointEvent) {
-								ModificationWatchpointEvent we = (ModificationWatchpointEvent)e;
-								updateAttribute(we.object(), we.field(), we.valueToBe());
-							} else if (e instanceof MethodExitEvent) {
-								boolean opCallResult = onMethodExit((MethodExitEvent)e);
-								if (!opCallResult) {
-									hasFailedOperation = true;
-									waitForUserInput();
-								}
-							}
-						}
-						events.resume();
-					} catch (InterruptedException e) {
-						// VM is away np
-					} catch (VMDisconnectedException e) {
-						isRunning = false;
-						monitoredVM = null;
-						Log.warn("Monitored application has terminated");
-					}
-				}
-			}});
+		breakpointWatcher = new Thread(new BreakPointWatcher());
 		breakpointWatcher.start();
 		
 		monitoredVM.resume();
 		isRunning = true;
 		isPaused = false;
 		
-		onMonitorStart();
+		fireMonitorStart();
 		
 		if (suspend) {
 			pause(false);
 		}
     }
 
+    /**
+     * Pauses the monitored VM without reseting the USE session.
+     */
     public void pause() {
     	pause(true);
     }
     
+    /**
+     * Pauses the monitored VM.
+     * @param doReset If <code>true</code> the USE session is reseted (see {@link Session#reset()}).
+     */
     protected void pause(boolean doReset) {
     	monitoredVM.suspend();
 		
@@ -346,16 +421,20 @@ public class Monitor implements ChangeListener {
 		countLinks = 0;
 		countAttributes = 0;
 		
-		Log.println("Creating snapshot using" + (useSoil ? " SOIL statements." : " using system operations." ));
+		fireNewLogMessage(Level.INFO, "Creating snapshot using" + (useSoil ? " SOIL statements." : " using system operations." ));
     	readInstances();
     	
     	long end = System.currentTimeMillis();
-    	Log.println("Read " + countInstances + " instances and " + countLinks + " links in " + (end - start) + "ms.");
+    	fireNewLogMessage(Level.INFO, "Read " + countInstances + " instances and " + countLinks + " links in " + (end - start) + "ms.");
     	
+    	hasSnapshot = true;
     	isPaused = true;
-    	onMonitorPause();
+    	fireMonitorPause();
     }
 
+    /**
+     * Resumes the monitoring process, i. e., resumes the suspended VM.
+     */
     public void resume() {
     	synchronized (failedOperationLock) {
     		if (hasFailedOperation) {
@@ -366,9 +445,13 @@ public class Monitor implements ChangeListener {
     	
     	monitoredVM.resume();
     	isPaused = false;
-    	onMonitorResume();
+    	fireMonitorResume();
     }
     
+    /**
+     * Ends the monitoring process by closing the connection to the VM.
+     * The USE system state is kept untouched.
+     */
     public void end() {
     	if (monitoredVM != null)
     		monitoredVM.dispose();
@@ -376,24 +459,22 @@ public class Monitor implements ChangeListener {
     	instanceMapping = null;
     	isRunning = false;
     	isPaused = false;
-    	onMonitorEnd();
+    	
+    	fireMonitorEnd();
     }
     
+    /**
+     * Returns <code>true</code>, if a snapshot has been taken since the last call to {@link #start(boolean)}.
+     * @return <code>true</code>, if a snapshot has been taken, <code>false</code> otherwise.
+     */
     public boolean hasSnapshot() {
-    	return instanceMapping != null;
+    	return hasSnapshot;
     }
     
-    private ReferenceType getReferenceClass(MClass cls) {
-    	
-    	List<ReferenceType> classes = monitoredVM.classesByName(getJavaClassName(cls));
-    	
-    	if (classes.size() == 1) {
-    		return classes.get(0);
-    	} else {
-    		return null;
-    	}
-    }
-    
+    /**
+     * 
+     * @throws MonitorException
+     */
     private void attachToVM() throws MonitorException {
 		connector = new SocketAttachingConnector();
     	@SuppressWarnings("unchecked")
@@ -410,12 +491,12 @@ public class Monitor implements ChangeListener {
 			throw new MonitorException("Could not connect to virtual machine", e);
 		}
 		
-		System.out.println("Connected to virtual machine");
+    	fireNewLogMessage(Level.INFO, "Connected to virtual machine");
 	}
     
 	private void registerClassPrepareEvents() {
 		for (MClass cls : getSystem().model().classes()) {
-			String javaClassName = getJavaClassName(cls);
+			String javaClassName = mappingHelper.getJavaClassName(cls);
 			
 			ClassPrepareRequest req = monitoredVM.eventRequestManager().createClassPrepareRequest();
 			req.addClassFilter(javaClassName);
@@ -443,7 +524,7 @@ public class Monitor implements ChangeListener {
 		ReferenceType refType = getReferenceClass(cls);
 		    		
 		if (refType != null) {
-			Log.debug("Registering operation breakpoints for class " + cls.name());
+			fireNewLogMessage(Level.FINE, "Registering operation breakpoints for class " + cls.name());
 			for (MOperation op : cls.operations()) {
 				String isQuery = op.getAnnotationValue("Monitor", "isQuery");
 				if (isQuery.equals("true")) continue;
@@ -451,7 +532,7 @@ public class Monitor implements ChangeListener {
 				List<com.sun.jdi.Method> methods = refType.methodsByName(op.name());
 				for (com.sun.jdi.Method m : methods) {
 					// TODO: Check parameter types
-					Log.debug("Registering operation breakpoint for operation " + m.name());
+					fireNewLogMessage(Level.FINE, "Registering operation breakpoint for operation " + m.name());
 					BreakpointRequest req = monitoredVM.eventRequestManager().createBreakpointRequest(m.location());
 					req.setSuspendPolicy(EventRequest.SUSPEND_ALL);
 					req.enable();
@@ -461,7 +542,7 @@ public class Monitor implements ChangeListener {
 			// Breakpoints for constructors
 			for (Method m : refType.methods()) {
 				if (m.isConstructor()) {
-					Log.debug("Registering constructor " + m.toString());
+					fireNewLogMessage(Level.FINE, "Registering constructor " + m.toString());
 					BreakpointRequest req = monitoredVM.eventRequestManager().createBreakpointRequest(m.location());
 					req.setSuspendPolicy(EventRequest.SUSPEND_ALL);
 					req.enable();
@@ -469,10 +550,10 @@ public class Monitor implements ChangeListener {
 			}
 			
 			for (MAttribute a : cls.attributes()) {
-				String aName = getJavaFieldName(a);
+				String aName = mappingHelper.getJavaFieldName(a);
 				Field f = refType.fieldByName(aName);
 				if (f == null) {
-					Log.warn("Unknown attribute " + StringUtil.inQuotes(a.name()));
+					fireNewLogMessage(Level.WARNING, "Unknown attribute " + StringUtil.inQuotes(a.name()));
 					continue;
 				}
 				
@@ -506,8 +587,17 @@ public class Monitor implements ChangeListener {
 		}
 	}
 	
-	private Map<MClass, Set<ReferenceType>> classMappings;
-	
+	private ReferenceType getReferenceClass(MClass cls) {
+    	
+    	List<ReferenceType> classes = monitoredVM.classesByName(mappingHelper.getJavaClassName(cls));
+    	
+    	if (classes.size() == 1) {
+    		return classes.get(0);
+    	} else {
+    		return null;
+    	}
+    }
+
 	/**
 	 * Constructs a map which maps each use class
 	 * to the reference types that must be read. 
@@ -520,7 +610,7 @@ public class Monitor implements ChangeListener {
 		Map<String, MClass> classNamesMap = new HashMap<String, MClass>(useClasses.size());
 		for (MClass useClass : useClasses) {
 			if (!useClass.getAnnotationValue("Monitor", "ignore").equals("true")) {
-				classNamesMap.put(getJavaClassName(useClass), useClass);
+				classNamesMap.put(mappingHelper.getJavaClassName(useClass), useClass);
 				classMappings.put(useClass, new HashSet<ReferenceType>());
 			}
 		}
@@ -556,7 +646,7 @@ public class Monitor implements ChangeListener {
 	private void readInstances() {
 		Collection<MClass> classes = getSystem().model().classes();
 		
-		onSnapshotStart("Initializing...", classes.size());
+		fireSnapshotStart("Initializing...", classes.size());
 		
 		instanceMapping = new HashMap<ObjectReference, MObject>();
 		setupClassMappings();
@@ -565,7 +655,7 @@ public class Monitor implements ChangeListener {
 		ProgressArgs args = new ProgressArgs("Reading instances", 0, classes.size());
 		// Create current system state
     	for (MClass cls : classes) {
-    		onSnapshotProgress(args);
+    		fireSnapshotProgress(args);
     		if (!cls.getAnnotationValue("Monitor", "ignore").equals("true")) {
     			readInstances(cls);
     		}
@@ -576,10 +666,11 @@ public class Monitor implements ChangeListener {
     	long duration = (end - start);
     	long instPerSecond = Math.round((double)countInstances / ((double)duration / 1000));
 		
-    	Log.println(" Created " + countInstances + " instances in " + duration
-				+ "ms (" + instPerSecond + " instances/s).");
+		fireNewLogMessage(Level.INFO, " Created " + countInstances
+				+ " instances in " + duration + "ms (" + instPerSecond
+				+ " instances/s).");
     	
-		onSnapshotEnd();
+		fireSnapshotEnd();
 		
     	readAttributtesAndLinks();
     	classMappings = null;
@@ -593,8 +684,8 @@ public class Monitor implements ChangeListener {
     	Set<ReferenceType> typesToRead = classMappings.get(cls);
 
     	if (typesToRead.isEmpty()) {
-			Log.debug("Java class "
-					+ StringUtil.inQuotes(getJavaClassName(cls))
+    		fireNewLogMessage(Level.FINE, "Java class "
+					+ StringUtil.inQuotes(mappingHelper.getJavaClassName(cls))
 					+ " could not be found for USE class "
 					+ StringUtil.inQuotes(cls.name())
 					+ ". Maybe not loaded, yet.");
@@ -653,7 +744,7 @@ public class Monitor implements ChangeListener {
     	long start = System.currentTimeMillis();
 
     	int progressEnd = instanceMapping.size() * 2;
-    	onSnapshotStart("Reading attributes and links...", progressEnd);
+    	fireSnapshotStart("Reading attributes and links...", progressEnd);
     	ProgressArgs args = new ProgressArgs("Reading attributes", progressEnd);
     	// Maximum number of progress calls 50
     	int step = progressEnd / 50;
@@ -664,15 +755,17 @@ public class Monitor implements ChangeListener {
     		
     		if (counter % step == 0) {
     			args.setCurrent(counter);
-    			onSnapshotProgress(args);
+    			fireSnapshotProgress(args);
     		}
     		counter++;
     	}
     	    	
     	long end = System.currentTimeMillis();
     	long duration = (end - start);
-		Log.println(" Setting " + countAttributes + " attributes took " + duration + "ms ("
-				+ (double)countAttributes / (duration / 1000) + " attributes/s).");
+		fireNewLogMessage(Level.INFO, " Setting " + countAttributes
+				+ " attributes took " + duration + "ms ("
+				+ (double) countAttributes / (duration / 1000)
+				+ " attributes/s).");
 		
 		start = System.currentTimeMillis();
 		
@@ -681,31 +774,35 @@ public class Monitor implements ChangeListener {
     		
     		if (counter % step == 0) {
     			args.setCurrent(counter);
-    			onSnapshotProgress(args);
+    			fireSnapshotProgress(args);
     		}
     		counter++;
     	}
     	
-    	onSnapshotEnd();
+    	fireSnapshotEnd();
     	
     	end = System.currentTimeMillis();
     	duration = (end - start);
-		Log.println(" Creating " + countLinks + " links took " + duration + "ms ("
-				+ ((double)countLinks) / (duration / 1000) + " links/s).");
+		fireNewLogMessage(Level.INFO, " Creating " + countLinks
+				+ " links took " + duration + "ms (" + ((double) countLinks)
+				/ (duration / 1000) + " links/s).");
     }
     
     private void updateAttribute(ObjectReference obj, Field field, com.sun.jdi.Value javaValue) {
     	if (!hasSnapshot()) return;
-    	Log.debug("updateAttribute: " + field.name());
+    	fireNewLogMessage(Level.FINE, "updateAttribute: " + field.name());
     	
     	MObject useObject = instanceMapping.get(obj);
     	
     	if (useObject == null) {
-			Log.warn("No coresponding USE-object found to set value of attribute "
-					+ StringUtil.inQuotes(field.name())
-					+ " to "
-					+ StringUtil.inQuotes(javaValue == null ? "undefined" : javaValue
-							.toString()));
+			fireNewLogMessage(
+					Level.WARNING,
+					"No coresponding USE-object found to set value of attribute "
+							+ StringUtil.inQuotes(field.name())
+							+ " to "
+							+ StringUtil
+									.inQuotes(javaValue == null ? "undefined"
+											: javaValue.toString()));
 			return;
     	}
     	
@@ -727,7 +824,12 @@ public class Monitor implements ChangeListener {
 	    			try {
 	    				getSystem().evaluateStatement(delStmt);
 					} catch (MSystemException e) {
-						Log.warn("Link of association " + StringUtil.inQuotes(end.association()) + " could not be deleted. Reason: " + e.getMessage());
+						fireNewLogMessage(
+								Level.WARNING,
+								"Link of association "
+										+ StringUtil.inQuotes(end.association())
+										+ " could not be deleted. Reason: "
+										+ e.getMessage());
 						return;
 					}
     			}
@@ -754,7 +856,7 @@ public class Monitor implements ChangeListener {
 						);
 						getSystem().evaluateStatement(createStmt);
 					} catch (MSystemException e) {
-						Log.warn("Could not create new link");
+						fireNewLogMessage(Level.WARNING, "Could not create new link");
 					}
 				}
     		}
@@ -766,7 +868,7 @@ public class Monitor implements ChangeListener {
 			try {
 				getSystem().evaluateStatement(stmt);
 			} catch (MSystemException e) {
-				Log.warn("Attribute " + StringUtil.inQuotes(attr.toString()) + " could not be set!");
+				fireNewLogMessage(Level.WARNING, "Attribute " + StringUtil.inQuotes(attr.toString()) + " could not be set!");
 			}
     	}
     }
@@ -784,7 +886,7 @@ public class Monitor implements ChangeListener {
     	for (MAttribute attr : o.cls().allAttributes()) {
     		
     		if (!readSpecialAttributeValue(objRef, o, attr)) {
-	    		Field field = objRef.referenceType().fieldByName(getJavaFieldName(attr));
+	    		Field field = objRef.referenceType().fieldByName(mappingHelper.getJavaFieldName(attr));
 	    		
 	    		if (field != null) {
 	    			com.sun.jdi.Value val = objRef.getValue(field);
@@ -799,9 +901,9 @@ public class Monitor implements ChangeListener {
 	    				}
 	    				++countAttributes;
 	    			} catch (IllegalArgumentException e) {
-	    				Log.error("Error setting attribute value:" + e.getMessage());
+	    				fireNewLogMessage(Level.SEVERE, "Error setting attribute value:" + e.getMessage());
 	    			} catch (MSystemException e) {
-	    				Log.error("Error setting attribute value:" + e.getMessage());
+	    				fireNewLogMessage(Level.SEVERE, "Error setting attribute value:" + e.getMessage());
 					}
 	    		}
     		}
@@ -854,7 +956,7 @@ public class Monitor implements ChangeListener {
     			if (useObject != null)
     				v = new ObjectValue(useObject.type(), useObject);
     			else
-    				Log.warn("USE object for Java value " + javaValue.toString() + " not found!");
+    				fireNewLogMessage(Level.WARNING, "USE object for Java value " + javaValue.toString() + " not found!");
     		}
 		} else if (javaValue instanceof StringReference) {
 			v = new StringValue(((StringReference)javaValue).value());
@@ -864,7 +966,7 @@ public class Monitor implements ChangeListener {
 			boolean b = ((BooleanValue)javaValue).booleanValue();
 			v = org.tzi.use.uml.ocl.value.BooleanValue.get(b);
 		} else {
-			System.out.println("Unhandled type:" + javaValue.getClass().getName());
+			fireNewLogMessage(Level.WARNING, "Unhandled type:" + javaValue.getClass().getName());
 		}
 		
 		return v;
@@ -908,7 +1010,7 @@ public class Monitor implements ChangeListener {
 	}
     
     private void readLink(ObjectReference objRef, MObject source, MAssociationEnd end) {
-    	Field field = objRef.referenceType().fieldByName(getJavaFieldName(end));
+    	Field field = objRef.referenceType().fieldByName(mappingHelper.getJavaFieldName(end));
     	
     	if (field == null) {
     		return;
@@ -960,7 +1062,7 @@ public class Monitor implements ChangeListener {
 					}
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				fireNewLogMessage(Level.SEVERE, "ERROR: " + e.getMessage()); 
 			}
     		
     	} else {
@@ -1012,7 +1114,7 @@ public class Monitor implements ChangeListener {
 				++countLinks;
 			}
 		} catch (MSystemException e) {
-			Log.error("Link could not be created! " + e.getMessage());
+			fireNewLogMessage(Level.SEVERE, "Link could not be created! " + e.getMessage());
 		}
 	}
     
@@ -1036,7 +1138,7 @@ public class Monitor implements ChangeListener {
     		if (collectionType.name().equals("java.util.HashSet")) {
     			readLinksHashSet(objects, o, end);
     		} else {
-    			System.out.println("Association end " + StringUtil.inQuotes(end.toString()) + " is represented by " + collectionType.name());
+    			fireNewLogMessage(Level.SEVERE, "Association end " + StringUtil.inQuotes(end.toString()) + " is represented by " + collectionType.name());
     		}
     	} else if (objects.type() instanceof ArrayType) {
     		readQualifiedLinks(objects, o, end);
@@ -1098,7 +1200,7 @@ public class Monitor implements ChangeListener {
     }
     
     private boolean handleConstructorCall(BreakpointEvent breakpointEvent) {
-    	Log.debug("onConstructorCall: " + breakpointEvent.location().method().toString());
+    	fireNewLogMessage(Level.FINE, "onConstructorCall: " + breakpointEvent.location().method().toString());
         	
     	StackFrame currentFrame;
 		try {
@@ -1111,7 +1213,7 @@ public class Monitor implements ChangeListener {
 					return true;
 			}
 		} catch (IncompatibleThreadStateException e) {
-			Log.error("Could not retrieve stack frame");
+			fireNewLogMessage(Level.SEVERE, "Could not retrieve stack frame");
 			return true;
 		}
 		
@@ -1121,7 +1223,7 @@ public class Monitor implements ChangeListener {
     	try {
 			createInstance(cls, javaObject);
 		} catch (MSystemException e) {
-			Log.error("USE object for new instance of type " + javaObject.type().name() + " could not be created.");
+			fireNewLogMessage(Level.SEVERE, "USE object for new instance of type " + javaObject.type().name() + " could not be created.");
 			return true;
 		}
 		
@@ -1137,7 +1239,7 @@ public class Monitor implements ChangeListener {
 		String className = javaObject.type().name();
 		className = className.substring(className.lastIndexOf(".") + 1);
 		
-		Log.debug("getUSEClass: " + className);
+		fireNewLogMessage(Level.FINE, "getUSEClass: " + className);
 		
 		MClass cls = getSystem().model().getClass(className);
 		
@@ -1159,13 +1261,13 @@ public class Monitor implements ChangeListener {
 
 	private boolean handleMethodCall(BreakpointEvent breakpointEvent) {
     	String operationName = breakpointEvent.location().method().name();
-    	Log.debug("onMethodCall: " + operationName);
+    	fireNewLogMessage(Level.FINE, "onMethodCall: " + operationName);
     	
     	StackFrame currentFrame;
 		try {
 			currentFrame = breakpointEvent.thread().frame(0);
 		} catch (IncompatibleThreadStateException e) {
-			Log.error("Could not retrieve stack frame");
+			fireNewLogMessage(Level.SEVERE, "Could not retrieve stack frame");
 			return true;
 		}
 		
@@ -1174,7 +1276,7 @@ public class Monitor implements ChangeListener {
     	Value selfValue = getUSEValue(javaObject, true);
     	
     	if (selfValue.isUndefined()) {
-    		Log.warn("Could not retrieve this object for operation call!");
+    		fireNewLogMessage(Level.WARNING, "Could not retrieve this object for operation call!");
     		return true;
     	}
     	
@@ -1183,11 +1285,11 @@ public class Monitor implements ChangeListener {
     	   	
     	try {
 			if (useOperation.allParams().size() != breakpointEvent.location().method().arguments().size()) {
-				Log.warn("Wrong number of arguments!");
+				fireNewLogMessage(Level.WARNING, "Wrong number of arguments!");
 				return true;
 			}
 		} catch (AbsentInformationException e) {
-			Log.error("Could not validate argument size");
+			fireNewLogMessage(Level.SEVERE, "Could not validate argument size");
 			return true;
 		}
 
@@ -1240,9 +1342,50 @@ public class Monitor implements ChangeListener {
 		return true;
     }
     
-    protected static MonitorPPCHandler ppcHandler = new MonitorPPCHandler();
+    protected MonitorPPCHandler ppcHandler = new MonitorPPCHandler();
     
-    protected static class MonitorPPCHandler implements PPCHandler {
+    private final class BreakPointWatcher implements Runnable {
+		@Override
+		public void run() {
+			while (isRunning) {
+				try {
+					EventSet events = monitoredVM.eventQueue().remove();
+					for (com.sun.jdi.event.Event e : events) {
+						if (e instanceof BreakpointEvent) {
+							BreakpointEvent be = (BreakpointEvent)e;
+							boolean opCallResult = onMethodCall(be);
+							if (!opCallResult) {
+								hasFailedOperation = true;
+								waitForUserInput();
+							}
+						} else if (e instanceof ClassPrepareEvent) {
+							ClassPrepareEvent ce = (ClassPrepareEvent)e;
+							registerOperationBreakPoints(ce.referenceType());
+							fireNewLogMessage(Level.FINE, "Registering operations of prepared Java class " + ce.referenceType().name() + ".");
+						} else if (e instanceof ModificationWatchpointEvent) {
+							ModificationWatchpointEvent we = (ModificationWatchpointEvent)e;
+							updateAttribute(we.object(), we.field(), we.valueToBe());
+						} else if (e instanceof MethodExitEvent) {
+							boolean opCallResult = onMethodExit((MethodExitEvent)e);
+							if (!opCallResult) {
+								hasFailedOperation = true;
+								waitForUserInput();
+							}
+						}
+					}
+					events.resume();
+				} catch (InterruptedException e) {
+					// VM is away np
+				} catch (VMDisconnectedException e) {
+					isRunning = false;
+					monitoredVM = null;
+					fireNewLogMessage(Level.WARNING, "Monitored application has terminated");
+				}
+			}
+		}
+	}
+
+	protected class MonitorPPCHandler implements PPCHandler {
 
 		/* (non-Javadoc)
 		 * @see org.tzi.use.uml.sys.ppcHandling.PPCHandler#handlePreConditions(org.tzi.use.uml.sys.MSystem, org.tzi.use.uml.sys.MOperationCall)
@@ -1259,10 +1402,9 @@ public class Monitor implements ChangeListener {
 			for (Entry<MPrePostCondition, Boolean> entry : evaluationResults.entrySet()) {
 				MPrePostCondition preCondition = entry.getKey();
 				if (!entry.getValue().booleanValue()) {
-					Log.warn(
-						"Precondition " + 
-						StringUtil.inQuotes(preCondition.name()) + 
-						" failed!");
+					fireNewLogMessage(Level.WARNING, "Precondition "
+							+ StringUtil.inQuotes(preCondition.name())
+							+ " failed!");
 					
 					oneFailed = true;
 				}
@@ -1289,10 +1431,9 @@ public class Monitor implements ChangeListener {
 			for (Entry<MPrePostCondition, Boolean> entry : evaluationResults.entrySet()) {
 				MPrePostCondition preCondition = entry.getKey();
 				if (!entry.getValue().booleanValue()) {
-					Log.warn(
-						"Postcondition " + 
-						StringUtil.inQuotes(preCondition.name()) + 
-						" failed!");
+					fireNewLogMessage(Level.WARNING, "Postcondition "
+							+ StringUtil.inQuotes(preCondition.name())
+							+ " failed!");
 					
 					oneFailed = true;
 				}
@@ -1305,66 +1446,80 @@ public class Monitor implements ChangeListener {
 		}
     }
     
-    public void addStateChangedListener(IMonitorStateListener listener) {
+    public void addStateChangedListener(MonitorStateListener listener) {
     	this.stateListener.add(listener);
     }
     
-    public void removeStateChangedListener(IMonitorStateListener listener) {
+    public void removeStateChangedListener(MonitorStateListener listener) {
     	this.stateListener.remove(listener);
     }
     
-    protected void onMonitorStart() {
-    	for (IMonitorStateListener listener : stateListener) {
+    protected void fireMonitorStart() {
+    	for (MonitorStateListener listener : stateListener) {
     		listener.monitorStarted(this);
     		listener.monitorStateChanged(this);
     	}
     }
     
-    protected void onMonitorPause() {
-    	for (IMonitorStateListener listener : stateListener) {
+    protected void fireMonitorPause() {
+    	for (MonitorStateListener listener : stateListener) {
     		listener.monitorPaused(this);
     		listener.monitorStateChanged(this);
     	}
     }
     
-    protected void onMonitorResume() {
-    	for (IMonitorStateListener listener : stateListener) {
+    protected void fireMonitorResume() {
+    	for (MonitorStateListener listener : stateListener) {
     		listener.monitorResumed(this);
     		listener.monitorStateChanged(this);
     	}
     }
     
-    protected void onMonitorEnd() {
-    	for (IMonitorStateListener listener : stateListener) {
+    protected void fireMonitorEnd() {
+    	for (MonitorStateListener listener : stateListener) {
     		listener.monitorEnded(this);
     		listener.monitorStateChanged(this);
     	}
     }
 
-    public void addSnapshotProgressListener(IProgressListener listener) {
+    public void addSnapshotProgressListener(ProgressListener listener) {
     	this.snapshotProgressListener.add(listener);
     }
     
-    public void removeSnapshotProgressListener(IProgressListener listener) {
+    public void removeSnapshotProgressListener(ProgressListener listener) {
     	this.snapshotProgressListener.remove(listener);
     }
     
-    protected void onSnapshotStart(String description, int numClasses) {
+    protected void fireSnapshotStart(String description, int numClasses) {
     	ProgressArgs args = new ProgressArgs(description, numClasses);
-    	for (IProgressListener listener : this.snapshotProgressListener) {
+    	for (ProgressListener listener : this.snapshotProgressListener) {
     		listener.progressStart(args);
     	}
     }
     
-    protected void onSnapshotProgress(ProgressArgs args) {
-    	for (IProgressListener listener : this.snapshotProgressListener) {
+    protected void fireSnapshotProgress(ProgressArgs args) {
+    	for (ProgressListener listener : this.snapshotProgressListener) {
     		listener.progress(args);
     	}
     }
     
-    protected void onSnapshotEnd() {
-    	for (IProgressListener listener : this.snapshotProgressListener) {
+    protected void fireSnapshotEnd() {
+    	for (ProgressListener listener : this.snapshotProgressListener) {
     		listener.progressEnd();
+    	}
+    }
+    
+    public void addLogListener(LogListener listener) {
+    	this.logListener.add(listener);
+    }
+    
+    public void removeLogListener(LogListener listener) {
+    	this.logListener.remove(listener);
+    }
+    
+    protected void fireNewLogMessage(Level level, String message) {
+    	for (LogListener listener : this.logListener) {
+    		listener.newLogMessage(this, level, message);
     	}
     }
     

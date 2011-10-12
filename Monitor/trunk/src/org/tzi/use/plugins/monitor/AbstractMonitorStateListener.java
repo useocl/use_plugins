@@ -6,7 +6,7 @@ package org.tzi.use.plugins.monitor;
  * @author Lars Hamann
  *
  */
-public class AbstractMonitorStateListener implements IMonitorStateListener {
+public class AbstractMonitorStateListener implements MonitorStateListener {
 
 	@Override
 	public void monitorStarted(Monitor source) {}

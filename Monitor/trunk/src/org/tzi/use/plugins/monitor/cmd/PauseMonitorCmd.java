@@ -2,12 +2,11 @@ package org.tzi.use.plugins.monitor.cmd;
 
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.plugins.monitor.MonitorPlugin;
-import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
 
-public class PauseMonitorCmd implements IPluginShellCmdDelegate {
+public class PauseMonitorCmd extends AbstractMonitorCmd {
 
 	@Override
-	public void performCommand(IPluginShellCmd pluginCommand) {
+	public void doPerformCommand(IPluginShellCmd pluginCommand) {
 		if (!MonitorPlugin.getMonitorPluginInstance().checkMonitoring()) return;
 		MonitorPlugin.getMonitorPluginInstance().getMonitor().pause();
 	}

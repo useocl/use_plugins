@@ -6,7 +6,7 @@ package org.tzi.use.plugins.monitor;
  * @author Lars Hamann
  *
  */
-public interface IMonitorStateListener {
+public interface MonitorStateListener {
 	/**
 	 * Called when monitoring is started
 	 * @param source
