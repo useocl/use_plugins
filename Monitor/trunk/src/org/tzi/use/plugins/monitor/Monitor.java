@@ -62,6 +62,7 @@ import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MOperationCall;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
+import org.tzi.use.uml.sys.StatementEvaluationResult;
 import org.tzi.use.uml.sys.ppcHandling.PPCHandler;
 import org.tzi.use.uml.sys.ppcHandling.PostConditionCheckFailedException;
 import org.tzi.use.uml.sys.ppcHandling.PreConditionCheckFailedException;
@@ -72,6 +73,7 @@ import org.tzi.use.uml.sys.soil.MLinkDeletionStatement;
 import org.tzi.use.uml.sys.soil.MLinkInsertionStatement;
 import org.tzi.use.uml.sys.soil.MNewObjectStatement;
 import org.tzi.use.uml.sys.soil.MRValue;
+import org.tzi.use.util.CollectionUtil;
 import org.tzi.use.util.Log;
 import org.tzi.use.util.StringUtil;
 
@@ -314,6 +316,14 @@ public class Monitor implements ChangeListener {
 		}
     }
     
+    public long getMaxInstances() {
+		return maxInstances;
+	}
+
+	public void setMaxInstances(long newValue) {
+		maxInstances = newValue;
+	}
+	
     /**
      * The current state of the monitor (<strong>not of the JVM!</strong>).<br/>
      * When a the monitor is connected to a JVM this getter returns <code>true</code>.
@@ -348,6 +358,7 @@ public class Monitor implements ChangeListener {
     private void waitForUserInput() {
     	synchronized (failedOperationLock) {
     		try {
+    			fireNewLogMessage(Level.FINER, "Waiting for user input.");
     			failedOperationLock.wait();
     		} catch (InterruptedException e) {
     			e.printStackTrace();
@@ -384,11 +395,12 @@ public class Monitor implements ChangeListener {
 		
 		registerOperationBreakPoints();
 		
-		breakpointWatcher = new Thread(new BreakPointWatcher());
+		isRunning = true;
+				
+		breakpointWatcher = new Thread(new BreakPointWatcher(), "Monitor breakpoint watcher");
 		breakpointWatcher.start();
 		
 		monitoredVM.resume();
-		isRunning = true;
 		isPaused = false;
 		
 		fireMonitorStart();
@@ -425,7 +437,7 @@ public class Monitor implements ChangeListener {
     	readInstances();
     	
     	long end = System.currentTimeMillis();
-    	fireNewLogMessage(Level.INFO, "Read " + countInstances + " instances and " + countLinks + " links in " + (end - start) + "ms.");
+    	fireNewLogMessage(Level.INFO, String.format("Read %,d instances and %,d links in %,dms.", countInstances, countLinks, (end - start)));
     	
     	hasSnapshot = true;
     	isPaused = true;
@@ -445,6 +457,8 @@ public class Monitor implements ChangeListener {
     	
     	monitoredVM.resume();
     	isPaused = false;
+    	
+    	fireNewLogMessage(Level.INFO, "VM resumed.");
     	fireMonitorResume();
     }
     
@@ -460,6 +474,7 @@ public class Monitor implements ChangeListener {
     	isRunning = false;
     	isPaused = false;
     	
+    	fireNewLogMessage(Level.INFO, "The monitor was disconnected. The snapshot is still available.");
     	fireMonitorEnd();
     }
     
@@ -666,9 +681,7 @@ public class Monitor implements ChangeListener {
     	long duration = (end - start);
     	long instPerSecond = Math.round((double)countInstances / ((double)duration / 1000));
 		
-		fireNewLogMessage(Level.INFO, " Created " + countInstances
-				+ " instances in " + duration + "ms (" + instPerSecond
-				+ " instances/s).");
+		fireNewLogMessage(Level.INFO, String.format(" Created %,d instances in %,dms (%,d instances/s).", countInstances, duration, instPerSecond));
     	
 		fireSnapshotEnd();
 		
@@ -709,29 +722,26 @@ public class Monitor implements ChangeListener {
 		}
     }
 
-	public long getMaxInstances() {
-		return maxInstances;
-	}
-
-	public void setMaxInstances(long newValue) {
-		maxInstances = newValue;
-	}
-	
 	/**
-	 * @param cls
-	 * @param objRef
+	 * Creates a new instance of the given class and
+	 * adds a mapping to the runtime instance. 
+	 * @param cls The use class of the new object
+	 * @param objRef The runtime instance
+	 * @return The new instance
 	 * @throws MSystemException
 	 */
-	protected void createInstance(MClass cls, ObjectReference objRef)
+	protected MObject createInstance(MClass cls, ObjectReference objRef)
 			throws MSystemException {
 		if (useSoil) {
 			MNewObjectStatement stmt = new MNewObjectStatement(cls);
 			getSystem().evaluateStatement(stmt);
 			instanceMapping.put(objRef, stmt.getCreatedObject());
+			return stmt.getCreatedObject();
 		} else {
 			String name = getSystem().state().uniqueObjectNameForClass(cls);
 			MObject o = getSystem().state().createObject(cls, name);
 			instanceMapping.put(objRef, o);
+			return o;
 		}
 	}
     
@@ -762,10 +772,10 @@ public class Monitor implements ChangeListener {
     	    	
     	long end = System.currentTimeMillis();
     	long duration = (end - start);
-		fireNewLogMessage(Level.INFO, " Setting " + countAttributes
-				+ " attributes took " + duration + "ms ("
-				+ (double) countAttributes / (duration / 1000)
-				+ " attributes/s).");
+		fireNewLogMessage(Level.INFO, String.format(
+				" Setting %,d attributes took %,dms (%,.0f attributes/s).",
+				countAttributes, duration, (double) countAttributes
+						/ (duration / 1000)));
 		
 		start = System.currentTimeMillis();
 		
@@ -783,9 +793,9 @@ public class Monitor implements ChangeListener {
     	
     	end = System.currentTimeMillis();
     	duration = (end - start);
-		fireNewLogMessage(Level.INFO, " Creating " + countLinks
-				+ " links took " + duration + "ms (" + ((double) countLinks)
-				/ (duration / 1000) + " links/s).");
+		fireNewLogMessage(Level.INFO, String.format(
+				" Creating %,d links took %,dms (%,.0f links/s).", countLinks,
+				duration, ((double) countLinks) / (duration / 1000)));
     }
     
     private void updateAttribute(ObjectReference obj, Field field, com.sun.jdi.Value javaValue) {
@@ -1221,7 +1231,8 @@ public class Monitor implements ChangeListener {
     	MClass cls = getUSEClass(javaObject);
     	
     	try {
-			createInstance(cls, javaObject);
+			MObject newObject = createInstance(cls, javaObject);
+			fireNewLogMessage(Level.INFO, "New object " + newObject.name() + ":" + newObject.cls().name() + " created.");
 		} catch (MSystemException e) {
 			fireNewLogMessage(Level.SEVERE, "USE object for new instance of type " + javaObject.type().name() + " could not be created.");
 			return true;
@@ -1276,7 +1287,7 @@ public class Monitor implements ChangeListener {
     	Value selfValue = getUSEValue(javaObject, true);
     	
     	if (selfValue.isUndefined()) {
-    		fireNewLogMessage(Level.WARNING, "Could not retrieve this object for operation call!");
+    		fireNewLogMessage(Level.WARNING, "Could not retrieve object for operation call " + operationName + ".");
     		return true;
     	}
     	
@@ -1305,7 +1316,14 @@ public class Monitor implements ChangeListener {
 				new ExpObjRef(self), useOperation, arguments, ppcHandler );
     	
     	try {
-    		getSystem().evaluateStatement(operationCall);
+    		StatementEvaluationResult result = getSystem().evaluateStatement(operationCall);
+    		if (result.wasSuccessfull()) {
+    			StringBuilder message = new StringBuilder("USE operation call ");
+    			message.append(self.name()).append(".").append(useOperation.name()).append("(");
+    			StringUtil.fmtSeq(message, arguments.values(), ",");
+    			message.append(") was succesfull.");
+    			fireNewLogMessage(Level.INFO,  message.toString());
+    		}
 		} catch (MSystemException e) {
 			Log.error(e.getMessage());
 			return false;
@@ -1332,9 +1350,19 @@ public class Monitor implements ChangeListener {
 		}
 
 		MExitOperationStatement stmt = new MExitOperationStatement(result, ppcHandler);
-    	
+		MOperationCall useOperationCall = getSystem().getCurrentOperation();
+		
 		try {
-			getSystem().evaluateStatement(stmt);
+			StatementEvaluationResult statResult = getSystem().evaluateStatement(stmt);
+			if (statResult.wasSuccessfull()) {
+				MObject self = useOperationCall.getSelf();
+				
+    			StringBuilder message = new StringBuilder("USE operation exit ");
+    			message.append(self.name()).append(".").append(useOperationCall.getOperation().name()).append("(");
+    			StringUtil.fmtSeq(message, useOperationCall.getArguments(), ",");
+    			message.append(") was succesfull.");
+    			fireNewLogMessage(Level.INFO,  message.toString());
+			}
 		} catch (MSystemException e) {
 			return false;
 		}
@@ -1350,9 +1378,14 @@ public class Monitor implements ChangeListener {
 			while (isRunning) {
 				try {
 					EventSet events = monitoredVM.eventQueue().remove();
+					if (!isRunning) return;
+					
+					fireNewLogMessage(Level.FINER, "Handling VM events.");
+					
 					for (com.sun.jdi.event.Event e : events) {
 						if (e instanceof BreakpointEvent) {
 							BreakpointEvent be = (BreakpointEvent)e;
+							fireNewLogMessage(Level.FINER, "Handling operation call.");
 							boolean opCallResult = onMethodCall(be);
 							if (!opCallResult) {
 								hasFailedOperation = true;
@@ -1360,13 +1393,16 @@ public class Monitor implements ChangeListener {
 							}
 						} else if (e instanceof ClassPrepareEvent) {
 							ClassPrepareEvent ce = (ClassPrepareEvent)e;
+							fireNewLogMessage(Level.FINER, "Registering operations of prepared Java class " + ce.referenceType().name() + ".");
 							registerOperationBreakPoints(ce.referenceType());
-							fireNewLogMessage(Level.FINE, "Registering operations of prepared Java class " + ce.referenceType().name() + ".");
 						} else if (e instanceof ModificationWatchpointEvent) {
 							ModificationWatchpointEvent we = (ModificationWatchpointEvent)e;
+							fireNewLogMessage(Level.FINER, "Handling modification watchpoint " + we.field().toString() + ".");
 							updateAttribute(we.object(), we.field(), we.valueToBe());
 						} else if (e instanceof MethodExitEvent) {
-							boolean opCallResult = onMethodExit((MethodExitEvent)e);
+							MethodExitEvent me = (MethodExitEvent)e;
+							fireNewLogMessage(Level.FINER, "Handling operation exit watchpoint " + me.method().toString() + ".");
+							boolean opCallResult = onMethodExit(me);
 							if (!opCallResult) {
 								hasFailedOperation = true;
 								waitForUserInput();
@@ -1374,6 +1410,7 @@ public class Monitor implements ChangeListener {
 						}
 					}
 					events.resume();
+					fireNewLogMessage(Level.FINER, "Resumed threads after andling VM events.");
 				} catch (InterruptedException e) {
 					// VM is away np
 				} catch (VMDisconnectedException e) {

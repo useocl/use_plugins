@@ -118,7 +118,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		backPanel.add(buttonPanel, BorderLayout.NORTH);
 		
 		URL iconUrl = MonitorPlugin.getInstance().getResource("resources/play.png");
-		button_Play = new JButton("Play", new ImageIcon(iconUrl));
+		button_Play = new JButton("Connect", new ImageIcon(iconUrl));
 		button_Play.setVerticalTextPosition(SwingConstants.BOTTOM);
 		button_Play.setHorizontalTextPosition(SwingConstants.CENTER);
 		button_Play.addActionListener(new AbstractAction() {
@@ -231,7 +231,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			info.add(check_suspend, cData);
 			
 			tapPanel.add(info, BorderLayout.NORTH);
-			tabs.addTab("Information", tapPanel);
+			tabs.addTab("Settings", tapPanel);
 		}
 		
 		{
@@ -519,16 +519,16 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		}
 	}
 
-	private SimpleAttributeSet debugStyle = new SimpleAttributeSet();
-	private SimpleAttributeSet infoStyle = new SimpleAttributeSet();
-	private SimpleAttributeSet warningStyle = new SimpleAttributeSet();
-	private SimpleAttributeSet errorStyle = new SimpleAttributeSet();
+	private SimpleAttributeSet textStyleDebug = new SimpleAttributeSet();
+	private SimpleAttributeSet textStyleInfo = new SimpleAttributeSet();
+	private SimpleAttributeSet textStyleWarning = new SimpleAttributeSet();
+	private SimpleAttributeSet textStyleError = new SimpleAttributeSet();
 	
 	{
-		StyleConstants.setForeground(debugStyle, Color.GRAY);
-		StyleConstants.setForeground(infoStyle, new Color(0,127,14));
-		StyleConstants.setForeground(warningStyle, new Color(255,216,0));
-		StyleConstants.setForeground(errorStyle, Color.RED);
+		StyleConstants.setForeground(textStyleDebug, Color.GRAY);
+		StyleConstants.setForeground(textStyleInfo, new Color(0,127,14));
+		StyleConstants.setForeground(textStyleWarning, new Color(255,106,0));
+		StyleConstants.setForeground(textStyleError, Color.RED);
 	}
 	
 	@Override
@@ -542,13 +542,13 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		
 		SimpleAttributeSet style;
 		if (level.equals(Level.SEVERE))
-			style = errorStyle;
+			style = textStyleError;
 		else if (level == Level.WARNING)
-			style = warningStyle;
+			style = textStyleWarning;
 		else if (level == Level.INFO)
-			style = infoStyle;
+			style = textStyleInfo;
 		else
-			style = debugStyle;
+			style = textStyleDebug;
 				
 		Document doc = logArea.getDocument();
 		if (doc.getLength() > 0)
