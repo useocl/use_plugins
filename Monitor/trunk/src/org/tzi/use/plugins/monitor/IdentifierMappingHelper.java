@@ -4,6 +4,7 @@ import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.mm.MOperation;
 
 
 /**
@@ -84,6 +85,21 @@ public class IdentifierMappingHelper {
 		String name = end.getAnnotationValue("Monitor", "name");
 		if (name == "") {
 			name = end.nameAsRolename();
+		}
+		return name;
+	}
+
+    /**
+     * Returns the runtime name of an {@link MOperation}.
+     * If the operation has an annotation <code>@Monitor(name="aName")</code>, <code>aName</code> is returned.
+     * Otherwise <code>operation.name()</code>.
+     * @param operation The operation to get the name for.
+     * @return The runtime name of <code>operation</code>.
+     */
+	public String getJavaMethodName(MOperation operation) {
+		String name = operation.getAnnotationValue("Monitor", "name");
+		if (name == "") {
+			name = operation.name();
 		}
 		return name;
 	}

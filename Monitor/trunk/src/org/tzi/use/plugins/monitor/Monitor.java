@@ -54,7 +54,9 @@ import org.tzi.use.uml.mm.MPrePostCondition;
 import org.tzi.use.uml.ocl.expr.ExpObjRef;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.ExpressionWithValue;
+import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.ObjectValue;
+import org.tzi.use.uml.ocl.value.SequenceValue;
 import org.tzi.use.uml.ocl.value.StringValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
@@ -73,18 +75,18 @@ import org.tzi.use.uml.sys.soil.MLinkDeletionStatement;
 import org.tzi.use.uml.sys.soil.MLinkInsertionStatement;
 import org.tzi.use.uml.sys.soil.MNewObjectStatement;
 import org.tzi.use.uml.sys.soil.MRValue;
-import org.tzi.use.util.CollectionUtil;
 import org.tzi.use.util.Log;
 import org.tzi.use.util.StringUtil;
 
-import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.ArrayReference;
 import com.sun.jdi.ArrayType;
 import com.sun.jdi.BooleanValue;
+import com.sun.jdi.ClassNotLoadedException;
 import com.sun.jdi.ClassType;
 import com.sun.jdi.Field;
 import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.IntegerValue;
+import com.sun.jdi.InvalidStackFrameException;
 import com.sun.jdi.Method;
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
@@ -243,7 +245,8 @@ public class Monitor implements ChangeListener {
      * A map containing a collection of {@link ModelBreakpoint}s for
      * {@link MModelElement}s.  
      */
-    private Map<MModelElement, Collection<ModelBreakpoint>> modelBreakPoints = new HashMap<MModelElement, Collection<ModelBreakpoint>>();
+    // TODO: Model break points
+    //private Map<MModelElement, Collection<ModelBreakpoint>> modelBreakPoints = new HashMap<MModelElement, Collection<ModelBreakpoint>>();
             
     public Monitor() { }
     
@@ -530,6 +533,8 @@ public class Monitor implements ChangeListener {
     	}
     }
 
+    private Map<Method, MOperation> operationMappings = new HashMap<Method, MOperation>();
+    
     /**
 	 * Sets a break point for each defined USE operation (if it matches a Java method) 
 	 * of the specified USE class, if the corresponding Java class 
@@ -544,13 +549,22 @@ public class Monitor implements ChangeListener {
 				String isQuery = op.getAnnotationValue("Monitor", "isQuery");
 				if (isQuery.equals("true")) continue;
 				
-				List<com.sun.jdi.Method> methods = refType.methodsByName(op.name());
+				String methodName = mappingHelper.getJavaMethodName(op);
+				
+				List<com.sun.jdi.Method> methods = refType.methodsByName(methodName);
 				for (com.sun.jdi.Method m : methods) {
 					// TODO: Check parameter types
-					fireNewLogMessage(Level.FINE, "Registering operation breakpoint for operation " + m.name());
-					BreakpointRequest req = monitoredVM.eventRequestManager().createBreakpointRequest(m.location());
-					req.setSuspendPolicy(EventRequest.SUSPEND_ALL);
-					req.enable();
+					try {
+						if (m.argumentTypes().size() == op.allParams().size()) {
+							fireNewLogMessage(Level.FINE, "Registering operation breakpoint for operation " + m.toString());
+							BreakpointRequest req = monitoredVM.eventRequestManager().createBreakpointRequest(m.location());
+							req.setSuspendPolicy(EventRequest.SUSPEND_ALL);
+							req.enable();
+							operationMappings.put(m, op);
+						}
+					} catch (ClassNotLoadedException e) {
+						fireNewLogMessage(Level.SEVERE, "Could not validate number of arguments for method " + m.toString());
+					}
 				}
 			}
 			
@@ -763,7 +777,7 @@ public class Monitor implements ChangeListener {
     	for (Map.Entry<ObjectReference, MObject> entry : instanceMapping.entrySet()) {
     		readAttributes(entry.getKey(), entry.getValue());
     		
-    		if (counter % step == 0) {
+    		if (step > 0 && counter % step == 0) {
     			args.setCurrent(counter);
     			fireSnapshotProgress(args);
     		}
@@ -782,7 +796,7 @@ public class Monitor implements ChangeListener {
     	for (Map.Entry<ObjectReference, MObject> entry : instanceMapping.entrySet()) {
     		readLinks(entry.getKey(), entry.getValue());
     		
-    		if (counter % step == 0) {
+    		if (step > 0 && counter % step == 0) {
     			args.setCurrent(counter);
     			fireSnapshotProgress(args);
     		}
@@ -968,6 +982,10 @@ public class Monitor implements ChangeListener {
     			else
     				fireNewLogMessage(Level.WARNING, "USE object for Java value " + javaValue.toString() + " not found!");
     		}
+    	} else if (javaValue instanceof ArrayReference) {
+    		//FIXME: Correct handling of array parameter!
+    		return new SequenceValue(TypeFactory.mkObjectType(getSystem().model().getClass("Object")), new Value[0]);
+    		    		
 		} else if (javaValue instanceof StringReference) {
 			v = new StringValue(((StringReference)javaValue).value());
 		} else if (javaValue instanceof IntegerValue) {
@@ -1271,8 +1289,8 @@ public class Monitor implements ChangeListener {
 	}
 
 	private boolean handleMethodCall(BreakpointEvent breakpointEvent) {
-    	String operationName = breakpointEvent.location().method().name();
-    	fireNewLogMessage(Level.FINE, "onMethodCall: " + operationName);
+		Method m = breakpointEvent.location().method();
+    	fireNewLogMessage(Level.FINE, "onMethodCall: " + m.toString());
     	
     	StackFrame currentFrame;
 		try {
@@ -1287,19 +1305,23 @@ public class Monitor implements ChangeListener {
     	Value selfValue = getUSEValue(javaObject, true);
     	
     	if (selfValue.isUndefined()) {
-    		fireNewLogMessage(Level.WARNING, "Could not retrieve object for operation call " + operationName + ".");
+    		fireNewLogMessage(Level.WARNING, "Could not retrieve object for operation call " + m.toString() + ".");
     		return true;
     	}
     	
     	MObject self = ((ObjectValue)selfValue).value();
-    	MOperation useOperation = self.cls().operation(operationName, true);
+    	MOperation useOperation = operationMappings.get(m);
     	   	
+    	if (useOperation == null) {
+    		fireNewLogMessage(Level.SEVERE, "Could not find USE operation for method " + m.toString());
+    	}
+    	
     	try {
-			if (useOperation.allParams().size() != breakpointEvent.location().method().arguments().size()) {
+			if (useOperation.allParams().size() != currentFrame.getArgumentValues().size()) {
 				fireNewLogMessage(Level.WARNING, "Wrong number of arguments!");
 				return true;
 			}
-		} catch (AbsentInformationException e) {
+		} catch (InvalidStackFrameException e) {
 			fireNewLogMessage(Level.SEVERE, "Could not validate argument size");
 			return true;
 		}
@@ -1307,7 +1329,8 @@ public class Monitor implements ChangeListener {
     	List<com.sun.jdi.Value> javaArgs = currentFrame.getArgumentValues();
     	Map<String, Expression> arguments = new HashMap<String, Expression>();
     	
-    	for (int index = 0; index < useOperation.allParams().size(); index++) {
+    	int numArgs = useOperation.allParams().size();
+    	for (int index = 0; index < numArgs; index++) {
     		Value val = getUSEValue(javaArgs.get(index), useOperation.allParams().get(index).type().isObjectType());
     		arguments.put(useOperation.allParams().get(index).name(), new ExpressionWithValue(val));
     	}
@@ -1325,7 +1348,7 @@ public class Monitor implements ChangeListener {
     			fireNewLogMessage(Level.INFO,  message.toString());
     		}
 		} catch (MSystemException e) {
-			Log.error(e.getMessage());
+			fireNewLogMessage(Level.SEVERE, "Error handling message call " + m.toString() + ": " + e.getMessage());
 			return false;
 		}
 		
@@ -1389,6 +1412,8 @@ public class Monitor implements ChangeListener {
 							boolean opCallResult = onMethodCall(be);
 							if (!opCallResult) {
 								hasFailedOperation = true;
+								isPaused = true;
+						    	fireMonitorPause();
 								waitForUserInput();
 							}
 						} else if (e instanceof ClassPrepareEvent) {
