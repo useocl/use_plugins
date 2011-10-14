@@ -17,7 +17,6 @@
         <file path="/use-xmihandler-plugin/.project"/>
         <folder path="/use-xmihandler-plugin/resources"/>
         <folder path="/use-xmihandler-plugin/META-INF"/>
-        <file path="/use-xmihandler-plugin/model.xmi"/>
         <file path="/use-xmihandler-plugin/.classpath"/>
         <file path="/use-xmihandler-plugin/plugin.jardesc"/>
     </selectedElements>

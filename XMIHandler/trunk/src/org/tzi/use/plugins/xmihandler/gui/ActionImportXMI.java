@@ -5,25 +5,25 @@ import org.tzi.use.runtime.gui.IPluginAction;
 import org.tzi.use.runtime.gui.IPluginActionDelegate;
 
 /**
- * This action initializes and opens a new window to
- * graphically control the monitoring process
+ * This action opens a dialog to select file for import,
+ * which later performs import if file is selected
  * 
  * @author Emil Huseynli
  * 
  */
-public class ActionShowXMIHandler implements IPluginActionDelegate {
+public class ActionImportXMI implements IPluginActionDelegate {
 
 	/**
 	 * Default constructor
 	 */
-	public ActionShowXMIHandler() {	}
+	public ActionImportXMI() {	}
 	
 	@Override
 	public void performAction(IPluginAction pluginAction) {
 		// Getting MainWindow object from Proxy
 		MainWindow fMainWindow = pluginAction.getParent();
 		
-		XMIHandlerView view = new XMIHandlerView(fMainWindow, pluginAction.getSession());
+		XMIHandlerView view = new XMIHandlerView(fMainWindow, pluginAction.getSession(), XMIHandlerView.Mode.IMPORT);
 		view.setVisible(true);
 	}
 

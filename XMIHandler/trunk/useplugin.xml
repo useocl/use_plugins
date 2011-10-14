@@ -2,10 +2,15 @@
 <?use version="3.0.0"?>
 <plugin name="XMIHandler" version="0.1" publisher="Emil Huseynli">
     <actions>
-      <action label="Show XMIHandler" icon="resources/XMIHandler.png"
-      class="org.tzi.use.plugins.xmihandler.gui.ActionShowXMIHandler" tooltip="Show XMIHanlder"
-      menu="View" menuitem="XMIHandler" toolbaritem="plugins"
-      id="org.tzi.use.plugins.xmihandler.gui.ActionShowXMIHandler">
+      <action label="Export to XMI" icon="resources/export.png"
+      class="org.tzi.use.plugins.xmihandler.gui.ActionExportXMI" tooltip="Export to XMI"
+      menu="View" menuitem="Export to XMI" toolbaritem="plugins"
+      id="org.tzi.use.plugins.xmihandler.gui.ActionExportXMI">
+    </action>    
+      <action label="Import from XMI" icon="resources/import.png"
+      class="org.tzi.use.plugins.xmihandler.gui.ActionImportXMI" tooltip="Import from XMI"
+      menu="View" menuitem="Import from XMI" toolbaritem="plugins"
+      id="org.tzi.use.plugins.xmihandler.gui.ActionImportXMI">
     </action>    
     </actions>
 	<commands>
