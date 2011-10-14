@@ -6,6 +6,9 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
 
+import com.sun.jdi.ClassNotLoadedException;
+import com.sun.jdi.Method;
+
 
 /**
  * This class is used to map names of model elements to 
@@ -102,5 +105,26 @@ public class IdentifierMappingHelper {
 			name = operation.name();
 		}
 		return name;
+	}
+
+	/**
+	 * Returns <code>true</code> if the runtime method <code>method</code> matches
+	 * the USE operation <code>useOperation</code>.
+	 * @param method The runtime method.
+	 * @param useOperation The use method to check against.
+	 * @return <code>true</code> if both operations match.
+	 */
+	public boolean methodMatches(Method method, MOperation useOperation) {
+		// FIXME Handle parameter types
+		try {
+			if (getJavaMethodName(useOperation).equals(method.name()) &&
+				method.argumentTypes().size() == useOperation.allParams().size()) {
+				return true;
+			}
+		} catch (ClassNotLoadedException e) {
+			return false;
+		}
+		
+		return false;
 	}
 }

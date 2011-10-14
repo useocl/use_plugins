@@ -361,6 +361,8 @@ public class Monitor implements ChangeListener {
     private void waitForUserInput() {
     	synchronized (failedOperationLock) {
     		try {
+    			isPaused = true;
+		    	fireMonitorPause();
     			fireNewLogMessage(Level.FINER, "Waiting for user input.");
     			failedOperationLock.wait();
     		} catch (InterruptedException e) {
@@ -975,6 +977,7 @@ public class Monitor implements ChangeListener {
     	if (javaValue == null) return v;
     	
     	if (shouldBeUSEObject) {
+    		// Only search for an instance
     		if (javaValue instanceof ObjectReference) {
     			MObject useObject = instanceMapping.get(((ObjectReference)javaValue));
     			if (useObject != null)
@@ -984,15 +987,45 @@ public class Monitor implements ChangeListener {
     		}
     	} else if (javaValue instanceof ArrayReference) {
     		//FIXME: Correct handling of array parameter!
-    		return new SequenceValue(TypeFactory.mkObjectType(getSystem().model().getClass("Object")), new Value[0]);
+    		ArrayReference javaArray = (ArrayReference)javaValue;
+    		List<com.sun.jdi.Value> javaValues = javaArray.getValues();
+    		Value[] useValues = new Value[javaValues.size()];
+    				
+    		for (int i = 0; i < javaValues.size(); ++i) {
+    			useValues[i] = getUSEValue(javaValues.get(i), false);
+    		}
+    		
+    		SequenceValue result = new SequenceValue(TypeFactory.mkVoidType(), useValues);
+    		
+    		v = result;
     		    		
 		} else if (javaValue instanceof StringReference) {
 			v = new StringValue(((StringReference)javaValue).value());
+		// Primitive integer, i.e., int
 		} else if (javaValue instanceof IntegerValue) {
 			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf(((IntegerValue)javaValue).intValue());
 		} else if (javaValue instanceof BooleanValue) {
 			boolean b = ((BooleanValue)javaValue).booleanValue();
 			v = org.tzi.use.uml.ocl.value.BooleanValue.get(b);
+		} else if (javaValue instanceof ObjectReference) {
+			ObjectReference refValue = (ObjectReference)javaValue;
+
+			// Reference integer, i. e., Integer
+			if (refValue.referenceType().name().equals("java.lang.Integer")) {
+				// TODO: Don't hard code!
+				Field fValue = refValue.referenceType().fieldByName("value");
+				IntegerValue iValue = (IntegerValue)refValue.getValue(fValue);
+				
+				v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf(iValue.intValue());
+			} else {		
+				// Could be an instance 
+				MObject useObject = instanceMapping.get(((ObjectReference)javaValue));
+				if (useObject != null)
+					v = new ObjectValue(useObject.type(), useObject);
+				else
+					fireNewLogMessage(Level.WARNING, "Unhandled type:" + javaValue.getClass().getName());
+			}
+			
 		} else {
 			fireNewLogMessage(Level.WARNING, "Unhandled type:" + javaValue.getClass().getName());
 		}
@@ -1292,6 +1325,18 @@ public class Monitor implements ChangeListener {
 		Method m = breakpointEvent.location().method();
     	fireNewLogMessage(Level.FINE, "onMethodCall: " + m.toString());
     	
+		// If calls inside current operation should be ignored,
+		// i. e., @Monitor(ignoreSubCalls="true") is specified,
+		// we can return here.
+		MOperationCall currentUseOperationCall = getSystem().getCurrentOperation();
+		if (currentUseOperationCall != null) {
+			MOperation currentOperation = currentUseOperationCall.getOperation();
+			if (currentOperation.getAnnotationValue("Monitor", "ignoreSubCalls").equalsIgnoreCase("true")) {
+				fireNewLogMessage(Level.INFO, "Ignoring sub calls in " + currentOperation.toString());
+				return true;
+			}
+		}
+		
     	StackFrame currentFrame;
 		try {
 			currentFrame = breakpointEvent.thread().frame(0);
@@ -1360,33 +1405,42 @@ public class Monitor implements ChangeListener {
     }
     
     private boolean onMethodExit(MethodExitEvent exitEvent) {
-    	if (!exitEvent.method().name().equals(getSystem().getCurrentOperation().getOperation().name()))
-    		return true;
+    	MOperationCall currentUseOperationCall = getSystem().getCurrentOperation();
     	
+    	if (currentUseOperationCall == null) {
+    		fireNewLogMessage(Level.WARNING, "MethodExitEvent for " + exitEvent.method().toString() + " was not removed!");
+    		this.monitoredVM.eventRequestManager().deleteEventRequest(exitEvent.request());
+    		return true;
+    	}
+
+    	MOperation currentUseOperation = currentUseOperationCall.getOperation();
+    	
+    	// Ignore not matching events, because events are generated
+    	// for all method exits of an instance.
+		if (!mappingHelper.methodMatches(exitEvent.method(),
+				currentUseOperation))
+    		return true;
+
     	ExpressionWithValue result = null;
 		this.monitoredVM.eventRequestManager().deleteEventRequest(exitEvent.request());
     	
-    	if (getSystem().getCurrentOperation().getOperation().hasResultType()) {
+    	if (currentUseOperation.hasResultType()) {
 			result = new ExpressionWithValue(getUSEValue(
-					exitEvent.returnValue(), getSystem().getCurrentOperation()
-							.getOperation().resultType().isObjectType()));
+					exitEvent.returnValue(), currentUseOperation.resultType().isObjectType()));
 		}
 
 		MExitOperationStatement stmt = new MExitOperationStatement(result, ppcHandler);
-		MOperationCall useOperationCall = getSystem().getCurrentOperation();
 		
 		try {
 			StatementEvaluationResult statResult = getSystem().evaluateStatement(stmt);
-			if (statResult.wasSuccessfull()) {
-				MObject self = useOperationCall.getSelf();
-				
+			if (statResult.wasSuccessfull()) {				
     			StringBuilder message = new StringBuilder("USE operation exit ");
-    			message.append(self.name()).append(".").append(useOperationCall.getOperation().name()).append("(");
-    			StringUtil.fmtSeq(message, useOperationCall.getArguments(), ",");
+    			message.append(currentUseOperationCall.toLegacyString());
     			message.append(") was succesfull.");
     			fireNewLogMessage(Level.INFO,  message.toString());
 			}
 		} catch (MSystemException e) {
+			fireNewLogMessage(Level.SEVERE, "Error while exiting " + exitEvent.method().toString() + ": " + e.getMessage());
 			return false;
 		}
 		
@@ -1412,8 +1466,6 @@ public class Monitor implements ChangeListener {
 							boolean opCallResult = onMethodCall(be);
 							if (!opCallResult) {
 								hasFailedOperation = true;
-								isPaused = true;
-						    	fireMonitorPause();
 								waitForUserInput();
 							}
 						} else if (e instanceof ClassPrepareEvent) {
