@@ -5,6 +5,7 @@ import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
+import org.tzi.use.uml.sys.MObject;
 
 import com.sun.jdi.ClassNotLoadedException;
 import com.sun.jdi.Method;
@@ -126,5 +127,20 @@ public class IdentifierMappingHelper {
 		}
 		
 		return false;
+	}
+
+	/**
+	 * Tries to map a runtime method to an operation defined in USE.  
+	 * @param useObject The <code>MObject</code> to check for the operation.
+	 * @param method The runtime method which should be mapped
+	 * @return The corresponding USE operation or <code>null</code> if no operation is defined which matches <code>method</code>.
+	 */
+	public MOperation getUseOperation(MObject useObject, Method method) {
+		for (MOperation op : useObject.cls().allOperations()) {
+			if (methodMatches(method, op))
+				return op;
+		}
+		
+		return null;
 	}
 }

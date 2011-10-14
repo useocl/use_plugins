@@ -65,6 +65,7 @@ import org.tzi.use.uml.sys.MOperationCall;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
 import org.tzi.use.uml.sys.StatementEvaluationResult;
+import org.tzi.use.uml.sys.ppcHandling.DoNothingPPCHandler;
 import org.tzi.use.uml.sys.ppcHandling.PPCHandler;
 import org.tzi.use.uml.sys.ppcHandling.PostConditionCheckFailedException;
 import org.tzi.use.uml.sys.ppcHandling.PreConditionCheckFailedException;
@@ -102,11 +103,13 @@ import com.sun.jdi.event.ClassPrepareEvent;
 import com.sun.jdi.event.EventSet;
 import com.sun.jdi.event.MethodExitEvent;
 import com.sun.jdi.event.ModificationWatchpointEvent;
+import com.sun.jdi.event.VMDeathEvent;
 import com.sun.jdi.request.BreakpointRequest;
 import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.request.EventRequest;
 import com.sun.jdi.request.MethodExitRequest;
 import com.sun.jdi.request.ModificationWatchpointRequest;
+import com.sun.jdi.request.VMDeathRequest;
 import com.sun.tools.jdi.SocketAttachingConnector;
 
 /**
@@ -444,12 +447,107 @@ public class Monitor implements ChangeListener {
     	long end = System.currentTimeMillis();
     	fireNewLogMessage(Level.INFO, String.format("Read %,d instances and %,d links in %,dms.", countInstances, countLinks, (end - start)));
     	
+    	calculateCurrentCallStack();
+    	
     	hasSnapshot = true;
     	isPaused = true;
     	fireMonitorPause();
     }
 
+    private void calculateCurrentCallStack() {
+		// Find the thread we are monitoring!
+    	ThreadReference identifiedThread = null;
+    	
+    	for (ThreadReference threadRef : monitoredVM.allThreads()) {
+    		try {
+				for (StackFrame frame : threadRef.frames()) {
+					if (instanceMapping.containsKey(frame.thisObject())) {
+						identifiedThread = threadRef;
+						break;
+					}
+				}
+			} catch (IncompatibleThreadStateException e) {
+				fireNewLogMessage(Level.SEVERE, "Could not retrieve stack frame: " + e.getMessage());
+			}
+    		
+    		if (identifiedThread != null)
+    			break;
+    	}
+    	
+    	if (identifiedThread == null) {
+    		fireNewLogMessage(Level.FINE, "Calculated call stack is empty.");
+    		return;
+    	}
+    	
+    	// Seek for matching operations in reverse order of the frame list
+    	// First operation calls first.  
+    	try {
+			for (int index = identifiedThread.frameCount() - 1; index >= 0; --index) {
+				StackFrame frame = identifiedThread.frame(index);
+				Method method = frame.location().method();
+				
+				// Call on a known instance?
+				if (instanceMapping.containsKey(frame.thisObject()) &&
+					operationMappings.containsKey(method)) {
+					MObject useObject = instanceMapping.get(frame.thisObject());
+					MOperation useOperation = operationMappings.get(method);
+					
+					createOperationCall(useObject, useOperation, frame, false);
+				}
+			}
+		} catch (IncompatibleThreadStateException e) {
+			// I think, this cannot happen
+			fireNewLogMessage(Level.SEVERE, "Could not retrieve stack frame of identified thread: " + e.getMessage());
+			return;
+		}
+	}
+
     /**
+     * Generates and executes a USE operation call from the provided values.
+     * @param self The MObject representing self for the operation call. 
+     * @param useOperation
+     * @param frame
+     * @param validatePreConditions
+     */
+	private boolean createOperationCall(MObject self, MOperation useOperation,
+			StackFrame frame, boolean validatePreConditions) {
+		
+		List<com.sun.jdi.Value> javaArgs = frame.getArgumentValues();
+    	Map<String, Expression> arguments = new HashMap<String, Expression>();
+    	
+    	int numArgs = useOperation.allParams().size();
+    	for (int index = 0; index < numArgs; index++) {
+    		Value val = getUSEValue(javaArgs.get(index), useOperation.allParams().get(index).type().isObjectType());
+    		arguments.put(useOperation.allParams().get(index).name(), new ExpressionWithValue(val));
+    	}
+    	
+    	PPCHandler handler = (validatePreConditions ? ppcHandler : DoNothingPPCHandler.getInstance());
+    	
+		MEnterOperationStatement operationCall = new MEnterOperationStatement(
+				new ExpObjRef(self), useOperation, arguments, handler );
+    	
+    	try {
+    		StatementEvaluationResult result = getSystem().evaluateStatement(operationCall);
+    		if (result.wasSuccessfull()) {
+    			StringBuilder message = new StringBuilder("USE operation call ");
+    			message.append(self.name()).append(".").append(useOperation.name()).append("(");
+    			StringUtil.fmtSeq(message, arguments.values(), ",");
+    			message.append(") was succesfull.");
+    			fireNewLogMessage(Level.INFO,  message.toString());
+    		}
+		} catch (MSystemException e) {
+			fireNewLogMessage(Level.SEVERE, "Error handling message call " + frame.location().method().toString() + ": " + e.getMessage());
+			return false;
+		}
+		
+		MethodExitRequest req = monitoredVM.eventRequestManager().createMethodExitRequest();
+		req.addInstanceFilter(frame.thisObject());
+		req.enable();
+		
+		return true;
+	}
+
+	/**
      * Resumes the monitoring process, i. e., resumes the suspended VM.
      */
     public void resume() {
@@ -505,6 +603,9 @@ public class Monitor implements ChangeListener {
     	
     	try {
 			monitoredVM = connector.attach(args);
+			// We want to get notified if the VM terminates.
+			VMDeathRequest deathReq = monitoredVM.eventRequestManager().createVMDeathRequest();
+			deathReq.enable();
 		} catch (IOException e) {
 			throw new MonitorException("Could not connect to virtual machine", e);
 		} catch (IllegalConnectorArgumentsException e) {
@@ -531,7 +632,11 @@ public class Monitor implements ChangeListener {
 	 */
     private void registerOperationBreakPoints() {
     	for (MClass cls : getSystem().model().classes()) {
-    		registerOperationBreakPoints(cls);
+    		try {
+    			registerOperationBreakPoints(cls);
+    		} catch (Exception e) {
+    			fireNewLogMessage(Level.SEVERE, "Error while setting break points for class " + cls.name());
+    		}
     	}
     }
 
@@ -544,8 +649,10 @@ public class Monitor implements ChangeListener {
 	 */
 	private void registerOperationBreakPoints(MClass cls) {
 		ReferenceType refType = getReferenceClass(cls);
-		    		
-		if (refType != null) {
+		  
+		if (refType == null) {
+			fireNewLogMessage(Level.INFO, "No runtime class found for model class " + cls.name());
+		} else {
 			fireNewLogMessage(Level.FINE, "Registering operation breakpoints for class " + cls.name());
 			for (MOperation op : cls.operations()) {
 				String isQuery = op.getAnnotationValue("Monitor", "isQuery");
@@ -559,6 +666,12 @@ public class Monitor implements ChangeListener {
 					try {
 						if (m.argumentTypes().size() == op.allParams().size()) {
 							fireNewLogMessage(Level.FINE, "Registering operation breakpoint for operation " + m.toString());
+							
+							if (m.location() == null) {
+								fireNewLogMessage(Level.WARNING, "Cannot set breakpoints for abstract or interface operation " + m.toString());
+								continue;
+							}
+							
 							BreakpointRequest req = monitoredVM.eventRequestManager().createBreakpointRequest(m.location());
 							req.setSuspendPolicy(EventRequest.SUSPEND_ALL);
 							req.enable();
@@ -1332,7 +1445,7 @@ public class Monitor implements ChangeListener {
 		if (currentUseOperationCall != null) {
 			MOperation currentOperation = currentUseOperationCall.getOperation();
 			if (currentOperation.getAnnotationValue("Monitor", "ignoreSubCalls").equalsIgnoreCase("true")) {
-				fireNewLogMessage(Level.INFO, "Ignoring sub calls in " + currentOperation.toString());
+				fireNewLogMessage(Level.FINE, "Ignoring sub calls in " + currentOperation.toString());
 				return true;
 			}
 		}
@@ -1371,37 +1484,7 @@ public class Monitor implements ChangeListener {
 			return true;
 		}
 
-    	List<com.sun.jdi.Value> javaArgs = currentFrame.getArgumentValues();
-    	Map<String, Expression> arguments = new HashMap<String, Expression>();
-    	
-    	int numArgs = useOperation.allParams().size();
-    	for (int index = 0; index < numArgs; index++) {
-    		Value val = getUSEValue(javaArgs.get(index), useOperation.allParams().get(index).type().isObjectType());
-    		arguments.put(useOperation.allParams().get(index).name(), new ExpressionWithValue(val));
-    	}
-    	
-		MEnterOperationStatement operationCall = new MEnterOperationStatement(
-				new ExpObjRef(self), useOperation, arguments, ppcHandler );
-    	
-    	try {
-    		StatementEvaluationResult result = getSystem().evaluateStatement(operationCall);
-    		if (result.wasSuccessfull()) {
-    			StringBuilder message = new StringBuilder("USE operation call ");
-    			message.append(self.name()).append(".").append(useOperation.name()).append("(");
-    			StringUtil.fmtSeq(message, arguments.values(), ",");
-    			message.append(") was succesfull.");
-    			fireNewLogMessage(Level.INFO,  message.toString());
-    		}
-		} catch (MSystemException e) {
-			fireNewLogMessage(Level.SEVERE, "Error handling message call " + m.toString() + ": " + e.getMessage());
-			return false;
-		}
-		
-		MethodExitRequest req = monitoredVM.eventRequestManager().createMethodExitRequest();
-		req.addInstanceFilter(javaObject);
-		req.enable();
-		
-		return true;
+    	return createOperationCall(self, useOperation, currentFrame, true);
     }
     
     private boolean onMethodExit(MethodExitEvent exitEvent) {
@@ -1465,6 +1548,7 @@ public class Monitor implements ChangeListener {
 							fireNewLogMessage(Level.FINER, "Handling operation call.");
 							boolean opCallResult = onMethodCall(be);
 							if (!opCallResult) {
+								fireNewLogMessage(Level.WARNING, "Enter of method " + be.location().method().toString() + " failed.");
 								hasFailedOperation = true;
 								waitForUserInput();
 							}
@@ -1481,9 +1565,14 @@ public class Monitor implements ChangeListener {
 							fireNewLogMessage(Level.FINER, "Handling operation exit watchpoint " + me.method().toString() + ".");
 							boolean opCallResult = onMethodExit(me);
 							if (!opCallResult) {
+								fireNewLogMessage(Level.WARNING, "Exit of method " + me.method().toString() + " failed.");
 								hasFailedOperation = true;
 								waitForUserInput();
 							}
+						} else if (e instanceof VMDeathEvent) {
+							fireNewLogMessage(Level.INFO, "VM terminated.");
+							end();
+							return;
 						}
 					}
 					events.resume();
@@ -1493,7 +1582,12 @@ public class Monitor implements ChangeListener {
 				} catch (VMDisconnectedException e) {
 					isRunning = false;
 					monitoredVM = null;
-					fireNewLogMessage(Level.WARNING, "Monitored application has terminated");
+					fireNewLogMessage(Level.WARNING, "Monitored application has terminated.");
+				} catch (Exception ex) {
+					fireNewLogMessage(Level.SEVERE, "Error while listening to break points: " + ex.getMessage());
+					fireNewLogMessage(Level.SEVERE, "Disonnecting");
+					end();
+					return;
 				}
 			}
 		}

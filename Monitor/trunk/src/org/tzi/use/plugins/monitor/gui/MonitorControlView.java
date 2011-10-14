@@ -46,6 +46,7 @@ import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
@@ -243,10 +244,12 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			backPanel.add(progress, BorderLayout.SOUTH);
 		}
 		
+		// Initialize the "model tree" tab
 		{
 			JPanel modelPanel = new JPanel(new BorderLayout());
 			DefaultMutableTreeNode root = createModelNodes();
 			modelTree = new CheckboxTree(root);
+			modelTree.setRootVisible(false);
 			modelTree.setCellRenderer(new ModelCellRenderer());
 			modelTree.getCheckingModel().setCheckingMode(TreeCheckingModel.CheckingMode.PROPAGATE_PRESERVING_UNCHECK);
 			
@@ -255,6 +258,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			tabs.addTab("Model", modelPanel);
 		}
 		
+		// Initialize the log tab
 		{
 			JPanel logPanel = new JPanel(new BorderLayout());
 			
@@ -460,10 +464,13 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		if (session.hasSystem())
+		if (session.hasSystem()) {
 			this.label_useModel.setText(session.system().model().name());
-		else
+			this.modelTree.setModel(new DefaultTreeModel(createModelNodes()));
+		} else {
 			this.label_useModel.setText("No USE file loaded");
+			this.modelTree.setModel(null);
+		}
 	}
 
 	@Override
