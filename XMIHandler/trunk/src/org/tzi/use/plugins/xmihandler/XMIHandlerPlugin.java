@@ -33,6 +33,7 @@ import org.tzi.use.uml.mm.ModelFactory;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.util.Log;
 
 public class XMIHandlerPlugin extends Plugin {
 
@@ -186,7 +187,18 @@ public class XMIHandlerPlugin extends Plugin {
     }
     catch (IOException e) {}    
 
-    final Model theModel = (Model)resource.getContents().get(0);
+    Model theModel = null; 
+    for (Object o : resource.getContents()) {
+      if (o instanceof org.eclipse.uml2.uml.Model) {
+        theModel = (Model) o;
+        break;
+      }
+    }
+    
+    if (theModel == null) {
+      Log.error("Import is impossible: bad model");
+      return;
+    }
     
     ModelFactory modelFactory = new ModelFactory ();
     MModel model = modelFactory.createModel(theModel.getName());
