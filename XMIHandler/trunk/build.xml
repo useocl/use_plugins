@@ -1,0 +1,19 @@
+<project name="XMIHandler" default="create-jar" basedir=".">
+  <description>Build file for XMIHandler</description>
+	
+  <!-- perform all major targets. Should be done before a checkin to
+       avoid broken snapshots.  -->
+  <target name="all" description="perform create-jar" depends="create-jar" />
+
+  <!-- create jar -->
+  <target name="create-jar">
+    <jar jarfile="/home/stalker/uni/Masterarbeit/use_repo/lib/plugins/xmihandler.jar" basedir="." manifest="META-INF/MANIFEST.MF">
+      <fileset dir="bin" includes="**"/>
+      <exclude name="bin/"/>
+       <exclude name="plugin.jardesc"/>
+       <exclude name="build.xml"/>
+       <exclude name="lib/**"/>
+       <exclude name="src/**"/>
+    </jar> 
+  </target>
+</project>

@@ -9,6 +9,8 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 import org.eclipse.uml2.uml.AggregationKind;
 import org.eclipse.uml2.uml.Association;
 import org.eclipse.uml2.uml.LiteralUnlimitedNatural;
@@ -18,6 +20,7 @@ import org.eclipse.uml2.uml.Property;
 import org.eclipse.uml2.uml.Type;
 import org.eclipse.uml2.uml.UMLFactory;
 import org.eclipse.uml2.uml.UMLPackage;
+import org.eclipse.uml2.uml.ecore.importer.UMLImporter;
 import org.eclipse.uml2.uml.resource.UMLResource;
 import org.tzi.use.main.Session;
 import org.tzi.use.runtime.impl.Plugin;
@@ -162,41 +165,28 @@ public class XMIHandlerPlugin extends Plugin {
 	
   public void importFromXMI(File file, Session session) {
     // Create a resource set.
-    ResourceSet resourceSet = new ResourceSetImpl();
+    ResourceSet resourceSet = new UMLImporter().createResourceSet();
     
-    UMLPackage.eINSTANCE.getName();
-    
-    resourceSet.getPackageRegistry().put(UMLPackage.eNS_URI, UMLPackage.eINSTANCE);
-    
-    resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(Resource.Factory.Registry.DEFAULT_EXTENSION, UMLResource.Factory.INSTANCE);
- 
-    URI uri = URI.createURI("jar:file:lib/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar!/");
-    resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.LIBRARIES_PATHMAP), uri.appendSegment("libraries").appendSegment(""));
-    resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.METAMODELS_PATHMAP), uri.appendSegment("metamodels").appendSegment(""));
-    resourceSet.getURIConverter().getURIMap().put(URI.createURI(UMLResource.PROFILES_PATHMAP), uri.appendSegment("profiles").appendSegment(""));
+    resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(Resource.Factory.Registry.DEFAULT_EXTENSION, UMLResource.Factory.INSTANCE);    
     
     // Get the URI of the model file.
     URI fileURI = URI.createFileURI(file.getAbsolutePath());
     System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>" + fileURI.path());
 
     // Create a resource for this file.
-    Resource resource = resourceSet.getResource(fileURI, true);
+    final XMIResourceImpl resource = (XMIResourceImpl) resourceSet
+    .getResource(fileURI, true);    
     try
     {
       resource.load(Collections.EMPTY_MAP);
     }
-    catch (IOException e) {}    
-
-    Model theModel = null; 
-    for (Object o : resource.getContents()) {
-      if (o instanceof org.eclipse.uml2.uml.Model) {
-        theModel = (Model) o;
-        break;
-      }
-    }
+    catch (IOException e) {}
+    
+    Model theModel = (Model) EcoreUtil.getObjectByType(
+        resource.getContents(), UMLPackage.Literals.MODEL);
     
     if (theModel == null) {
-      Log.error("Import is impossible: bad model");
+      Log.error("Import is impossible, bad model");
       return;
     }
     

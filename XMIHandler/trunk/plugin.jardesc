@@ -15,6 +15,7 @@
         <file path="/use-xmihandler-plugin/useplugin.xml"/>
         <folder path="/use-xmihandler-plugin/lib"/>
         <file path="/use-xmihandler-plugin/.project"/>
+        <file path="/use-xmihandler-plugin/build.xml"/>
         <folder path="/use-xmihandler-plugin/resources"/>
         <folder path="/use-xmihandler-plugin/META-INF"/>
         <file path="/use-xmihandler-plugin/.classpath"/>
