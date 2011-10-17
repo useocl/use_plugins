@@ -1380,11 +1380,15 @@ public class Monitor implements ChangeListener {
 		try {
 			ThreadReference thread = breakpointEvent.thread();
 			currentFrame = thread.frame(0);
-	    	// Check if we are a nested constructor
+	    	// Check if we are a nested constructor of the same thisObject
+			ObjectReference thisObject = currentFrame.thisObject();
 			
 			for (int index = 1; index < breakpointEvent.thread().frameCount(); ++index) {
-				if (thread.frame(index).location().method().isConstructor())
+				StackFrame frame = thread.frame(index);
+				if (thisObject.equals(frame.thisObject()) && frame.location().method().isConstructor()) {
+					fireNewLogMessage(Level.FINE, "Nested constructor call.");
 					return true;
+				}
 			}
 		} catch (IncompatibleThreadStateException e) {
 			fireNewLogMessage(Level.SEVERE, "Could not retrieve stack frame");
