@@ -985,8 +985,8 @@ public class Monitor implements ChangeListener {
 						linkObjects[0] = newValue;
 						linkObjects[1] = useObject;
 					} else {
-						linkObjects[0] = newValue;
-						linkObjects[1] = useObject;
+						linkObjects[0] = useObject;
+						linkObjects[1] = newValue;
 					}
 					
 					try {
@@ -995,7 +995,7 @@ public class Monitor implements ChangeListener {
 						);
 						getSystem().evaluateStatement(createStmt);
 					} catch (MSystemException e) {
-						fireNewLogMessage(Level.WARNING, "Could not create new link");
+						fireNewLogMessage(Level.WARNING, "Could not create new link:" + e.getMessage());
 					}
 				}
     		}
@@ -1025,8 +1025,9 @@ public class Monitor implements ChangeListener {
     	for (MAttribute attr : o.cls().allAttributes()) {
     		
     		if (!readSpecialAttributeValue(objRef, o, attr)) {
-	    		Field field = objRef.referenceType().fieldByName(mappingHelper.getJavaFieldName(attr));
-	    		
+	    		Field field;
+	    		field = objRef.referenceType().fieldByName(mappingHelper.getJavaFieldName(attr));
+	    			    		
 	    		if (field != null) {
 	    			com.sun.jdi.Value val = objRef.getValue(field);
 	    			Value v = getUSEValue(val, attr.type().isObjectType()); 
@@ -1056,7 +1057,7 @@ public class Monitor implements ChangeListener {
      * @param objRef
      * @param o
      * @param attr
-     * @return <code>true</code>, if the attribtue <code>attr</code> has a special value  
+     * @return <code>true</code>, if the attribute <code>attr</code> has a special value  
      */
     private boolean readSpecialAttributeValue(ObjectReference objRef,
 			MObject o, MAttribute attr) {
