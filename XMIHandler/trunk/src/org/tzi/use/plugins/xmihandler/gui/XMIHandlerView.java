@@ -27,8 +27,14 @@ public class XMIHandlerView extends JFileChooser {
 
   private void initGUI(final Mode mode) {
     setFileFilter(new FileNameExtensionFilter("Eclipse UML2 (v3.x) XMI (*.uml, *.xmi)", "uml", "xmi"));
-    int returnVal = showOpenDialog(parent);
-
+    int returnVal = -1;
+    if (mode == Mode.EXPORT) {
+      setDialogType(JFileChooser.SAVE_DIALOG);
+      returnVal = showSaveDialog(parent);      
+    } else {
+      setDialogType(JFileChooser.OPEN_DIALOG);
+      returnVal = showOpenDialog(parent);      
+    }
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       WaitDialog dlg = new WaitDialog(parent, true);
       dlg.start(new IWorkerRunner() {
@@ -44,7 +50,6 @@ public class XMIHandlerView extends JFileChooser {
                 getSelectedFile(), session);
             break;
           }
-
           return Boolean.TRUE;
         }
 
