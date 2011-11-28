@@ -26,7 +26,7 @@ public class XMIHandlerView extends JFileChooser {
   }
 
   private void initGUI(final Mode mode) {
-    setFileFilter(new FileNameExtensionFilter("XMI Files", "xmi"));
+    setFileFilter(new FileNameExtensionFilter("Eclipse UML2 (v3.x) XMI (*.uml, *.xmi)", "uml", "xmi"));
     int returnVal = showOpenDialog(parent);
 
     if (returnVal == JFileChooser.APPROVE_OPTION) {
