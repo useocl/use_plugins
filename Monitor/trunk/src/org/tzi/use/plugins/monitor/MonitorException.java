@@ -23,7 +23,7 @@ package org.tzi.use.plugins.monitor;
 
 /**
  * Used by the USE monitor for errors.
- * @author lhamann
+ * @author Lars Hamann
  *
  */
 @SuppressWarnings("serial")

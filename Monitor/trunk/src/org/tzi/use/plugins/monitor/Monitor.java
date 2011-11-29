@@ -75,6 +75,7 @@ import org.tzi.use.uml.sys.soil.MExitOperationStatement;
 import org.tzi.use.uml.sys.soil.MLinkDeletionStatement;
 import org.tzi.use.uml.sys.soil.MLinkInsertionStatement;
 import org.tzi.use.uml.sys.soil.MNewObjectStatement;
+import org.tzi.use.uml.sys.soil.MObjectDestructionStatement;
 import org.tzi.use.uml.sys.soil.MRValue;
 import org.tzi.use.util.Log;
 import org.tzi.use.util.StringUtil;
@@ -874,6 +875,34 @@ public class Monitor implements ChangeListener {
 		}
 	}
     
+	/**
+     * Creates MDeleteStatements for garbage collected objects.
+     */
+    private void checkForDeletedInstances() {
+    	// Need an iterator to be able to remove elements
+    	Iterator<ObjectReference> iter = this.instanceMapping.keySet().iterator();
+    	
+		while (iter.hasNext()) {
+			ObjectReference refObject = iter.next();
+			if (refObject.isCollected()) {
+				MObject useObj = instanceMapping.get(refObject);
+				
+				ObjectValue valObject = new ObjectValue(useObj.type(), useObj); 
+				MObjectDestructionStatement delStmt = new MObjectDestructionStatement(valObject);
+				try {
+					this.getSystem().evaluateStatement(delStmt);
+				} catch (MSystemException e) {
+					this.fireNewLogMessage(Level.INFO, "Error executing delete statement: " + e.getMessage());
+				}
+				
+				// Supported by KeySet
+				iter.remove();
+				
+				this.fireNewLogMessage(Level.INFO, "The object " + StringUtil.inQuotes(useObj) + " was destroyed.");
+			}
+		}
+	}
+    
     /**
      * Reads all attributes of all read instances.
      * Must be done after instance creation to allow
@@ -1489,6 +1518,8 @@ public class Monitor implements ChangeListener {
 			return true;
 		}
 
+    	checkForDeletedInstances();
+    	
     	return createOperationCall(self, useOperation, currentFrame, true);
     }
     
