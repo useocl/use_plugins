@@ -14,6 +14,7 @@ import org.eclipse.emf.common.command.BasicCommandStack;
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.EPackage.Registry;
 import org.eclipse.emf.ecore.provider.EcoreItemProviderAdapterFactory;
@@ -24,16 +25,23 @@ import org.eclipse.emf.edit.domain.AdapterFactoryEditingDomain;
 import org.eclipse.emf.edit.provider.ComposedAdapterFactory;
 import org.eclipse.uml2.common.edit.domain.UML2AdapterFactoryEditingDomain;
 import org.eclipse.uml2.uml.AggregationKind;
+import org.eclipse.uml2.uml.Artifact;
 import org.eclipse.uml2.uml.Association;
+import org.eclipse.uml2.uml.AssociationClass;
 import org.eclipse.uml2.uml.Classifier;
+import org.eclipse.uml2.uml.DataType;
+import org.eclipse.uml2.uml.Element;
 import org.eclipse.uml2.uml.Enumeration;
 import org.eclipse.uml2.uml.EnumerationLiteral;
 import org.eclipse.uml2.uml.Generalization;
+import org.eclipse.uml2.uml.Interface;
 import org.eclipse.uml2.uml.LiteralUnlimitedNatural;
 import org.eclipse.uml2.uml.Model;
 import org.eclipse.uml2.uml.NamedElement;
 import org.eclipse.uml2.uml.PrimitiveType;
 import org.eclipse.uml2.uml.Property;
+import org.eclipse.uml2.uml.Signal;
+import org.eclipse.uml2.uml.StructuredClassifier;
 import org.eclipse.uml2.uml.Type;
 import org.eclipse.uml2.uml.UMLFactory;
 import org.eclipse.uml2.uml.UMLPackage;
@@ -50,6 +58,7 @@ import org.eclipse.uml2.uml.resource.UMLResource;
 import org.eclipse.uml2.uml.resource.XMI212UMLResource;
 import org.eclipse.uml2.uml.resource.XMI2UMLExtendedMetaData;
 import org.eclipse.uml2.uml.resource.XMI2UMLResource;
+import org.eclipse.uml2.uml.util.UMLSwitch;
 import org.tzi.use.graph.DirectedGraph;
 import org.tzi.use.main.Session;
 import org.tzi.use.runtime.IPluginRuntime;
@@ -193,20 +202,64 @@ public class XMIHandlerPlugin extends Plugin {
     return attribute;
   }
 
-  private static Association createAssociation(Type type1,
-      boolean end1IsNavigable, AggregationKind end1Aggregation,
-      String end1Name, int end1LowerBound, int end1UpperBound, Type type2,
-      boolean end2IsNavigable, AggregationKind end2Aggregation,
-      String end2Name, int end2LowerBound, int end2UpperBound) {
+  private static Association createAssociation(Model umlModel, String name) {
+    Association association = (Association) umlModel.createOwnedType(name,
+        UMLPackage.Literals.ASSOCIATION);
+    out("Association " + name + " created.");
+    return association;
+  }
+
+  private static Association createAssociation(String name,
+      org.eclipse.uml2.uml.Class type1, boolean end1IsNavigable,
+      boolean end1IsOrdered, AggregationKind end1Aggregation, String end1Name,
+      int end1LowerBound, int end1UpperBound, org.eclipse.uml2.uml.Class type2,
+      boolean end2IsNavigable, boolean end2IsOrdered,
+      AggregationKind end2Aggregation, String end2Name, int end2LowerBound,
+      int end2UpperBound) {
 
     Association association = type1.createAssociation(end1IsNavigable,
         end1Aggregation, end1Name, end1LowerBound, end1UpperBound, type2,
         end2IsNavigable, end2Aggregation, end2Name, end2LowerBound,
         end2UpperBound);
 
-    out("Association " + association.getName() + " created.");
+    association.setName(name);
+
+    for (Property prop : association.getMemberEnds()) {
+      if (prop.getName().equals(end1Name)) {
+        prop.setIsOrdered(end1IsOrdered);
+      }
+      if (prop.getName().equals(end2Name)) {
+        prop.setIsOrdered(end2IsOrdered);
+      }
+    }
+
+    out("Association " + name + " created.");
 
     return association;
+  }
+
+  private static Property createAssociationEnd(Association association,
+      Type type, boolean isNavigable, boolean isOrdered,
+      AggregationKind aggregationKind, String name, int lower, int upper) {
+
+    Property associationEnd = isNavigable ? association
+        .createNavigableOwnedEnd(name, type) : association.createOwnedEnd(name,
+        type);
+
+    associationEnd.setName(name);
+    associationEnd.setType(type);    
+    associationEnd.setIsNavigable(isNavigable);
+    associationEnd.setIsOrdered(isOrdered);
+    associationEnd.setAggregation(aggregationKind);
+    associationEnd.setLower(lower);
+    associationEnd.setUpper(upper);
+
+
+    out("Association end " + name + ", isNavigable: " + isNavigable
+        + ", isOrdered: " + isOrdered + ", aggregationKind: " + aggregationKind
+        + ", lower: " + lower + ", upper: " + upper + " created.");
+
+    return associationEnd;
   }
 
   private void createEnumerations(Model umlModel, MModel useModel) {
@@ -290,10 +343,75 @@ public class XMIHandlerPlugin extends Plugin {
     }
   }
 
+  private boolean isBinary(MAssociation association) {
+    return association.associationEnds().size() == 2;
+  }
+
   private void createAssociations(Model umlModel, MModel useModel) {
+
     for (MAssociation mAssociation : useModel.associations()) {
 
+      Association umlAssoc = createAssociation(umlModel, mAssociation.name());
+
+      for (MAssociationEnd useAssocEnd : mAssociation.associationEnds()) {
+
+        org.eclipse.uml2.uml.Class umlAssocEndClass = (org.eclipse.uml2.uml.Class) umlModel
+            .getOwnedMember(useAssocEnd.cls().name());
+
+        AggregationKind umlAssocEndAggregationKind = AggregationKind.NONE_LITERAL;
+        switch (useAssocEnd.aggregationKind()) {
+        case MAggregationKind.COMPOSITION:
+          umlAssocEndAggregationKind = AggregationKind.COMPOSITE_LITERAL;
+          break;
+        case MAggregationKind.AGGREGATION:
+          umlAssocEndAggregationKind = AggregationKind.SHARED_LITERAL;
+          break;
+        }
+
+        int umlAssocEndLower = 1;
+        int umlAssocEndUpper = 1;
+
+        ArrayList<Integer> umlAssocEndMultiplicity = parseMultiplicity(useAssocEnd
+            .multiplicity().toString());
+
+        if (umlAssocEndMultiplicity != null) {
+          umlAssocEndLower = umlAssocEndMultiplicity.get(0);
+          umlAssocEndUpper = umlAssocEndMultiplicity.get(1);
+        }
+
+        createAssociationEnd(umlAssoc, umlAssocEndClass, useAssocEnd
+            .isNavigable(), useAssocEnd.isOrdered(),
+            umlAssocEndAggregationKind, useAssocEnd.nameAsRolename(),
+            umlAssocEndLower, umlAssocEndUpper);
+      }
+
     }
+  }
+
+  private ArrayList<Integer> parseMultiplicity(String multiplicity) {
+    String[] splitted = multiplicity.split("\\.\\.");
+    if (splitted.length < 1 || splitted.length > 2) {
+      return null;
+    }
+
+    ArrayList<Integer> res = new ArrayList<Integer>();
+
+    if (splitted.length == 1) {
+      if (splitted[0].equals("*")) {
+        res.add(0);
+      } else {
+        res.add(Integer.valueOf(splitted[0]));
+      }
+
+      res.add(splitted[0].equals("*") ? LiteralUnlimitedNatural.UNLIMITED
+          : Integer.valueOf(splitted[0]));
+    } else if (splitted.length == 2) {
+      res.add(Integer.valueOf(splitted[0]));
+      res.add(splitted[1].equals("*") ? LiteralUnlimitedNatural.UNLIMITED
+          : Integer.valueOf(splitted[1]));
+    }
+
+    return res;
   }
 
   /**********************************************************************************************
@@ -321,87 +439,6 @@ public class XMIHandlerPlugin extends Plugin {
 
     createAssociations(umlModel, useModel);
 
-    // for (MAssociation mAssociation : useModel.associations()) {
-    // MAssociationEnd leftEnd = mAssociation.associationEnds().get(0);
-    // MAssociationEnd rightEnd = mAssociation.associationEnds().get(1);
-    // org.eclipse.uml2.uml.Class leftEndClass = (org.eclipse.uml2.uml.Class)
-    // umlModel
-    // .getOwnedMember(leftEnd.cls().name());
-    // org.eclipse.uml2.uml.Class rightEndClass = (org.eclipse.uml2.uml.Class)
-    // umlModel
-    // .getOwnedMember(rightEnd.cls().name());
-    //
-    // AggregationKind leftEndAggregationKind = AggregationKind.NONE_LITERAL;
-    // switch (leftEnd.aggregationKind()) {
-    // case MAggregationKind.COMPOSITION:
-    // leftEndAggregationKind = AggregationKind.COMPOSITE_LITERAL;
-    // break;
-    // case MAggregationKind.AGGREGATION:
-    // leftEndAggregationKind = AggregationKind.SHARED_LITERAL;
-    // break;
-    // }
-    //
-    // AggregationKind rightEndAggregationKind = AggregationKind.NONE_LITERAL;
-    // switch (rightEnd.aggregationKind()) {
-    // case MAggregationKind.COMPOSITION:
-    // rightEndAggregationKind = AggregationKind.COMPOSITE_LITERAL;
-    // break;
-    // case MAggregationKind.AGGREGATION:
-    // rightEndAggregationKind = AggregationKind.SHARED_LITERAL;
-    // break;
-    // }
-    //
-    // int leftEndLower = 0;
-    // int leftEndUpper = 0;
-    //
-    // if (leftEnd.multiplicity().toString()
-    // .equals(MMultiplicity.ONE.toString())) {
-    // leftEndLower = 1;
-    // leftEndUpper = 1;
-    // } else if (leftEnd.multiplicity().toString().equals(
-    // MMultiplicity.ONE_MANY.toString())) {
-    // leftEndLower = 1;
-    // leftEndUpper = LiteralUnlimitedNatural.UNLIMITED;
-    // } else if (leftEnd.multiplicity().toString().equals(
-    // MMultiplicity.ZERO_MANY.toString())) {
-    // leftEndLower = 0;
-    // leftEndUpper = LiteralUnlimitedNatural.UNLIMITED;
-    // } else if (leftEnd.multiplicity().toString().equals(
-    // MMultiplicity.ZERO_ONE.toString())) {
-    // leftEndLower = 0;
-    // leftEndUpper = 1;
-    // }
-    //
-    // int rightEndLower = 0;
-    // int rightEndUpper = 0;
-    //
-    // if (rightEnd.multiplicity().toString().equals(
-    // MMultiplicity.ONE.toString())) {
-    // rightEndLower = 1;
-    // rightEndUpper = 1;
-    // } else if (rightEnd.multiplicity().toString().equals(
-    // MMultiplicity.ONE_MANY.toString())) {
-    // rightEndLower = 1;
-    // rightEndUpper = LiteralUnlimitedNatural.UNLIMITED;
-    // } else if (rightEnd.multiplicity().toString().equals(
-    // MMultiplicity.ZERO_MANY.toString())) {
-    // rightEndLower = 0;
-    // rightEndUpper = LiteralUnlimitedNatural.UNLIMITED;
-    // } else if (rightEnd.multiplicity().toString().equals(
-    // MMultiplicity.ZERO_ONE.toString())) {
-    // rightEndLower = 0;
-    // rightEndUpper = 1;
-    // }
-    //
-    // org.eclipse.uml2.uml.Association assoc = leftEndClass.createAssociation(
-    // leftEnd.isNavigable(), leftEndAggregationKind, leftEnd.name(),
-    // leftEndLower, leftEndUpper, rightEndClass, rightEnd.isNavigable(),
-    // rightEndAggregationKind, rightEnd.name(), rightEndLower,
-    // rightEndUpper);
-    //
-    // assoc.setName(mAssociation.name());
-    // }
-
     resource.getContents().add(umlModel);
 
     // Save the contents of the resource to the file system.
@@ -419,7 +456,22 @@ public class XMIHandlerPlugin extends Plugin {
    **********************************************************************************************/
 
   private void createEnumerations(MModel useModel, Model umlModel) {
-
+    for (Type type : umlModel.getOwnedTypes()) {
+      if (type instanceof org.eclipse.uml2.uml.Enumeration) {
+        org.eclipse.uml2.uml.Enumeration enumeration = (org.eclipse.uml2.uml.Enumeration) type;
+        List<String> literals = new ArrayList<String>();
+        for (EnumerationLiteral literal : enumeration.getOwnedLiterals()) {
+          literals.add(literal.getName());
+        }
+        try {
+          useModel.addEnumType(TypeFactory.mkEnum(enumeration.getName(),
+              literals));
+          out("Enumeration " + enumeration + " added.");
+        } catch (MInvalidModelException e) {
+          e.printStackTrace();
+        }
+      }
+    }
   }
 
   private void createClasses(MModel useModel, Model umlModel) {
@@ -441,24 +493,30 @@ public class XMIHandlerPlugin extends Plugin {
     for (Type type : umlModel.getOwnedTypes()) {
 
       if (type instanceof org.eclipse.uml2.uml.Class) {
-        
-        org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) type;
-        
-        MClass useClass = useModel.getClass(umlClass.getName());
-        
-        for (Property prop : umlClass.getAllAttributes()) {
-          
-          out (prop.getType().toString());          
 
+        org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) type;
+
+        MClass useClass = useModel.getClass(umlClass.getName());
+
+        for (Property prop : umlClass.getAllAttributes()) {
+
+          MAttribute attr = null;
+          
+          if (prop.getName() == null || prop.getName().equals(""))
+            continue;
+          
           if (prop.getType() instanceof PrimitiveTypeImpl) {
-            
-            MAttribute attr = null;
             boolean isSet = false;
+            boolean isOrderedSet = false;
             boolean isBag = false;
-            
+
             if (prop.getUpper() == LiteralUnlimitedNatural.UNLIMITED) {
               if (prop.isUnique()) {
-                isSet = true;
+                if (prop.isOrdered()) {
+                  isOrderedSet = true;
+                } else {
+                  isSet = true;
+                }
               } else {
                 isBag = true;
               }
@@ -467,72 +525,88 @@ public class XMIHandlerPlugin extends Plugin {
             if (prop.getType().getName().equals("String")) {
               if (isSet) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkSet(TypeFactory.mkString()));                
+                    .mkSet(TypeFactory.mkString()));
+              } else if (isOrderedSet) {
+                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                    .mkOrderedSet(TypeFactory.mkString()));
               } else if (isBag) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkBag(TypeFactory.mkString()));                
+                    .mkBag(TypeFactory.mkString()));
               } else {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkString());                
+                    .mkString());
               }
             } else if (prop.getType().getName().equals("Integer")) {
               if (isSet) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkSet(TypeFactory.mkInteger()));                
+                    .mkSet(TypeFactory.mkInteger()));
+              } else if (isOrderedSet) {
+                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                    .mkOrderedSet(TypeFactory.mkInteger()));
               } else if (isBag) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkBag(TypeFactory.mkInteger()));                
+                    .mkBag(TypeFactory.mkInteger()));
               } else {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkInteger());                
+                    .mkInteger());
               }
             } else if (prop.getType().getName().equals("Boolean")) {
               if (isSet) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkSet(TypeFactory.mkBoolean()));                
+                    .mkSet(TypeFactory.mkBoolean()));
+              } else if (isOrderedSet) {
+                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                    .mkOrderedSet(TypeFactory.mkBoolean()));
               } else if (isBag) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkBag(TypeFactory.mkBoolean()));                
+                    .mkBag(TypeFactory.mkBoolean()));
               } else {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkBoolean());                
+                    .mkBoolean());
               }
             } else if (prop.getType().getName().equals("Real")) {
               if (isSet) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkSet(TypeFactory.mkReal()));                
+                    .mkSet(TypeFactory.mkReal()));
+              } else if (isOrderedSet) {
+                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                    .mkOrderedSet(TypeFactory.mkReal()));
               } else if (isBag) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkBag(TypeFactory.mkReal()));                
+                    .mkBag(TypeFactory.mkReal()));
               } else {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkReal());                
+                    .mkReal());
               }
             } else if (prop.getType().getName().equals("Date")) {
               if (isSet) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkSet(TypeFactory.mkDate()));                
+                    .mkSet(TypeFactory.mkDate()));
+              } else if (isOrderedSet) {
+                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                    .mkOrderedSet(TypeFactory.mkDate()));
               } else if (isBag) {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkBag(TypeFactory.mkDate()));                
+                    .mkBag(TypeFactory.mkDate()));
               } else {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkDate());                
-              }              
-            }
-
-            if (attr != null) {
-              try {
-                 useClass.addAttribute(attr);
-              } catch (MInvalidModelException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                    .mkDate());
               }
             }
           } else if (prop.getType() instanceof ClassImpl) {
-            
+            attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                .mkObjectType(useModel.getClass(prop.getType().getName())));
           } else if (prop.getType() instanceof EnumerationImpl) {
-            
+            attr = modelFactory.createAttribute(prop.getName(), useModel
+                .enumType(prop.getType().getName()));
+          }
+
+          if (attr != null) {
+            try {
+              useClass.addAttribute(attr);
+            } catch (MInvalidModelException e) {
+              e.printStackTrace();
+            }
           }
         }
       }
@@ -540,11 +614,70 @@ public class XMIHandlerPlugin extends Plugin {
   }
 
   private void createGeneralizations(MModel useModel, Model umlModel) {
-
+    DirectedGraph<MClass, MGeneralization> genGraph = useModel
+        .generalizationGraph();
+    for (Type type : umlModel.getOwnedTypes()) {
+      if (type instanceof org.eclipse.uml2.uml.Class) {
+        org.eclipse.uml2.uml.Class childClass = (org.eclipse.uml2.uml.Class) type;
+        for (Generalization gen : childClass.getGeneralizations()) {
+          for (Element el : gen.getTargets()) {
+            org.eclipse.uml2.uml.Class parentClass = (org.eclipse.uml2.uml.Class) el;
+            genGraph.addEdge(modelFactory.createGeneralization(useModel
+                .getClass(childClass.getName()), useModel.getClass(parentClass
+                .getName())));
+          }
+        }
+      }
+    }
   }
 
   private void createAssociations(MModel useModel, Model umlModel) {
 
+    for (Type type : umlModel.getOwnedTypes()) {
+
+      if (type instanceof Association) {
+        Association theAssoc = (Association) type;
+
+        List<VarDecl> emptyQualifiers = Collections.emptyList();
+        MAssociation assoc = modelFactory.createAssociation(theAssoc.getName());
+
+        for (Property assocEnd : theAssoc.getMemberEnds()) {
+
+          MClass assocEndClass = useModel.getClass(assocEnd.getType().getName());
+
+          MMultiplicity m1 = modelFactory.createMultiplicity();
+
+          m1.addRange(assocEnd.getLower(), assocEnd.getUpper());
+
+          int assocEndAggregationKind = MAggregationKind.NONE;
+          switch (assocEnd.getAggregation()) {
+          case COMPOSITE_LITERAL:
+            assocEndAggregationKind = MAggregationKind.COMPOSITION;
+            break;
+          case SHARED_LITERAL:
+            assocEndAggregationKind = MAggregationKind.AGGREGATION;
+            break;
+          }
+
+          MAssociationEnd assocLeftEnd = modelFactory.createAssociationEnd(
+              assocEndClass, assocEnd.getName(), m1, assocEndAggregationKind,
+              assocEnd.isOrdered(), emptyQualifiers);
+
+          try {
+            assoc.addAssociationEnd(assocLeftEnd);
+          } catch (MInvalidModelException e) {
+            e.printStackTrace();
+          }
+        }
+
+        try {
+          useModel.addAssociation(assoc);
+        } catch (MInvalidModelException e) {
+          e.printStackTrace();
+        }
+
+      }
+    }
   }
 
   /**********************************************************************************************
@@ -579,74 +712,12 @@ public class XMIHandlerPlugin extends Plugin {
     createEnumerations(useModel, umlModel);
 
     createClasses(useModel, umlModel);
-    
+
     createAttributes(useModel, umlModel);
 
     createGeneralizations(useModel, umlModel);
 
     createAssociations(useModel, umlModel);
-
-    {
-
-      // if (type instanceof Association) {
-      // Association theAssoc = (Association) type;
-      //
-      // List<VarDecl> emptyQualifiers = Collections.emptyList();
-      //
-      // MAssociation assoc =
-      // modelFactory.createAssociation(theAssoc.getName());
-      //
-      // Property leftEnd = theAssoc.getAllAttributes().get(0);
-      // Property rightEnd = theAssoc.getAllAttributes().get(1);
-      //
-      // MClass leftEndClass = model.getClass(leftEnd.getClass_().getName());
-      // MClass rightEndClass = model.getClass(rightEnd.getClass_().getName());
-      //
-      // MMultiplicity m1 = modelFactory.createMultiplicity();
-      // MMultiplicity m2 = modelFactory.createMultiplicity();
-      //
-      // m1.addRange(leftEnd.getLower(), leftEnd.getUpper());
-      // m2.addRange(rightEnd.getLower(), rightEnd.getUpper());
-      //
-      // int leftEndAggregationKind = MAggregationKind.NONE;
-      // switch (leftEnd.getAggregation()) {
-      // case COMPOSITE_LITERAL:
-      // leftEndAggregationKind = MAggregationKind.COMPOSITION;
-      // break;
-      // case SHARED_LITERAL:
-      // leftEndAggregationKind = MAggregationKind.AGGREGATION;
-      // break;
-      // }
-      //
-      // int rightEndAggregationKind = MAggregationKind.NONE;
-      // switch (rightEnd.getAggregation()) {
-      // case COMPOSITE_LITERAL:
-      // rightEndAggregationKind = MAggregationKind.COMPOSITION;
-      // break;
-      // case SHARED_LITERAL:
-      // rightEndAggregationKind = MAggregationKind.AGGREGATION;
-      // break;
-      // }
-      //
-      // MAssociationEnd assocLeftEnd = modelFactory.createAssociationEnd(
-      // leftEndClass, leftEndClass.name(), m1, leftEndAggregationKind,
-      // leftEnd.isOrdered(), emptyQualifiers);
-      //
-      // MAssociationEnd assocRightEnd = modelFactory.createAssociationEnd(
-      // rightEndClass, rightEndClass.name(), m2, rightEndAggregationKind,
-      // rightEnd.isOrdered(), emptyQualifiers);
-      //
-      // try {
-      // assoc.addAssociationEnd(assocLeftEnd);
-      // assoc.addAssociationEnd(assocRightEnd);
-      // model.addAssociation(assoc);
-      // } catch (MInvalidModelException e) {
-      // // TODO Auto-generated catch block
-      // e.printStackTrace();
-      // }
-      //
-      // }
-    }
 
     session.setSystem(system);
 
