@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -114,7 +115,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	private void initGUI() {
 		JPanel backPanel = new JPanel(new BorderLayout(3,2));
 		this.getContentPane().add(backPanel);
-		
+		this.setMinimumSize(new Dimension(0, 0));
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		backPanel.add(buttonPanel, BorderLayout.NORTH);
 		
@@ -153,13 +154,10 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 				MonitorSwingWorker worker = new MonitorSwingWorker() {
 					@Override
 					protected void doMonitorInBackground() {
-						if (MonitorPlugin.getMonitorPluginInstance()
-								.getMonitor().isPaused())
-							MonitorPlugin.getMonitorPluginInstance()
-									.getMonitor().resume();
+						if (MonitorPlugin.getMonitorPluginInstance().getMonitor().isPaused())
+							MonitorPlugin.getMonitorPluginInstance().getMonitor().resume();
 						else
-							MonitorPlugin.getMonitorPluginInstance()
-									.getMonitor().pause();
+							MonitorPlugin.getMonitorPluginInstance().getMonitor().pause();
 					}
 				};
 				worker.execute();
@@ -285,7 +283,6 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		configureComponents();
 		
 		this.pack();
-		this.setMinimumSize(this.getSize());
 	}
 
 	private DefaultMutableTreeNode createModelNodes() {

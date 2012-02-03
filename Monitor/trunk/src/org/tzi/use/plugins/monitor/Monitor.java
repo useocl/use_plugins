@@ -54,7 +54,10 @@ import org.tzi.use.uml.mm.MPrePostCondition;
 import org.tzi.use.uml.ocl.expr.ExpObjRef;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.ExpressionWithValue;
+import org.tzi.use.uml.ocl.type.EnumType;
+import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.TypeFactory;
+import org.tzi.use.uml.ocl.value.EnumValue;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.SequenceValue;
 import org.tzi.use.uml.ocl.value.StringValue;
@@ -111,6 +114,7 @@ import com.sun.jdi.request.EventRequest;
 import com.sun.jdi.request.MethodExitRequest;
 import com.sun.jdi.request.ModificationWatchpointRequest;
 import com.sun.jdi.request.VMDeathRequest;
+import com.sun.tools.jdi.GenericAttachingConnector;
 import com.sun.tools.jdi.SocketAttachingConnector;
 
 /**
@@ -154,7 +158,7 @@ public class Monitor implements ChangeListener {
     /**
      * The connector used to connect to the JVM.
      */
-    private SocketAttachingConnector connector;
+    private GenericAttachingConnector connector;
     
     /**
      * This thread handles breakpoint events. E.g. call of a method.
@@ -518,7 +522,7 @@ public class Monitor implements ChangeListener {
     	
     	int numArgs = useOperation.allParams().size();
     	for (int index = 0; index < numArgs; index++) {
-    		Value val = getUSEValue(javaArgs.get(index), useOperation.allParams().get(index).type().isObjectType());
+    		Value val = getUSEValue(javaArgs.get(index), useOperation.allParams().get(index).type());
     		arguments.put(useOperation.allParams().get(index).name(), new ExpressionWithValue(val));
     	}
     	
@@ -664,6 +668,7 @@ public class Monitor implements ChangeListener {
 				List<com.sun.jdi.Method> methods = refType.methodsByName(methodName);
 				for (com.sun.jdi.Method m : methods) {
 					// TODO: Check parameter types
+					
 					try {
 						if (m.argumentTypes().size() == op.allParams().size()) {
 							fireNewLogMessage(Level.FINE, "Registering operation breakpoint for operation " + m.toString());
@@ -1004,7 +1009,7 @@ public class Monitor implements ChangeListener {
     			
     			// Create link if needed
 				if (javaValue != null) {
-					Value newValueV = getUSEValue(javaValue, true);
+					Value newValueV = getUSEObject(javaValue);
 					if (newValueV.isUndefined()) return;
 					
 					MObject newValue = ((ObjectValue)newValueV).value();
@@ -1029,7 +1034,7 @@ public class Monitor implements ChangeListener {
 				}
     		}
     	} else {
-    		Value v = getUSEValue(javaValue, attr.type().isObjectType());
+    		Value v = getUSEValue(javaValue, attr.type());
 			MAttributeAssignmentStatement stmt = new MAttributeAssignmentStatement(
 					new ExpObjRef(useObject), attr, v);
     		
@@ -1059,7 +1064,8 @@ public class Monitor implements ChangeListener {
 	    			    		
 	    		if (field != null) {
 	    			com.sun.jdi.Value val = objRef.getValue(field);
-	    			Value v = getUSEValue(val, attr.type().isObjectType()); 
+	    			Value v = getUSEValue(val, attr.type());
+	    			
 	    			try {
 	    				if (useSoil) {
 	    					MAttributeAssignmentStatement stmt = 
@@ -1106,6 +1112,19 @@ public class Monitor implements ChangeListener {
 		return true;
 	}
 
+    private Value getUSEObject(com.sun.jdi.Value javaValue) {
+    	if (javaValue instanceof ObjectReference) {
+    		// Only search for an instance
+    		MObject useObject = instanceMapping.get((ObjectReference)javaValue);
+    		
+    		if (useObject != null)
+    			return new ObjectValue(useObject.type(), useObject);
+    	}
+    	
+		fireNewLogMessage(Level.WARNING, "USE object for Java value " + javaValue.toString() + " not found!");
+		return UndefinedValue.instance;
+    }
+    
 	/**
      * Returns the mapped USE value of <code>javaValue</code>.
      * Java-value of type {@link ObjectReference} are tried to be mapped to
@@ -1114,20 +1133,13 @@ public class Monitor implements ChangeListener {
      * @param javaValue
      * @return
      */
-    private Value getUSEValue(com.sun.jdi.Value javaValue, boolean shouldBeUSEObject) {
+    private Value getUSEValue(com.sun.jdi.Value javaValue, Type expectedType) {
     	Value v = UndefinedValue.instance;
 		
     	if (javaValue == null) return v;
     	
-    	if (shouldBeUSEObject) {
-    		// Only search for an instance
-    		if (javaValue instanceof ObjectReference) {
-    			MObject useObject = instanceMapping.get(((ObjectReference)javaValue));
-    			if (useObject != null)
-    				v = new ObjectValue(useObject.type(), useObject);
-    			else
-    				fireNewLogMessage(Level.WARNING, "USE object for Java value " + javaValue.toString() + " not found!");
-    		}
+    	if (expectedType.isObjectType()) {
+    		v = getUSEObject(javaValue);
     	} else if (javaValue instanceof ArrayReference) {
     		//FIXME: Correct handling of array parameter!
     		ArrayReference javaArray = (ArrayReference)javaValue;
@@ -1135,7 +1147,7 @@ public class Monitor implements ChangeListener {
     		Value[] useValues = new Value[javaValues.size()];
     				
     		for (int i = 0; i < javaValues.size(); ++i) {
-    			useValues[i] = getUSEValue(javaValues.get(i), false);
+    			useValues[i] = getUSEValue(javaValues.get(i), expectedType);
     		}
     		
     		SequenceValue result = new SequenceValue(TypeFactory.mkVoidType(), useValues);
@@ -1160,6 +1172,8 @@ public class Monitor implements ChangeListener {
 				IntegerValue iValue = (IntegerValue)refValue.getValue(fValue);
 				
 				v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf(iValue.intValue());
+			} else if (expectedType.isEnum()) {
+				v = getUSEEnumValue((EnumType)expectedType, javaValue);
 			} else {		
 				// Could be an instance 
 				MObject useObject = instanceMapping.get(((ObjectReference)javaValue));
@@ -1176,6 +1190,31 @@ public class Monitor implements ChangeListener {
 		return v;
     }
     
+	/**
+	 * @param expectedType
+	 * @param javaValue
+	 * @return
+	 */
+	private Value getUSEEnumValue(EnumType expectedType, com.sun.jdi.Value javaValue) {
+		if (!(javaValue instanceof ObjectReference))
+			return UndefinedValue.instance;
+		
+		ObjectReference enumValue = (ObjectReference)javaValue;
+		Field nameField = enumValue.referenceType().fieldByName("name");
+		
+		StringReference enumLiteral = (StringReference)enumValue.getValue(nameField);
+		String litString = enumLiteral.value();
+		
+		try {
+			EnumValue v = new EnumValue(expectedType, litString);
+			return v;
+		} catch (IllegalArgumentException e) {
+			fireNewLogMessage(Level.WARNING, e.getMessage());
+		}
+		
+		return UndefinedValue.instance;
+	}
+
 	private void readLinks(ObjectReference objRef, MObject o) {
 		for (MAssociation ass : o.cls().allAssociations()) {
     		if (ass instanceof MAssociationClass) {
@@ -1494,7 +1533,7 @@ public class Monitor implements ChangeListener {
 		
     	ObjectReference javaObject = currentFrame.thisObject();
     	
-    	Value selfValue = getUSEValue(javaObject, true);
+    	Value selfValue = getUSEObject(javaObject);
     	
     	if (selfValue.isUndefined()) {
     		fireNewLogMessage(Level.WARNING, "Could not retrieve object for operation call " + m.toString() + ".");
@@ -1544,8 +1583,7 @@ public class Monitor implements ChangeListener {
 		this.monitoredVM.eventRequestManager().deleteEventRequest(exitEvent.request());
     	
     	if (currentUseOperation.hasResultType()) {
-			result = new ExpressionWithValue(getUSEValue(
-					exitEvent.returnValue(), currentUseOperation.resultType().isObjectType()));
+			result = new ExpressionWithValue(getUSEValue(exitEvent.returnValue(), currentUseOperation.resultType()));
 		}
 
 		MExitOperationStatement stmt = new MExitOperationStatement(result, ppcHandler);
