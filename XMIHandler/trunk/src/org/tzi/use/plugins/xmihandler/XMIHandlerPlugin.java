@@ -20,6 +20,7 @@ import org.eclipse.emf.ecore.EPackage.Registry;
 import org.eclipse.emf.ecore.provider.EcoreItemProviderAdapterFactory;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.domain.AdapterFactoryEditingDomain;
 import org.eclipse.emf.edit.provider.ComposedAdapterFactory;
@@ -85,7 +86,7 @@ public class XMIHandlerPlugin extends Plugin {
 
   private static String PLUGIN_NAME = "XMIHandler";
 
-  private AdapterFactoryEditingDomain editingDomain;
+  private static ResourceSet resourceSet = new ResourceSetImpl();
 
   private static ModelFactory modelFactory = new ModelFactory();
 
@@ -100,7 +101,7 @@ public class XMIHandlerPlugin extends Plugin {
 
   @Override
   protected void doRun(IPluginRuntime pluginRuntime) {
-    initializeEditingDomain();
+    initialize();
   }
 
   private static void out(String output) {
@@ -578,20 +579,6 @@ public class XMIHandlerPlugin extends Plugin {
                 attr = modelFactory.createAttribute(prop.getName(), TypeFactory
                     .mkReal());
               }
-            } else if (prop.getType().getName().equals("Date")) {
-              if (isSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkSet(TypeFactory.mkDate()));
-              } else if (isOrderedSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkOrderedSet(TypeFactory.mkDate()));
-              } else if (isBag) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkBag(TypeFactory.mkDate()));
-              } else {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
-                    .mkDate());
-              }
             }
           } else if (prop.getType() instanceof ClassImpl) {
             attr = modelFactory.createAttribute(prop.getName(), TypeFactory
@@ -660,7 +647,9 @@ public class XMIHandlerPlugin extends Plugin {
           }
 
           MAssociationEnd assocLeftEnd = modelFactory.createAssociationEnd(
-              assocEndClass, assocEnd.getName(), m1, assocEndAggregationKind,
+              assocEndClass, 
+              (assocEnd.getName() == null || assocEnd.getName().isEmpty() ? "empty" : assocEnd.getName()),
+              m1, assocEndAggregationKind,
               assocEnd.isOrdered(), emptyQualifiers);
 
           try {
@@ -699,7 +688,7 @@ public class XMIHandlerPlugin extends Plugin {
 
     Model umlModel = (Model) EcoreUtil.getObjectByType(resource.getContents(),
         UMLPackage.Literals.MODEL);
-
+    
     if (umlModel == null) {
       Log.error("Import is impossible, bad model");
       return;
@@ -725,33 +714,11 @@ public class XMIHandlerPlugin extends Plugin {
 
   }
 
-  private void initializeEditingDomain() {
+  private void initialize() {
 
     // String path = System.getProperty("eUML.resources");
     String path = "lib/xmihandlerjars/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar";
 
-    BasicCommandStack commandStack = new BasicCommandStack() {
-
-      @Override
-      protected void handleError(Exception exception) {
-        super.handleError(exception);
-        throw new RuntimeException(exception);
-      }
-
-    };
-
-    List<AdapterFactory> factories = new ArrayList<AdapterFactory>();
-    factories.add(new UMLResourceItemProviderAdapterFactory());
-    factories.add(new UMLItemProviderAdapterFactory());
-    factories.add(new EcoreItemProviderAdapterFactory());
-    factories.add(new UMLReflectiveItemProviderAdapterFactory());
-    ComposedAdapterFactory adapterFactory = new ComposedAdapterFactory(
-        factories);
-
-    editingDomain = new UML2AdapterFactoryEditingDomain(adapterFactory,
-        commandStack);
-
-    ResourceSet resourceSet = editingDomain.getResourceSet();
     Map<String, Object> extensionToFactoryMap = resourceSet
         .getResourceFactoryRegistry().getExtensionToFactoryMap();
     Map<URI, URI> uriMap = resourceSet.getURIConverter().getURIMap();
@@ -764,11 +731,7 @@ public class XMIHandlerPlugin extends Plugin {
     }
 
     path = path.replace('\\', '/');
-    // These lines were one cause for issue 5915: (Were they needed?)
-    // TODO: Review - tfm
-    // if (Character.isLetter(path.charAt(0))) {
-    // path = '/' + path;
-    // }
+
     URI uri = URI.createURI("jar:file:" + path + "!/");
     Log.debug("eUML.resource URI --> " + uri);
 
@@ -795,6 +758,8 @@ public class XMIHandlerPlugin extends Plugin {
         UMLPackage.eINSTANCE);
     packageRegistry.put("http://www.eclipse.org/uml2/3.0.0/UML",
         UMLPackage.eINSTANCE);
+    packageRegistry.put("http://www.eclipse.org/uml2/2.0.0/UML",
+        UMLPackage.eINSTANCE);    
 
     // For the .uml files in the eclipse jar files, we need this:
     extensionToFactoryMap.put(UMLResource.FILE_EXTENSION,
@@ -822,7 +787,7 @@ public class XMIHandlerPlugin extends Plugin {
       uri = uri.appendFileExtension("xmi");
     }
 
-    Resource r = editingDomain.getResourceSet().createResource(uri);
+    Resource r = resourceSet.createResource(uri);
 
     if (r == null) {
       throw new NullPointerException("Failed to create resource for URI " + uri);

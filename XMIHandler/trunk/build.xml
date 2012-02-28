@@ -7,7 +7,7 @@
 
   <!-- create jar -->
   <target name="create-jar">
-    <jar jarfile="/home/stalker/uni/Masterarbeit/use_repo/lib/plugins/xmihandler.jar" basedir="." manifest="META-INF/MANIFEST.MF">
+    <jar jarfile="/home/stalker/uni/Thesis/use_repo/lib/plugins/xmihandler.jar" basedir="." manifest="META-INF/MANIFEST.MF">
       <fileset dir="bin" includes="**"/>
       <exclude name="bin/"/>
        <exclude name="plugin.jardesc"/>
