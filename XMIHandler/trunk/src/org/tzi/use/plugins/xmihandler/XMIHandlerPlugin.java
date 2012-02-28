@@ -462,10 +462,10 @@ public class XMIHandlerPlugin extends Plugin {
         org.eclipse.uml2.uml.Enumeration enumeration = (org.eclipse.uml2.uml.Enumeration) type;
         List<String> literals = new ArrayList<String>();
         for (EnumerationLiteral literal : enumeration.getOwnedLiterals()) {
-          literals.add(literal.getName());
+          literals.add(guard(literal.getName()));
         }
         try {
-          useModel.addEnumType(TypeFactory.mkEnum(enumeration.getName(),
+          useModel.addEnumType(TypeFactory.mkEnum(guard(enumeration.getName()),
               literals));
           out("Enumeration " + enumeration + " added.");
         } catch (MInvalidModelException e) {
@@ -479,7 +479,7 @@ public class XMIHandlerPlugin extends Plugin {
     for (Type type : umlModel.getOwnedTypes()) {
       if (type instanceof org.eclipse.uml2.uml.Class) {
         org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) type;
-        MClass useClass = modelFactory.createClass(umlClass.getName(), umlClass
+        MClass useClass = modelFactory.createClass(guard(umlClass.getName()), umlClass
             .isAbstract());
         try {
           useModel.addClass(useClass);
@@ -497,14 +497,13 @@ public class XMIHandlerPlugin extends Plugin {
 
         org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) type;
 
-        MClass useClass = useModel.getClass(umlClass.getName());
+        MClass useClass = useModel.getClass(guard(umlClass.getName()));
 
         for (Property prop : umlClass.getAllAttributes()) {
 
           MAttribute attr = null;
           
-          if (prop.getName() == null || prop.getName().equals(""))
-            continue;
+          String propName = guard(prop.getName());
           
           if (prop.getType() instanceof PrimitiveTypeImpl) {
             boolean isSet = false;
@@ -522,69 +521,69 @@ public class XMIHandlerPlugin extends Plugin {
                 isBag = true;
               }
             }
-
+            
             if (prop.getType().getName().equals("String")) {
               if (isSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkSet(TypeFactory.mkString()));
               } else if (isOrderedSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkOrderedSet(TypeFactory.mkString()));
               } else if (isBag) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkBag(TypeFactory.mkString()));
               } else {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkString());
               }
             } else if (prop.getType().getName().equals("Integer")) {
               if (isSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkSet(TypeFactory.mkInteger()));
               } else if (isOrderedSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkOrderedSet(TypeFactory.mkInteger()));
               } else if (isBag) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkBag(TypeFactory.mkInteger()));
               } else {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkInteger());
               }
             } else if (prop.getType().getName().equals("Boolean")) {
               if (isSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkSet(TypeFactory.mkBoolean()));
               } else if (isOrderedSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkOrderedSet(TypeFactory.mkBoolean()));
               } else if (isBag) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkBag(TypeFactory.mkBoolean()));
               } else {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkBoolean());
               }
             } else if (prop.getType().getName().equals("Real")) {
               if (isSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkSet(TypeFactory.mkReal()));
               } else if (isOrderedSet) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkOrderedSet(TypeFactory.mkReal()));
               } else if (isBag) {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkBag(TypeFactory.mkReal()));
               } else {
-                attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+                attr = modelFactory.createAttribute(propName, TypeFactory
                     .mkReal());
               }
             }
           } else if (prop.getType() instanceof ClassImpl) {
-            attr = modelFactory.createAttribute(prop.getName(), TypeFactory
+            attr = modelFactory.createAttribute(propName, TypeFactory
                 .mkObjectType(useModel.getClass(prop.getType().getName())));
           } else if (prop.getType() instanceof EnumerationImpl) {
-            attr = modelFactory.createAttribute(prop.getName(), useModel
+            attr = modelFactory.createAttribute(propName, useModel
                 .enumType(prop.getType().getName()));
           }
 
@@ -610,8 +609,8 @@ public class XMIHandlerPlugin extends Plugin {
           for (Element el : gen.getTargets()) {
             org.eclipse.uml2.uml.Class parentClass = (org.eclipse.uml2.uml.Class) el;
             genGraph.addEdge(modelFactory.createGeneralization(useModel
-                .getClass(childClass.getName()), useModel.getClass(parentClass
-                .getName())));
+                .getClass(guard(childClass.getName())), useModel.getClass(guard(parentClass
+                .getName()))));
           }
         }
       }
@@ -626,7 +625,7 @@ public class XMIHandlerPlugin extends Plugin {
         Association theAssoc = (Association) type;
 
         List<VarDecl> emptyQualifiers = Collections.emptyList();
-        MAssociation assoc = modelFactory.createAssociation(theAssoc.getName());
+        MAssociation assoc = modelFactory.createAssociation(guard(theAssoc.getName()));
 
         for (Property assocEnd : theAssoc.getMemberEnds()) {
 
@@ -647,8 +646,7 @@ public class XMIHandlerPlugin extends Plugin {
           }
 
           MAssociationEnd assocLeftEnd = modelFactory.createAssociationEnd(
-              assocEndClass, 
-              (assocEnd.getName() == null || assocEnd.getName().isEmpty() ? "empty" : assocEnd.getName()),
+              assocEndClass, guard(assocEnd.getName()),
               m1, assocEndAggregationKind,
               assocEnd.isOrdered(), emptyQualifiers);
 
@@ -694,7 +692,7 @@ public class XMIHandlerPlugin extends Plugin {
       return;
     }
 
-    MModel useModel = modelFactory.createModel(umlModel.getName());
+    MModel useModel = modelFactory.createModel(guard(umlModel.getName()));
 
     MSystem system = new MSystem(useModel);
 
@@ -710,7 +708,7 @@ public class XMIHandlerPlugin extends Plugin {
 
     session.setSystem(system);
 
-    out("Imported: " + umlModel.getName());
+    out("Imported: " + guard(umlModel.getName()));
 
   }
 
@@ -794,6 +792,10 @@ public class XMIHandlerPlugin extends Plugin {
     }
 
     return r;
+  }
+  
+  private String guard(String str) {
+    return (str == null || str.isEmpty() ? "empty" : str);
   }
 
 }
