@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.eclipse.emf.common.command.BasicCommandStack;
 import org.eclipse.emf.common.notify.AdapterFactory;
+import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -456,54 +457,58 @@ public class XMIHandlerPlugin extends Plugin {
    ** import helper methods **
    **********************************************************************************************/
 
-  private void createEnumerations(MModel useModel, Model umlModel) {
-    for (Type type : umlModel.getOwnedTypes()) {
-      if (type instanceof org.eclipse.uml2.uml.Enumeration) {
-        org.eclipse.uml2.uml.Enumeration enumeration = (org.eclipse.uml2.uml.Enumeration) type;
-        List<String> literals = new ArrayList<String>();
-        for (EnumerationLiteral literal : enumeration.getOwnedLiterals()) {
-          literals.add(guard(literal.getName()));
-        }
-        try {
-          useModel.addEnumType(TypeFactory.mkEnum(guard(enumeration.getName()),
-              literals));
-          out("Enumeration " + enumeration + " added.");
-        } catch (MInvalidModelException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-  }
-
-  private void createClasses(MModel useModel, Model umlModel) {
-    for (Type type : umlModel.getOwnedTypes()) {
-      if (type instanceof org.eclipse.uml2.uml.Class) {
-        org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) type;
-        MClass useClass = modelFactory.createClass(guard(umlClass.getName()), umlClass
-            .isAbstract());
-        try {
-          useModel.addClass(useClass);
-        } catch (MInvalidModelException e) {
-          e.printStackTrace();
+  private void createEnumerations(MModel useModel, EList<Element> allResourceElements) {
+    for (Element elem : allResourceElements) {
+      if (elem instanceof org.eclipse.uml2.uml.Enumeration) {
+        org.eclipse.uml2.uml.Enumeration enumeration = (org.eclipse.uml2.uml.Enumeration) elem;
+        if (useModel.enumType(enumeration.getName()) == null) {
+          List<String> literals = new ArrayList<String>();
+          for (EnumerationLiteral literal : enumeration.getOwnedLiterals()) {
+            literals.add(literal.getName());
+          }
+          try {
+            useModel.addEnumType(TypeFactory.mkEnum(enumeration.getName(),
+                literals));
+          } catch (MInvalidModelException e) {
+            e.printStackTrace();
+          }          
         }
       }
     }
   }
 
-  private void createAttributes(MModel useModel, Model umlModel) {
-    for (Type type : umlModel.getOwnedTypes()) {
+  private void createClasses(MModel useModel, EList<Element> allResourceElements) {
+    for (Element elem : allResourceElements) {
+      if (elem instanceof org.eclipse.uml2.uml.Class) {
+        org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) elem;
+        if (useModel.getClass(umlClass.getName()) == null) {
+          MClass useClass = modelFactory.createClass(umlClass.getName(), umlClass
+              .isAbstract());
+          try {
+            useModel.addClass(useClass);
+          } catch (MInvalidModelException e) {
+            e.printStackTrace();
+          }          
+        }
+      }
+    }
+  }
 
-      if (type instanceof org.eclipse.uml2.uml.Class) {
+  private void createAttributes(MModel useModel, EList<Element> allResourceElements) {
+    for (Element elem : allResourceElements) {
 
-        org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) type;
+      if (elem instanceof org.eclipse.uml2.uml.Class) {
 
-        MClass useClass = useModel.getClass(guard(umlClass.getName()));
+        org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) elem;
+
+        MClass useClass = useModel.getClass(umlClass.getName());
 
         for (Property prop : umlClass.getAllAttributes()) {
 
           MAttribute attr = null;
           
-          String propName = guard(prop.getName());
+          String propName = (prop.getName() == null || prop.getName().isEmpty()) ? 
+              prop.getType().getName() : prop.getName();
           
           if (prop.getType() instanceof PrimitiveTypeImpl) {
             boolean isSet = false;
@@ -599,35 +604,39 @@ public class XMIHandlerPlugin extends Plugin {
     }
   }
 
-  private void createGeneralizations(MModel useModel, Model umlModel) {
+  private void createGeneralizations(MModel useModel, EList<Element> allResourceElements) {
     DirectedGraph<MClass, MGeneralization> genGraph = useModel
         .generalizationGraph();
-    for (Type type : umlModel.getOwnedTypes()) {
-      if (type instanceof org.eclipse.uml2.uml.Class) {
-        org.eclipse.uml2.uml.Class childClass = (org.eclipse.uml2.uml.Class) type;
+    for (Element elem : allResourceElements) {
+      if (elem instanceof org.eclipse.uml2.uml.Class) {
+        org.eclipse.uml2.uml.Class childClass = (org.eclipse.uml2.uml.Class) elem;
         for (Generalization gen : childClass.getGeneralizations()) {
           for (Element el : gen.getTargets()) {
             org.eclipse.uml2.uml.Class parentClass = (org.eclipse.uml2.uml.Class) el;
             genGraph.addEdge(modelFactory.createGeneralization(useModel
-                .getClass(guard(childClass.getName())), useModel.getClass(guard(parentClass
-                .getName()))));
+                .getClass(childClass.getName()), useModel.getClass(parentClass
+                .getName())));
           }
         }
       }
     }
   }
 
-  private void createAssociations(MModel useModel, Model umlModel) {
+  private void createAssociations(MModel useModel, EList<Element> allResourceElements) {
 
-    for (Type type : umlModel.getOwnedTypes()) {
+    for (Element elem : allResourceElements) {
 
-      if (type instanceof Association) {
-        Association theAssoc = (Association) type;
-
+      if (elem instanceof Association) {
+        Association theAssoc = (Association) elem;
+        
+        ArrayList<MAssociationEnd> assocEnds = new ArrayList<MAssociationEnd> ();
         List<VarDecl> emptyQualifiers = Collections.emptyList();
-        MAssociation assoc = modelFactory.createAssociation(guard(theAssoc.getName()));
-
+        
         for (Property assocEnd : theAssoc.getMemberEnds()) {
+          
+          if (useModel.getClass(assocEnd.getType().getName()) == null) {
+            break;
+          }
 
           MClass assocEndClass = useModel.getClass(assocEnd.getType().getName());
 
@@ -646,26 +655,110 @@ public class XMIHandlerPlugin extends Plugin {
           }
 
           MAssociationEnd assocLeftEnd = modelFactory.createAssociationEnd(
-              assocEndClass, guard(assocEnd.getName()),
+              assocEndClass,
+              (assocEnd.getName() == null || assocEnd.getName().isEmpty()) ? 
+                  assocEnd.getType().getName() : assocEnd.getName(),
               m1, assocEndAggregationKind,
               assocEnd.isOrdered(), emptyQualifiers);
+          
+          assocEnds.add(assocLeftEnd);          
 
-          try {
-            assoc.addAssociationEnd(assocLeftEnd);
-          } catch (MInvalidModelException e) {
-            e.printStackTrace();
-          }
         }
 
+        if (assocEnds.size() < 2) {
+          continue;
+        }
+        
+        String assocName = theAssoc.getName();
+        
+        if (assocName == null || assocName.isEmpty()) {
+          for (int i = 0; i < theAssoc.getMemberEnds().size(); i++) {
+            assocName += theAssoc.getMemberEnds().get(i).getType().getName();
+            if (i < theAssoc.getMemberEnds().size() - 1) {
+              assocName += "_";
+            }
+          }
+        }
+        
+        MAssociation assoc = modelFactory.createAssociation(assocName);
+        
+        for (MAssociationEnd end : assocEnds) {
+          try {
+            assoc.addAssociationEnd(end);
+          } catch (MInvalidModelException e) {
+            e.printStackTrace();
+          }          
+        }
+        
         try {
           useModel.addAssociation(assoc);
         } catch (MInvalidModelException e) {
+          e.printStackTrace();
+        } catch (IllegalArgumentException e) {
           e.printStackTrace();
         }
 
       }
     }
   }
+  
+  private Model findModel(Resource resource, String modelName) {
+    for (Object obj : EcoreUtil.getObjectsByType(resource.getContents(), UMLPackage.Literals.ELEMENT)) {
+      org.eclipse.uml2.uml.Element elem = (org.eclipse.uml2.uml.Element) obj;
+      if (elem instanceof org.eclipse.uml2.uml.internal.impl.ModelImpl && 
+          ((org.eclipse.uml2.uml.internal.impl.ModelImpl)elem).getName().equalsIgnoreCase(modelName)) {
+        return (org.eclipse.uml2.uml.internal.impl.ModelImpl) elem;
+      }
+      
+      Model model = findModelRecursive(elem.getOwnedElements(), modelName);
+      if (model != null) {
+        return model;
+      }
+    }
+    return null;
+  }
+  
+  private Model findModelRecursive (EList<Element> list, String modelName) {
+    for (Element elem : list) {
+      if (elem instanceof org.eclipse.uml2.uml.internal.impl.ModelImpl && 
+          ((org.eclipse.uml2.uml.internal.impl.ModelImpl)elem).getName().equalsIgnoreCase(modelName)) {
+        return (org.eclipse.uml2.uml.internal.impl.ModelImpl) elem;
+      }
+      Model model = findModelRecursive(elem.getOwnedElements(), modelName);
+      if (model != null) {
+        return model;
+      }      
+    }
+    return null;
+  }
+  
+  private EList<Element> agregateElements(Resource resource) {
+    EList<Element> list = new BasicEList<Element>();    
+    for (Object obj : EcoreUtil.getObjectsByType(resource.getContents(), UMLPackage.Literals.ELEMENT)) {
+      org.eclipse.uml2.uml.Element elem = (org.eclipse.uml2.uml.Element) obj;
+      list.add(elem);
+      list.addAll(agregateElementsRecursive(elem.getOwnedElements()));
+    }
+    
+    return list;
+  }
+  
+  private EList<Element> agregateElementsRecursive(EList<Element> elements) {
+    EList<Element> list = new BasicEList<Element>();
+    
+    for (Element elem : elements) {
+      if (elem instanceof org.eclipse.uml2.uml.Package) {
+        list.addAll(agregateElementsRecursive(elem.getOwnedElements()));
+      } else if (elem instanceof org.eclipse.uml2.uml.Model) {
+        list.addAll(agregateElementsRecursive(elem.getOwnedElements()));
+      } else {
+        list.add(elem);
+      }
+    }
+    
+    return list;
+  }
+  
 
   /**********************************************************************************************
    ** xmi import **
@@ -683,32 +776,35 @@ public class XMIHandlerPlugin extends Plugin {
       resource.load(Collections.EMPTY_MAP);
     } catch (IOException e) {
     }
-
-    Model umlModel = (Model) EcoreUtil.getObjectByType(resource.getContents(),
-        UMLPackage.Literals.MODEL);
+    
+    Model umlModel = findModel(resource, file.getName().replaceFirst("[.][^.]+$", ""));
+    
+    EList<Element> allResourceElements = agregateElements(resource);
+    
+    out ("Sukaaaaaaaaaa: " + allResourceElements.size());
     
     if (umlModel == null) {
       Log.error("Import is impossible, bad model");
       return;
     }
 
-    MModel useModel = modelFactory.createModel(guard(umlModel.getName()));
+    MModel useModel = modelFactory.createModel(umlModel.getName());
 
     MSystem system = new MSystem(useModel);
 
-    createEnumerations(useModel, umlModel);
+    createEnumerations(useModel, allResourceElements);
 
-    createClasses(useModel, umlModel);
+    createClasses(useModel, allResourceElements);
 
-    createAttributes(useModel, umlModel);
+    createAttributes(useModel, allResourceElements);
 
-    createGeneralizations(useModel, umlModel);
+    createGeneralizations(useModel, allResourceElements);
 
-    createAssociations(useModel, umlModel);
+    createAssociations(useModel, allResourceElements);
 
     session.setSystem(system);
 
-    out("Imported: " + guard(umlModel.getName()));
+    out("Imported: " + umlModel.getName());
 
   }
 
@@ -794,8 +890,4 @@ public class XMIHandlerPlugin extends Plugin {
     return r;
   }
   
-  private String guard(String str) {
-    return (str == null || str.isEmpty() ? "empty" : str);
-  }
-
 }
