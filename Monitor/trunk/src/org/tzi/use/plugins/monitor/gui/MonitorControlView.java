@@ -15,6 +15,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
@@ -38,6 +42,7 @@ import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
@@ -49,6 +54,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+import org.tzi.use.config.Options;
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.monitor.AbstractMonitorStateListener;
@@ -79,6 +85,8 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	private JTextField text_host;
 	private JTextField text_port;
 	private JCheckBox check_suspend;
+	private JCheckBox check_determineStates;
+	
 	private JLabel label_useModel;
 	
 	private JProgressBar progressbar;
@@ -136,6 +144,17 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 										text_port.getText());
 						MonitorPlugin.getMonitorPluginInstance().getMonitor()
 								.start(check_suspend.isSelected());
+						
+						// If USE version < 3.1.0 psms are unknown
+						if (check_determineStates != null
+								&& check_suspend.isSelected()
+								&& check_determineStates.isSelected())
+							session.system()
+									.state()
+									.determineStates(
+											new PrintWriter(new LogAreaWriter(
+													"Determining states..."),
+													true));
 					}
 					
 				};
@@ -156,8 +175,19 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 					protected void doMonitorInBackground() {
 						if (MonitorPlugin.getMonitorPluginInstance().getMonitor().isPaused())
 							MonitorPlugin.getMonitorPluginInstance().getMonitor().resume();
-						else
+						else {
 							MonitorPlugin.getMonitorPluginInstance().getMonitor().pause();
+							// If USE version < 3.1.0 psms are unknown
+							if (check_determineStates != null
+									&& check_determineStates.isSelected())
+								session.system()
+										.state()
+										.determineStates(
+												new PrintWriter(
+														new LogAreaWriter(
+																"Determining states..."),
+														true));
+						}
 					}
 				};
 				worker.execute();
@@ -177,6 +207,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		});
 		buttonPanel.add(button_Stop);
 		
+		// Initialize settings tab
 		JTabbedPane tabs = new JTabbedPane();
 		backPanel.add(tabs, BorderLayout.CENTER);
 		
@@ -228,6 +259,25 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	
 			check_suspend = new JCheckBox("Suspend at connect", true);
 			info.add(check_suspend, cData);
+			cData.gridy++;
+			
+			// Determine correct USE version.
+			// Cannot be accessed directly, because of optimizations
+			String sVersion = "3.0.0";
+			try {
+				Field f = Options.class.getField("RELEASE_VERSION");
+				Object version = f.get(null);
+				sVersion = version.toString();
+			} catch (Exception e1) {
+				// Ignore exceptions during version determination.
+			}
+			
+			if (sVersion.startsWith("3.0")) {
+				check_determineStates = null;
+			} else {
+				check_determineStates = new JCheckBox("Determine states after suspend", true);
+				info.add(check_determineStates, cData);
+			}
 			
 			tapPanel.add(info, BorderLayout.NORTH);
 			tabs.addTab("Settings", tapPanel);
@@ -436,6 +486,9 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		this.text_port.setEnabled(!isMonitoring);
 		this.check_suspend.setEnabled(!isMonitoring);
 		
+		if (this.check_determineStates != null)
+			this.check_determineStates.setEnabled(!isMonitoring || !isPaused);
+		
 		this.button_Play.setEnabled(!isMonitoring);
 		this.button_Pause.setEnabled(isMonitoring);
 		this.button_Pause.setSelected(isPaused);
@@ -536,13 +589,23 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	}
 	
 	@Override
-	public void newLogMessage(Object source, Level level, String message) {
+	public void newLogMessage(final Object source, final Level level, final String message) {
 		if (level.intValue() < Level.INFO.intValue()
 				&& !check_showDebugMessages.isSelected())
 			return;
 		
-		Date now = Calendar.getInstance().getTime();
-		String toLog = String.format("%1$TT [%2$s]: %3$s", now, level, message);
+		final Date now = Calendar.getInstance().getTime();
+		
+		SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	addNewLogMessage(now, level, message);
+            }
+		});
+	}
+	
+	
+	private void addNewLogMessage(Date time, Level level, String message) {
+		String toLog = String.format("%1$TT [%2$s]: %3$s", time, level, message);
 		
 		SimpleAttributeSet style;
 		if (level.equals(Level.SEVERE))
@@ -561,5 +624,68 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		try {
 			doc.insertString(doc.getLength(), toLog, style);
 		} catch (BadLocationException e) { }
+	}
+	
+	private class LogAreaWriter extends Writer {
+		
+		private boolean firstOutput = true;
+				
+		private final String infoMessage;
+		
+		private String buffer = "";
+		
+		public LogAreaWriter(String infoMessage) {
+			this.infoMessage = infoMessage;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.io.Writer#write(char[], int, int)
+		 */
+		@Override
+		public void write(char[] cbuf, int off, int len) throws IOException {
+			final Date now = Calendar.getInstance().getTime();
+			
+			if (firstOutput) {
+				// be safe here: we might be called from outside the
+		        // event-dispatch thread
+		        SwingUtilities.invokeLater(new Runnable() {
+		                public void run() {
+		                	addNewLogMessage(now, Level.INFO, infoMessage);
+		                }
+		        });	
+				firstOutput = false;
+			}
+			
+			String toLog = new String(cbuf, off, len);
+			if (toLog.endsWith(StringUtil.NEWLINE)) {
+				final String newLog = (buffer + toLog).replace(StringUtil.NEWLINE, "");
+				buffer = "";
+		        // be safe here: we might be called from outside the
+		        // event-dispatch thread
+		        SwingUtilities.invokeLater(new Runnable() {
+		                public void run() {
+		                	addNewLogMessage(now, Level.INFO, newLog);
+		                }
+		        });
+		    } else {
+		    	buffer += toLog;
+		    }
+		}
+
+		/* (non-Javadoc)
+		 * @see java.io.Writer#flush()
+		 */
+		@Override
+		public void flush() throws IOException {
+						
+		}
+
+		/* (non-Javadoc)
+		 * @see java.io.Writer#close()
+		 */
+		@Override
+		public void close() throws IOException {
+						
+		}
 	}
 }

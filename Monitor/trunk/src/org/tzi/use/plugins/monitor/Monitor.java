@@ -250,6 +250,15 @@ public class Monitor implements ChangeListener {
     private Map<MClass, Set<ReferenceType>> classMappings;
     
     /**
+     * A cache for the qualified Java class name to
+     * the corresponding USE class.
+     * A single model class can be represented by more then one
+     * runtime type, because the runtime sub classes could be ignored
+     * in the model.
+     */
+    private Map<String, MClass> classNamesMap;
+    
+    /**
      * A map containing a collection of {@link ModelBreakpoint}s for
      * {@link MModelElement}s.  
      */
@@ -541,7 +550,7 @@ public class Monitor implements ChangeListener {
     			fireNewLogMessage(Level.INFO,  message.toString());
     		}
 		} catch (MSystemException e) {
-			fireNewLogMessage(Level.SEVERE, "Error handling message call " + frame.location().method().toString() + ": " + e.getMessage());
+			fireNewLogMessage(Level.SEVERE, e.getMessage());
 			return false;
 		}
 		
@@ -656,7 +665,7 @@ public class Monitor implements ChangeListener {
 		ReferenceType refType = getReferenceClass(cls);
 		  
 		if (refType == null) {
-			fireNewLogMessage(Level.INFO, "No runtime class found for model class " + cls.name());
+			fireNewLogMessage(Level.INFO, "No runtime class found for model class " + cls.name() + ", yet.");
 		} else {
 			fireNewLogMessage(Level.FINE, "Registering operation breakpoints for class " + cls.name());
 			for (MOperation op : cls.operations()) {
@@ -757,7 +766,8 @@ public class Monitor implements ChangeListener {
 		classMappings = new HashMap<MClass, Set<ReferenceType>>(useClasses.size());
 		
 		// Build a map of Java names to USE classes
-		Map<String, MClass> classNamesMap = new HashMap<String, MClass>(useClasses.size());
+		classNamesMap = new HashMap<String, MClass>(useClasses.size());
+		
 		for (MClass useClass : useClasses) {
 			if (!useClass.getAnnotationValue("Monitor", "ignore").equals("true")) {
 				classNamesMap.put(mappingHelper.getJavaClassName(useClass), useClass);
@@ -785,6 +795,7 @@ public class Monitor implements ChangeListener {
 					for (ClassType subType : toCheck.subclasses()) {
 						if (!classNamesMap.containsKey(subType.name())) {
 							javaClasses.add(subType);
+							classNamesMap.put(subType.name(), useClass);
 							toDo.push(subType);
 						}
 					}
@@ -818,10 +829,10 @@ public class Monitor implements ChangeListener {
 		
 		fireNewLogMessage(Level.INFO, String.format(" Created %,d instances in %,dms (%,d instances/s).", countInstances, duration, instPerSecond));
     	
-		fireSnapshotEnd();
-		
     	readAttributtesAndLinks();
     	classMappings = null;
+    	
+    	fireSnapshotEnd();
 	}
 	
     private void readInstances(MClass cls) {
@@ -942,6 +953,7 @@ public class Monitor implements ChangeListener {
 		
 		start = System.currentTimeMillis();
 		
+		args.setDescription("Reading links");
     	for (Map.Entry<ObjectReference, MObject> entry : instanceMapping.entrySet()) {
     		readLinks(entry.getKey(), entry.getValue());
     		
@@ -992,8 +1004,21 @@ public class Monitor implements ChangeListener {
     			List<MObject> objects = getSystem().state().getNavigableObjects(useObject, ends.get(0), end, Collections.<Value>emptyList());
     			
     			if (objects.size() > 0) {
+    				// Align objects to USE specification
+    				MObject[] linkObjects = new MObject[2];
+    				if (end.association().associationEnds().get(0).equals(end) ) {
+						linkObjects[0] = objects.get(0);
+						linkObjects[1] = useObject;
+					} else {
+						linkObjects[0] = useObject;
+						linkObjects[1] = objects.get(0);
+					}
+    				
     				//FIXME: Qualifier values empty
-    				MLinkDeletionStatement delStmt = new MLinkDeletionStatement(end.association(), new MObject[]{objects.get(0), useObject}, Collections.<List<MRValue>>emptyList());
+					MLinkDeletionStatement delStmt = new MLinkDeletionStatement(
+							end.association(), linkObjects,
+							Collections.<List<MRValue>> emptyList());
+    				
 	    			try {
 	    				getSystem().evaluateStatement(delStmt);
 					} catch (MSystemException e) {
@@ -1242,6 +1267,11 @@ public class Monitor implements ChangeListener {
     			// Check if object has link in java vm
         		for (MNavigableElement reachableElement : reachableEnds) {
         			MAssociationEnd reachableEnd = (MAssociationEnd)reachableElement;
+        			
+					if (reachableEnd.getAnnotationValue("Monitor", "ignore")
+							.equalsIgnoreCase("true"))
+        				continue;
+        			
         			if (reachableEnd.multiplicity().isCollection()) {
         				readLinks(objRef, o, reachableEnd);
         			} else {
@@ -1381,7 +1411,13 @@ public class Monitor implements ChangeListener {
     		if (collectionType.name().equals("java.util.HashSet")) {
     			readLinksHashSet(objects, o, end);
     		} else {
-    			fireNewLogMessage(Level.SEVERE, "Association end " + StringUtil.inQuotes(end.toString()) + " is represented by " + collectionType.name());
+				fireNewLogMessage(
+						Level.SEVERE,
+						"Multi-valued association end "
+								+ StringUtil.inQuotes(end.toString())
+								+ " is implemented as "
+								+ StringUtil.inQuotes(collectionType.name())
+								+ " which is currently not supported");
     		}
     	} else if (objects.type() instanceof ArrayType) {
     		readQualifiedLinks(objects, o, end);
@@ -1485,24 +1521,11 @@ public class Monitor implements ChangeListener {
 	private MClass getUSEClass(ObjectReference javaObject) {
 		// Try to find a class by the default name
 		String className = javaObject.type().name();
-		className = className.substring(className.lastIndexOf(".") + 1);
-		
 		fireNewLogMessage(Level.FINE, "getUSEClass: " + className);
 		
-		MClass cls = getSystem().model().getClass(className);
+		MClass cls = this.classNamesMap.get(className);
 		
-		if (cls == null) {
-			// Find class by annotated value
-			for (MClass aCls : getSystem().model().classes()) {
-				className = aCls.getAnnotationValue("Monitor", "className");
-				if (className != "") {
-					cls = getSystem().model().getClass(className);
-					if (cls != null)
-						break;
-				}
-					
-			}
-		}
+		fireNewLogMessage(Level.FINE, "getUSEClass result: " + cls.name());
 		
 		return cls;
 	}
@@ -1593,7 +1616,7 @@ public class Monitor implements ChangeListener {
 			if (statResult.wasSuccessfull()) {				
     			StringBuilder message = new StringBuilder("USE operation exit ");
     			message.append(currentUseOperationCall.toLegacyString());
-    			message.append(") was succesfull.");
+    			message.append(" was succesfull.");
     			fireNewLogMessage(Level.INFO,  message.toString());
 			}
 		} catch (MSystemException e) {
@@ -1622,7 +1645,7 @@ public class Monitor implements ChangeListener {
 							fireNewLogMessage(Level.FINER, "Handling operation call.");
 							boolean opCallResult = onMethodCall(be);
 							if (!opCallResult) {
-								fireNewLogMessage(Level.WARNING, "Enter of method " + be.location().method().toString() + " failed.");
+								fireNewLogMessage(Level.SEVERE, "Enter of method " + be.location().method().toString() + " failed.");
 								hasFailedOperation = true;
 								waitForUserInput();
 							}
@@ -1658,7 +1681,11 @@ public class Monitor implements ChangeListener {
 					monitoredVM = null;
 					fireNewLogMessage(Level.WARNING, "Monitored application has terminated.");
 				} catch (Exception ex) {
-					fireNewLogMessage(Level.SEVERE, "Error while listening to break points: " + ex.getMessage());
+					fireNewLogMessage(
+							Level.SEVERE,
+							"Error while listening to break points: ["
+									+ ex.getClass().getSimpleName() + "] "
+									+ ex.getMessage());
 					fireNewLogMessage(Level.SEVERE, "Disonnecting");
 					end();
 					return;
