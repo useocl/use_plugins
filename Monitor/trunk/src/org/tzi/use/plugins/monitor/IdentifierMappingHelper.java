@@ -1,5 +1,8 @@
 package org.tzi.use.plugins.monitor;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
@@ -142,5 +145,64 @@ public class IdentifierMappingHelper {
 		}
 		
 		return null;
+	}
+
+	private static class AttributeMapping {
+		private final MClass cls;
+		private final String attributeName;
+		private final int hashCode;
+		
+		public AttributeMapping(MClass cls, String attributeName) {
+			this.cls = cls;
+			this.attributeName = attributeName;
+			this.hashCode =  (cls.name() + attributeName).hashCode();
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() { 
+			return hashCode;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			AttributeMapping other = (AttributeMapping)obj;
+			if (cls == other.cls && attributeName.equals(other.attributeName))
+				return true;
+			else
+				return false;
+		}
+	}
+	
+	private Map<AttributeMapping, MAttribute> implementationAttributeMapping = new HashMap<AttributeMapping, MAttribute>();
+	
+	/**
+	 * @param cls
+	 * @param implementationName
+	 * @return
+	 */
+	public MAttribute getUseAttribute(MClass cls, String implementationName) {
+		AttributeMapping key = new AttributeMapping(cls, implementationName);
+		
+		if (!implementationAttributeMapping.containsKey(key)) {
+			MAttribute attr = cls.attribute(implementationName, true);
+			if (attr == null) {
+				for (MAttribute at : cls.allAttributes()) {
+					if (at.getAnnotationValue("Monitor", "name").equals(implementationName)) {
+						attr = at;
+						break;
+					}
+				}
+			}
+			
+			implementationAttributeMapping.put(key, attr);
+		}
+		
+		return implementationAttributeMapping.get(key);
 	}
 }

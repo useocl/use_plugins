@@ -775,6 +775,7 @@ public class Monitor implements ChangeListener {
 			}
 		}
 		
+		//TODO: Use monitoredVM.classesByName(className)
 		for (ReferenceType type : monitoredVM.allClasses()) {
 			if (!(type instanceof ClassType)) continue;
 
@@ -976,7 +977,7 @@ public class Monitor implements ChangeListener {
     private void updateAttribute(ObjectReference obj, Field field, com.sun.jdi.Value javaValue) {
     	if (!hasSnapshot()) return;
     	fireNewLogMessage(Level.FINE, "updateAttribute: " + field.name());
-    	
+
     	MObject useObject = instanceMapping.get(obj);
     	
     	if (useObject == null) {
@@ -991,8 +992,8 @@ public class Monitor implements ChangeListener {
 			return;
     	}
     	
-    	MAttribute attr = useObject.cls().attribute(field.name(), true); 
-    	
+    	MAttribute attr = mappingHelper.getUseAttribute(useObject.cls(), field.name());
+    	    	
     	if (attr == null) {
     		// Link end?
     		MNavigableElement end = useObject.cls().navigableEnd(field.name());
@@ -1034,6 +1035,7 @@ public class Monitor implements ChangeListener {
     			
     			// Create link if needed
 				if (javaValue != null) {
+					
 					Value newValueV = getUSEObject(javaValue);
 					if (newValueV.isUndefined()) return;
 					
@@ -1101,9 +1103,9 @@ public class Monitor implements ChangeListener {
 	    				}
 	    				++countAttributes;
 	    			} catch (IllegalArgumentException e) {
-	    				fireNewLogMessage(Level.SEVERE, "Error setting attribute value:" + e.getMessage());
+	    				fireNewLogMessage(Level.SEVERE, "Error setting attribute value: " + e.getMessage());
 	    			} catch (MSystemException e) {
-	    				fireNewLogMessage(Level.SEVERE, "Error setting attribute value:" + e.getMessage());
+	    				fireNewLogMessage(Level.SEVERE, "Error setting attribute value: " + e.getMessage());
 					}
 	    		}
     		}
@@ -1241,29 +1243,18 @@ public class Monitor implements ChangeListener {
 	}
 
 	private void readLinks(ObjectReference objRef, MObject o) {
-		for (MAssociation ass : o.cls().allAssociations()) {
-    		if (ass instanceof MAssociationClass) {
-    			
-    		} else {
-    			MClass cls = o.cls();
-    			//TODO: Multiple inheritance or better way
-    			List<MNavigableElement> reachableEnds = null;
-    			
-    			while (cls != null) {
-    				try {
-    					reachableEnds = ass.navigableEndsFrom(cls);
-    					break;
-    				} catch (IllegalArgumentException e) {
-    					Iterator<MClass> parentIter = cls.parents().iterator(); 
-    					if (parentIter.hasNext())
-    						cls = cls.parents().iterator().next();
-    					else
-    						break;
-    				}
-    			}
-    			
-    			if (reachableEnds == null) continue;
-    			
+		Set<MClass> allClasses = new HashSet<MClass>(o.cls().allParents());
+		allClasses.add(o.cls());
+		
+		for (MClass cls : allClasses) {
+			for (MAssociation ass : cls.associations()) {
+				if (ass instanceof MAssociationClass) {
+					// FIXME: Consider association classes
+					continue;
+				}
+				
+				List<MNavigableElement> reachableEnds = ass.navigableEndsFrom(cls);
+			
     			// Check if object has link in java vm
         		for (MNavigableElement reachableElement : reachableEnds) {
         			MAssociationEnd reachableEnd = (MAssociationEnd)reachableElement;
@@ -1410,6 +1401,8 @@ public class Monitor implements ChangeListener {
     	
     		if (collectionType.name().equals("java.util.HashSet")) {
     			readLinksHashSet(objects, o, end);
+    		} else if (collectionType.name().equals("java.util.ArrayList")) {
+    			readLinksArrayList(objects, o, end);
     		} else {
 				fireNewLogMessage(
 						Level.SEVERE,
@@ -1426,8 +1419,34 @@ public class Monitor implements ChangeListener {
     }
     
     private void readQualifiedLinks(ObjectReference array, MObject o, MAssociationEnd end) {
-    	
+    
     }
+    
+    private void readLinksArrayList(ObjectReference arrayList, MObject o, MAssociationEnd end) {
+
+    	if (!(end.isOrdered() || end.hasQualifiers())) {
+			fireNewLogMessage(
+					Level.WARNING,
+					"Association end "
+							+ StringUtil.inQuotes(end.toString())
+							+ " is implemented as an ArrayList but not marked as {ordered} nor it defines qualifiers.");
+    	}
+    	
+    	// ArrayList uses the private field "elementData:Object" to store the values
+    	Field field = arrayList.referenceType().fieldByName("elementData");
+    	ArrayReference elements = (ArrayReference)arrayList.getValue(field);
+    	
+    	List<com.sun.jdi.Value> mapEntries = elements.getValues();
+    	int index = 0;
+    	
+    	for (com.sun.jdi.Value value : mapEntries) {
+    		if (value != null) {
+    			ObjectReference entry = (ObjectReference)value;
+    			createLink(o, end, instanceMapping.get(entry));
+    		}
+    	}
+    }
+
     
     private void readLinksHashSet(ObjectReference hashset, MObject o, MAssociationEnd end) {
     	// HashSet uses the private field "map:HashMap" to store the values
