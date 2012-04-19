@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
 <jardesc>
-    <jar path="use-work/lib/plugins/monitor.jar"/>
+    <jar path="use_psm/lib/plugins/monitor.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/use-monitor-plugin/plugin.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
@@ -10,7 +10,7 @@
             <packagesToUnSeal/>
         </sealing>
     </manifest>
-    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+    <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
         <folder path="/use-monitor-plugin/resources"/>
         <folder path="/use-monitor-plugin/META-INF"/>
         <javaElement handleIdentifier="=use-monitor-plugin/src"/>

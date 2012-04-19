@@ -2,12 +2,12 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/use-work"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.6.0_16/lib/tools.jar" sourcepath="C:/Program Files/Java/jdk1.6.0_16/src.zip">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:file:/C:/Program Files/Java/jdk-6u22-docs.zip!/docs/jdk/api/jpda/jdi"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/lablib-checkboxtree-3.2.jar" sourcepath="lib/lablib-checkboxtree-3.2-sources.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/use_psm"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -25,5 +25,10 @@
 			id="org.tzi.use.monitor.cmd.EndMonitorCmd" shellcmd="monitor end"
 			label="End Monitoring" help="Ends monitoring of a JVM application">
 		</command>
+		
+		<command class="org.tzi.use.plugins.monitor.cmd.StartGenMonitorCmd"
+			id="org.tzi.use.monitor.cmd.StartGenMonitorCmd" shellcmd="genmonitor start"
+			label="Start Monitoring" help="Starts monitoring of a CLR application">
+		</command>
 	</commands>
 </plugin>

@@ -22,6 +22,8 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -33,6 +35,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -64,6 +67,8 @@ import org.tzi.use.plugins.monitor.MonitorPlugin;
 import org.tzi.use.plugins.monitor.MonitorStateListener;
 import org.tzi.use.plugins.monitor.ProgressArgs;
 import org.tzi.use.plugins.monitor.ProgressListener;
+import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
+import org.tzi.use.plugins.monitor.vm.adapter.jvm.JVMAdapter;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
@@ -137,11 +142,23 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 				MonitorSwingWorker worker = new MonitorSwingWorker() {
 					@Override
 					protected void doMonitorInBackground() {
-						MonitorPlugin
-								.getMonitorPluginInstance()
-								.getMonitor()
-								.configure(session, text_host.getText(),
-										text_port.getText());
+						Map<String,String> monArgs = new HashMap<String, String>();
+				    	monArgs.put("host", text_host.getText());
+				    	monArgs.put("port", text_port.getText());
+				    	
+						try {
+							MonitorPlugin
+									.getMonitorPluginInstance()
+									.getMonitor()
+									.configure(session, new JVMAdapter(), monArgs);
+						} catch (InvalidAdapterConfiguration e) {
+							JOptionPane.showMessageDialog(
+									MonitorControlView.this, e.getMessage(),
+									"Invalid adapter configuration",
+									JOptionPane.ERROR_MESSAGE);
+							return;
+						}
+						
 						MonitorPlugin.getMonitorPluginInstance().getMonitor()
 								.start(check_suspend.isSelected());
 						

@@ -1,5 +1,8 @@
 package org.tzi.use.plugins.monitor.cmd;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.plugins.monitor.MonitorPlugin;
 import org.tzi.use.util.Log;
@@ -32,7 +35,10 @@ public class StartMonitorCmd extends AbstractMonitorCmd {
     		return;
     	}
     	
-		MonitorPlugin.getMonitorPluginInstance().startMonitor(pluginCommand.getSession(), host, port, false);
+    	Map<String,String> monArgs = new HashMap<String, String>();
+    	monArgs.put("host", host);
+    	monArgs.put("port", port);
+		MonitorPlugin.getMonitorPluginInstance().startMonitor(pluginCommand.getSession(), monArgs, false);
 	}
 
 	

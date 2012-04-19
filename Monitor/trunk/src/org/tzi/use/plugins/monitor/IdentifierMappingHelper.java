@@ -8,6 +8,7 @@ import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
+import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.uml.sys.MObject;
 
 import com.sun.jdi.ClassNotLoadedException;
@@ -204,5 +205,22 @@ public class IdentifierMappingHelper {
 		}
 		
 		return implementationAttributeMapping.get(key);
+	}
+
+	/**
+	 * @param t
+	 * @return
+	 */
+	public Object getVMEnumName(EnumType t) {
+		String classPackage = t.getAnnotationValue("Monitor", "package");
+    	String className = t.getAnnotationValue("Monitor", "name");
+    	
+    	if (className == "")
+    		className = t.name();
+    	
+    	if (classPackage == "")
+    		classPackage = model.getAnnotationValue("Monitor", "defaultPackage");
+    	
+    	return classPackage + (classPackage.equals("") ? "" : ".") + className;
 	}
 }

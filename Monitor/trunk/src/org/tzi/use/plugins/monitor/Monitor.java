@@ -21,7 +21,6 @@
 
 package org.tzi.use.plugins.monitor;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,24 +39,25 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.tzi.use.main.Session;
+import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
+import org.tzi.use.plugins.monitor.vm.adapter.VMAdapter;
+import org.tzi.use.plugins.monitor.vm.mm.VMField;
+import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
+import org.tzi.use.plugins.monitor.vm.mm.VMObject;
+import org.tzi.use.plugins.monitor.vm.mm.VMType;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
-import org.tzi.use.uml.mm.MElementAnnotation;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MModelElement;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.MPrePostCondition;
-import org.tzi.use.uml.ocl.expr.ExpObjRef;
-import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.expr.ExpressionWithValue;
 import org.tzi.use.uml.ocl.type.EnumType;
-import org.tzi.use.uml.ocl.type.Type;
-import org.tzi.use.uml.ocl.type.TypeFactory;
-import org.tzi.use.uml.ocl.value.EnumValue;
+import org.tzi.use.uml.ocl.value.CollectionValue;
+import org.tzi.use.uml.ocl.value.IntegerValue;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.SequenceValue;
 import org.tzi.use.uml.ocl.value.StringValue;
@@ -67,55 +67,22 @@ import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MOperationCall;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
-import org.tzi.use.uml.sys.StatementEvaluationResult;
-import org.tzi.use.uml.sys.ppcHandling.DoNothingPPCHandler;
 import org.tzi.use.uml.sys.ppcHandling.PPCHandler;
 import org.tzi.use.uml.sys.ppcHandling.PostConditionCheckFailedException;
 import org.tzi.use.uml.sys.ppcHandling.PreConditionCheckFailedException;
 import org.tzi.use.uml.sys.soil.MAttributeAssignmentStatement;
-import org.tzi.use.uml.sys.soil.MEnterOperationStatement;
-import org.tzi.use.uml.sys.soil.MExitOperationStatement;
-import org.tzi.use.uml.sys.soil.MLinkDeletionStatement;
 import org.tzi.use.uml.sys.soil.MLinkInsertionStatement;
 import org.tzi.use.uml.sys.soil.MNewObjectStatement;
 import org.tzi.use.uml.sys.soil.MObjectDestructionStatement;
-import org.tzi.use.uml.sys.soil.MRValue;
 import org.tzi.use.util.Log;
 import org.tzi.use.util.StringUtil;
 
-import com.sun.jdi.ArrayReference;
-import com.sun.jdi.ArrayType;
-import com.sun.jdi.BooleanValue;
-import com.sun.jdi.ClassNotLoadedException;
-import com.sun.jdi.ClassType;
 import com.sun.jdi.Field;
-import com.sun.jdi.IncompatibleThreadStateException;
-import com.sun.jdi.IntegerValue;
-import com.sun.jdi.InvalidStackFrameException;
-import com.sun.jdi.Method;
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.StackFrame;
-import com.sun.jdi.StringReference;
-import com.sun.jdi.ThreadReference;
-import com.sun.jdi.VMDisconnectedException;
-import com.sun.jdi.VirtualMachine;
-import com.sun.jdi.connect.Connector.Argument;
-import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 import com.sun.jdi.event.BreakpointEvent;
-import com.sun.jdi.event.ClassPrepareEvent;
-import com.sun.jdi.event.EventSet;
 import com.sun.jdi.event.MethodExitEvent;
-import com.sun.jdi.event.ModificationWatchpointEvent;
-import com.sun.jdi.event.VMDeathEvent;
-import com.sun.jdi.request.BreakpointRequest;
-import com.sun.jdi.request.ClassPrepareRequest;
-import com.sun.jdi.request.EventRequest;
-import com.sun.jdi.request.MethodExitRequest;
-import com.sun.jdi.request.ModificationWatchpointRequest;
-import com.sun.jdi.request.VMDeathRequest;
-import com.sun.tools.jdi.GenericAttachingConnector;
-import com.sun.tools.jdi.SocketAttachingConnector;
 
 /**
  * This class handles the monitoring of a Java application
@@ -126,14 +93,13 @@ import com.sun.tools.jdi.SocketAttachingConnector;
  * @author Lars Hamann
  */
 public class Monitor implements ChangeListener {
+	
 	/**
-	 * The host name where the monitored VM is running on
+	 * The adapter used to retrieve information
+	 * from a virtual machine.
 	 */
-	private String host;
-	/**
-	 * The port where the monitored VM is providing debugging events
-	 */
-	private int port;
+	private VMAdapter adapter;
+	
 	/**
 	 * The USE session which provides information about the relevant
 	 * classes and operations to listen for.
@@ -141,10 +107,7 @@ public class Monitor implements ChangeListener {
 	 * the monitor has to react on changes like loading another model.
 	 */
 	private Session session;
-	/**
-	 * The monitored virtual machine
-	 */
-	private VirtualMachine monitoredVM = null;
+	
 	/**
 	 * True when monitoring, e.g., USE monitor is connected
 	 * to a VM
@@ -156,19 +119,9 @@ public class Monitor implements ChangeListener {
     private boolean isPaused = false;
     
     /**
-     * The connector used to connect to the JVM.
+     * Saves the mapping between USE objects and VM objects.
      */
-    private GenericAttachingConnector connector;
-    
-    /**
-     * This thread handles breakpoint events. E.g. call of a method.
-     */
-    private Thread breakpointWatcher;
-    
-    /**
-     * Saves the mapping between USE and Java objects.
-     */
-    private Map<ObjectReference, MObject> instanceMapping;
+    private Map<VMObject, MObject> instanceMapping;
     
     /**
      * Has a snapshot been taken already?
@@ -247,16 +200,7 @@ public class Monitor implements ChangeListener {
      * runtime type, because the runtime sub classes could be ignored
      * in the model.
      */
-    private Map<MClass, Set<ReferenceType>> classMappings;
-    
-    /**
-     * A cache for the qualified Java class name to
-     * the corresponding USE class.
-     * A single model class can be represented by more then one
-     * runtime type, because the runtime sub classes could be ignored
-     * in the model.
-     */
-    private Map<String, MClass> classNamesMap;
+    private Map<MClass, Set<VMType>> classMappings;
     
     /**
      * A map containing a collection of {@link ModelBreakpoint}s for
@@ -291,52 +235,19 @@ public class Monitor implements ChangeListener {
      * @param session The USE session to use for the monitoring process. The monitor reacts on state changes of the session.
      * @param host The host which runs a JVM with enabled remote debugger capabilities.
      * @param port The port the JVM is listening for remote debugger connections.
+     * @throws InvalidAdapterConfiguration If an invalid configuration for the selected adapter is given by <code>args</code>. 
      * @throws IllegalArgumentException If an invalid port number is provided as an argument or specified in the model annotation.
      */
-    public void configure(Session session, String host, String port) {
+    public void configure(Session session, VMAdapter adapter, Map<String, String> args) throws InvalidAdapterConfiguration {
+    	this.adapter = adapter;
+    	this.adapter.configure(new Controller(), args);
+    	
     	this.session = session;
     	this.session.addChangeListener(this);
     	this.mappingHelper = new IdentifierMappingHelper(session.system().model());
-    	
-    	MElementAnnotation modelAnnotation = getSystem().model().getAnnotation("Monitor");
-    	
-		if (host == null || host.equals("")) {
-			if (modelAnnotation != null
-					&& modelAnnotation.hasAnnotationValue("host")) {
-				this.host = modelAnnotation.getAnnotationValue("host");
-			} else {
-				this.host = "localhost";
-			}
-		} else {
-			this.host = host;
-		}
-    	
-		if (port == null || port.equals("")) {
-			if (modelAnnotation != null
-					&& modelAnnotation.hasAnnotationValue("port")) {
-				try {
-					this.port = Integer.parseInt(modelAnnotation
-							.getAnnotationValue("port"));
-				} catch (NumberFormatException e) {
-					throw new IllegalArgumentException(
-							"Invalid port specified in model annotation: "
-									+ modelAnnotation
-											.getAnnotationValue("port"));
-				}
-			} else {
-				this.port = 6000;
-			}
-		} else {
-			try {
-				this.port = Integer.parseInt(port);
-			} catch (NumberFormatException e) {
-				throw new IllegalArgumentException(port
-						+ " is not a valid port number.");
-			}
-		}
     }
-    
-    public long getMaxInstances() {
+
+	public long getMaxInstances() {
 		return maxInstances;
 	}
 
@@ -403,11 +314,12 @@ public class Monitor implements ChangeListener {
     public void start(boolean suspend) {
     	// We need a clean system
     	doUSEReset();
-    	this.instanceMapping = new HashMap<ObjectReference, MObject>();
+    	this.instanceMapping = new HashMap<VMObject, MObject>();
     	this.hasSnapshot = false;
     	
     	try {
-			attachToVM();
+    		adapter.attachToVM();
+    		fireNewLogMessage(Level.INFO, "Connected to virtual machine");
 		} catch (MonitorException e) {
 			fireNewLogMessage(Level.SEVERE, "Error connecting to the VM: " + e.getMessage());
 			return;
@@ -418,11 +330,10 @@ public class Monitor implements ChangeListener {
 		registerOperationBreakPoints();
 		
 		isRunning = true;
-				
-		breakpointWatcher = new Thread(new BreakPointWatcher(), "Monitor breakpoint watcher");
-		breakpointWatcher.start();
 		
-		monitoredVM.resume();
+		// TODO: Check if really needed!
+		adapter.resume();
+		
 		isPaused = false;
 		
 		fireMonitorStart();
@@ -444,7 +355,7 @@ public class Monitor implements ChangeListener {
      * @param doReset If <code>true</code> the USE session is reseted (see {@link Session#reset()}).
      */
     protected void pause(boolean doReset) {
-    	monitoredVM.suspend();
+    	adapter.suspend();
 		
     	if (doReset) {
     		doUSEReset();
@@ -456,7 +367,7 @@ public class Monitor implements ChangeListener {
 		countAttributes = 0;
 		
 		fireNewLogMessage(Level.INFO, "Creating snapshot using" + (useSoil ? " SOIL statements." : " using system operations." ));
-    	readInstances();
+    	readSnapshot();
     	
     	long end = System.currentTimeMillis();
     	fireNewLogMessage(Level.INFO, String.format("Read %,d instances and %,d links in %,dms.", countInstances, countLinks, (end - start)));
@@ -469,6 +380,10 @@ public class Monitor implements ChangeListener {
     }
 
     private void calculateCurrentCallStack() {
+    	//FIXME: Dynamic monitoring
+    	
+    	/*
+    	 
 		// Find the thread we are monitoring!
     	ThreadReference identifiedThread = null;
     	
@@ -514,6 +429,8 @@ public class Monitor implements ChangeListener {
 			fireNewLogMessage(Level.SEVERE, "Could not retrieve stack frame of identified thread: " + e.getMessage());
 			return;
 		}
+		
+		*/
 	}
 
     /**
@@ -525,7 +442,9 @@ public class Monitor implements ChangeListener {
      */
 	private boolean createOperationCall(MObject self, MOperation useOperation,
 			StackFrame frame, boolean validatePreConditions) {
-		
+		return true;
+		//FIXME: Dynamic monitoring
+		/*
 		List<com.sun.jdi.Value> javaArgs = frame.getArgumentValues();
     	Map<String, Expression> arguments = new HashMap<String, Expression>();
     	
@@ -559,6 +478,7 @@ public class Monitor implements ChangeListener {
 		req.enable();
 		
 		return true;
+		*/
 	}
 
 	/**
@@ -572,7 +492,7 @@ public class Monitor implements ChangeListener {
         	}
 		}
     	
-    	monitoredVM.resume();
+    	adapter.resume();
     	isPaused = false;
     	
     	fireNewLogMessage(Level.INFO, "VM resumed.");
@@ -584,9 +504,8 @@ public class Monitor implements ChangeListener {
      * The USE system state is kept untouched.
      */
     public void end() {
-    	if (monitoredVM != null)
-    		monitoredVM.dispose();
-    	
+    	adapter.stop();
+    	    	
     	instanceMapping = null;
     	isRunning = false;
     	isPaused = false;
@@ -603,40 +522,13 @@ public class Monitor implements ChangeListener {
     	return hasSnapshot;
     }
     
-    /**
-     * 
-     * @throws MonitorException
-     */
-    private void attachToVM() throws MonitorException {
-		connector = new SocketAttachingConnector();
-    	@SuppressWarnings("unchecked")
-		Map<String, Argument> args = connector.defaultArguments();
-    	
-    	args.get("hostname").setValue(host);
-    	args.get("port").setValue(Integer.toString(port));
-    	
-    	try {
-			monitoredVM = connector.attach(args);
-			// We want to get notified if the VM terminates.
-			VMDeathRequest deathReq = monitoredVM.eventRequestManager().createVMDeathRequest();
-			deathReq.enable();
-		} catch (IOException e) {
-			throw new MonitorException("Could not connect to virtual machine", e);
-		} catch (IllegalConnectorArgumentsException e) {
-			throw new MonitorException("Could not connect to virtual machine", e);
-		}
-		
-    	fireNewLogMessage(Level.INFO, "Connected to virtual machine");
-	}
-    
 	private void registerClassPrepareEvents() {
 		for (MClass cls : getSystem().model().classes()) {
 			String javaClassName = mappingHelper.getJavaClassName(cls);
 			
-			ClassPrepareRequest req = monitoredVM.eventRequestManager().createClassPrepareRequest();
-			req.addClassFilter(javaClassName);
-			req.setSuspendPolicy(EventRequest.SUSPEND_ALL);
-			req.enable();
+			if (!adapter.isVMTypeLoaded(javaClassName)) {
+				adapter.registerClassPrepareEvent(javaClassName);
+			}
 		}
 	}
 	
@@ -654,17 +546,15 @@ public class Monitor implements ChangeListener {
     	}
     }
 
-    private Map<Method, MOperation> operationMappings = new HashMap<Method, MOperation>();
-    
     /**
 	 * Sets a break point for each defined USE operation (if it matches a Java method) 
 	 * of the specified USE class, if the corresponding Java class 
 	 * is loaded classes in the VM.
 	 */
 	private void registerOperationBreakPoints(MClass cls) {
-		ReferenceType refType = getReferenceClass(cls);
-		  
-		if (refType == null) {
+		VMType vmType = getReferenceClass(cls);  
+		
+		if (vmType == null) {
 			fireNewLogMessage(Level.INFO, "No runtime class found for model class " + cls.name() + ", yet.");
 		} else {
 			fireNewLogMessage(Level.FINE, "Registering operation breakpoints for class " + cls.name());
@@ -673,31 +563,20 @@ public class Monitor implements ChangeListener {
 				if (isQuery.equals("true")) continue;
 				
 				String methodName = mappingHelper.getJavaMethodName(op);
+				List<VMMethod> methods = vmType.getMethodsByName(methodName);
 				
-				List<com.sun.jdi.Method> methods = refType.methodsByName(methodName);
-				for (com.sun.jdi.Method m : methods) {
+				for (VMMethod m : methods) {
 					// TODO: Check parameter types
-					
-					try {
-						if (m.argumentTypes().size() == op.allParams().size()) {
-							fireNewLogMessage(Level.FINE, "Registering operation breakpoint for operation " + m.toString());
-							
-							if (m.location() == null) {
-								fireNewLogMessage(Level.WARNING, "Cannot set breakpoints for abstract or interface operation " + m.toString());
-								continue;
-							}
-							
-							BreakpointRequest req = monitoredVM.eventRequestManager().createBreakpointRequest(m.location());
-							req.setSuspendPolicy(EventRequest.SUSPEND_ALL);
-							req.enable();
-							operationMappings.put(m, op);
-						}
-					} catch (ClassNotLoadedException e) {
-						fireNewLogMessage(Level.SEVERE, "Could not validate number of arguments for method " + m.toString());
+					if (m.getArgumentTypes().size() == op.allParams().size()) {
+						fireNewLogMessage(Level.FINE, "Registering operation breakpoint for operation " + m.toString());
+						m.setUSEOperation(op);
+						adapter.registerOperationCallInterest(m);
 					}
 				}
 			}
 			
+			//FIXME: Dynamic monitoring
+			/*
 			// Breakpoints for constructors
 			for (Method m : refType.methods()) {
 				if (m.isConstructor()) {
@@ -732,6 +611,7 @@ public class Monitor implements ChangeListener {
 					}
 				}
 			}
+			*/
 		}
 	}
 
@@ -746,15 +626,8 @@ public class Monitor implements ChangeListener {
 		}
 	}
 	
-	private ReferenceType getReferenceClass(MClass cls) {
-    	
-    	List<ReferenceType> classes = monitoredVM.classesByName(mappingHelper.getJavaClassName(cls));
-    	
-    	if (classes.size() == 1) {
-    		return classes.get(0);
-    	} else {
-    		return null;
-    	}
+	private VMType getReferenceClass(MClass cls) {
+    	return adapter.getVMType(mappingHelper.getJavaClassName(cls));
     }
 
 	/**
@@ -763,41 +636,43 @@ public class Monitor implements ChangeListener {
 	 */
 	private void setupClassMappings() {
 		Collection<MClass> useClasses = getSystem().model().classes();
-		classMappings = new HashMap<MClass, Set<ReferenceType>>(useClasses.size());
+		classMappings = new HashMap<MClass, Set<VMType>>(useClasses.size());
 		
-		// Build a map of Java names to USE classes
-		classNamesMap = new HashMap<String, MClass>(useClasses.size());
-		
+		// To be able to quickly check if a VMType is handled by the model 
+		HashSet<String> allHandledClassNames = new HashSet<String>(useClasses.size());
 		for (MClass useClass : useClasses) {
-			if (!useClass.getAnnotationValue("Monitor", "ignore").equals("true")) {
-				classNamesMap.put(mappingHelper.getJavaClassName(useClass), useClass);
-				classMappings.put(useClass, new HashSet<ReferenceType>());
-			}
+			allHandledClassNames.add(mappingHelper.getJavaClassName(useClass));
 		}
 		
-		//TODO: Use monitoredVM.classesByName(className)
-		for (ReferenceType type : monitoredVM.allClasses()) {
-			if (!(type instanceof ClassType)) continue;
-
-			ClassType cType = (ClassType)type;
+		// This loop builds-up the mapping of use classes to VMTypes.
+		// A single USE class can represent more than one VMType.
+		for (MClass useClass : useClasses) {
+			if (useClass.getAnnotationValue("Monitor", "ignore").equals("true")) {
+				// Ignore this class
+				continue;
+			}
+			Set<VMType> mappedTypes = new HashSet<VMType>();
+			classMappings.put(useClass, mappedTypes);
 			
-			if (classNamesMap.containsKey(cType.name())) {
-				MClass useClass = classNamesMap.get(cType.name());
-				Set<ReferenceType> javaClasses = classMappings.get(useClass);
-				javaClasses.add(cType);
+			VMType vmType = getReferenceClass(useClass);
+			
+			if (vmType != null && vmType.isClassType()) {
+				Stack<VMType> toDo = new Stack<VMType>();
+				toDo.push(vmType);
 				
-				if (useClass.getAnnotationValue("Monitor", "ignoreSubclasses").equals("true"))
-					continue;
-
-				Stack<ClassType> toDo = new Stack<ClassType>();
-				toDo.push(cType);
 				while (!toDo.isEmpty()) {
-					ClassType toCheck = toDo.pop();
-					for (ClassType subType : toCheck.subclasses()) {
-						if (!classNamesMap.containsKey(subType.name())) {
-							javaClasses.add(subType);
-							classNamesMap.put(subType.name(), useClass);
-							toDo.push(subType);
+					VMType workingType = toDo.pop();
+					
+					mappedTypes.add(workingType);
+					workingType.setUSEClass(useClass);
+					
+					if (!useClass.getAnnotationValue("Monitor", "ignoreSubclasses").equals("true")) {		
+						//FIXME: Change to allSubClasses()
+						for (VMType t : workingType.getSubClasses()) {
+							// Subtype is handled by its own class?
+							if (!allHandledClassNames.contains(t.getName())) {
+								toDo.push(t);
+							}
 						}
 					}
 				}
@@ -805,12 +680,12 @@ public class Monitor implements ChangeListener {
 		}
 	}
 	
-	private void readInstances() {
+	private void readSnapshot() {
 		Collection<MClass> classes = getSystem().model().classes();
 		
 		fireSnapshotStart("Initializing...", classes.size());
 		
-		instanceMapping = new HashMap<ObjectReference, MObject>();
+		instanceMapping = new HashMap<VMObject, MObject>();
 		setupClassMappings();
 		
 		long start = System.currentTimeMillis();
@@ -841,10 +716,10 @@ public class Monitor implements ChangeListener {
     	// Find all subclasses of the reference type which are not modeled in
     	// the USE file, because instances() only returns concrete instances
     	// of a type (and not of subclasses) 
-    	Set<ReferenceType> typesToRead = classMappings.get(cls);
+    	Set<VMType> typesToRead = classMappings.get(cls);
 
     	if (typesToRead.isEmpty()) {
-    		fireNewLogMessage(Level.FINE, "Java class "
+    		fireNewLogMessage(Level.FINE, "VM class "
 					+ StringUtil.inQuotes(mappingHelper.getJavaClassName(cls))
 					+ " could not be found for USE class "
 					+ StringUtil.inQuotes(cls.name())
@@ -852,14 +727,14 @@ public class Monitor implements ChangeListener {
 			return;
     	}
 
-		for (ReferenceType refType : typesToRead) {
-	    	List<ObjectReference> refInstances = refType.instances(getMaxInstances());
+		for (VMType refType : typesToRead) {
+	    	Set<VMObject> refInstances = refType.getInstances();
 			
-			for (ObjectReference objRef : refInstances) {
-				if (objRef.isCollected()) continue;
+			for (VMObject vmObj : refInstances) {
+				if (!vmObj.isAlive()) continue;
 				
 				try {
-					createInstance(cls, objRef);
+					createInstance(cls, vmObj);
 					++countInstances;
 				} catch (MSystemException e) {
 					Log.error(e);
@@ -873,23 +748,27 @@ public class Monitor implements ChangeListener {
 	 * Creates a new instance of the given class and
 	 * adds a mapping to the runtime instance. 
 	 * @param cls The use class of the new object
-	 * @param objRef The runtime instance
+	 * @param vmObj The runtime instance
 	 * @return The new instance
 	 * @throws MSystemException
 	 */
-	protected MObject createInstance(MClass cls, ObjectReference objRef)
+	protected MObject createInstance(MClass cls, VMObject vmObj)
 			throws MSystemException {
+		MObject useObject;
+		
 		if (useSoil) {
 			MNewObjectStatement stmt = new MNewObjectStatement(cls);
 			getSystem().evaluateStatement(stmt);
-			instanceMapping.put(objRef, stmt.getCreatedObject());
-			return stmt.getCreatedObject();
+			useObject = stmt.getCreatedObject();
 		} else {
 			String name = getSystem().state().uniqueObjectNameForClass(cls);
-			MObject o = getSystem().state().createObject(cls, name);
-			instanceMapping.put(objRef, o);
-			return o;
+			useObject = getSystem().state().createObject(cls, name);
 		}
+						
+		vmObj.setUSEObject(useObject);
+		instanceMapping.put(vmObj, useObject);
+		
+		return useObject;
 	}
     
 	/**
@@ -897,12 +776,14 @@ public class Monitor implements ChangeListener {
      */
     private void checkForDeletedInstances() {
     	// Need an iterator to be able to remove elements
-    	Iterator<ObjectReference> iter = this.instanceMapping.keySet().iterator();
+    	Iterator<Map.Entry<VMObject, MObject>> iter = this.instanceMapping.entrySet().iterator();
     	
 		while (iter.hasNext()) {
-			ObjectReference refObject = iter.next();
-			if (refObject.isCollected()) {
-				MObject useObj = instanceMapping.get(refObject);
+			Map.Entry<VMObject, MObject> entry = iter.next();
+			VMObject refObject = entry.getKey();
+			
+			if (!refObject.isAlive()) {
+				MObject useObj = refObject.getUSEObject();
 				
 				ObjectValue valObject = new ObjectValue(useObj.type(), useObj); 
 				MObjectDestructionStatement delStmt = new MObjectDestructionStatement(valObject);
@@ -935,7 +816,8 @@ public class Monitor implements ChangeListener {
     	int step = progressEnd / 50;
     	int counter = 0;
     	
-    	for (Map.Entry<ObjectReference, MObject> entry : instanceMapping.entrySet()) {
+    	// Read all attributes
+    	for (Map.Entry<VMObject, MObject> entry : instanceMapping.entrySet()) {
     		readAttributes(entry.getKey(), entry.getValue());
     		
     		if (step > 0 && counter % step == 0) {
@@ -954,8 +836,9 @@ public class Monitor implements ChangeListener {
 		
 		start = System.currentTimeMillis();
 		
+		// Read all links
 		args.setDescription("Reading links");
-    	for (Map.Entry<ObjectReference, MObject> entry : instanceMapping.entrySet()) {
+    	for (Map.Entry<VMObject, MObject> entry : instanceMapping.entrySet()) {
     		readLinks(entry.getKey(), entry.getValue());
     		
     		if (step > 0 && counter % step == 0) {
@@ -975,6 +858,8 @@ public class Monitor implements ChangeListener {
     }
     
     private void updateAttribute(ObjectReference obj, Field field, com.sun.jdi.Value javaValue) {
+    	//FIXME: Dynamic monitoring
+    	/*
     	if (!hasSnapshot()) return;
     	fireNewLogMessage(Level.FINE, "updateAttribute: " + field.name());
 
@@ -1071,27 +956,27 @@ public class Monitor implements ChangeListener {
 				fireNewLogMessage(Level.WARNING, "Attribute " + StringUtil.inQuotes(attr.toString()) + " could not be set!");
 			}
     	}
+    	*/
     }
     
     /**
-     * Checks the {@link ReferenceType} of <code>objRef</code> for the attributes
+     * Checks the {@link VMType} of <code>objRef</code> for the attributes
      * of the USE class of <code>o</code>. If an attribute is found the value of the 
      * USE attribute is set. After that all associations the USE class is participating
      * in are checked for rolenames matching an attribute name. For each match corresponding
      * links are created.  
-     * @param objRef The Java instance to read the values from 
+     * @param objRef The VM instance to read the values from 
      * @param o The use object to set the values for.
      */
-    private void readAttributes(ObjectReference objRef, MObject o) {
+    private void readAttributes(VMObject objRef, MObject o) {
     	for (MAttribute attr : o.cls().allAttributes()) {
     		
     		if (!readSpecialAttributeValue(objRef, o, attr)) {
-	    		Field field;
-	    		field = objRef.referenceType().fieldByName(mappingHelper.getJavaFieldName(attr));
+	    		VMField field;
+	    		field = objRef.getType().getFieldByName(mappingHelper.getJavaFieldName(attr));
 	    			    		
 	    		if (field != null) {
-	    			com.sun.jdi.Value val = objRef.getValue(field);
-	    			Value v = getUSEValue(val, attr.type());
+	    			Value v = objRef.getValue(field);
 	    			
 	    			try {
 	    				if (useSoil) {
@@ -1121,15 +1006,13 @@ public class Monitor implements ChangeListener {
      * @param attr
      * @return <code>true</code>, if the attribute <code>attr</code> has a special value  
      */
-    private boolean readSpecialAttributeValue(ObjectReference objRef,
-			MObject o, MAttribute attr) {
-    	
+    private boolean readSpecialAttributeValue(VMObject objRef, MObject o, MAttribute attr) {
     	String annotation = attr.getAnnotationValue("Monitor", "value");
     	if (annotation.equals("")) return false;
     	
 		Value v = UndefinedValue.instance; 
 		if (annotation.equals("classname")) {
-			v = new StringValue(objRef.referenceType().name());
+			v = new StringValue(objRef.getType().getName());
 		} else {
 			v = new StringValue("undefined special value " + StringUtil.inQuotes(annotation));
 		}
@@ -1139,110 +1022,7 @@ public class Monitor implements ChangeListener {
 		return true;
 	}
 
-    private Value getUSEObject(com.sun.jdi.Value javaValue) {
-    	if (javaValue instanceof ObjectReference) {
-    		// Only search for an instance
-    		MObject useObject = instanceMapping.get((ObjectReference)javaValue);
-    		
-    		if (useObject != null)
-    			return new ObjectValue(useObject.type(), useObject);
-    	}
-    	
-		fireNewLogMessage(Level.WARNING, "USE object for Java value " + javaValue.toString() + " not found!");
-		return UndefinedValue.instance;
-    }
-    
-	/**
-     * Returns the mapped USE value of <code>javaValue</code>.
-     * Java-value of type {@link ObjectReference} are tried to be mapped to
-     * corresponding USE-objects. If no object is found <code>UndefinedValue</code>
-     * is returned.
-     * @param javaValue
-     * @return
-     */
-    private Value getUSEValue(com.sun.jdi.Value javaValue, Type expectedType) {
-    	Value v = UndefinedValue.instance;
-		
-    	if (javaValue == null) return v;
-    	
-    	if (expectedType.isObjectType()) {
-    		v = getUSEObject(javaValue);
-    	} else if (javaValue instanceof ArrayReference) {
-    		//FIXME: Correct handling of array parameter!
-    		ArrayReference javaArray = (ArrayReference)javaValue;
-    		List<com.sun.jdi.Value> javaValues = javaArray.getValues();
-    		Value[] useValues = new Value[javaValues.size()];
-    				
-    		for (int i = 0; i < javaValues.size(); ++i) {
-    			useValues[i] = getUSEValue(javaValues.get(i), expectedType);
-    		}
-    		
-    		SequenceValue result = new SequenceValue(TypeFactory.mkVoidType(), useValues);
-    		
-    		v = result;
-    		    		
-		} else if (javaValue instanceof StringReference) {
-			v = new StringValue(((StringReference)javaValue).value());
-		// Primitive integer, i.e., int
-		} else if (javaValue instanceof IntegerValue) {
-			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf(((IntegerValue)javaValue).intValue());
-		} else if (javaValue instanceof BooleanValue) {
-			boolean b = ((BooleanValue)javaValue).booleanValue();
-			v = org.tzi.use.uml.ocl.value.BooleanValue.get(b);
-		} else if (javaValue instanceof ObjectReference) {
-			ObjectReference refValue = (ObjectReference)javaValue;
-
-			// Reference integer, i. e., Integer
-			if (refValue.referenceType().name().equals("java.lang.Integer")) {
-				// TODO: Don't hard code!
-				Field fValue = refValue.referenceType().fieldByName("value");
-				IntegerValue iValue = (IntegerValue)refValue.getValue(fValue);
-				
-				v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf(iValue.intValue());
-			} else if (expectedType.isEnum()) {
-				v = getUSEEnumValue((EnumType)expectedType, javaValue);
-			} else {		
-				// Could be an instance 
-				MObject useObject = instanceMapping.get(((ObjectReference)javaValue));
-				if (useObject != null)
-					v = new ObjectValue(useObject.type(), useObject);
-				else
-					fireNewLogMessage(Level.WARNING, "Unhandled type:" + javaValue.getClass().getName());
-			}
-			
-		} else {
-			fireNewLogMessage(Level.WARNING, "Unhandled type:" + javaValue.getClass().getName());
-		}
-		
-		return v;
-    }
-    
-	/**
-	 * @param expectedType
-	 * @param javaValue
-	 * @return
-	 */
-	private Value getUSEEnumValue(EnumType expectedType, com.sun.jdi.Value javaValue) {
-		if (!(javaValue instanceof ObjectReference))
-			return UndefinedValue.instance;
-		
-		ObjectReference enumValue = (ObjectReference)javaValue;
-		Field nameField = enumValue.referenceType().fieldByName("name");
-		
-		StringReference enumLiteral = (StringReference)enumValue.getValue(nameField);
-		String litString = enumLiteral.value();
-		
-		try {
-			EnumValue v = new EnumValue(expectedType, litString);
-			return v;
-		} catch (IllegalArgumentException e) {
-			fireNewLogMessage(Level.WARNING, e.getMessage());
-		}
-		
-		return UndefinedValue.instance;
-	}
-
-	private void readLinks(ObjectReference objRef, MObject o) {
+	private void readLinks(VMObject objRef, MObject o) {
 		Set<MClass> allClasses = new HashSet<MClass>(o.cls().allParents());
 		allClasses.add(o.cls());
 		
@@ -1255,7 +1035,7 @@ public class Monitor implements ChangeListener {
 				
 				List<MNavigableElement> reachableEnds = ass.navigableEndsFrom(cls);
 			
-    			// Check if object has link in java vm
+    			// Check if object has link in vm
         		for (MNavigableElement reachableElement : reachableEnds) {
         			MAssociationEnd reachableEnd = (MAssociationEnd)reachableElement;
         			
@@ -1273,73 +1053,75 @@ public class Monitor implements ChangeListener {
     	}
 	}
     
-    private void readLink(ObjectReference objRef, MObject source, MAssociationEnd end) {
-    	Field field = objRef.referenceType().fieldByName(mappingHelper.getJavaFieldName(end));
+	/**
+	 * Reads a link or multiple links (if qualified association)
+	 * for an association end with upper multiplicity of 1.  
+	 * @param objRef
+	 * @param source
+	 * @param end
+	 */
+    private void readLink(VMObject objRef, MObject source, MAssociationEnd end) {
+    	VMField field = objRef.getType().getFieldByName(mappingHelper.getJavaFieldName(end));
     	
     	if (field == null) {
+			fireNewLogMessage(
+					Level.FINE,
+					"Association end "
+							+ StringUtil.inQuotes(end)
+							+ "could not be retrieved as a field inside of the VM.");
     		return;
     	}
     	
     	// Get the referenced object
-    	com.sun.jdi.Value fieldValue = objRef.getValue(field);
-    	if (fieldValue instanceof ArrayReference) {
-    		ArrayReference arrayRef = (ArrayReference)fieldValue;
-    		List<org.tzi.use.uml.ocl.value.Value> qualifierValues;
-    		ObjectReference refTarget = null;
+    	Value fieldValue = objRef.getValue(field);
+    	
+    	if (fieldValue.isUndefined())
+    		return;
+    	
+    	if (fieldValue instanceof SequenceValue) {
+    		// Qualified association
+    		SequenceValue seqValue = (SequenceValue)fieldValue;
     			
     		try {
-    			List<com.sun.jdi.Value> arrayValues = arrayRef.getValues();
-    			
-				for (int index1 = 0; index1 < arrayValues.size(); index1++) {
-					com.sun.jdi.Value elementValue = arrayValues.get(index1);
-					
-					if (elementValue instanceof ArrayReference) {
-						List<com.sun.jdi.Value> arrayValues2 = ((ArrayReference)elementValue).getValues();
-						for (int index2 = 0; index2 < arrayValues2.size(); index2++) {
-							com.sun.jdi.Value elementValue2 = arrayValues2.get(index2);
-							
-							qualifierValues = new ArrayList<org.tzi.use.uml.ocl.value.Value>(2);
-							qualifierValues.add(org.tzi.use.uml.ocl.value.IntegerValue.valueOf(index1));
-							qualifierValues.add(org.tzi.use.uml.ocl.value.IntegerValue.valueOf(index2));
-							refTarget = (ObjectReference)elementValue2;
-							
-							if (refTarget != null) {
-					    		MObject target = instanceMapping.get(refTarget);
-
-					    		if (target != null) {
-					    			createLink(source, end, target, qualifierValues);
-					    		}
-					    	}							
-						}
-					} else {
-						refTarget = (ObjectReference)elementValue;
-						if (refTarget != null) {
-							qualifierValues = new ArrayList<org.tzi.use.uml.ocl.value.Value>(1);
-							qualifierValues.add(org.tzi.use.uml.ocl.value.IntegerValue.valueOf(index1));
-							
-				    		MObject target = instanceMapping.get(refTarget);
-
-				    		if (target != null) {
-				    			createLink(source, end, target, qualifierValues);
-				    		}
-				    	}
-					}
-				}
+    			readQualifiedLinks(source, end, seqValue, new ArrayList<Value>());
 			} catch (Exception e) {
 				fireNewLogMessage(Level.SEVERE, "ERROR: " + e.getMessage()); 
 			}
     		
     	} else {
-	    	ObjectReference referencedObject = (ObjectReference)objRef.getValue(field);
-	    	
-	    	if (referencedObject != null) {
-	    		MObject target = instanceMapping.get(referencedObject);
-	    		if (target != null) {
-	    			createLink(source, end, target);
-	    		}
+	    	try {
+	    		ObjectValue oValue = (ObjectValue)fieldValue; 
+	    		createLink(source, end, oValue.value());
+	    	} catch (Exception ex) {
+	    		fireNewLogMessage(Level.SEVERE, "Error while reading link: " + ex.getMessage());
 	    	}
     	}
     }
+
+	/**
+	 * @param i
+	 * @param qualifierValues
+	 * @return
+	 */
+	private void readQualifiedLinks(MObject source, MAssociationEnd end, SequenceValue seqValue, List<Value> qualifierValues) {
+		for (int i = 0; i < seqValue.size(); ++i) {
+			List<Value> qualifierValuesNew = new ArrayList<Value>(qualifierValues);
+			qualifierValuesNew.add(IntegerValue.valueOf(i));
+			Value val = seqValue.get(i);
+			
+			if (val.isSequence()) {
+				readQualifiedLinks(source, end, (SequenceValue)val, qualifierValuesNew);
+			} else if (val.isObject()) {
+				ObjectValue target = (ObjectValue)val;
+				if (target != null) {
+	    			createLink(source, end, target.value(), qualifierValuesNew);
+	    		}
+			}
+			
+			// Remove last added integer value
+			qualifierValuesNew.remove(qualifierValuesNew.size() - 1);
+		}
+	}
 
 	private void createLink(MObject source, MAssociationEnd end, MObject target) {
 		createLink(source, end, target, Collections.<org.tzi.use.uml.ocl.value.Value>emptyList());
@@ -1382,111 +1164,67 @@ public class Monitor implements ChangeListener {
 		}
 	}
     
-    private void readLinks(ObjectReference objRef, MObject o, MAssociationEnd end) {
-    	Field field = objRef.referenceType().fieldByName(end.nameAsRolename());
+	/**
+	 * Reads links at an association end with an upper
+	 * multiplicity of more than 1.
+	 * @param objRef
+	 * @param o
+	 * @param end
+	 */
+    private void readLinks(VMObject objRef, MObject o, MAssociationEnd end) {
+    	VMField field = objRef.getType().getFieldByName(end.nameAsRolename());
     	
     	if (field == null) {
+    		fireNewLogMessage(
+					Level.FINE,
+					"Association end "
+							+ StringUtil.inQuotes(end)
+							+ "could not be retrieved as a field inside of teh VM.");
     		return;
     	}
     	
     	// Get the referenced objects
-    	ObjectReference objects = (ObjectReference)objRef.getValue(field);
+    	Value objects = objRef.getValue(field);
     	
     	if (objects == null) {
     		return;
     	}
     	
-    	if (objects.type() instanceof ClassType) {
-    		ClassType collectionType = (ClassType)objects.type();
-    	
-    		if (collectionType.name().equals("java.util.HashSet")) {
-    			readLinksHashSet(objects, o, end);
-    		} else if (collectionType.name().equals("java.util.ArrayList")) {
-    			readLinksArrayList(objects, o, end);
-    		} else {
-				fireNewLogMessage(
-						Level.SEVERE,
-						"Multi-valued association end "
-								+ StringUtil.inQuotes(end.toString())
-								+ " is implemented as "
-								+ StringUtil.inQuotes(collectionType.name())
-								+ " which is currently not supported");
-    		}
-    	} else if (objects.type() instanceof ArrayType) {
-    		readQualifiedLinks(objects, o, end);
+    	if (!objects.isCollection()) {
+    		fireNewLogMessage(
+					Level.SEVERE,
+					"Reading of multi-valued association end " + StringUtil.inQuotes(end.toString()) + " resulted in a single value!");
+    		return;
     	}
     	
-    }
-    
-    private void readQualifiedLinks(ObjectReference array, MObject o, MAssociationEnd end) {
-    
-    }
-    
-    private void readLinksArrayList(ObjectReference arrayList, MObject o, MAssociationEnd end) {
-
-    	if (!(end.isOrdered() || end.hasQualifiers())) {
+    	
+    	if (objects.isSet() && end.isOrdered()) {
+			// Just warn
 			fireNewLogMessage(
 					Level.WARNING,
 					"Association end "
 							+ StringUtil.inQuotes(end.toString())
-							+ " is implemented as an ArrayList but not marked as {ordered} nor it defines qualifiers.");
+							+ " was read as a set value but is marked as {ordered}.");
+    	} else if (objects.isSequence() && !(end.isOrdered() || end.hasQualifiers())) {
+			fireNewLogMessage(
+					Level.WARNING,
+					"Association end "
+							+ StringUtil.inQuotes(end.toString())
+							+ " was read as an index based value, but is not marked as {ordered} nor it defines qualifiers.");
     	}
     	
-    	// ArrayList uses the private field "elementData:Object" to store the values
-    	Field field = arrayList.referenceType().fieldByName("elementData");
-    	ArrayReference elements = (ArrayReference)arrayList.getValue(field);
+    	CollectionValue objCollection = (CollectionValue)objects;
     	
-    	List<com.sun.jdi.Value> mapEntries = elements.getValues();
-    	int index = 0;
-    	
-    	for (com.sun.jdi.Value value : mapEntries) {
-    		if (value != null) {
-    			ObjectReference entry = (ObjectReference)value;
-    			createLink(o, end, instanceMapping.get(entry));
+    	for (Value v : objCollection) {
+    		if (!v.isObject()) {
+    			fireNewLogMessage(Level.WARNING, "Encountered non object during reading of association end " + StringUtil.inQuotes(end));
+    			return;
     		}
-    	}
-    }
-
-    
-    private void readLinksHashSet(ObjectReference hashset, MObject o, MAssociationEnd end) {
-    	// HashSet uses the private field "map:HashMap" to store the values
-    	Field field = hashset.referenceType().fieldByName("map");
-    	ObjectReference mapValue = (ObjectReference)hashset.getValue(field);
-    	
-    	// Values are stored in the field "table:Entry"
-    	field = mapValue.referenceType().fieldByName("table");
-    	ArrayReference tableValue = (ArrayReference)mapValue.getValue(field);
-    	
-    	List<com.sun.jdi.Value> mapEntries = tableValue.getValues();
-    	Field fieldKey = null;
-    	Field fieldNext = null;
-    	
-    	for (com.sun.jdi.Value value : mapEntries) {
-    		if (value != null) {
-    			ObjectReference mapEntry = (ObjectReference)value;
     		
-    			if (fieldKey == null) {
-    				fieldKey = mapEntry.referenceType().fieldByName("key");
-    				fieldNext = mapEntry.referenceType().fieldByName("next");
-    			}
-
-    			ObjectReference referencedObject = (ObjectReference)mapEntry.getValue(fieldKey);
-    			if (instanceMapping.containsKey(referencedObject)) {
-    				createLink(o, end, instanceMapping.get(referencedObject));
-    			}
-    			
-    			ObjectReference nextEntry = (ObjectReference)mapEntry.getValue(fieldNext);
-    			while (nextEntry != null) {
-    				referencedObject = (ObjectReference)nextEntry.getValue(fieldKey);
-    				if (instanceMapping.containsKey(referencedObject)) {
-        				createLink(o, end, instanceMapping.get(referencedObject));
-        			}
-    				nextEntry = (ObjectReference)nextEntry.getValue(fieldNext);
-    			}
-    		}
+    		createLink(o, end, ((ObjectValue)v).value());
     	}
     }
-    
+        
     private boolean onMethodCall(BreakpointEvent breakpointEvent) {
     	if (breakpointEvent.location().method().isConstructor()) {
     		return handleConstructorCall(breakpointEvent);
@@ -1498,6 +1236,8 @@ public class Monitor implements ChangeListener {
     }
     
     private boolean handleConstructorCall(BreakpointEvent breakpointEvent) {
+    	//FIXME: Dynamic monitoring
+    	/*
     	fireNewLogMessage(Level.FINE, "onConstructorCall: " + breakpointEvent.location().method().toString());
         	
     	StackFrame currentFrame;
@@ -1529,27 +1269,14 @@ public class Monitor implements ChangeListener {
 			fireNewLogMessage(Level.SEVERE, "USE object for new instance of type " + javaObject.type().name() + " could not be created.");
 			return true;
 		}
-		
+		*/
 		return true;
     }
-    
-    /**
-	 * @param javaObject
-	 * @return
-	 */
-	private MClass getUSEClass(ObjectReference javaObject) {
-		// Try to find a class by the default name
-		String className = javaObject.type().name();
-		fireNewLogMessage(Level.FINE, "getUSEClass: " + className);
-		
-		MClass cls = this.classNamesMap.get(className);
-		
-		fireNewLogMessage(Level.FINE, "getUSEClass result: " + cls.name());
-		
-		return cls;
-	}
 
 	private boolean handleMethodCall(BreakpointEvent breakpointEvent) {
+		return true;
+		//FIXME: Dynamic monitoring
+		/*
 		Method m = breakpointEvent.location().method();
     	fireNewLogMessage(Level.FINE, "onMethodCall: " + m.toString());
     	
@@ -1602,9 +1329,13 @@ public class Monitor implements ChangeListener {
     	checkForDeletedInstances();
     	
     	return createOperationCall(self, useOperation, currentFrame, true);
+    	*/
     }
     
     private boolean onMethodExit(MethodExitEvent exitEvent) {
+    	//FIXME: Dynamic monitoring
+    	
+    	/*
     	MOperationCall currentUseOperationCall = getSystem().getCurrentOperation();
     	
     	if (currentUseOperationCall == null) {
@@ -1642,76 +1373,13 @@ public class Monitor implements ChangeListener {
 			fireNewLogMessage(Level.SEVERE, "Error while exiting " + exitEvent.method().toString() + ": " + e.getMessage());
 			return false;
 		}
-		
+		*/
 		return true;
     }
     
     protected MonitorPPCHandler ppcHandler = new MonitorPPCHandler();
     
-    private final class BreakPointWatcher implements Runnable {
-		@Override
-		public void run() {
-			while (isRunning) {
-				try {
-					EventSet events = monitoredVM.eventQueue().remove();
-					if (!isRunning) return;
-					
-					fireNewLogMessage(Level.FINER, "Handling VM events.");
-					
-					for (com.sun.jdi.event.Event e : events) {
-						if (e instanceof BreakpointEvent) {
-							BreakpointEvent be = (BreakpointEvent)e;
-							fireNewLogMessage(Level.FINER, "Handling operation call.");
-							boolean opCallResult = onMethodCall(be);
-							if (!opCallResult) {
-								fireNewLogMessage(Level.SEVERE, "Enter of method " + be.location().method().toString() + " failed.");
-								hasFailedOperation = true;
-								waitForUserInput();
-							}
-						} else if (e instanceof ClassPrepareEvent) {
-							ClassPrepareEvent ce = (ClassPrepareEvent)e;
-							fireNewLogMessage(Level.FINER, "Registering operations of prepared Java class " + ce.referenceType().name() + ".");
-							registerOperationBreakPoints(ce.referenceType());
-						} else if (e instanceof ModificationWatchpointEvent) {
-							ModificationWatchpointEvent we = (ModificationWatchpointEvent)e;
-							fireNewLogMessage(Level.FINER, "Handling modification watchpoint " + we.field().toString() + ".");
-							updateAttribute(we.object(), we.field(), we.valueToBe());
-						} else if (e instanceof MethodExitEvent) {
-							MethodExitEvent me = (MethodExitEvent)e;
-							fireNewLogMessage(Level.FINER, "Handling operation exit watchpoint " + me.method().toString() + ".");
-							boolean opCallResult = onMethodExit(me);
-							if (!opCallResult) {
-								fireNewLogMessage(Level.WARNING, "Exit of method " + me.method().toString() + " failed.");
-								hasFailedOperation = true;
-								waitForUserInput();
-							}
-						} else if (e instanceof VMDeathEvent) {
-							fireNewLogMessage(Level.INFO, "VM terminated.");
-							end();
-							return;
-						}
-					}
-					events.resume();
-					fireNewLogMessage(Level.FINER, "Resumed threads after andling VM events.");
-				} catch (InterruptedException e) {
-					// VM is away np
-				} catch (VMDisconnectedException e) {
-					isRunning = false;
-					monitoredVM = null;
-					fireNewLogMessage(Level.WARNING, "Monitored application has terminated.");
-				} catch (Exception ex) {
-					fireNewLogMessage(
-							Level.SEVERE,
-							"Error while listening to break points: ["
-									+ ex.getClass().getSimpleName() + "] "
-									+ ex.getMessage());
-					fireNewLogMessage(Level.SEVERE, "Disonnecting");
-					end();
-					return;
-				}
-			}
-		}
-	}
+    
 
 	protected class MonitorPPCHandler implements PPCHandler {
 
@@ -1855,6 +1523,45 @@ public class Monitor implements ChangeListener {
 	public void stateChanged(ChangeEvent e) {
 		if (!isResetting && isRunning()) {
 			end();
+		}
+	}
+	
+	/**
+	 * This class encapsulates control functions exposed
+	 * only to the adapter.
+	 * This allows to hide adapter operations from the public interface of
+	 * the monitor.
+	 * @author Lars Hamann
+	 *
+	 */
+	public class Controller {
+		/**
+		 * Only the monitor can create instances
+		 */
+		private Controller() {}
+		
+		/**
+		 * Ends the monitoring process.
+		 */
+		public void end() {
+			Monitor.this.end();
+		}
+		
+		public void newLogMessage(Level level, String message) {
+			fireNewLogMessage(level, message);
+		}
+
+		/**
+		 * @param name
+		 * @return
+		 */
+		public EnumType getEnumerationType(String name) {
+			for (EnumType t : session.system().model().enumTypes()) {
+				if (mappingHelper.getVMEnumName(t).equals(name))
+					return t;
+			}
+			
+			return null;
 		}
 	}
 }
