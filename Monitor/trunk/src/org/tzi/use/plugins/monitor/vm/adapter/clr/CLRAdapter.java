@@ -11,6 +11,7 @@ import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
 import org.tzi.use.plugins.monitor.vm.adapter.VMAdapter;
 import org.tzi.use.plugins.monitor.vm.mm.VMObject;
 import org.tzi.use.plugins.monitor.vm.mm.VMType;
+import org.tzi.use.plugins.monitor.vm.mm.clr.CLRType;
 
 /**
  * @author Lars Hamann

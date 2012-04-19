@@ -1,11 +1,12 @@
 /**
  * 
  */
-package org.tzi.use.plugins.monitor.vm.adapter.clr;
+package org.tzi.use.plugins.monitor.vm.mm.clr;
 
 import java.util.List;
 import java.util.Set;
 
+import org.tzi.use.plugins.monitor.vm.adapter.clr.CLRAdapter;
 import org.tzi.use.plugins.monitor.vm.mm.VMField;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
 import org.tzi.use.plugins.monitor.vm.mm.VMObject;
