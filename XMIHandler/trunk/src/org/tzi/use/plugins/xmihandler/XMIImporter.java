@@ -372,6 +372,7 @@ public class XMIImporter {
     try {
       resource.load(Collections.EMPTY_MAP);
     } catch (IOException e) {
+      e.printStackTrace();
     }
 
     Model umlModel = findModel(resource, file.getName().replaceFirst(

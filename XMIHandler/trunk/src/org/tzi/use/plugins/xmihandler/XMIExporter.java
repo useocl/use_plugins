@@ -363,10 +363,11 @@ public class XMIExporter {
     // Save the contents of the resource to the file system.
     try {
       resource.save(Collections.EMPTY_MAP);
+      
+      Utils.out("Exported: " + umlModel.getName());
     } catch (IOException e) {
+      e.printStackTrace();
     }
-
-    Utils.out("Exported: " + umlModel.getName());
 
   }
 

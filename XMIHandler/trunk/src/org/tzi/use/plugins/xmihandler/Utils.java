@@ -1,6 +1,8 @@
 package org.tzi.use.plugins.xmihandler;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -110,7 +112,7 @@ public class Utils {
       uriMap.putAll(UML22UMLExtendedMetaData.getURIMap());
       uriMap.putAll(XMI2UMLExtendedMetaData.getURIMap());
     }
-    
+
     return resourceSet;
 
   }
@@ -122,11 +124,11 @@ public class Utils {
       // Make sure we have a recognized file extension
       uri = uri.appendFileExtension("xmi");
     }
-    
+
     ResourceSet rs = getResourceSet();
-    
+
     if (rs == null) {
-      throw new NullPointerException("Failed to create resource set");      
+      throw new NullPointerException("Failed to create resource set");
     }
 
     Resource r = rs.createResource(uri);
@@ -138,4 +140,12 @@ public class Utils {
     return r;
   }
 
+  public static boolean canWrite(File file) {
+    try {
+      new FileOutputStream(file, true).close();
+    } catch (IOException e) {
+      return false;
+    }
+    return true;
+  }
 }

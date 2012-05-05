@@ -14,5 +14,13 @@
     </action>    
     </actions>
 	<commands>
+	   <command class="org.tzi.use.plugins.xmihandler.cmd.XMIHandlerCmd"
+      id="org.tzi.use.xmihandler.cmd.XMIHandlerCmd" shellcmd="export xmi"
+      label="Export to XMI" help="Exports USE Model to XMI File">
+    </command>
+     <command class="org.tzi.use.plugins.xmihandler.cmd.XMIHandlerCmd"
+      id="org.tzi.use.xmihandler.cmd.XMIHandlerCmd" shellcmd="import xmi"
+      label="Import from XMI" help="Imports UML Model from XMI File">
+    </command>
 	</commands>
 </plugin>
