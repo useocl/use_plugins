@@ -3,7 +3,6 @@ package org.tzi.use.plugins.xmihandler.cmd;
 import java.io.File;
 
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
-import org.tzi.use.plugins.xmihandler.Utils;
 import org.tzi.use.plugins.xmihandler.XMIHandlerPlugin;
 import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
 
