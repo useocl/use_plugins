@@ -11,10 +11,8 @@ public class ImportXMICmd implements IPluginShellCmdDelegate {
   @Override
   public final void performCommand(IPluginShellCmd pluginCommand) {
     File xmiFile = new File(pluginCommand.getCmdArguments().trim());
-    if (xmiFile.exists()) {
-      XMIHandlerPlugin.getXMIHandlerPluginInstance().importFromXMI(xmiFile,
-          pluginCommand.getSession());
-    }
+    XMIHandlerPlugin.getXMIHandlerPluginInstance().importFromXMI(xmiFile,
+        pluginCommand.getSession(), null);
   }
 
 }

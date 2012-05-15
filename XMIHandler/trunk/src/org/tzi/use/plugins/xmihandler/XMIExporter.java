@@ -22,6 +22,7 @@ import org.eclipse.uml2.uml.Type;
 import org.eclipse.uml2.uml.UMLFactory;
 import org.eclipse.uml2.uml.UMLPackage;
 import org.tzi.use.graph.DirectedGraph;
+import org.tzi.use.main.Session;
 import org.tzi.use.uml.mm.MAggregationKind;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;
@@ -48,22 +49,13 @@ public class XMIExporter {
     return model;
   }
 
-  private static org.eclipse.uml2.uml.Package createPackage(
-      org.eclipse.uml2.uml.Package nestingPackage, String name) {
-    org.eclipse.uml2.uml.Package package_ = nestingPackage
-        .createNestedPackage(name);
-
-    Utils.out("Package '" + package_.getQualifiedName() + "' created.");
-
-    return package_;
-  }
-
   private static PrimitiveType createPrimitiveType(
       org.eclipse.uml2.uml.Package package_, String name) {
     PrimitiveType primitiveType = (PrimitiveType) package_
         .createOwnedPrimitiveType(name);
 
-    Utils.out("Primitive type '" + primitiveType.getQualifiedName() + "' created.");
+    Utils.out("Primitive type '" + primitiveType.getQualifiedName()
+        + "' created.");
 
     return primitiveType;
   }
@@ -104,8 +96,8 @@ public class XMIExporter {
     Generalization generalization = specificClassifier
         .createGeneralization(generalClassifier);
 
-    Utils.out("Generalization " + specificClassifier.getQualifiedName() + " ->> "
-        + generalClassifier.getQualifiedName() + " created.");
+    Utils.out("Generalization " + specificClassifier.getQualifiedName()
+        + " ->> " + generalClassifier.getQualifiedName() + " created.");
 
     return generalization;
   }
@@ -130,35 +122,6 @@ public class XMIExporter {
     Association association = (Association) umlModel.createOwnedType(name,
         UMLPackage.Literals.ASSOCIATION);
     Utils.out("Association " + name + " created.");
-    return association;
-  }
-
-  private static Association createAssociation(String name,
-      org.eclipse.uml2.uml.Class type1, boolean end1IsNavigable,
-      boolean end1IsOrdered, AggregationKind end1Aggregation, String end1Name,
-      int end1LowerBound, int end1UpperBound, org.eclipse.uml2.uml.Class type2,
-      boolean end2IsNavigable, boolean end2IsOrdered,
-      AggregationKind end2Aggregation, String end2Name, int end2LowerBound,
-      int end2UpperBound) {
-
-    Association association = type1.createAssociation(end1IsNavigable,
-        end1Aggregation, end1Name, end1LowerBound, end1UpperBound, type2,
-        end2IsNavigable, end2Aggregation, end2Name, end2LowerBound,
-        end2UpperBound);
-
-    association.setName(name);
-
-    for (Property prop : association.getMemberEnds()) {
-      if (prop.getName().equals(end1Name)) {
-        prop.setIsOrdered(end1IsOrdered);
-      }
-      if (prop.getName().equals(end2Name)) {
-        prop.setIsOrdered(end2IsOrdered);
-      }
-    }
-
-    Utils.out("Association " + name + " created.");
-
     return association;
   }
 
@@ -303,7 +266,7 @@ public class XMIExporter {
             umlAssocEndAggregationKind, useAssocEnd.nameAsRolename(),
             umlAssocEndLower, umlAssocEndUpper);
       }
-
+      
     }
   }
 
@@ -337,15 +300,18 @@ public class XMIExporter {
    ** xmi export **
    **********************************************************************************************/
 
-  public static void exportToXMI(File file, MModel useModel) {
+  public static void exportToXMI(File file, Session session) throws XMIHandlerException {
+    
     // Get the URI of the model file.
     URI fileURI = URI.createFileURI(file.getAbsolutePath());
-
-    Utils.out(">>>>>>>>>>>>>>>>>>>>>>>>>>>>" + fileURI.path());
-
+    
     // Create a resource for this file.
     Resource resource = Utils.getResource(fileURI);
+    
+    Utils.out("Exporting to file: " + resource.getURI().path());    
 
+    final MModel useModel = session.system().model();
+    
     final Model umlModel = createModel(useModel.name());
 
     createEnumerations(umlModel, useModel);
@@ -363,10 +329,10 @@ public class XMIExporter {
     // Save the contents of the resource to the file system.
     try {
       resource.save(Collections.EMPTY_MAP);
-      
+
       Utils.out("Exported: " + umlModel.getName());
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new XMIHandlerException(e);
     }
 
   }

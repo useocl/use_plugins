@@ -13,7 +13,7 @@ import org.tzi.use.plugins.xmihandler.XMIHandlerPlugin;
 public class XMIHandlerView extends JFileChooser {
 
   private Session session;
-  private MainWindow parent;
+  private MainWindow mainWindow;
 
   public enum Mode {
     EXPORT, IMPORT
@@ -21,7 +21,7 @@ public class XMIHandlerView extends JFileChooser {
 
   public XMIHandlerView(MainWindow theParent, Session theSession, Mode mode) {
     this.session = theSession;
-    this.parent = theParent;
+    this.mainWindow = theParent;
     initGUI(mode);
   }
 
@@ -30,24 +30,24 @@ public class XMIHandlerView extends JFileChooser {
     int returnVal = -1;
     if (mode == Mode.EXPORT) {
       setDialogType(JFileChooser.SAVE_DIALOG);
-      returnVal = showSaveDialog(parent);      
+      returnVal = showSaveDialog(mainWindow);      
     } else {
       setDialogType(JFileChooser.OPEN_DIALOG);
-      returnVal = showOpenDialog(parent);      
+      returnVal = showOpenDialog(mainWindow);      
     }
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      WaitDialog dlg = new WaitDialog(parent, true);
+      WaitDialog dlg = new WaitDialog(mainWindow, true);
       dlg.start(new IWorkerRunner() {
 
         public Object doWork() {
           switch (mode) {
           case EXPORT:
             XMIHandlerPlugin.getXMIHandlerPluginInstance().exportToXMI(
-                getSelectedFile(), session.system().model());
+                getSelectedFile(), session, mainWindow.logWriter());
             break;
           case IMPORT:
             XMIHandlerPlugin.getXMIHandlerPluginInstance().importFromXMI(
-                getSelectedFile(), session);
+                getSelectedFile(), session, mainWindow.logWriter());
             break;
           }
           return Boolean.TRUE;
@@ -56,11 +56,10 @@ public class XMIHandlerView extends JFileChooser {
         public void doUpdate() {
         }
       });
-      centerWindow(dlg, parent);
+      centerWindow(dlg, mainWindow);
       dlg.setVisible(true);
 
-      // This is where a real application would open the file.
-    } else {
+    } else { // do nothing
     }
 
     this.setVisible(true);

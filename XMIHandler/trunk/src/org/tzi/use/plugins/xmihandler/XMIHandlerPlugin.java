@@ -1,10 +1,10 @@
 package org.tzi.use.plugins.xmihandler;
 
 import java.io.File;
+import java.io.PrintWriter;
 
 import org.tzi.use.main.Session;
 import org.tzi.use.runtime.impl.Plugin;
-import org.tzi.use.uml.mm.MModel;
 
 public class XMIHandlerPlugin extends Plugin {
 
@@ -21,12 +21,22 @@ public class XMIHandlerPlugin extends Plugin {
     return PLUGIN_NAME;
   }
 
-  public void exportToXMI(File file, MModel useModel) {
-    XMIExporter.exportToXMI(file, useModel);
+  public void exportToXMI(File file, Session session, PrintWriter logWriter) {
+    Utils.setLogWriter(logWriter);
+    try {
+      XMIExporter.exportToXMI(file, session);      
+    } catch (XMIHandlerException ex) {
+      Utils.out("Export failed.");
+    }
   }
   
-  public void importFromXMI(File file, Session session) {
-    XMIImporter.importFromXMI(file, session);
+  public void importFromXMI(File file, Session session, PrintWriter logWriter) {
+    Utils.setLogWriter(logWriter);
+    try {
+      XMIImporter.importFromXMI(file, session);      
+    } catch (XMIHandlerException ex) {
+      Utils.out("Import failed.");
+    }
   }
   
 }

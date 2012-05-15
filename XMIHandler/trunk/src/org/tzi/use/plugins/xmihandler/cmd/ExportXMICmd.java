@@ -12,9 +12,7 @@ public class ExportXMICmd implements IPluginShellCmdDelegate {
   @Override
   public final void performCommand(IPluginShellCmd pluginCommand) {
     File xmiFile = new File(pluginCommand.getCmdArguments().trim());
-    if (Utils.canWrite(xmiFile)) {
-      XMIHandlerPlugin.getXMIHandlerPluginInstance().exportToXMI(xmiFile, pluginCommand.getSession().system().model());          
-    }      
+    XMIHandlerPlugin.getXMIHandlerPluginInstance().exportToXMI(xmiFile, pluginCommand.getSession(), null);          
   }
 
 }
