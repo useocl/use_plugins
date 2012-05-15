@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.uml2.uml.Association;
 import org.eclipse.uml2.uml.Element;
+import org.eclipse.uml2.uml.Enumeration;
 import org.eclipse.uml2.uml.EnumerationLiteral;
 import org.eclipse.uml2.uml.Generalization;
 import org.eclipse.uml2.uml.LiteralUnlimitedNatural;
@@ -22,7 +23,9 @@ import org.eclipse.uml2.uml.Property;
 import org.eclipse.uml2.uml.UMLPackage;
 import org.eclipse.uml2.uml.internal.impl.ClassImpl;
 import org.eclipse.uml2.uml.internal.impl.EnumerationImpl;
+import org.eclipse.uml2.uml.internal.impl.ModelImpl;
 import org.eclipse.uml2.uml.internal.impl.NamedElementImpl;
+import org.eclipse.uml2.uml.internal.impl.PackageImpl;
 import org.eclipse.uml2.uml.internal.impl.PrimitiveTypeImpl;
 import org.tzi.use.graph.DirectedGraph;
 import org.tzi.use.main.Session;
@@ -49,8 +52,8 @@ public class XMIImporter {
   private static void createEnumerations(MModel useModel,
       EList<Element> allResourceElements) throws XMIHandlerException {
     for (Element elem : allResourceElements) {
-      if (elem instanceof org.eclipse.uml2.uml.Enumeration) {
-        org.eclipse.uml2.uml.Enumeration enumeration = (org.eclipse.uml2.uml.Enumeration) elem;
+      if (elem instanceof Enumeration) {
+        Enumeration enumeration = (Enumeration) elem;
         if (useModel.enumType(enumeration.getName()) == null) {
           List<String> literals = new ArrayList<String>();
           for (EnumerationLiteral literal : enumeration.getOwnedLiterals()) {
@@ -99,9 +102,8 @@ public class XMIImporter {
 
           MAttribute attr = null;
 
-          String propName = (prop.getName() == null || prop.getName().isEmpty()) ? prop
-              .getType().getName()
-              : prop.getName();
+          String propName = (prop.getName() == null || prop.getName().isEmpty()) ? 
+              prop.getType().getName() : prop.getName();
 
           if (prop.getType() instanceof PrimitiveTypeImpl) {
             boolean isSet = false;
@@ -307,7 +309,7 @@ public class XMIImporter {
     EList<Element> list = new BasicEList<Element>();
     for (Object obj : EcoreUtil.getObjectsByType(resource.getContents(),
         UMLPackage.Literals.ELEMENT)) {
-      org.eclipse.uml2.uml.Element elem = (org.eclipse.uml2.uml.Element) obj;
+      Element elem = (Element) obj;
       list.addAll(agregateElementsRecursive(elem));
     }
 
@@ -317,12 +319,12 @@ public class XMIImporter {
   private static EList<Element> agregateElementsRecursive(Element parentElem) {
 
     EList<Element> list = new BasicEList<Element>();
-    
+
     list.add(parentElem);
-    
+
     for (Element elem : parentElem.getOwnedElements()) {
-      if (elem instanceof org.eclipse.uml2.uml.internal.impl.PackageImpl || 
-          elem instanceof org.eclipse.uml2.uml.internal.impl.ModelImpl) {
+      if (elem instanceof PackageImpl
+          || elem instanceof ModelImpl) {
         list.addAll(agregateElementsRecursive(elem));
       } else {
         list.add(elem);
@@ -331,72 +333,69 @@ public class XMIImporter {
 
     return list;
   }
-  
-  private static Model findModel(EList<Element> allResourceElements, String modelName) {
-    for (Element elem : allResourceElements) {
-      if (elem instanceof org.eclipse.uml2.uml.internal.impl.ModelImpl
-          && ((org.eclipse.uml2.uml.internal.impl.ModelImpl) elem).getName()
-              .equalsIgnoreCase(modelName)) {
-        return (org.eclipse.uml2.uml.internal.impl.ModelImpl) elem;
-      }
-    }
-    return null;
-  }
-  
-  private static Model getModel(EList<Element> allResourceElements) {
-    for (Element elem : allResourceElements) {
-      if (elem instanceof org.eclipse.uml2.uml.internal.impl.ModelImpl) {
-        return (org.eclipse.uml2.uml.internal.impl.ModelImpl) elem;
-      }
-    }
-    return null;
-  }
-  
-  private static int getModelCount(EList<Element> allResourceElements) {
-    int modelCount = 0;
-    for (Element elem : allResourceElements) {
-      if (elem instanceof org.eclipse.uml2.uml.internal.impl.ModelImpl) {
-        modelCount++;
-      }
-    }
-    return modelCount;
-  }
-  
-  private static void appendPrefixes(EList<Element> allResourceElements) {
+
+  private static void addModelNamePrefixes(EList<Element> allResourceElements) {
     for (Element elem : allResourceElements) {
       Model ownerModel = getOwnerModel(elem);
-      if (!(elem instanceof org.eclipse.uml2.uml.internal.impl.ModelImpl) &&
-          elem instanceof NamedElementImpl &&
-          !((NamedElement)elem).getName().trim().isEmpty() &&
-          ! (ownerModel == null) &&
-          ! ownerModel.getName().trim().isEmpty()) {
-        ((NamedElement)elem).setName(ownerModel.getName() +  "::" + ((NamedElement)elem).getName());
-      }      
+      if (!(elem instanceof ModelImpl)
+          && elem instanceof NamedElementImpl
+          && !((NamedElement) elem).getName().trim().isEmpty()
+          && !(ownerModel == null) && !ownerModel.getName().trim().isEmpty()) {
+        ((NamedElement) elem).setName(ownerModel.getName() + "::"
+            + ((NamedElement) elem).getName());
+      }
     }
   }
-  
-  private static Model getOwnerModel (Element elem) {
+
+  private static Model getOwnerModel(Element elem) {
     Element ownerElem = elem.getOwner();
-    while (!((ownerElem instanceof org.eclipse.uml2.uml.internal.impl.ModelImpl) || (ownerElem == null))) {
+    while (!((ownerElem instanceof ModelImpl) || (ownerElem == null))) {
       ownerElem = ownerElem.getOwner();
     }
-    return (org.eclipse.uml2.uml.internal.impl.ModelImpl) ownerElem;
+    return (ModelImpl) ownerElem;
   }
-  
 
+  private static Model getUmlModel(EList<Element> allResourceElements,
+      String modelName) {
+
+    EList<Model> modelList = new BasicEList<Model>();
+
+    for (Element elem : allResourceElements) {
+      if (elem instanceof ModelImpl) {
+        modelList.add((ModelImpl) elem);
+      }
+    }
+
+    if (modelList.isEmpty()) {
+      return null;
+    }
+
+    if (modelList.size() > 1) {
+      addModelNamePrefixes(allResourceElements);
+    }
+
+    for (Model m : modelList) {
+      if (m.getName().equalsIgnoreCase(modelName)) {
+        return m;
+      }
+    }
+
+    return modelList.get(0);
+  }
 
   /**********************************************************************************************
    ** xmi import **
    **********************************************************************************************/
 
-  public static void importFromXMI(File file, Session session) throws XMIHandlerException {
+  public static void importFromXMI(File file, Session session)
+      throws XMIHandlerException {
 
     // Get the URI of the model file.
     URI fileURI = URI.createFileURI(file.getAbsolutePath());
-    
+
     // Create a resource for this file.
     Resource resource = Utils.getResource(fileURI);
-    
+
     Utils.out("Importing from file: " + resource.getURI().path());
 
     try {
@@ -406,25 +405,15 @@ public class XMIImporter {
     }
 
     EList<Element> allResourceElements = agregateElements(resource);
-    
-    Model umlModel = null;
-    
-    int  modelCount = getModelCount(allResourceElements);
 
-    if (modelCount > 1) {
-      umlModel = findModel(allResourceElements,file.getName().replaceFirst("[.][^.]+$", ""));
-      appendPrefixes(allResourceElements);
-    } else if (modelCount == 1) {
-      umlModel = getModel(allResourceElements);
-    }
-    
+    Model umlModel = getUmlModel(allResourceElements,
+                                  file.getName().replaceFirst("[.][^.]+$", ""));
+
     if (umlModel == null) {
-      throw new XMIHandlerException ("No valid model found");
-    } 
-      
-    MModel useModel = Utils.getModelFactory().createModel(umlModel.getName());
+      throw new XMIHandlerException("No valid model found");
+    }
 
-    MSystem system = new MSystem(useModel);
+    MModel useModel = Utils.getModelFactory().createModel(umlModel.getName());
 
     createEnumerations(useModel, allResourceElements);
 
@@ -436,7 +425,7 @@ public class XMIImporter {
 
     createAssociations(useModel, allResourceElements);
 
-    session.setSystem(system);
+    session.setSystem(new MSystem(useModel));
 
     Utils.out("Imported: " + umlModel.getName());
 

@@ -44,8 +44,6 @@ public class XMIExporter {
     Model model = UMLFactory.eINSTANCE.createModel();
     model.setName(name);
 
-    Utils.out("Model '" + model.getQualifiedName() + "' created.");
-
     return model;
   }
 
@@ -53,9 +51,6 @@ public class XMIExporter {
       org.eclipse.uml2.uml.Package package_, String name) {
     PrimitiveType primitiveType = (PrimitiveType) package_
         .createOwnedPrimitiveType(name);
-
-    Utils.out("Primitive type '" + primitiveType.getQualifiedName()
-        + "' created.");
 
     return primitiveType;
   }
@@ -65,8 +60,6 @@ public class XMIExporter {
     Enumeration enumeration = (Enumeration) package_
         .createOwnedEnumeration(name);
 
-    Utils.out("Enumeration '" + enumeration.getQualifiedName() + "' created.");
-
     return enumeration;
   }
 
@@ -74,9 +67,6 @@ public class XMIExporter {
       Enumeration enumeration, String name) {
     EnumerationLiteral enumerationLiteral = enumeration
         .createOwnedLiteral(name);
-
-    Utils.out("Enumeration literal '" + enumerationLiteral.getQualifiedName()
-        + "' created.");
 
     return enumerationLiteral;
   }
@@ -86,8 +76,6 @@ public class XMIExporter {
     org.eclipse.uml2.uml.Class class_ = package_.createOwnedClass(name,
         isAbstract);
 
-    Utils.out("Class '" + class_.getQualifiedName() + "' created.");
-
     return class_;
   }
 
@@ -95,9 +83,6 @@ public class XMIExporter {
       Classifier specificClassifier, Classifier generalClassifier) {
     Generalization generalization = specificClassifier
         .createGeneralization(generalClassifier);
-
-    Utils.out("Generalization " + specificClassifier.getQualifiedName()
-        + " ->> " + generalClassifier.getQualifiedName() + " created.");
 
     return generalization;
   }
@@ -112,16 +97,12 @@ public class XMIExporter {
     attribute.setIsUnique(isUnique);
     attribute.setIsOrdered(isOrdered);
 
-    Utils.out("Attribute " + attribute.getQualifiedName() + " : "
-        + type.getQualifiedName() + " created");
-
     return attribute;
   }
 
   private static Association createAssociation(Model umlModel, String name) {
     Association association = (Association) umlModel.createOwnedType(name,
         UMLPackage.Literals.ASSOCIATION);
-    Utils.out("Association " + name + " created.");
     return association;
   }
 
@@ -140,10 +121,6 @@ public class XMIExporter {
     associationEnd.setAggregation(aggregationKind);
     associationEnd.setLower(lower);
     associationEnd.setUpper(upper);
-
-    Utils.out("Association end " + name + ", isNavigable: " + isNavigable
-        + ", isOrdered: " + isOrdered + ", aggregationKind: " + aggregationKind
-        + ", lower: " + lower + ", upper: " + upper + " created.");
 
     return associationEnd;
   }
