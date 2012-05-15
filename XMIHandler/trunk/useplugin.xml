@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?use version="3.0.0"?>
-<plugin name="XMIHandler" version="0.1" publisher="Emil Huseynli">
+<?use version="3.0.4"?>
+<plugin name="XMIHandler" version="1.1" publisher="Emil Huseynli">
     <actions>
       <action label="Export to XMI" icon="resources/export.png"
       class="org.tzi.use.plugins.xmihandler.gui.ActionExportXMI" tooltip="Export to XMI"
