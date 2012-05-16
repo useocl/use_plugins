@@ -30,9 +30,11 @@ public class XMIHandlerView extends JFileChooser {
     int returnVal = -1;
     if (mode == Mode.EXPORT) {
       setDialogType(JFileChooser.SAVE_DIALOG);
+      setDialogTitle("Export to XMI");
       returnVal = showSaveDialog(mainWindow);      
     } else {
       setDialogType(JFileChooser.OPEN_DIALOG);
+      setDialogTitle("Import from XMI");
       returnVal = showOpenDialog(mainWindow);      
     }
     if (returnVal == JFileChooser.APPROVE_OPTION) {

@@ -4,14 +4,14 @@
     <actions>
       <action label="Export to XMI" icon="resources/export.png"
       class="org.tzi.use.plugins.xmihandler.gui.ActionExportXMI" tooltip="Export to XMI"
-      menu="View" menuitem="Export to XMI" toolbaritem="plugins"
+      menu="XMI" menuitem="Export to XMI" toolbaritem="Export to XMI"
       id="org.tzi.use.plugins.xmihandler.gui.ActionExportXMI">
     </action>    
       <action label="Import from XMI" icon="resources/import.png"
       class="org.tzi.use.plugins.xmihandler.gui.ActionImportXMI" tooltip="Import from XMI"
-      menu="View" menuitem="Import from XMI" toolbaritem="plugins"
+      menu="XMI" menuitem="Import from XMI" toolbaritem="Import from XMI"
       id="org.tzi.use.plugins.xmihandler.gui.ActionImportXMI">
-    </action>    
+    </action>
     </actions>
 	<commands>
 	   <command class="org.tzi.use.plugins.xmihandler.cmd.ExportXMICmd"
