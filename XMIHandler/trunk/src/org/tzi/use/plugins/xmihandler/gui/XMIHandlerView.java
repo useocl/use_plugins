@@ -8,6 +8,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.xmihandler.XMIHandlerPlugin;
+import org.tzi.use.plugins.xmihandler.utils.IWorkerRunner;
 
 @SuppressWarnings("serial")
 public class XMIHandlerView extends JFileChooser {

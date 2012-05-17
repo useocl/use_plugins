@@ -1,4 +1,5 @@
-package org.tzi.use.plugins.xmihandler;
+package org.tzi.use.plugins.xmihandler.utils;
+
 
 public class XMIHandlerException extends Exception {
 

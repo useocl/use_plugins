@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.PrintWriter;
 
 import org.tzi.use.main.Session;
+import org.tzi.use.plugins.xmihandler.backend.XMIExporter;
+import org.tzi.use.plugins.xmihandler.backend.XMIImporter;
+import org.tzi.use.plugins.xmihandler.utils.Utils;
+import org.tzi.use.plugins.xmihandler.utils.XMIHandlerException;
 import org.tzi.use.runtime.impl.Plugin;
 
 public class XMIHandlerPlugin extends Plugin {

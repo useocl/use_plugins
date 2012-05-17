@@ -1,4 +1,4 @@
-package org.tzi.use.plugins.xmihandler;
+package org.tzi.use.plugins.xmihandler.backend;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +23,8 @@ import org.eclipse.uml2.uml.UMLFactory;
 import org.eclipse.uml2.uml.UMLPackage;
 import org.tzi.use.graph.DirectedGraph;
 import org.tzi.use.main.Session;
+import org.tzi.use.plugins.xmihandler.utils.Utils;
+import org.tzi.use.plugins.xmihandler.utils.XMIHandlerException;
 import org.tzi.use.uml.mm.MAggregationKind;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;

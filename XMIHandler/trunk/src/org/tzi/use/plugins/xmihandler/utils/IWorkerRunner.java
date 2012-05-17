@@ -1,4 +1,4 @@
-package org.tzi.use.plugins.xmihandler.gui;
+package org.tzi.use.plugins.xmihandler.utils;
 
 
 public interface IWorkerRunner {

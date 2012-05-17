@@ -1,4 +1,4 @@
-package org.tzi.use.plugins.xmihandler;
+package org.tzi.use.plugins.xmihandler.utils;
 
 import java.io.File;
 import java.io.FileInputStream;

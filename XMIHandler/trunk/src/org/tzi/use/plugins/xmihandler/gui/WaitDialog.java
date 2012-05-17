@@ -6,6 +6,8 @@ import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
 
 import org.tzi.use.gui.main.MainWindow;
+import org.tzi.use.plugins.xmihandler.utils.IWorkerRunner;
+import org.tzi.use.plugins.xmihandler.utils.SwingWorker;
 
 public class WaitDialog extends JDialog {
 
