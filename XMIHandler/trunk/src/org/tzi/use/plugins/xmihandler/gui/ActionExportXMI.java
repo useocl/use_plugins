@@ -23,7 +23,7 @@ public class ActionExportXMI implements IPluginActionDelegate {
 		// Getting MainWindow object from Proxy
 		MainWindow fMainWindow = pluginAction.getParent();
 		
-		XMIHandlerView view = new XMIHandlerView(fMainWindow, pluginAction.getSession(), XMIHandlerView.Mode.EXPORT);
+		XMIHandlerView view = new XMIHandlerView(fMainWindow, pluginAction.getSession(), XMIHandlerView.ViewMode.EXPORT);
 		view.setVisible(true);
 	}
 

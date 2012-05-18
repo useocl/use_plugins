@@ -1,5 +1,7 @@
 package org.tzi.use.plugins.xmihandler.gui;
 
+import java.util.Locale;
+
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -16,34 +18,37 @@ public class XMIHandlerView extends JFileChooser {
   private Session session;
   private MainWindow mainWindow;
 
-  public enum Mode {
+  public enum ViewMode {
     EXPORT, IMPORT
   }
 
-  public XMIHandlerView(MainWindow theParent, Session theSession, Mode mode) {
+  public XMIHandlerView(MainWindow theParent, Session theSession, ViewMode viewMode) {
     this.session = theSession;
     this.mainWindow = theParent;
-    initGUI(mode);
+    initGUI(viewMode);
+  }
+  
+  @Override
+  public Locale getLocale() {
+    return Locale.ENGLISH;
   }
 
-  private void initGUI(final Mode mode) {
+  private void initGUI(final ViewMode viewMode) {
     setFileFilter(new FileNameExtensionFilter("Eclipse UML2 (v3.x) XMI (*.uml, *.xmi)", "uml", "xmi"));
     int returnVal = -1;
-    if (mode == Mode.EXPORT) {
-      setDialogType(JFileChooser.SAVE_DIALOG);
+    if (viewMode == ViewMode.EXPORT) {
       setDialogTitle("Export to XMI");
-      returnVal = showSaveDialog(mainWindow);      
+      returnVal = showDialog(mainWindow, "Export");      
     } else {
-      setDialogType(JFileChooser.OPEN_DIALOG);
       setDialogTitle("Import from XMI");
-      returnVal = showOpenDialog(mainWindow);      
+      returnVal = showDialog(mainWindow, "Import");      
     }
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       WaitDialog dlg = new WaitDialog(mainWindow, true);
       dlg.start(new IWorkerRunner() {
 
         public Object doWork() {
-          switch (mode) {
+          switch (viewMode) {
           case EXPORT:
             XMIHandlerPlugin.getXMIHandlerPluginInstance().exportToXMI(
                 getSelectedFile(), session, mainWindow.logWriter());
@@ -64,8 +69,6 @@ public class XMIHandlerView extends JFileChooser {
 
     } else { // do nothing
     }
-
-    this.setVisible(true);
   }
 
   public void centerWindow(JDialog dlg, JFrame frame) {

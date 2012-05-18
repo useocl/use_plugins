@@ -3,21 +3,12 @@ package org.tzi.use.plugins.xmihandler.utils;
 import javax.swing.SwingUtilities;
 
 /**
- * This is the 3rd version of SwingWorker (also known as
- * SwingWorker 3), an abstract class that you subclass to
- * perform GUI-related work in a dedicated thread.  For
- * instructions on using this class, see:
- * 
- * http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html
- *
- * Note that the API changed slightly in the 3rd version:
- * You must now invoke start() on the SwingWorker after
- * creating it.
+ * An abstract class that you subclass to
+ * perform GUI-related work in a dedicated thread.
  */
 public abstract class SwingWorker {
 
     private Object value;  // see getValue(), setValue()
-    private Thread thread;
 
     /** 
      * Class to maintain reference to current worker thread
