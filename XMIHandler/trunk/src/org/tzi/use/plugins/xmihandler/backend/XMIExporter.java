@@ -1,7 +1,6 @@
 package org.tzi.use.plugins.xmihandler.backend;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
@@ -24,7 +23,6 @@ import org.eclipse.uml2.uml.UMLPackage;
 import org.tzi.use.graph.DirectedGraph;
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.xmihandler.utils.Utils;
-import org.tzi.use.plugins.xmihandler.utils.XMIHandlerException;
 import org.tzi.use.uml.mm.MAggregationKind;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;
@@ -245,7 +243,7 @@ public class XMIExporter {
             umlAssocEndAggregationKind, useAssocEnd.nameAsRolename(),
             umlAssocEndLower, umlAssocEndUpper);
       }
-      
+
     }
   }
 
@@ -279,18 +277,18 @@ public class XMIExporter {
    ** xmi export **
    **********************************************************************************************/
 
-  public static void exportToXMI(File file, Session session) throws XMIHandlerException {
-    
+  public static void exportToXMI(File file, Session session) throws Exception {
+
     // Get the URI of the model file.
     URI fileURI = URI.createFileURI(file.getAbsolutePath());
-    
+
     // Create a resource for this file.
     Resource resource = Utils.getResource(fileURI);
-    
-    Utils.out("Exporting to file: " + resource.getURI().path());    
+
+    Utils.out("Exporting to file: " + resource.getURI().path());
 
     final MModel useModel = session.system().model();
-    
+
     final Model umlModel = createModel(useModel.name());
 
     createEnumerations(umlModel, useModel);
@@ -306,13 +304,9 @@ public class XMIExporter {
     resource.getContents().add(umlModel);
 
     // Save the contents of the resource to the file system.
-    try {
-      resource.save(Collections.EMPTY_MAP);
+    resource.save(Collections.EMPTY_MAP);
 
-      Utils.out("Exported: " + umlModel.getName());
-    } catch (IOException e) {
-      throw new XMIHandlerException(e);
-    }
+    Utils.out("Exported: " + umlModel.getName());
 
   }
 

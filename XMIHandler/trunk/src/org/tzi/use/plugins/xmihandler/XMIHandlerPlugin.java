@@ -7,7 +7,6 @@ import org.tzi.use.main.Session;
 import org.tzi.use.plugins.xmihandler.backend.XMIExporter;
 import org.tzi.use.plugins.xmihandler.backend.XMIImporter;
 import org.tzi.use.plugins.xmihandler.utils.Utils;
-import org.tzi.use.plugins.xmihandler.utils.XMIHandlerException;
 import org.tzi.use.runtime.impl.Plugin;
 
 public class XMIHandlerPlugin extends Plugin {
@@ -29,7 +28,7 @@ public class XMIHandlerPlugin extends Plugin {
     Utils.setLogWriter(logWriter);
     try {
       XMIExporter.exportToXMI(file, session);      
-    } catch (XMIHandlerException ex) {
+    } catch (Exception ex) {
       Utils.out("Export failed.");
     }
   }
@@ -38,7 +37,8 @@ public class XMIHandlerPlugin extends Plugin {
     Utils.setLogWriter(logWriter);
     try {
       XMIImporter.importFromXMI(file, session);      
-    } catch (XMIHandlerException ex) {
+    } catch (Exception ex) {
+      Utils.error(ex.getMessage());
       Utils.out("Import failed.");
     }
   }

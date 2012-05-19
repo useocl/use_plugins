@@ -29,9 +29,9 @@ public class Utils {
   private static ResourceSet resourceSet = null;
 
   private static ModelFactory modelFactory = null;
-  
+
   private static PrintWriter logWriter = null;
-  
+
   public static void out(String output) {
     Log.println(output);
     if (logWriter != null) {
@@ -45,11 +45,11 @@ public class Utils {
       logWriter.println("Error: " + error);
     }
   }
-  
+
   public static void debug(String debug) {
     Log.debug(debug);
   }
-  
+
   public static void setLogWriter(PrintWriter theLogWriter) {
     logWriter = theLogWriter;
   }
@@ -60,8 +60,8 @@ public class Utils {
     }
     return modelFactory;
   }
-  
-  private static ResourceSet getResourceSet() throws XMIHandlerException {
+
+  private static ResourceSet getResourceSet() throws Exception {
 
     if (resourceSet == null) {
       resourceSet = new ResourceSetImpl();
@@ -72,12 +72,8 @@ public class Utils {
           .getResourceFactoryRegistry().getExtensionToFactoryMap();
       Map<URI, URI> uriMap = resourceSet.getURIConverter().getURIMap();
 
-      try {
-        FileInputStream in = new FileInputStream(path);
-        in.close();
-      } catch (IOException e) {
-        throw (new XMIHandlerException(e));
-      }
+      FileInputStream in = new FileInputStream(path);
+      in.close();
 
       path = path.replace('\\', '/');
 
@@ -132,25 +128,25 @@ public class Utils {
     return resourceSet;
 
   }
-  
-  public static Resource getResource(URI uri) throws XMIHandlerException {
-    
+
+  public static Resource getResource(URI uri) throws Exception {
+
     if (!"xmi".equals(uri.fileExtension())
         && !"uml".equals(uri.fileExtension())) {
       // Make sure we have a recognized file extension
       uri = uri.appendFileExtension("xmi");
     }
-    
+
     ResourceSet rs = getResourceSet();
-    
+
     if (rs == null) {
-      throw new XMIHandlerException("Failed to create resource set");      
+      throw new Exception("Failed to create resource set");
     }
 
     Resource r = rs.createResource(uri);
-    
+
     if (r == null) {
-      throw new XMIHandlerException("Failed to create resource for URI " + uri);
+      throw new Exception("Failed to create resource for URI " + uri);
     }
 
     return r;

@@ -1,7 +1,6 @@
 package org.tzi.use.plugins.xmihandler.backend;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,14 +29,12 @@ import org.eclipse.uml2.uml.internal.impl.PrimitiveTypeImpl;
 import org.tzi.use.graph.DirectedGraph;
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.xmihandler.utils.Utils;
-import org.tzi.use.plugins.xmihandler.utils.XMIHandlerException;
 import org.tzi.use.uml.mm.MAggregationKind;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MGeneralization;
-import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MMultiplicity;
 import org.tzi.use.uml.ocl.expr.VarDecl;
@@ -52,7 +49,7 @@ public class XMIImporter {
    **********************************************************************************************/
 
   private static void createEnumerations(MModel useModel,
-      EList<Element> allResourceElements) throws XMIHandlerException {
+      EList<Element> allResourceElements) throws Exception {
     for (Element elem : allResourceElements) {
       if (elem instanceof Enumeration) {
         Enumeration enumeration = (Enumeration) elem;
@@ -61,37 +58,29 @@ public class XMIImporter {
           for (EnumerationLiteral literal : enumeration.getOwnedLiterals()) {
             literals.add(literal.getName());
           }
-          try {
-            useModel.addEnumType(TypeFactory.mkEnum(enumeration.getName(),
+          useModel.addEnumType(TypeFactory.mkEnum(enumeration.getName(),
                 literals));
-          } catch (MInvalidModelException e) {
-            throw new XMIHandlerException(e);
-          }
         }
       }
     }
   }
 
   private static void createClasses(MModel useModel,
-      EList<Element> allResourceElements) throws XMIHandlerException {
+      EList<Element> allResourceElements) throws Exception {
     for (Element elem : allResourceElements) {
       if (elem instanceof org.eclipse.uml2.uml.Class) {
         org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) elem;
         if (useModel.getClass(umlClass.getName()) == null) {
           MClass useClass = Utils.getModelFactory().createClass(
               umlClass.getName(), umlClass.isAbstract());
-          try {
-            useModel.addClass(useClass);
-          } catch (MInvalidModelException e) {
-            throw new XMIHandlerException(e);
-          }
+          useModel.addClass(useClass);
         }
       }
     }
   }
 
   private static void createAttributes(MModel useModel,
-      EList<Element> allResourceElements) throws XMIHandlerException {
+      EList<Element> allResourceElements) throws Exception {
     for (Element elem : allResourceElements) {
 
       if (elem instanceof org.eclipse.uml2.uml.Class) {
@@ -104,8 +93,9 @@ public class XMIImporter {
 
           MAttribute attr = null;
 
-          String propName = (prop.getName() == null || prop.getName().isEmpty()) ? 
-              prop.getType().getName() : prop.getName();
+          String propName = (prop.getName() == null || prop.getName().isEmpty()) ?
+              prop.getType().getName()
+              : prop.getName();
 
           if (prop.getType() instanceof PrimitiveTypeImpl) {
             boolean isSet = false;
@@ -192,11 +182,7 @@ public class XMIImporter {
           }
 
           if (attr != null) {
-            try {
-              useClass.addAttribute(attr);
-            } catch (MInvalidModelException e) {
-              throw new XMIHandlerException(e);
-            }
+            useClass.addAttribute(attr);
           }
         }
       }
@@ -223,7 +209,7 @@ public class XMIImporter {
   }
 
   private static void createAssociations(MModel useModel,
-      EList<Element> allResourceElements) throws XMIHandlerException {
+      EList<Element> allResourceElements) throws Exception {
 
     for (Element elem : allResourceElements) {
 
@@ -289,20 +275,10 @@ public class XMIImporter {
             assocName);
 
         for (MAssociationEnd end : assocEnds) {
-          try {
-            assoc.addAssociationEnd(end);
-          } catch (MInvalidModelException e) {
-            throw new XMIHandlerException(e);
-          }
+          assoc.addAssociationEnd(end);
         }
 
-        try {
-          useModel.addAssociation(assoc);
-        } catch (MInvalidModelException e) {
-          throw new XMIHandlerException(e);
-        } catch (IllegalArgumentException e) {
-          throw new XMIHandlerException(e);
-        }
+        useModel.addAssociation(assoc);
 
       }
     }
@@ -359,7 +335,7 @@ public class XMIImporter {
   }
 
   private static Model getUmlModel(EList<Element> allResourceElements,
-      String modelName) {
+      String modelName) throws Exception {
 
     EList<Model> modelList = new BasicEList<Model>();
 
@@ -370,7 +346,7 @@ public class XMIImporter {
     }
 
     if (modelList.isEmpty()) {
-      return null;
+      throw new Exception ("No valid model found");
     }
 
     if (modelList.size() > 1) {
@@ -391,7 +367,7 @@ public class XMIImporter {
    **********************************************************************************************/
 
   public static void importFromXMI(File file, Session session)
-      throws XMIHandlerException {
+      throws Exception {
 
     // Get the URI of the model file.
     URI fileURI = URI.createFileURI(file.getAbsolutePath());
@@ -401,20 +377,12 @@ public class XMIImporter {
 
     Utils.out("Importing from file: " + resource.getURI().path());
 
-    try {
-      resource.load(Collections.EMPTY_MAP);
-    } catch (IOException e) {
-      throw new XMIHandlerException(e);
-    }
+    resource.load(Collections.EMPTY_MAP);
 
     EList<Element> allResourceElements = agregateElements(resource);
 
     Model umlModel = getUmlModel(allResourceElements,
                                   file.getName().replaceFirst("[.][^.]+$", ""));
-
-    if (umlModel == null) {
-      throw new XMIHandlerException("No valid model found");
-    }
 
     MModel useModel = Utils.getModelFactory().createModel(umlModel.getName());
 
