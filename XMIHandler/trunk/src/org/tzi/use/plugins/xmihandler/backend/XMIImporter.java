@@ -276,6 +276,7 @@ public class XMIImporter {
         String assocName = theAssoc.getName();
 
         if (assocName == null || assocName.isEmpty()) {
+          assocName = "";
           for (int i = 0; i < theAssoc.getMemberEnds().size(); i++) {
             assocName += theAssoc.getMemberEnds().get(i).getType().getName();
             if (i < theAssoc.getMemberEnds().size() - 1) {
