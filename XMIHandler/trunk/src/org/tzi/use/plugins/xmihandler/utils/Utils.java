@@ -66,7 +66,7 @@ public class Utils {
     if (resourceSet == null) {
       resourceSet = new ResourceSetImpl();
 
-      String path = "lib/xmihandlerjars/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar";
+      String path = "lib/xmihandlerjars/org.eclipse.uml2.uml.resources_4.0.0.v20120507-0907.jar";
 
       Map<String, Object> extensionToFactoryMap = resourceSet
           .getResourceFactoryRegistry().getExtensionToFactoryMap();
