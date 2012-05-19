@@ -100,7 +100,7 @@ public class XMIImporter {
 
         MClass useClass = useModel.getClass(umlClass.getName());
 
-        for (Property prop : umlClass.getAllAttributes()) {
+        for (Property prop : umlClass.getAttributes()) {
 
           MAttribute attr = null;
 
