@@ -20,5 +20,9 @@
 	<classpathentry kind="lib" path="/home/stalker/uni/Thesis/xmihandler_repo/lib/org.eclipse.uml2.uml.resources_4.0.0.v20120507-0907.jar"/>
 	<classpathentry kind="lib" path="/home/stalker/uni/Thesis/xmihandler_repo/lib/org.eclipse.uml2.types_1.0.0.v20120507-0907.jar"/>
 	<classpathentry kind="lib" path="/home/stalker/uni/Thesis/xmihandler_repo/lib/org.eclipse.uml2.types.source_1.0.0.v20120507-0907.jar"/>
+	<classpathentry kind="lib" path="/home/stalker/uni/Thesis/xmihandler_repo/lib/org.eclipse.uml2.uml.profile.l2.source_1.0.0.v20120507-0907.jar"/>
+	<classpathentry kind="lib" path="/home/stalker/uni/Thesis/xmihandler_repo/lib/org.eclipse.uml2.uml.profile.l2_1.0.0.v20120507-0907.jar"/>
+	<classpathentry kind="lib" path="/home/stalker/uni/Thesis/xmihandler_repo/lib/org.eclipse.uml2.uml.profile.l3_1.0.0.v20120507-0907.jar"/>
+	<classpathentry kind="lib" path="/home/stalker/uni/Thesis/xmihandler_repo/lib/org.eclipse.uml2.uml.profile.l3.source_1.0.0.v20120507-0907.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

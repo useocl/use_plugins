@@ -12,4 +12,6 @@ Class-Path: ../tools.jar
  ../xmihandlerjars/org.eclipse.uml2.uml.resources_4.0.0.v20120507-0907.jar 
  ../xmihandlerjars/org.eclipse.uml2.types_1.0.0.v20120507-0907.jar 
  ../xmihandlerjars/org.eclipse.uml2.uml_4.0.0.v20120507-0907.jar 
+ ../xmihandlerjars/org.eclipse.uml2.uml.profile.l2_1.0.0.v20120507-0907.jar 
+ ../xmihandlerjars/org.eclipse.uml2.uml.profile.l3_1.0.0.v20120507-0907.jar 
  

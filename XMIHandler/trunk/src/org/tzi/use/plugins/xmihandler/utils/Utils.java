@@ -21,6 +21,7 @@ import org.eclipse.uml2.uml.resource.UMLResource;
 import org.eclipse.uml2.uml.resource.XMI212UMLResource;
 import org.eclipse.uml2.uml.resource.XMI2UMLExtendedMetaData;
 import org.eclipse.uml2.uml.resource.XMI2UMLResource;
+import org.eclipse.uml2.uml.resources.util.UMLResourcesUtil;
 import org.tzi.use.uml.mm.ModelFactory;
 import org.tzi.use.util.Log;
 
@@ -127,6 +128,8 @@ public class Utils {
 
       uriMap.putAll(UML22UMLExtendedMetaData.getURIMap());
       uriMap.putAll(XMI2UMLExtendedMetaData.getURIMap());
+      
+      UMLResourcesUtil.init(resourceSet);
     }
 
     return resourceSet;
