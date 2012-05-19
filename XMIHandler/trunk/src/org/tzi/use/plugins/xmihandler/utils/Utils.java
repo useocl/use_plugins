@@ -21,7 +21,6 @@ import org.eclipse.uml2.uml.resource.UMLResource;
 import org.eclipse.uml2.uml.resource.XMI212UMLResource;
 import org.eclipse.uml2.uml.resource.XMI2UMLExtendedMetaData;
 import org.eclipse.uml2.uml.resource.XMI2UMLResource;
-import org.eclipse.uml2.uml.resources.util.UMLResourcesUtil;
 import org.tzi.use.uml.mm.ModelFactory;
 import org.tzi.use.util.Log;
 
@@ -67,7 +66,7 @@ public class Utils {
     if (resourceSet == null) {
       resourceSet = new ResourceSetImpl();
 
-      String path = "lib/xmihandlerjars/org.eclipse.uml2.uml.resources_4.0.0.v20120507-0907.jar";
+      String path = "lib/xmihandlerjars/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar";
 
       Map<String, Object> extensionToFactoryMap = resourceSet
           .getResourceFactoryRegistry().getExtensionToFactoryMap();
@@ -128,8 +127,6 @@ public class Utils {
 
       uriMap.putAll(UML22UMLExtendedMetaData.getURIMap());
       uriMap.putAll(XMI2UMLExtendedMetaData.getURIMap());
-      
-      UMLResourcesUtil.init(resourceSet);
     }
 
     return resourceSet;
