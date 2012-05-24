@@ -361,6 +361,18 @@ public class XMIImporter {
 
     return modelList.get(0);
   }
+  
+  private static String getModelStatsStr(MModel useModel) {
+    String stats = "";
+    
+    int classCnt = useModel.classes().size();
+    int assocCnt = useModel.associations().size();
+    
+    stats = "(" + classCnt + " " + (classCnt == 1 ? "class" : "classes") + ", " +
+            assocCnt + " " + (assocCnt == 1 ? "association" : "associations") + ")";
+    
+    return stats;
+  }
 
   /**********************************************************************************************
    ** xmi import **
@@ -398,7 +410,7 @@ public class XMIImporter {
 
     session.setSystem(new MSystem(useModel));
 
-    Utils.out("Imported: " + umlModel.getName());
+    Utils.out("Imported: " + umlModel.getName() + " " + getModelStatsStr(useModel));
 
   }
 
