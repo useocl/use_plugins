@@ -38,6 +38,7 @@ public class XMIHandlerPlugin extends Plugin {
     try {
       XMIImporter.importFromXMI(file, session);      
     } catch (Exception ex) {
+      ex.printStackTrace();
       Utils.error(ex.getMessage());
       Utils.out("Import failed.");
     }

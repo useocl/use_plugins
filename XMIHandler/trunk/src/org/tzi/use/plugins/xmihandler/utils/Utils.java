@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.tzi.use.uml.mm.ModelFactory;
 import org.tzi.use.util.Log;
 
@@ -82,6 +84,15 @@ public class Utils {
     }
 
     return r;
+  }
+  
+  public static String getXmiId(EObject x) {
+    Resource resource = x.eResource();
+    if (resource instanceof XMLResource) {
+      XMLResource xmlResource = (XMLResource)resource;
+      return xmlResource.getID(x);
+    }
+    return "";
   }
 
   public static boolean canWrite(File file) {

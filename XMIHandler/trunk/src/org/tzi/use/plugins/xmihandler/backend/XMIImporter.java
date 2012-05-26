@@ -25,6 +25,7 @@ import org.eclipse.uml2.uml.internal.impl.EnumerationImpl;
 import org.eclipse.uml2.uml.internal.impl.ModelImpl;
 import org.eclipse.uml2.uml.internal.impl.NamedElementImpl;
 import org.eclipse.uml2.uml.internal.impl.PackageImpl;
+import org.eclipse.uml2.uml.internal.impl.PackageImportImpl;
 import org.eclipse.uml2.uml.internal.impl.PrimitiveTypeImpl;
 import org.tzi.use.graph.DirectedGraph;
 import org.tzi.use.main.Session;
@@ -35,6 +36,7 @@ import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MGeneralization;
+import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MMultiplicity;
 import org.tzi.use.uml.ocl.expr.VarDecl;
@@ -215,7 +217,7 @@ public class XMIImporter {
 
       if (elem instanceof Association) {
         Association theAssoc = (Association) elem;
-
+        
         ArrayList<MAssociationEnd> assocEnds = new ArrayList<MAssociationEnd>();
         List<VarDecl> emptyQualifiers = Collections.emptyList();
 
@@ -241,13 +243,12 @@ public class XMIImporter {
             assocEndAggregationKind = MAggregationKind.AGGREGATION;
             break;
           }
-
+          
           MAssociationEnd assocLeftEnd = Utils
               .getModelFactory()
               .createAssociationEnd(
                   assocEndClass,
-                  (assocEnd.getName() == null || assocEnd.getName().isEmpty()) ? assocEnd
-                      .getType().getName()
+                  (assocEnd.getName() == null || assocEnd.getName().isEmpty()) ? Utils.getXmiId(assocEnd)
                       : assocEnd.getName(), m1, assocEndAggregationKind,
                   assocEnd.isOrdered(), emptyQualifiers);
 
@@ -259,26 +260,15 @@ public class XMIImporter {
           continue;
         }
 
-        String assocName = theAssoc.getName();
-
-        if (assocName == null || assocName.isEmpty()) {
-          assocName = "";
-          for (int i = 0; i < theAssoc.getMemberEnds().size(); i++) {
-            assocName += theAssoc.getMemberEnds().get(i).getType().getName();
-            if (i < theAssoc.getMemberEnds().size() - 1) {
-              assocName += "_";
-            }
+        try {        
+          MAssociation assoc = Utils.getModelFactory().createAssociation(
+              theAssoc.getName());
+          for (MAssociationEnd end : assocEnds) {
+            assoc.addAssociationEnd(end);
           }
+          useModel.addAssociation(assoc);
+        } catch (MInvalidModelException e) {
         }
-
-        MAssociation assoc = Utils.getModelFactory().createAssociation(
-            assocName);
-
-        for (MAssociationEnd end : assocEnds) {
-          assoc.addAssociationEnd(end);
-        }
-
-        useModel.addAssociation(assoc);
 
       }
     }
@@ -300,11 +290,13 @@ public class XMIImporter {
     EList<Element> list = new BasicEList<Element>();
 
     list.add(parentElem);
-
+    
     for (Element elem : parentElem.getOwnedElements()) {
       if (elem instanceof PackageImpl
           || elem instanceof ModelImpl) {
         list.addAll(agregateElementsRecursive(elem));
+      } if (elem instanceof PackageImportImpl) {
+        list.addAll(agregateElementsRecursive(((PackageImportImpl) elem).getImportedPackage()));
       } else {
         list.add(elem);
       }
@@ -322,6 +314,16 @@ public class XMIImporter {
           && !(ownerModel == null) && !ownerModel.getName().trim().isEmpty()) {
         ((NamedElement) elem).setName(ownerModel.getName() + "::"
             + ((NamedElement) elem).getName());
+      }
+    }
+  }
+  
+  private static void fixMissingElementNames(EList<Element> allResourceElements) {
+    for (Element elem : allResourceElements) {
+      if ((elem instanceof NamedElementImpl) &&
+          ((((NamedElementImpl)elem).getName() == null) ||
+          ((NamedElementImpl)elem).getName().trim().isEmpty())) {
+        ((NamedElementImpl)elem).setName(Utils.getXmiId(elem));
       }
     }
   }
@@ -392,10 +394,12 @@ public class XMIImporter {
     resource.load(Collections.EMPTY_MAP);
 
     EList<Element> allResourceElements = agregateElements(resource);
+    
+    fixMissingElementNames(allResourceElements);
 
     Model umlModel = getUmlModel(allResourceElements,
                                   file.getName().replaceFirst("[.][^.]+$", ""));
-
+    
     MModel useModel = Utils.getModelFactory().createModel(umlModel.getName());
 
     createEnumerations(useModel, allResourceElements);
