@@ -29,6 +29,7 @@ public class XMIHandlerPlugin extends Plugin {
     try {
       XMIExporter.exportToXMI(file, session);      
     } catch (Exception ex) {
+      Utils.error(ex);
       Utils.out("Export failed.");
     }
   }
@@ -38,8 +39,7 @@ public class XMIHandlerPlugin extends Plugin {
     try {
       XMIImporter.importFromXMI(file, session);      
     } catch (Exception ex) {
-      ex.printStackTrace();
-      Utils.error(ex.getMessage());
+      Utils.error(ex);
       Utils.out("Import failed.");
     }
   }

@@ -37,9 +37,6 @@ import org.eclipse.uml2.uml.resource.XMI2UMLExtendedMetaData;
 import org.eclipse.uml2.uml.resource.XMI2UMLResource;
 import org.eclipse.uml2.uml.util.UMLUtil;
 
-/**
- * @since 4.0
- */
 public class UMLResourcesUtil
     extends UMLUtil {
 

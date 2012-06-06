@@ -277,7 +277,8 @@ public class XMIExporter {
    ** xmi export **
    **********************************************************************************************/
 
-  public static void exportToXMI(File file, Session session) throws Exception {
+  public static void exportToXMI(File file, Session session) 
+      throws Exception {
 
     // Get the URI of the model file.
     URI fileURI = URI.createFileURI(file.getAbsolutePath());

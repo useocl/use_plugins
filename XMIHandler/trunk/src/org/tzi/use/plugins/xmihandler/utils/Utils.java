@@ -29,15 +29,21 @@ public class Utils {
     }
   }
 
-  public static void error(String error) {
-    Log.println("Error: " + error);
-    if (logWriter != null) {
-      logWriter.println("Error: " + error);
+  public static void error(Exception error) {
+    String errMsg = error.getMessage();
+    if (errMsg == null || errMsg.isEmpty()) {
+       errMsg = "Unknown Error";
+    } else {
+       errMsg = "Error: " + errMsg;
     }
-  }
-
-  public static void debug(String debug) {
-    Log.debug(debug);
+    if (Log.isDebug()) {
+      Log.error(error);
+    } else {
+      Log.error(errMsg);      
+    }
+    if (logWriter != null) {
+      logWriter.println(errMsg);
+    }
   }
 
   public static void setLogWriter(PrintWriter theLogWriter) {
