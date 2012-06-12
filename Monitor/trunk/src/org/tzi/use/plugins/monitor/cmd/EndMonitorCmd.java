@@ -7,8 +7,8 @@ public class EndMonitorCmd extends AbstractMonitorCmd {
 
 	@Override
 	public void doPerformCommand(IPluginShellCmd pluginCommand) {
-		if (!MonitorPlugin.getMonitorPluginInstance().checkMonitoring()) return;
-		MonitorPlugin.getMonitorPluginInstance().endMonitor();
+		if (!MonitorPlugin.getInstance().checkMonitoring()) return;
+		MonitorPlugin.getInstance().endMonitor();
 	}
 
 }

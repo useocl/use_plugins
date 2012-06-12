@@ -92,4 +92,12 @@ public class JVMObject extends JVMBase implements VMObject {
 		
 		return this.reference.equals(((JVMObject)obj).reference);
 	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.mm.VMObject#getId()
+	 */
+	@Override
+	public ObjectReference getId() {
+		return reference;
+	}
 }

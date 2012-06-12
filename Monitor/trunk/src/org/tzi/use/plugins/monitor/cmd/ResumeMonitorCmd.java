@@ -7,8 +7,8 @@ public class ResumeMonitorCmd extends AbstractMonitorCmd {
 
 	@Override
 	public void doPerformCommand(IPluginShellCmd pluginCommand) {
-		if (!MonitorPlugin.getMonitorPluginInstance().getMonitor().isPaused()) return;
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().resume();
+		if (!MonitorPlugin.getInstance().getMonitor().isPaused()) return;
+		MonitorPlugin.getInstance().getMonitor().resume();
 	}
 
 }

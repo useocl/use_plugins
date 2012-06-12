@@ -1,13 +1,13 @@
 package org.tzi.use.plugins.monitor.vm.adapter;
 
 import java.util.Map;
-import java.util.Set;
 
 import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorException;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
-import org.tzi.use.plugins.monitor.vm.mm.VMObject;
+import org.tzi.use.plugins.monitor.vm.mm.VMMethodCall;
 import org.tzi.use.plugins.monitor.vm.mm.VMType;
+import org.tzi.use.uml.ocl.value.Value;
 
 /**
  * Interface for virtual machine (VM) adapters which
@@ -62,4 +62,28 @@ public interface VMAdapter {
 	 * @param m
 	 */
 	void registerOperationCallInterest(VMMethod m);
+
+	/**
+	 * After an successful call to an operation the monitor
+	 * registers for the exit of an operation to check post conditions, etc.
+	 * @param call
+	 */
+	void registerMethodExit(VMMethodCall call);
+
+	/**
+	 * Called if an operation exit in USE is executed.  
+	 * @param adapterExitInformation The previously provided exit information by the adapter.
+	 */
+	void unregisterOperationeExit(Object adapterExitInformation);
+
+	/**
+	 * @param adapterExitInformation
+	 * @return
+	 */
+	Value getMethodResultValue(Object adapterExitInformation);
+
+	/**
+	 * @param vmType
+	 */
+	void registerConstructorCallInterest(VMType vmType);
 }

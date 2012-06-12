@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.logging.Level;
 
 import org.tzi.use.plugins.monitor.Monitor;
@@ -17,28 +18,37 @@ import org.tzi.use.plugins.monitor.MonitorException;
 import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
 import org.tzi.use.plugins.monitor.vm.adapter.VMAdapter;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
+import org.tzi.use.plugins.monitor.vm.mm.VMMethodCall;
 import org.tzi.use.plugins.monitor.vm.mm.VMObject;
 import org.tzi.use.plugins.monitor.vm.mm.VMType;
 import org.tzi.use.plugins.monitor.vm.mm.jvm.JVMMethod;
+import org.tzi.use.plugins.monitor.vm.mm.jvm.JVMMethodCall;
 import org.tzi.use.plugins.monitor.vm.mm.jvm.JVMObject;
 import org.tzi.use.plugins.monitor.vm.mm.jvm.JVMType;
+import org.tzi.use.uml.ocl.type.TupleType;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.EnumValue;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.SequenceValue;
 import org.tzi.use.uml.ocl.value.SetValue;
 import org.tzi.use.uml.ocl.value.StringValue;
+import org.tzi.use.uml.ocl.value.TupleValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
+import org.tzi.use.util.StringUtil;
 
 import com.sun.jdi.ArrayReference;
 import com.sun.jdi.BooleanValue;
 import com.sun.jdi.ClassType;
 import com.sun.jdi.Field;
+import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.IntegerValue;
+import com.sun.jdi.Method;
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
+import com.sun.jdi.StackFrame;
 import com.sun.jdi.StringReference;
+import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VMDisconnectedException;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.connect.Connector.Argument;
@@ -52,6 +62,7 @@ import com.sun.jdi.event.VMDeathEvent;
 import com.sun.jdi.request.BreakpointRequest;
 import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.request.EventRequest;
+import com.sun.jdi.request.MethodExitRequest;
 import com.sun.jdi.request.VMDeathRequest;
 import com.sun.tools.jdi.GenericAttachingConnector;
 import com.sun.tools.jdi.SocketAttachingConnector;
@@ -102,8 +113,6 @@ public class JVMAdapter implements VMAdapter {
      */
 	private final Map<String, VMType> typeMapping = new HashMap<String, VMType>();
 	
-	private final Map<ObjectReference, VMObject> objectMapping = new HashMap<ObjectReference, VMObject>();
-	
 	/* (non-Javadoc)
 	 * @see org.tzi.use.plugins.monitor.vmadapter.VMAdapter#configure(Monitor.Controller, java.util.Map)
 	 */
@@ -131,7 +140,7 @@ public class JVMAdapter implements VMAdapter {
 	 */
 	public long getMaxInstances() {
 		//TODO: Provide argument
-		return 10000;
+		return 600000;
 	}
 	
 	/* (non-Javadoc)
@@ -232,69 +241,68 @@ public class JVMAdapter implements VMAdapter {
 	private final class BreakPointWatcher implements Runnable {
 		@Override
 		public void run() {
-			//FIXME: Dynamic monitoring
-			/*
+			//FIXME: Dynamic
+			
 			while (isConnected) {
 				try {
 					EventSet events = monitoredVM.eventQueue().remove();
 					if (!isConnected) return;
 					
-					controller.newLogMessage(Level.FINER, "Handling JVM events.");
-					
+					controller.newLogMessage(this, Level.FINER, "Handling JVM events.");
+
 					for (com.sun.jdi.event.Event e : events) {
 						if (e instanceof BreakpointEvent) {
 							BreakpointEvent be = (BreakpointEvent)e;
-							controller.newLogMessage(Level.FINER, "Handling operation call.");
-							boolean opCallResult = onMethodCall(be);
-							if (!opCallResult) {
-								controller.newLogMessage(Level.SEVERE, "Enter of method " + be.location().method().toString() + " failed.");
-								hasFailedOperation = true;
-								waitForUserInput();
-							}
+							controller.newLogMessage(this, Level.FINER, "Handling operation call.");
+							onMethodCall(be);
 						} else if (e instanceof ClassPrepareEvent) {
 							ClassPrepareEvent ce = (ClassPrepareEvent)e;
-							controller.newLogMessage(Level.FINER, "Registering operations of prepared Java class " + ce.referenceType().name() + ".");
-							registerOperationBreakPoints(ce.referenceType());
+							controller.newLogMessage(this, Level.FINER, "Java class loaded:" + ce.referenceType().name() + ".");
+							JVMType type = new JVMType(JVMAdapter.this, ce.referenceType());
+							controller.onNewVMTypeLoaded(type);
 						} else if (e instanceof ModificationWatchpointEvent) {
 							ModificationWatchpointEvent we = (ModificationWatchpointEvent)e;
-							controller.newLogMessage(Level.FINER, "Handling modification watchpoint " + we.field().toString() + ".");
+							controller.newLogMessage(this, Level.FINER, "Handling modification watchpoint " + we.field().toString() + ".");
 							updateAttribute(we.object(), we.field(), we.valueToBe());
 						} else if (e instanceof MethodExitEvent) {
 							MethodExitEvent me = (MethodExitEvent)e;
-							controller.newLogMessage(Level.FINER, "Handling operation exit watchpoint " + me.method().toString() + ".");
-							boolean opCallResult = onMethodExit(me);
-							if (!opCallResult) {
-								controller.newLogMessage(Level.WARNING, "Exit of method " + me.method().toString() + " failed.");
-								hasFailedOperation = true;
-								waitForUserInput();
-							}
+							controller.newLogMessage(this, Level.FINER, "Handling operation exit watchpoint " + me.method().toString() + ".");
+							onMethodExit(me);
 						} else if (e instanceof VMDeathEvent) {
-							controller.newLogMessage(Level.INFO, "JVM terminated.");
+							controller.newLogMessage(this, Level.INFO, "JVM terminated.");
 							controller.end();
 							return;
 						}
+
 					}
 					events.resume();
-					controller.newLogMessage(Level.FINER, "Resumed threads after handling VM events.");
+					controller.newLogMessage(this, Level.FINER, "Resumed threads after handling VM events.");
 				} catch (InterruptedException e) {
 					// VM is away np
 				} catch (VMDisconnectedException e) {
 					isConnected = false;
 					monitoredVM = null;
-					controller.newLogMessage(Level.WARNING, "Monitored application has terminated.");
+					controller.newLogMessage(this, Level.WARNING, "Monitored application has terminated.");
 					controller.end();
 				} catch (Exception ex) {
-					controller.newLogMessage(
+					controller.newLogMessage(this, 
 							Level.SEVERE,
 							"Error while listening to break points: ["
 									+ ex.getClass().getSimpleName() + "] "
 									+ ex.getMessage());
-					controller.newLogMessage(Level.SEVERE, "Disonnecting");
+					controller.newLogMessage(this, Level.SEVERE, "Disonnecting");
 					controller.end();
 					return;
 				}
 			}
-			*/
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return "JVMAdapter.BreakPointWatcher";
 		}
 	}
 
@@ -306,7 +314,7 @@ public class JVMAdapter implements VMAdapter {
 		JVMMethod jvmMethod = (JVMMethod)m;
 		
 		if (jvmMethod.getMethod().location() == null) {
-			controller.newLogMessage(Level.WARNING, "Cannot set breakpoints for abstract or interface operation " + m.toString());
+			controller.newLogMessage(this, Level.WARNING, "Cannot set breakpoints for abstract or interface operation " + m.toString());
 			return;
 		}
 		
@@ -315,8 +323,178 @@ public class JVMAdapter implements VMAdapter {
 		req.enable();
 	}
 	
+	private void updateAttribute(ObjectReference obj, Field field, com.sun.jdi.Value javaValue) {
+
+    	controller.newLogMessage(this, Level.FINE, "updateAttribute: " + field.name());
+
+    	//FIXME: Dynamic
+    	/*
+    	MObject useObject = instanceMapping.get(obj);
+    	
+    	if (useObject == null) {
+			fireNewLogMessage(
+					Level.WARNING,
+					"No coresponding USE-object found to set value of attribute "
+							+ StringUtil.inQuotes(field.name())
+							+ " to "
+							+ StringUtil
+									.inQuotes(javaValue == null ? "undefined"
+											: javaValue.toString()));
+			return;
+    	}
+    	
+    	MAttribute attr = mappingHelper.getUseAttribute(useObject.cls(), field.name());
+    	    	
+    	if (attr == null) {
+    		// Link end?
+    		MNavigableElement end = useObject.cls().navigableEnd(field.name());
+    		if (end != null && !end.isCollection()) {
+    			// Destroy possible existing link
+    			List<MAssociationEnd> ends = new ArrayList<MAssociationEnd>(end.association().associationEnds());
+    			ends.remove(end);
+    			
+    			List<MObject> objects = getSystem().state().getNavigableObjects(useObject, ends.get(0), end, Collections.<Value>emptyList());
+    			
+    			if (objects.size() > 0) {
+    				// Align objects to USE specification
+    				MObject[] linkObjects = new MObject[2];
+    				if (end.association().associationEnds().get(0).equals(end) ) {
+						linkObjects[0] = objects.get(0);
+						linkObjects[1] = useObject;
+					} else {
+						linkObjects[0] = useObject;
+						linkObjects[1] = objects.get(0);
+					}
+    				
+    				//FIXME: Qualifier values empty
+					MLinkDeletionStatement delStmt = new MLinkDeletionStatement(
+							end.association(), linkObjects,
+							Collections.<List<MRValue>> emptyList());
+    				
+	    			try {
+	    				getSystem().evaluateStatement(delStmt);
+					} catch (MSystemException e) {
+						fireNewLogMessage(
+								Level.WARNING,
+								"Link of association "
+										+ StringUtil.inQuotes(end.association())
+										+ " could not be deleted. Reason: "
+										+ e.getMessage());
+						return;
+					}
+    			}
+    			
+    			// Create link if needed
+				if (javaValue != null) {
+					
+					Value newValueV = getUSEObject(javaValue);
+					if (newValueV.isUndefined()) return;
+					
+					MObject newValue = ((ObjectValue)newValueV).value();
+					MObject[] linkObjects = new MObject[2];
+					
+					if (end.association().associationEnds().get(0).equals(end) ) {
+						linkObjects[0] = newValue;
+						linkObjects[1] = useObject;
+					} else {
+						linkObjects[0] = useObject;
+						linkObjects[1] = newValue;
+					}
+					
+					try {
+						MLinkInsertionStatement createStmt = new MLinkInsertionStatement(
+								end.association(), linkObjects, Collections.<List<Value>>emptyList()
+						);
+						getSystem().evaluateStatement(createStmt);
+					} catch (MSystemException e) {
+						fireNewLogMessage(Level.WARNING, "Could not create new link:" + e.getMessage());
+					}
+				}
+    		}
+    	} else {
+    		Value v = getUSEValue(javaValue, attr.type());
+			MAttributeAssignmentStatement stmt = new MAttributeAssignmentStatement(
+					new ExpObjRef(useObject), attr, v);
+    		
+			try {
+				getSystem().evaluateStatement(stmt);
+			} catch (MSystemException e) {
+				fireNewLogMessage(Level.WARNING, "Attribute " + StringUtil.inQuotes(attr.toString()) + " could not be set!");
+			}
+    	}
+    	*/
+    }
+	
+	private void onMethodCall(BreakpointEvent breakpointEvent) {
+		if (breakpointEvent.location().method().isConstructor()) {
+    		handleConstructorCall(breakpointEvent);
+    	} else {    		
+    		handleMethodCall(breakpointEvent);
+    	}
+    }
+	
+	private void onMethodExit(MethodExitEvent ex) {
+		controller.onMethodExit(ex, ex.method());
+	}
+	
+	private void handleConstructorCall(BreakpointEvent breakpointEvent) {
+    	
+    	controller.newLogMessage(this, Level.FINE, "onConstructorCall: " + breakpointEvent.location().method().toString());
+        	
+    	StackFrame currentFrame;
+		try {
+			ThreadReference thread = breakpointEvent.thread();
+			currentFrame = thread.frame(0);
+	    	// Check if we are a nested constructor of the same thisObject
+			ObjectReference thisObject = currentFrame.thisObject();
+			
+			for (int index = 1; index < breakpointEvent.thread().frameCount(); ++index) {
+				StackFrame frame = thread.frame(index);
+				if (thisObject.equals(frame.thisObject()) && frame.location().method().isConstructor()) {
+					controller.newLogMessage(this, Level.FINE, "Nested constructor call.");
+					return;
+				}
+			}
+		} catch (IncompatibleThreadStateException e) {
+			controller.newLogMessage(this, Level.SEVERE, "Could not retrieve stack frame");
+			return;
+		}
+		
+    	ObjectReference javaObject = currentFrame.thisObject();    	
+    	VMObject newInstance = new JVMObject(this, javaObject);
+    	
+    	controller.onNewVMObject(newInstance);
+    }
+
+	private void handleMethodCall(BreakpointEvent breakpointEvent) {
+		Method m = breakpointEvent.location().method();
+    	controller.newLogMessage(this, Level.FINE, "onMethodCall: " + m.toString());
+    	
+    	JVMMethod vmMethod = (JVMMethod)controller.getVMMethod(m); 
+    	
+    	JVMMethodCall call = new JVMMethodCall(this, vmMethod, breakpointEvent);
+    	controller.onMethodCall(call);
+    }
+
 	/**
      * Returns the mapped USE value of <code>javaValue</code>.
+     * The following mapping is done:
+     * <ul>
+     * <li><b>null</b> -> undefined</li>
+     * <li><b>ObjectReference</b>
+     * 	<ol>
+     *    <li><code>to existing VM Object</code> -> ObjectValue</li>
+     *    <li><code>java.lang.Integer</code> -> IntegerValue</li>
+     *    <li><code>java.util.ArrayList</code> -> SequenceValue with mapped values (rec. invocation).</li>
+     *    <li><code>java.util.HashSet</code> -> SetValue with mapped values (rec. invocation).</li>
+     *    <li><code>java.util.TreeMap</code> -> SetValue with mapped key and values (rec. invocation) as <code>Tuple(key, value)</code>.</li>
+     * 	</ol>
+     * <li><b>ArrayReference</b> -> SequenceValue with mapped values (rec. invocation).</li>
+     * <li><b>StringReference</b> -> StringValue</li>
+     * <li><b>IntegerValue</b> -> IntegerValue</li>
+     * <li><b>BooleanValue</b> -> BooleanValue</li>
+     * 
+     * </ul>
      * Java-value of type {@link ObjectReference} are tried to be mapped to
      * corresponding USE-objects. If no object is found <code>UndefinedValue</code>
      * is returned.
@@ -328,11 +506,10 @@ public class JVMAdapter implements VMAdapter {
 		
     	if (javaValue == null) return v;
     	
-    	if (objectMapping.containsKey(javaValue)) {
-    		VMObject obj = objectMapping.get(javaValue);
+    	if (controller.existsVMObject(javaValue)) {
+    		VMObject obj = controller.getVMObject(javaValue);
     		v = new ObjectValue(obj.getUSEObject().type(), obj.getUSEObject());
     	} else if (javaValue instanceof ArrayReference) {
-    		//FIXME: Correct handling of array parameter!
     		ArrayReference javaArray = (ArrayReference)javaValue;
     		List<com.sun.jdi.Value> javaValues = javaArray.getValues();
     		Value[] useValues = new Value[javaValues.size()];
@@ -419,12 +596,61 @@ public class JVMAdapter implements VMAdapter {
 		    	}
 		    	
 		    	v = new SetValue(TypeFactory.mkVoidType(), useValues);
+			} else if (refValue.type().name().equals("java.util.TreeMap")) {
+				List<Value> useValues = new LinkedList<Value>();
+				
+				// TreeMap uses nodes starting with the private field "map:root"
+		    	Field field = refValue.referenceType().fieldByName("root");
+		    	com.sun.jdi.Value root = refValue.getValue(field);
+		    	
+		    	TupleType.Part keyPart = new TupleType.Part("key", TypeFactory.mkOclAny());
+		    	TupleType.Part valPart = new TupleType.Part("value", TypeFactory.mkOclAny());
+		    	
+		    	TupleType resType = TypeFactory.mkTuple(new TupleType.Part[]{keyPart, valPart});
+		    	
+		    	if (root != null) {
+			    	ObjectReference currentNode = (ObjectReference)root;
+			    	Field keyField   = currentNode.referenceType().fieldByName("key");
+			    	Field valueField = currentNode.referenceType().fieldByName("value");
+			    	Field leftField  = currentNode.referenceType().fieldByName("left");
+			    	Field rightField = currentNode.referenceType().fieldByName("right");
+			    	
+			    	Value key;
+			    	Value value;
+			    	
+			    	ObjectReference child;
+			    	
+			    	// Values are stored in the fields "left" and "right"
+			    	Stack<ObjectReference> toDo = new Stack<ObjectReference>();
+			    	toDo.add(currentNode);
+			    	Map<String,Value> parts = new HashMap<String, Value>();
+			    	
+			    	while (!toDo.isEmpty()) { 
+			    		currentNode = toDo.pop();
+			    		
+			    		key   = getUSEValue(currentNode.getValue(keyField));
+			    		value = getUSEValue(currentNode.getValue(valueField));
+			    		parts.put("key", key);
+			    		parts.put("value", value);
+			    		
+			    		useValues.add(new TupleValue(resType, parts));
+			    		
+			    		child = (ObjectReference)currentNode.getValue(leftField);
+			    		if (child != null)
+			    			toDo.push(child);
+			    		
+			    		child = (ObjectReference)currentNode.getValue(rightField);
+			    		if (child != null)
+			    			toDo.push(child);
+			    	}
+			    }
+		    	v = new SetValue(TypeFactory.mkVoidType(), useValues);
 			} else {
-				controller.newLogMessage(Level.WARNING, "Unhandled type:" + javaValue.getClass().getName());
+				controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + javaValue.toString());
 			}
 			
 		} else {
-			controller.newLogMessage(Level.WARNING, "Unhandled type:" + javaValue.getClass().getName());
+			controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + javaValue.toString());
 		}
 		
 		return v;
@@ -439,7 +665,7 @@ public class JVMAdapter implements VMAdapter {
 		org.tzi.use.uml.ocl.type.EnumType enumType = controller.getEnumerationType(javaValue.type().name());
 				
 		if (enumType == null) {
-			controller.newLogMessage(Level.WARNING, "Unhandled enum type:" + javaValue.type().name());
+			controller.newLogMessage(this, Level.WARNING, "Unhandled enum type:" + javaValue.type().name());
 			return UndefinedValue.instance;
 		}
 		
@@ -453,7 +679,7 @@ public class JVMAdapter implements VMAdapter {
 			EnumValue v = new EnumValue(enumType, litString);
 			return v;
 		} catch (IllegalArgumentException e) {
-			controller.newLogMessage(Level.WARNING, e.getMessage());
+			controller.newLogMessage(this, Level.WARNING, e.getMessage());
 		}
 		
 		return UndefinedValue.instance;
@@ -466,13 +692,109 @@ public class JVMAdapter implements VMAdapter {
 	public Set<VMObject> readInstances(JVMType jvmType) {
 		List<ObjectReference> instances = jvmType.getType().instances(getMaxInstances());
 		
+		if (instances.size() == getMaxInstances()) {
+			controller.newLogMessage(
+					this,
+					Level.WARNING,
+					"More than max instances of "
+							+ StringUtil.inQuotes(jvmType.getName()) + " in JVM!");
+		}
+		
 		Set<VMObject> vmObjects = new HashSet<VMObject>(instances.size());
 		for (ObjectReference ref : instances) {
-			JVMObject obj = new JVMObject(this, ref); 
+			JVMObject obj = createVMObject(ref);
 			vmObjects.add(obj);
-			objectMapping.put(ref, obj);
 		}
 		
 		return vmObjects;
+	}
+
+	private JVMObject createVMObject(ObjectReference ref) {
+		JVMObject obj = new JVMObject(this, ref);
+		return obj;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "JVMAdapter";
+	}
+
+	/**
+	 * @param thread
+	 */
+	public VMObject getThisObjectForThread(ThreadReference thread) {
+		StackFrame currentFrame;
+		try {
+			currentFrame = thread.frame(0);
+		} catch (IncompatibleThreadStateException e) {
+			controller.newLogMessage(this, Level.SEVERE, "Could not retrieve stack frame");
+			return null;
+		}
+		
+    	ObjectReference javaObject = currentFrame.thisObject();
+    	VMObject thisValue = controller.getVMObject(javaObject);
+    	
+    	return thisValue;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#registerMethodExit(org.tzi.use.plugins.monitor.vm.mm.VMMethodCall)
+	 */
+	@Override
+	public void registerMethodExit(VMMethodCall call) {
+		JVMMethodCall jvmCall = (JVMMethodCall)call;
+		
+		MethodExitRequest req = monitoredVM.eventRequestManager().createMethodExitRequest();
+		
+		// JVMAdapter stores an ObjectReference as Id.
+		ObjectReference instance = (ObjectReference)call.getThisObject().getId();
+
+		req.addInstanceFilter(instance);
+		req.addThreadFilter(jvmCall.getBreakpointEvent().thread());
+		req.enable();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#unregisterOperationeExit(java.lang.Object)
+	 */
+	@Override
+	public void unregisterOperationeExit(Object adapterExitInformation) {
+		MethodExitEvent exitEvent = (MethodExitEvent)adapterExitInformation;
+		monitoredVM.eventRequestManager().deleteEventRequest(exitEvent.request());
+		controller.newLogMessage(
+				this,
+				Level.FINE,
+				"Removed exit operation request "
+						+ StringUtil.inQuotes(exitEvent.request().toString()));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#getMethodResultValue(java.lang.Object)
+	 */
+	@Override
+	public Value getMethodResultValue(Object adapterExitInformation) {
+		MethodExitEvent exitEvent = (MethodExitEvent)adapterExitInformation;
+		return getUSEValue(exitEvent.returnValue());
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#registerConstructorCallInterest(org.tzi.use.plugins.monitor.vm.mm.VMType)
+	 */
+	@Override
+	public void registerConstructorCallInterest(VMType vmType) {
+		JVMType type = (JVMType)vmType;
+		
+		for (Method m : type.getType().methods()) {
+			if (m.isConstructor()) {
+				controller.newLogMessage(this, Level.FINE, "Registering constructor " + m.toString());
+				BreakpointRequest req = monitoredVM.eventRequestManager().createBreakpointRequest(m.location());
+				req.setSuspendPolicy(EventRequest.SUSPEND_ALL);
+				req.enable();
+			}
+		}
+		
 	}
 }

@@ -12,6 +12,13 @@ import org.tzi.use.uml.sys.MObject;
  */
 public interface VMObject extends VMValue {
 	
+	/**
+	 * An object which uniquely identifies the object in
+	 * the VM.
+	 * @return
+	 */
+	Object getId();
+	
 	boolean isAlive();
 		
 	VMType getType();

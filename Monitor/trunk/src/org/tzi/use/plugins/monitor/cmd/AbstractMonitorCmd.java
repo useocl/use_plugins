@@ -21,9 +21,9 @@ public abstract class AbstractMonitorCmd implements IPluginShellCmdDelegate, Log
 	 */
 	@Override
 	public final void performCommand(IPluginShellCmd pluginCommand) {
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().addLogListener(this);
+		MonitorPlugin.getInstance().getMonitor().addLogListener(this);
 		doPerformCommand(pluginCommand);
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeLogListener(this);
+		MonitorPlugin.getInstance().getMonitor().removeLogListener(this);
 	}
 
 	/**

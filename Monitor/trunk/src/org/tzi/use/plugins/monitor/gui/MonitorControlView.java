@@ -18,7 +18,6 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
@@ -48,8 +47,6 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
@@ -57,8 +54,9 @@ import javax.swing.text.StyleConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
-import org.tzi.use.config.Options;
 import org.tzi.use.gui.main.MainWindow;
+import org.tzi.use.main.ChangeEvent;
+import org.tzi.use.main.ChangeListener;
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.monitor.AbstractMonitorStateListener;
 import org.tzi.use.plugins.monitor.LogListener;
@@ -91,6 +89,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	private JTextField text_port;
 	private JCheckBox check_suspend;
 	private JCheckBox check_determineStates;
+	private JCheckBox check_useSOIL;
 	
 	private JLabel label_useModel;
 	
@@ -121,8 +120,8 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			}
 		};
 		
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().addStateChangedListener(stateChangeListener);
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().addSnapshotProgressListener(this);
+		MonitorPlugin.getInstance().getMonitor().addStateChangedListener(stateChangeListener);
+		MonitorPlugin.getInstance().getMonitor().addSnapshotProgressListener(this);
 	}
 	
 	private void initGUI() {
@@ -147,9 +146,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 				    	monArgs.put("port", text_port.getText());
 				    	
 						try {
-							MonitorPlugin
-									.getMonitorPluginInstance()
-									.getMonitor()
+							MonitorPlugin.getInstance().getMonitor()
 									.configure(session, new JVMAdapter(), monArgs);
 						} catch (InvalidAdapterConfiguration e) {
 							JOptionPane.showMessageDialog(
@@ -159,13 +156,13 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 							return;
 						}
 						
-						MonitorPlugin.getMonitorPluginInstance().getMonitor()
-								.start(check_suspend.isSelected());
+						MonitorPlugin.getInstance().getMonitor()
+								.setUseSoil(check_useSOIL.isSelected());
 						
-						// If USE version < 3.1.0 psms are unknown
-						if (check_determineStates != null
-								&& check_suspend.isSelected()
-								&& check_determineStates.isSelected())
+						MonitorPlugin.getInstance().getMonitor()
+								.start(check_suspend.isSelected());
+
+						if (check_suspend.isSelected() && check_determineStates.isSelected())
 							session.system()
 									.state()
 									.determineStates(
@@ -190,10 +187,10 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 				MonitorSwingWorker worker = new MonitorSwingWorker() {
 					@Override
 					protected void doMonitorInBackground() {
-						if (MonitorPlugin.getMonitorPluginInstance().getMonitor().isPaused())
-							MonitorPlugin.getMonitorPluginInstance().getMonitor().resume();
+						if (MonitorPlugin.getInstance().getMonitor().isPaused())
+							MonitorPlugin.getInstance().getMonitor().resume();
 						else {
-							MonitorPlugin.getMonitorPluginInstance().getMonitor().pause();
+							MonitorPlugin.getInstance().getMonitor().pause();
 							// If USE version < 3.1.0 psms are unknown
 							if (check_determineStates != null
 									&& check_determineStates.isSelected())
@@ -219,7 +216,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		button_Stop.addActionListener(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				MonitorPlugin.getMonitorPluginInstance().getMonitor().end();		
+				MonitorPlugin.getInstance().getMonitor().end();		
 			}
 		});
 		buttonPanel.add(button_Stop);
@@ -277,24 +274,14 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			check_suspend = new JCheckBox("Suspend at connect", true);
 			info.add(check_suspend, cData);
 			cData.gridy++;
+						
+			check_determineStates = new JCheckBox("Determine states after suspend", true);
+			info.add(check_determineStates, cData);
+						
+			cData.gridy++;
 			
-			// Determine correct USE version.
-			// Cannot be accessed directly, because of optimizations
-			String sVersion = "3.0.0";
-			try {
-				Field f = Options.class.getField("RELEASE_VERSION");
-				Object version = f.get(null);
-				sVersion = version.toString();
-			} catch (Exception e1) {
-				// Ignore exceptions during version determination.
-			}
-			
-			if (sVersion.startsWith("3.0")) {
-				check_determineStates = null;
-			} else {
-				check_determineStates = new JCheckBox("Determine states after suspend", true);
-				info.add(check_determineStates, cData);
-			}
+			check_useSOIL = new JCheckBox("Use SOIL statements for state changes", true);
+			info.add(check_useSOIL, cData);
 			
 			tapPanel.add(info, BorderLayout.NORTH);
 			tabs.addTab("Settings", tapPanel);
@@ -344,7 +331,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			logArea.setEditable(false);
 			logPanel.add(new JScrollPane(logArea), BorderLayout.CENTER);	
 			tabs.addTab("Log", logPanel);
-			MonitorPlugin.getMonitorPluginInstance().getMonitor().addLogListener(this);
+			MonitorPlugin.getInstance().getMonitor().addLogListener(this);
 		}
 		
 		configureComponents();
@@ -495,16 +482,16 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
     }
 
 	private void configureComponents() {
-		Monitor monitor = MonitorPlugin.getMonitorPluginInstance().getMonitor();
+		Monitor monitor = MonitorPlugin.getInstance().getMonitor();
 		boolean isMonitoring = monitor.isRunning();
 		boolean isPaused = monitor.isPaused();
 		
 		this.text_host.setEnabled(!isMonitoring);
 		this.text_port.setEnabled(!isMonitoring);
 		this.check_suspend.setEnabled(!isMonitoring);
+		this.check_useSOIL.setEnabled(!isMonitoring);
 		
-		if (this.check_determineStates != null)
-			this.check_determineStates.setEnabled(!isMonitoring || !isPaused);
+		this.check_determineStates.setEnabled(!isMonitoring || !isPaused);
 		
 		this.button_Play.setEnabled(!isMonitoring);
 		this.button_Pause.setEnabled(isMonitoring);
@@ -523,9 +510,9 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	@Override
 	public void dispose() {
 		session.removeChangeListener(this);
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeStateChangedListener(stateChangeListener);
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeSnapshotProgressListener(this);
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().removeLogListener(this);
+		MonitorPlugin.getInstance().getMonitor().removeStateChangedListener(stateChangeListener);
+		MonitorPlugin.getInstance().getMonitor().removeSnapshotProgressListener(this);
+		MonitorPlugin.getInstance().getMonitor().removeLogListener(this);
 		super.dispose();
 	}
 

@@ -34,6 +34,11 @@ public class JVMMethod extends JVMBase implements VMMethod {
 		this.method = m;
 	}
 
+	@Override
+	public Method getId() {
+		return method;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.tzi.use.plugins.monitor.vm.mm.VMMethod#getName()
 	 */
@@ -86,4 +91,11 @@ public class JVMMethod extends JVMBase implements VMMethod {
 		this.useOperation = useOperation;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return method.toString();
+	}
 }

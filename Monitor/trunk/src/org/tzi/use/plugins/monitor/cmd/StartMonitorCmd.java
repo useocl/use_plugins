@@ -11,7 +11,7 @@ public class StartMonitorCmd extends AbstractMonitorCmd {
 
 	@Override
 	public void doPerformCommand(IPluginShellCmd pluginCommand) {
-		if (MonitorPlugin.getMonitorPluginInstance().getMonitor().isRunning()) {
+		if (MonitorPlugin.getInstance().getMonitor().isRunning()) {
     		Log.error("Already monitioring an application. Please stop before starting a new monitor.");
     		return;
     	}
@@ -38,7 +38,7 @@ public class StartMonitorCmd extends AbstractMonitorCmd {
     	Map<String,String> monArgs = new HashMap<String, String>();
     	monArgs.put("host", host);
     	monArgs.put("port", port);
-		MonitorPlugin.getMonitorPluginInstance().startMonitor(pluginCommand.getSession(), monArgs, false);
+		MonitorPlugin.getInstance().startMonitor(pluginCommand.getSession(), monArgs, false);
 	}
 
 	

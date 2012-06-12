@@ -7,8 +7,8 @@ public class PauseMonitorCmd extends AbstractMonitorCmd {
 
 	@Override
 	public void doPerformCommand(IPluginShellCmd pluginCommand) {
-		if (!MonitorPlugin.getMonitorPluginInstance().checkMonitoring()) return;
-		MonitorPlugin.getMonitorPluginInstance().getMonitor().pause();
+		if (!MonitorPlugin.getInstance().checkMonitoring()) return;
+		MonitorPlugin.getInstance().getMonitor().pause();
 	}
 
 }

@@ -12,6 +12,14 @@ import org.tzi.use.uml.mm.MOperation;
  *
  */
 public interface VMMethod {
+	
+	/**
+	 * An object which uniquely identifies the method in
+	 * the VM.
+	 * @return
+	 */
+	Object getId(); 
+	
 	/**
 	 * The name of this method
 	 * @return

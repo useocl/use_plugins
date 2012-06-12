@@ -13,12 +13,22 @@ public class MonitorPlugin extends Plugin {
 
 	private static String PLUGIN_NAME = "Monitor";
 	
+	private static MonitorPlugin pluginInstance;
+	
 	private Monitor monitor = new Monitor();
 	
 	private VMAdapter adapter = new JVMAdapter();
 	
-	public static MonitorPlugin getMonitorPluginInstance() {
-		return (MonitorPlugin)pluginInstance;
+	public static MonitorPlugin getInstance() {
+		return pluginInstance;
+	}
+	
+	/**
+	 * Set the static instance of this plugin
+	 */
+	public MonitorPlugin() {
+		super();
+		pluginInstance = this;
 	}
 	
 	@Override

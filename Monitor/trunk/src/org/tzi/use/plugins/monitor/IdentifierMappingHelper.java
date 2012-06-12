@@ -1,8 +1,11 @@
 package org.tzi.use.plugins.monitor;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
+import org.tzi.use.plugins.monitor.vm.mm.jvm.JVMType;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
@@ -30,11 +33,20 @@ public class IdentifierMappingHelper {
 	 * A reference to the model, to allow to check annotation values.
 	 */
 	private MModel model;
-	
+
 	public IdentifierMappingHelper(MModel model) {
 		this.model = model;
 	}
 	
+	private void setupCashes() {
+		// To be able to quickly check if a VMType is handled by the model
+		Collection<MClass> useClasses = model.classes();
+		
+		HashSet<String> allHandledClassNames = new HashSet<String>(useClasses.size());
+		for (MClass useClass : useClasses) {
+			allHandledClassNames.add(getJavaClassName(useClass));
+		}
+	}
 	/**
      * Returns the Java class name of an {@link MClass}.
      * The qualified name (<code>package.classname</code>) is constructed as follows:
@@ -222,5 +234,13 @@ public class IdentifierMappingHelper {
     		classPackage = model.getAnnotationValue("Monitor", "defaultPackage");
     	
     	return classPackage + (classPackage.equals("") ? "" : ".") + className;
+	}
+
+	/**
+	 * @param type
+	 */
+	public MClass getUseClass(JVMType type) {
+		//FIXME: Implement
+		return null;
 	}
 }
