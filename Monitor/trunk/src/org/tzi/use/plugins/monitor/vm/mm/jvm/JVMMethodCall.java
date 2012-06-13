@@ -3,10 +3,10 @@
  */
 package org.tzi.use.plugins.monitor.vm.mm.jvm;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.tzi.use.plugins.monitor.vm.adapter.VMAccessException;
 import org.tzi.use.plugins.monitor.vm.adapter.jvm.JVMAdapter;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethodCall;
 import org.tzi.use.plugins.monitor.vm.mm.VMObject;
@@ -35,16 +35,14 @@ public class JVMMethodCall extends JVMBase implements VMMethodCall {
 	 * @see org.tzi.use.plugins.monitor.vm.mm.VMMethodCall#getArgumentValues()
 	 */
 	@Override
-	public List<Value> getArgumentValues() {
-		//FIXME: Exception handling (VMAccess exception?)!
+	public List<Value> getArgumentValues() throws VMAccessException {
 		List<Value> args = new LinkedList<Value>();
 		List<com.sun.jdi.Value> javaArgs;
 		
 		try {
 			javaArgs = breakpointEvent.thread().frame(0).getArgumentValues();
 		} catch (IncompatibleThreadStateException e) {
-			e.printStackTrace();
-			return Collections.emptyList();
+			throw new VMAccessException(e);
 		}
 		
 		for (com.sun.jdi.Value v : javaArgs) {
@@ -67,7 +65,7 @@ public class JVMMethodCall extends JVMBase implements VMMethodCall {
 	 * @see org.tzi.use.plugins.monitor.vm.mm.VMMethodCall#getThisObject()
 	 */
 	@Override
-	public VMObject getThisObject() {
+	public VMObject getThisObject() throws VMAccessException {
     	return adapter.getThisObjectForThread(breakpointEvent.thread());
 	}
 
@@ -75,14 +73,11 @@ public class JVMMethodCall extends JVMBase implements VMMethodCall {
 	 * @see org.tzi.use.plugins.monitor.vm.mm.VMMethodCall#getNumArguments()
 	 */
 	@Override
-	public int getNumArguments() {
-		//FIXME: Exception handling!
+	public int getNumArguments() throws VMAccessException {
 		try {
 			return breakpointEvent.thread().frame(0).getArgumentValues().size();
 		} catch (IncompatibleThreadStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return -1;
+			throw new VMAccessException(e);
 		}
 	}
 

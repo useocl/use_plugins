@@ -39,6 +39,7 @@ import org.tzi.use.main.ChangeEvent;
 import org.tzi.use.main.ChangeListener;
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
+import org.tzi.use.plugins.monitor.vm.adapter.VMAccessException;
 import org.tzi.use.plugins.monitor.vm.adapter.VMAdapter;
 import org.tzi.use.plugins.monitor.vm.mm.VMField;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
@@ -46,6 +47,7 @@ import org.tzi.use.plugins.monitor.vm.mm.VMMethodCall;
 import org.tzi.use.plugins.monitor.vm.mm.VMObject;
 import org.tzi.use.plugins.monitor.vm.mm.VMType;
 import org.tzi.use.plugins.monitor.vm.mm.jvm.JVMType;
+import org.tzi.use.uml.mm.Annotatable;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationEnd;
@@ -81,14 +83,15 @@ import org.tzi.use.uml.sys.ppcHandling.PreConditionCheckFailedException;
 import org.tzi.use.uml.sys.soil.MAttributeAssignmentStatement;
 import org.tzi.use.uml.sys.soil.MEnterOperationStatement;
 import org.tzi.use.uml.sys.soil.MExitOperationStatement;
+import org.tzi.use.uml.sys.soil.MLinkDeletionStatement;
 import org.tzi.use.uml.sys.soil.MLinkInsertionStatement;
 import org.tzi.use.uml.sys.soil.MNewObjectStatement;
 import org.tzi.use.uml.sys.soil.MObjectDestructionStatement;
+import org.tzi.use.uml.sys.soil.MRValue;
 import org.tzi.use.util.StringUtil;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.sun.jdi.ReferenceType;
 
 /**
  * This class handles the monitoring of a Java application
@@ -229,6 +232,12 @@ public class Monitor implements ChangeListener {
      */
     private BiMap<Object, VMMethod> adapterMethodMapping;
     
+    /**
+     * Internal mapping for the adapters from a VM specific key
+     * to the intermediate representation as a {@link VMOperation}.
+     */
+    private BiMap<Object, VMField> adapterFieldMapping;
+    
     private Stack<VMMethodCall> monitoredCalls;
         
     public Monitor() { }
@@ -357,6 +366,8 @@ public class Monitor implements ChangeListener {
     	this.adapterObjectMapping = HashBiMap.create();
     	this.adapterTypeMapping = HashBiMap.create();
     	this.adapterMethodMapping = HashBiMap.create();
+    	this.adapterFieldMapping = HashBiMap.create();
+    	
     	this.monitoredCalls = new Stack<VMMethodCall>();
     	
     	this.hasSnapshot = false;
@@ -486,7 +497,14 @@ public class Monitor implements ChangeListener {
      */
 	private boolean createOperationCall(MObject self, VMMethodCall call, boolean validatePreConditions) {
 
-		List<Value> vmArguments = call.getArgumentValues();
+		List<Value> vmArguments = null;
+		try {
+			vmArguments = call.getArgumentValues();
+		} catch (VMAccessException e1) {
+			fireNewLogMessage("getting number of arguments for operation call", e1);
+			return false;
+		}
+		
 		Map<String, Expression> arguments = new HashMap<String, Expression>();
     	
 		MOperation useOperation = call.getMethod().getUSEOperation();
@@ -551,6 +569,7 @@ public class Monitor implements ChangeListener {
     	adapterObjectMapping = null;
     	adapterTypeMapping = null;
     	adapterMethodMapping = null;
+    	adapterFieldMapping = null;
     	
     	useClassMappings = null;
     	vmTypeMappings = null;
@@ -572,6 +591,9 @@ public class Monitor implements ChangeListener {
     
 	private void registerClassPrepareEvents() {
 		for (MClass cls : getSystem().model().classes()) {
+			if (elementShouldBeIgnored(cls))
+				continue;
+			
 			String javaClassName = mappingHelper.getJavaClassName(cls);
 			
 			if (!adapter.isVMTypeLoaded(javaClassName)) {
@@ -586,10 +608,13 @@ public class Monitor implements ChangeListener {
 	 */
     private void registerOperationBreakPoints() {
     	for (MClass cls : getSystem().model().classes()) {
+    		if (elementShouldBeIgnored(cls))
+    			continue;
+    		
     		try {
     			registerOperationBreakPoints(cls);
     		} catch (Exception e) {
-    			fireNewLogMessage(Level.SEVERE, "Error while setting break points for class " + cls.name());
+    			fireNewLogMessage(Level.SEVERE, "Error while setting break points for class " + cls.name() + ". Reason: " + e.getMessage());
     		}
     	}
     }
@@ -604,70 +629,70 @@ public class Monitor implements ChangeListener {
 		
 		if (vmType == null) {
 			fireNewLogMessage(Level.INFO, "No runtime class found for model class " + cls.name() + ", yet.");
-		} else {
-			fireNewLogMessage(Level.FINE, "Registering operation breakpoints for class " + cls.name());
-			for (MOperation op : cls.operations()) {
-				String isQuery = op.getAnnotationValue("Monitor", "isQuery");
-				if (isQuery.equals("true")) continue;
-				
-				String methodName = mappingHelper.getJavaMethodName(op);
-				List<VMMethod> methods = vmType.getMethodsByName(methodName);
-				
-				for (VMMethod m : methods) {
-					// TODO: Check parameter types
-					if (m.getArgumentTypes().size() == op.allParams().size()) {
-						fireNewLogMessage(Level.FINE, "Registering operation breakpoint for operation " + m.toString());
-						m.setUSEOperation(op);
-						adapterMethodMapping.put(m.getId(), m);
-						adapter.registerOperationCallInterest(m);
-					}
+			return;
+		}
+							
+		fireNewLogMessage(Level.FINE, "Registering operation call interest for class " + cls.name());
+		for (MOperation op : cls.operations()) {
+			
+			if (elementShouldBeIgnored(op))
+				continue;
+			
+			String methodName = mappingHelper.getJavaMethodName(op);
+			List<VMMethod> methods = vmType.getMethodsByName(methodName);
+			
+			for (VMMethod m : methods) {
+				// TODO: Check parameter types
+				if (m.getArgumentTypes().size() == op.allParams().size()) {
+					fireNewLogMessage(Level.FINER, "Registering operation call interest for operation " + m.toString());
+					m.setUSEOperation(op);
+					adapterMethodMapping.put(m.getId(), m);
+					adapter.registerOperationCallInterest(m);
 				}
 			}
+		}
+		
+		// Breakpoints for constructors
+		fireNewLogMessage(Level.FINE, "Registering constructor call interest for class " + cls.name());
+		adapter.registerConstructorCallInterest(vmType);
+		
+		// watch points for attributes
+		fireNewLogMessage(Level.FINE, "Registering attribute modification interest for class " + cls.name());
+		for (MAttribute a : cls.attributes()) {
+			if (elementShouldBeIgnored(a))
+				continue;
 			
-			// Breakpoints for constructors
-			adapter.registerConstructorCallInterest(vmType);
+			VMField f = getVMField(vmType, a);
+			if (f == null) {
+				fireNewLogMessage(Level.WARNING, "Unknown attribute " + StringUtil.inQuotes(a.name()));
+				continue;
+			}
 			
-			//FIXME: Dynamic monitoring
-			/*
-			for (MAttribute a : cls.attributes()) {
-				String aName = mappingHelper.getJavaFieldName(a);
-				Field f = refType.fieldByName(aName);
+			adapter.registerFieldModificationInterest(f);
+		}
+		
+		fireNewLogMessage(Level.FINE, "Registering link modification interest for class " + cls.name());
+		// Association ends with multiplicity 1 can be handled also
+		for (Map.Entry<String, MNavigableElement> end : cls.navigableEnds().entrySet()) {
+			
+			if (!end.getValue().isCollection() && end.getValue() instanceof MAssociationEnd) {
+				MAssociationEnd assEnd = (MAssociationEnd)end.getValue();
+				
+				if (elementShouldBeIgnored(assEnd))
+					continue;
+				
+				VMField f = getVMField(vmType, assEnd);
+
 				if (f == null) {
-					fireNewLogMessage(Level.WARNING, "Unknown attribute " + StringUtil.inQuotes(a.name()));
+					fireNewLogMessage(Level.WARNING, "Unknown attribute " + StringUtil.inQuotes(assEnd.name()));
 					continue;
 				}
 				
-				ModificationWatchpointRequest req = monitoredVM.eventRequestManager().createModificationWatchpointRequest(f);
-				req.setSuspendPolicy(EventRequest.SUSPEND_NONE);
-				req.enable();
+				adapter.registerFieldModificationInterest(f);
 			}
-			
-			// Association ends with multiplicity 1 can be handled also
-			for (Map.Entry<String, MNavigableElement> end : cls.navigableEnds().entrySet()) {
-				if (!end.getValue().isCollection()) {
-					Field f = refType.fieldByName(end.getKey());
-					if (f != null) {
-						ModificationWatchpointRequest req = monitoredVM.eventRequestManager().createModificationWatchpointRequest(f);
-						req.setSuspendPolicy(EventRequest.SUSPEND_NONE);
-						req.enable();
-					}
-				}
-			}
-			*/
 		}
 	}
 
-	private void registerOperationBreakPoints(ReferenceType refType) {
-		// Get the last element of the qualified name
-		String name = refType.name();
-		name = name.substring(name.lastIndexOf(".") + 1);
-		
-		MClass cls = getSystem().model().getClass(name);
-		if (cls != null) {
-			registerOperationBreakPoints(cls);
-		}
-	}
-	
 	/**
 	 * Returns the {@link VMType} for the given {@link MClass}
 	 * by first translating the USE name to the implementation name using
@@ -679,6 +704,47 @@ public class Monitor implements ChangeListener {
     	return adapter.getVMType(mappingHelper.getJavaClassName(cls));
     }
 
+	private VMField getVMField(VMType type, MAttribute attr) {
+		String vmName = mappingHelper.getVMFieldName(attr);
+		VMField field = getVMField(type, vmName);
+		
+		if (field != null) {
+			field.setUSEAttribute(attr);
+		}
+		
+		return field;
+	}
+	
+	private VMField getVMField(VMType type, MAssociationEnd end) {
+		String vmName = mappingHelper.getVMFieldName(end);
+		VMField field = getVMField(type, vmName); 
+		
+		if (field != null) {
+			field.setUSEAssociationEnd(end);
+		}
+		
+		return field;
+	}
+	
+	private VMField getVMField(VMType type, String vmName) {
+		VMField f = type.getFieldByName(vmName);
+		
+		if (f == null) {
+			return null;
+		}
+		
+		if (!adapterFieldMapping.containsKey(f.getId())) {
+			adapterFieldMapping.put(f.getId(), f);
+		}
+		
+		return adapterFieldMapping.get(f.getId());
+	}
+	
+	private boolean elementShouldBeIgnored(Annotatable e) {
+		return e.getAnnotationValue("Monitor", "ignore").equalsIgnoreCase("true") ||
+			   e.getAnnotationValue("Monitor", "isQuery").equalsIgnoreCase("true");
+	}
+	
 	/**
 	 * Constructs a map which maps each use class
 	 * to the reference types that must be read. 
@@ -696,10 +762,11 @@ public class Monitor implements ChangeListener {
 		// This loop builds-up the mapping of use classes to VMTypes.
 		// A single USE class can represent more than one VMType.
 		for (MClass useClass : useClasses) {
-			if (useClass.getAnnotationValue("Monitor", "ignore").equals("true")) {
+			if (elementShouldBeIgnored(useClass)) {
 				// Ignore this class
 				continue;
 			}
+			
 			Set<VMType> mappedTypes = new HashSet<VMType>();
 			useClassMappings.put(useClass, mappedTypes);
 			
@@ -716,7 +783,7 @@ public class Monitor implements ChangeListener {
 					workingType.setUSEClass(useClass);
 					vmTypeMappings.put(workingType, useClass);
 					
-					if (!useClass.getAnnotationValue("Monitor", "ignoreSubclasses").equals("true")) {		
+					if (!elementShouldBeIgnored(useClass)) {		
 						//FIXME: Change to allSubClasses()
 						for (VMType t : workingType.getSubClasses()) {
 							// Subtype is handled by its own class?
@@ -738,6 +805,7 @@ public class Monitor implements ChangeListener {
 		// Init caches
 		this.vmTypeMappings = new HashMap<VMType, MClass>();
 		this.useClassMappings = new HashMap<MClass, Set<VMType>>();
+		
 		this.adapterObjectMapping = HashBiMap.create();
 		
 		setupClassMappings();
@@ -747,9 +815,11 @@ public class Monitor implements ChangeListener {
 		// Create current system state
     	for (MClass cls : classes) {
     		fireSnapshotProgress(args);
-    		if (!cls.getAnnotationValue("Monitor", "ignore").equals("true")) {
+    		
+    		if (!elementShouldBeIgnored(cls)) {
     			readInstances(cls);
     		}
+    		
     		args.setCurrent(args.getCurrent() + 1);
     	}
     	
@@ -914,7 +984,7 @@ public class Monitor implements ChangeListener {
      * Checks the {@link VMType} of <code>objRef</code> for the attributes
      * of the USE class of <code>o</code>. If an attribute is found the value of the 
      * USE attribute is set. After that all associations the USE class is participating
-     * in are checked for rolenames matching an attribute name. For each match corresponding
+     * in are checked for role names matching an attribute name. For each match corresponding
      * links are created.  
      * @param objRef The VM instance to read the values from 
      * @param o The use object to set the values for.
@@ -922,10 +992,12 @@ public class Monitor implements ChangeListener {
     private void readAttributes(VMObject objRef, MObject o) {
     	for (MAttribute attr : o.cls().allAttributes()) {
     		
+    		if (elementShouldBeIgnored(attr))
+    			continue;
+    		
     		if (!readSpecialAttributeValue(objRef, o, attr)) {
-	    		VMField field;
-	    		field = objRef.getType().getFieldByName(mappingHelper.getJavaFieldName(attr));
-	    			    		
+	    		VMField field = getVMField(objRef.getType(), attr);
+
 	    		if (field != null) {
 	    			Value v = objRef.getValue(field);
 	    			
@@ -990,8 +1062,7 @@ public class Monitor implements ChangeListener {
         		for (MNavigableElement reachableElement : reachableEnds) {
         			MAssociationEnd reachableEnd = (MAssociationEnd)reachableElement;
         			
-					if (reachableEnd.getAnnotationValue("Monitor", "ignore")
-							.equalsIgnoreCase("true"))
+					if (elementShouldBeIgnored(reachableEnd))
         				continue;
         			
         			if (reachableEnd.multiplicity().isCollection()) {
@@ -1012,7 +1083,7 @@ public class Monitor implements ChangeListener {
 	 * @param end
 	 */
     private void readLink(VMObject objRef, MObject source, MAssociationEnd end) {
-    	VMField field = objRef.getType().getFieldByName(mappingHelper.getJavaFieldName(end));
+    	VMField field = getVMField(objRef.getType(), end);
     	
     	if (field == null) {
 			fireNewLogMessage(
@@ -1159,7 +1230,7 @@ public class Monitor implements ChangeListener {
 	 * @param end
 	 */
     private void readLinks(VMObject objRef, MObject o, MAssociationEnd end) {
-    	VMField field = objRef.getType().getFieldByName(end.nameAsRolename());
+    	VMField field = getVMField(objRef.getType(), end);
     	
     	if (field == null) {
     		fireNewLogMessage(
@@ -1169,7 +1240,7 @@ public class Monitor implements ChangeListener {
 							+ " could not be retrieved as a field inside of the VM.");
     		return;
     	}
-    	
+    			
     	// Get the referenced objects
     	Value objects = objRef.getValue(field);
     	
@@ -1346,6 +1417,10 @@ public class Monitor implements ChangeListener {
     	this.logListener.remove(listener);
     }
     
+    protected void fireNewLogMessage(String task, VMAccessException e) {
+    	fireNewLogMessage(Level.SEVERE, "VM access error while " + task + ": " + e.getMessage());
+    }
+    
     protected void fireNewLogMessage(Level level, String message) {
     	for (LogListener listener : this.logListener) {
     		listener.newLogMessage(this, level, message);
@@ -1462,7 +1537,13 @@ public class Monitor implements ChangeListener {
 	    		return;
 	    	}
 			
-			VMObject vmThisObject = vmMethodCall.getThisObject();
+			VMObject vmThisObject = null;
+			try {
+				vmThisObject = vmMethodCall.getThisObject();
+			} catch (VMAccessException e1) {
+				fireNewLogMessage("getting this object for operation call", e1);
+			}
+			
 			if (vmThisObject == null ) {
 				fireNewLogMessage(Level.WARNING, "Could not retrieve object for operation call " + vmMethodCall.toString() + ".");
 	    		return;
@@ -1470,9 +1551,13 @@ public class Monitor implements ChangeListener {
 			
 	    	MObject self = vmThisObject.getUSEObject();
 	    	
-			if (useOperation.allParams().size() != vmMethodCall.getNumArguments()) {
-				fireNewLogMessage(Level.WARNING, "Wrong number of arguments!");
-				return;
+			try {
+				if (useOperation.allParams().size() != vmMethodCall.getNumArguments()) {
+					fireNewLogMessage(Level.WARNING, "Wrong number of arguments!");
+					return;
+				}
+			} catch (VMAccessException e) {
+				fireNewLogMessage(Level.SEVERE, e.getMessage());
 			}
 			
 	    	checkForDeletedInstances();
@@ -1503,7 +1588,14 @@ public class Monitor implements ChangeListener {
 
 	    	MOperation currentUseOperation = currentUseOperationCall.getOperation();
 	    	
-	    	if (!currentUseOperationCall.getSelf().equals(currentCall.getThisObject().getUSEObject()))
+	    	MObject useObject = null;
+			try {
+				useObject = currentCall.getThisObject().getUSEObject();
+			} catch (VMAccessException e1) {
+				fireNewLogMessage("get this object for operation call", e1);
+			}
+	    	
+	    	if (!currentUseOperationCall.getSelf().equals(useObject))
 	    		return;
 	    	
 	    	boolean success = false;
@@ -1547,8 +1639,11 @@ public class Monitor implements ChangeListener {
 		/**
 		 * @param type
 		 */
-		public void onNewVMTypeLoaded(JVMType type) {
-			// mappingHelper.getUseClass(type);
+		public void onNewVMTypeLoaded(Object adapterEventInformation, JVMType type) {
+			fireNewLogMessage(Level.INFO, "New runtime class loaded: " + type.toString());
+			MClass useClass = mappingHelper.getUseClass(type);
+			registerOperationBreakPoints(useClass);
+			adapter.unregisterClassPrepareInterest(adapterEventInformation);
 		}
 
 		/**
@@ -1565,6 +1660,113 @@ public class Monitor implements ChangeListener {
 			} catch (MSystemException e) {
 				fireNewLogMessage(Level.SEVERE, "USE object for new instance of type " + vmType.getName() + " could not be created.");
 			}
+		}
+
+		/**
+		 * @param obj
+		 * @param field
+		 * @param useValue
+		 */
+		public void onUpdateAttribute(Object objId, Object fieldId, Value useValue) {
+			if (!adapterObjectMapping.containsKey(objId))
+				fireNewLogMessage(Level.WARNING, "No VMObject for id " + objId + " to set attribute for.");
+			
+			VMObject vmObject = adapterObjectMapping.get(objId);
+			MObject useObject = vmObject.getUSEObject();
+	    	
+	    	if (useObject == null) {
+				fireNewLogMessage(Level.WARNING,
+						"USE-object was not set for VMObject " + vmObject);
+				return;
+	    	}
+	    	
+	    	if (!adapterFieldMapping.containsKey(fieldId)) {
+	    		fireNewLogMessage(Level.WARNING,
+						"Unknown VMField " + fieldId);
+				return;
+	    	}
+	    	
+	    	VMField field = adapterFieldMapping.get(fieldId);
+	    	
+	    	if (field.getUSEAttribute() != null) {
+				MAttributeAssignmentStatement stmt = new MAttributeAssignmentStatement(new ExpObjRef(useObject), field.getUSEAttribute(), useValue);
+	    		
+				try {
+					getSystem().execute(stmt);
+				} catch (MSystemException e) {
+					fireNewLogMessage(Level.WARNING, "Attribute " + StringUtil.inQuotes(field.getUSEAttribute().toString()) + " could not be set!");
+				}
+				
+	    	} else if (field.getUSEAssociationEnd() != null) {
+	    		// Link end
+	    		MNavigableElement end = field.getUSEAssociationEnd();
+	    		if (!end.isCollection()) {
+	    			// Destroy possible existing link
+	    			List<MAssociationEnd> ends = new ArrayList<MAssociationEnd>(end.association().associationEnds());
+	    			ends.remove(end);
+	    			
+	    			List<MObject> objects = getSystem().state().getNavigableObjects(useObject, ends.get(0), end, Collections.<Value>emptyList());
+	    			
+	    			if (objects.size() > 0) {
+	    				// Align objects to USE specification
+	    				MObject[] linkObjects = new MObject[2];
+	    				if (end.association().associationEnds().get(0).equals(end) ) {
+							linkObjects[0] = objects.get(0);
+							linkObjects[1] = useObject;
+						} else {
+							linkObjects[0] = useObject;
+							linkObjects[1] = objects.get(0);
+						}
+	    				
+	    				//FIXME: Qualifier values empty
+						MLinkDeletionStatement delStmt = new MLinkDeletionStatement(
+								end.association(), linkObjects,
+								Collections.<List<MRValue>> emptyList());
+	    				
+		    			try {
+		    				getSystem().execute(delStmt);
+						} catch (MSystemException e) {
+							fireNewLogMessage(
+									Level.WARNING,
+									"Link of association "
+											+ StringUtil.inQuotes(end.association())
+											+ " could not be deleted. Reason: "
+											+ e.getMessage());
+							return;
+						}
+	    			}
+	    			
+	    			// Create link if needed
+					if (useValue != null && !useValue.isUndefined()) {
+						
+						if (!useValue.isObject()) {
+							fireNewLogMessage(Level.WARNING, "Need an USE object value for links!");
+						}
+						
+						MObject newValue = ((ObjectValue)useValue).value();
+						MObject[] linkObjects = new MObject[2];
+						
+						if (end.association().associationEnds().get(0).equals(end) ) {
+							linkObjects[0] = newValue;
+							linkObjects[1] = useObject;
+						} else {
+							linkObjects[0] = useObject;
+							linkObjects[1] = newValue;
+						}
+						
+						try {
+							MLinkInsertionStatement createStmt = new MLinkInsertionStatement(
+									end.association(), linkObjects, Collections.<List<Value>>emptyList()
+							);
+							getSystem().execute(createStmt);
+						} catch (MSystemException e) {
+							fireNewLogMessage(Level.WARNING, "Could not create new link:" + e.getMessage());
+						}
+					}
+	    		}
+	    	} else {
+	    		fireNewLogMessage(Level.WARNING, "No USE-Attribute or -Association end for VMField " + field + " was set.");
+	    	}
 		}
 	}
 }

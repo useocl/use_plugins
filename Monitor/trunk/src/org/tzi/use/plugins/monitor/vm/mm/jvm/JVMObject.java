@@ -20,6 +20,8 @@ public class JVMObject extends JVMBase implements VMObject {
 
 	private final ObjectReference reference;
 	
+	private final VMType type;
+	
 	private MObject useObject;
 	
 	/**
@@ -28,6 +30,7 @@ public class JVMObject extends JVMBase implements VMObject {
 	public JVMObject(JVMAdapter adapter, ObjectReference ref) {
 		super(adapter);
 		this.reference = ref;
+		this.type = adapter.getVMType(reference.type().name());
 	}
 
 	/* (non-Javadoc)
@@ -59,8 +62,7 @@ public class JVMObject extends JVMBase implements VMObject {
 	 */
 	@Override
 	public VMType getType() {
-		//TODO: Save?
-		return adapter.getVMType(reference.type().name());
+		return type;
 	}
 
 	/* (non-Javadoc)

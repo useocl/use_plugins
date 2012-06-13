@@ -44,14 +44,9 @@ public class MonitorPlugin extends Plugin {
 		
 	}
 	
-	public void startMonitor(Session session, Map<String,String> args, boolean suspend) {
-		try {
-			this.monitor.configure(session, adapter, args);
-		} catch (InvalidAdapterConfiguration e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+	public void startMonitor(Session session, Map<String, String> args,
+			boolean suspend) throws InvalidAdapterConfiguration {
+		this.monitor.configure(session, adapter, args);
 		this.monitor.start(suspend);
 	}
 

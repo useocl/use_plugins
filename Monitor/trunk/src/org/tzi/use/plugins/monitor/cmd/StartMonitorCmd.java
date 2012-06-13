@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.plugins.monitor.MonitorPlugin;
+import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
 import org.tzi.use.util.Log;
 
 public class StartMonitorCmd extends AbstractMonitorCmd {
@@ -38,7 +39,12 @@ public class StartMonitorCmd extends AbstractMonitorCmd {
     	Map<String,String> monArgs = new HashMap<String, String>();
     	monArgs.put("host", host);
     	monArgs.put("port", port);
-		MonitorPlugin.getInstance().startMonitor(pluginCommand.getSession(), monArgs, false);
+    	
+		try {
+			MonitorPlugin.getInstance().startMonitor(pluginCommand.getSession(), monArgs, false);
+		} catch (InvalidAdapterConfiguration e) {
+			Log.println("Invalid adapter configuration: " + e.getMessage());
+		}
 	}
 
 	

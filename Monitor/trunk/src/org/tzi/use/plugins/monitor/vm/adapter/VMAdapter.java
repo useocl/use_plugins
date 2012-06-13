@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorException;
+import org.tzi.use.plugins.monitor.vm.mm.VMField;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethodCall;
 import org.tzi.use.plugins.monitor.vm.mm.VMType;
@@ -49,6 +50,11 @@ public interface VMAdapter {
 	void registerClassPrepareEvent(String javaClassName);
 
 	/**
+	 * @param adapterEventInformation
+	 */
+	void unregisterClassPrepareInterest(Object adapterEventInformation);
+	
+	/**
 	 * @param javaClassName
 	 * @return
 	 */
@@ -86,4 +92,9 @@ public interface VMAdapter {
 	 * @param vmType
 	 */
 	void registerConstructorCallInterest(VMType vmType);
+
+	/**
+	 * @param f
+	 */
+	void registerFieldModificationInterest(VMField f);
 }

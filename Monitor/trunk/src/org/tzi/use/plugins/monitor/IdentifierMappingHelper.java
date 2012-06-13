@@ -1,9 +1,7 @@
 package org.tzi.use.plugins.monitor;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 import org.tzi.use.plugins.monitor.vm.mm.jvm.JVMType;
 import org.tzi.use.uml.mm.MAssociationEnd;
@@ -86,7 +84,7 @@ public class IdentifierMappingHelper {
      * @param a The attribute to get the name for.
      * @return The runtime name of <code>a</code>.
      */
-    public String getJavaFieldName(MAttribute a) {
+    public String getVMFieldName(MAttribute a) {
 		String name = a.getAnnotationValue("Monitor", "name");
 		if (name == "") {
 			name = a.name();
@@ -101,7 +99,7 @@ public class IdentifierMappingHelper {
      * @param end The association end to get the name for.
      * @return The runtime name of <code>end</code>.
      */
-    public String getJavaFieldName(MAssociationEnd end) {
+    public String getVMFieldName(MAssociationEnd end) {
 		String name = end.getAnnotationValue("Monitor", "name");
 		if (name == "") {
 			name = end.nameAsRolename();
@@ -159,40 +157,6 @@ public class IdentifierMappingHelper {
 		
 		return null;
 	}
-
-	private static class AttributeMapping {
-		private final MClass cls;
-		private final String attributeName;
-		private final int hashCode;
-		
-		public AttributeMapping(MClass cls, String attributeName) {
-			this.cls = cls;
-			this.attributeName = attributeName;
-			this.hashCode =  (cls.name() + attributeName).hashCode();
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() { 
-			return hashCode;
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(Object obj) {
-			AttributeMapping other = (AttributeMapping)obj;
-			if (cls == other.cls && attributeName.equals(other.attributeName))
-				return true;
-			else
-				return false;
-		}
-	}
-	
-	private Map<AttributeMapping, MAttribute> implementationAttributeMapping = new HashMap<AttributeMapping, MAttribute>();
 	
 	/**
 	 * @param cls
@@ -200,23 +164,18 @@ public class IdentifierMappingHelper {
 	 * @return
 	 */
 	public MAttribute getUseAttribute(MClass cls, String implementationName) {
-		AttributeMapping key = new AttributeMapping(cls, implementationName);
 		
-		if (!implementationAttributeMapping.containsKey(key)) {
-			MAttribute attr = cls.attribute(implementationName, true);
-			if (attr == null) {
-				for (MAttribute at : cls.allAttributes()) {
-					if (at.getAnnotationValue("Monitor", "name").equals(implementationName)) {
-						attr = at;
-						break;
-					}
+		MAttribute attr = cls.attribute(implementationName, true);
+		if (attr == null) {
+			for (MAttribute at : cls.allAttributes()) {
+				if (at.getAnnotationValue("Monitor", "name").equals(implementationName)) {
+					attr = at;
+					break;
 				}
 			}
-			
-			implementationAttributeMapping.put(key, attr);
 		}
 		
-		return implementationAttributeMapping.get(key);
+		return attr;
 	}
 
 	/**
