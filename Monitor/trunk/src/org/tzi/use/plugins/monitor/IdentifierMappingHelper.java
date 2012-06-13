@@ -1,9 +1,13 @@
 package org.tzi.use.plugins.monitor;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-import org.tzi.use.plugins.monitor.vm.mm.jvm.JVMType;
+import org.tzi.use.plugins.monitor.vm.adapter.VMAccessException;
+import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
+import org.tzi.use.plugins.monitor.vm.mm.VMType;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
@@ -12,8 +16,8 @@ import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.uml.sys.MObject;
 
-import com.sun.jdi.ClassNotLoadedException;
-import com.sun.jdi.Method;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 
 
 /**
@@ -32,19 +36,40 @@ public class IdentifierMappingHelper {
 	 */
 	private MModel model;
 
+	/**
+	 * To be able to quickly check if a VMType is handled by the model and by which class.
+	 * The key is {@link VMType#getName()}.
+	 * A single USE class can be used for more than one runtime class (abstracted superclass).
+	 */
+	Map<String, MClass> vmTypeToUSEClass;
+	
+	/**
+     * A cache for the model classes to runtime types mappings.
+     * A single model class can be represented by more than one
+     * runtime type, because the runtime sub classes could be ignored
+     * in the model (abstracted superclass).
+     */
+    private SetMultimap<MClass, VMType> useClassToVMTypes;
+    
 	public IdentifierMappingHelper(MModel model) {
 		this.model = model;
+		setupCashes();
 	}
 	
+	/**
+	 * Sets up some caches for faster access.
+	 */
 	private void setupCashes() {
-		// To be able to quickly check if a VMType is handled by the model
 		Collection<MClass> useClasses = model.classes();
+		vmTypeToUSEClass = new HashMap<String, MClass>(useClasses.size());
 		
-		HashSet<String> allHandledClassNames = new HashSet<String>(useClasses.size());
 		for (MClass useClass : useClasses) {
-			allHandledClassNames.add(getJavaClassName(useClass));
+			vmTypeToUSEClass.put(getVMClassName(useClass), useClass);
 		}
+		
+		useClassToVMTypes = HashMultimap.create(useClasses.size(), 1);
 	}
+	
 	/**
      * Returns the Java class name of an {@link MClass}.
      * The qualified name (<code>package.classname</code>) is constructed as follows:
@@ -64,7 +89,7 @@ public class IdentifierMappingHelper {
      * @param cls The class to get the runtime name for.
      * @return The specified runtime name of the class.
      */
-    public String getJavaClassName(MClass cls) {
+    public String getVMClassName(MClass cls) {
     	String classPackage = cls.getAnnotationValue("Monitor", "package");
     	String className = cls.getAnnotationValue("Monitor", "name");
     	
@@ -114,7 +139,7 @@ public class IdentifierMappingHelper {
      * @param operation The operation to get the name for.
      * @return The runtime name of <code>operation</code>.
      */
-	public String getJavaMethodName(MOperation operation) {
+	public String getVMMethodName(MOperation operation) {
 		String name = operation.getAnnotationValue("Monitor", "name");
 		if (name == "") {
 			name = operation.name();
@@ -129,16 +154,14 @@ public class IdentifierMappingHelper {
 	 * @param useOperation The use method to check against.
 	 * @return <code>true</code> if both operations match.
 	 */
-	public boolean methodMatches(Method method, MOperation useOperation) {
+	public boolean methodMatches(VMMethod method, MOperation useOperation) {
 		// FIXME Handle parameter types
 		try {
-			if (getJavaMethodName(useOperation).equals(method.name()) &&
-				method.argumentTypes().size() == useOperation.allParams().size()) {
+			if (getVMMethodName(useOperation).equals(method.getName()) &&
+				method.getArgumentTypes().size() == useOperation.allParams().size()) {
 				return true;
 			}
-		} catch (ClassNotLoadedException e) {
-			return false;
-		}
+		} catch (VMAccessException e) {}
 		
 		return false;
 	}
@@ -149,7 +172,7 @@ public class IdentifierMappingHelper {
 	 * @param method The runtime method which should be mapped
 	 * @return The corresponding USE operation or <code>null</code> if no operation is defined which matches <code>method</code>.
 	 */
-	public MOperation getUseOperation(MObject useObject, Method method) {
+	public MOperation getUseOperation(MObject useObject, VMMethod method) {
 		for (MOperation op : useObject.cls().allOperations()) {
 			if (methodMatches(method, op))
 				return op;
@@ -196,10 +219,34 @@ public class IdentifierMappingHelper {
 	}
 
 	/**
+	 * Returns the USE Class for a given VMType identified by its name. 
 	 * @param type
 	 */
-	public MClass getUseClass(JVMType type) {
-		//FIXME: Implement
-		return null;
+	public MClass getUseClass(VMType type) {
+		return vmTypeToUSEClass.get(type.getName());
+	}
+	
+	/**
+	 * Returns all VMTypes linked to the given USE class.
+	 * @param cls
+	 * @return
+	 */
+	public Set<VMType> getVMTypes(MClass cls) {
+		return useClassToVMTypes.get(cls);
+	}
+	
+	/**
+	 * Returns <code>true</code> if the given VMType is mapped to
+	 * a USE class.
+	 * @param t
+	 * @return
+	 */
+	public boolean isVMTypeMapped(VMType t) {
+		return vmTypeToUSEClass.containsKey(t.getName());
+	}
+	
+	public void addHandledVMType(VMType type, MClass useClass) {
+		vmTypeToUSEClass.put(type.getName(), useClass);
+		useClassToVMTypes.put(useClass, type);
 	}
 }

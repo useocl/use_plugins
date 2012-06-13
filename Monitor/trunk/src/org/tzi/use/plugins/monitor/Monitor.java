@@ -199,21 +199,6 @@ public class Monitor implements ChangeListener {
     private IdentifierMappingHelper mappingHelper;
     
     /**
-     * A cache for the model classes to runtime types mappings.
-     * A single model class can be represented by more then one
-     * runtime type, because the runtime sub classes could be ignored
-     * in the model.
-     */
-    private Map<MClass, Set<VMType>> useClassMappings;
-    
-    /**
-     * A cache for {@link VMtype}s to USE classes.
-     * A single VMType is mapped to zero or one USE classes,
-     * but a USE class can occur more than once. 
-     */
-    private Map<VMType, MClass> vmTypeMappings;
-    
-    /**
      * Internal mapping for the adapters from a VM specific key
      * to the intermediate representation as a {@link VMObject}.
      */
@@ -363,6 +348,7 @@ public class Monitor implements ChangeListener {
     public void start(boolean suspend) {
     	// We need a clean system
     	doUSEReset();
+    	
     	this.adapterObjectMapping = HashBiMap.create();
     	this.adapterTypeMapping = HashBiMap.create();
     	this.adapterMethodMapping = HashBiMap.create();
@@ -380,21 +366,21 @@ public class Monitor implements ChangeListener {
 			return;
 		}
 		
+    	setupClassMappings();
+    	
 		registerClassPrepareEvents();
 		
 		registerOperationBreakPoints();
 		
 		isRunning = true;
-		
-		// TODO: Check if really needed!
-		adapter.resume();
-		
 		isPaused = false;
 		
 		fireMonitorStart();
 		
 		if (suspend) {
 			pause(false);
+		} else {
+			adapter.resume();
 		}
     }
 
@@ -571,9 +557,8 @@ public class Monitor implements ChangeListener {
     	adapterMethodMapping = null;
     	adapterFieldMapping = null;
     	
-    	useClassMappings = null;
-    	vmTypeMappings = null;
-    	    	
+    	mappingHelper = null;
+    	
     	isRunning = false;
     	isPaused = false;
     	
@@ -594,7 +579,7 @@ public class Monitor implements ChangeListener {
 			if (elementShouldBeIgnored(cls))
 				continue;
 			
-			String javaClassName = mappingHelper.getJavaClassName(cls);
+			String javaClassName = mappingHelper.getVMClassName(cls);
 			
 			if (!adapter.isVMTypeLoaded(javaClassName)) {
 				adapter.registerClassPrepareEvent(javaClassName);
@@ -638,12 +623,11 @@ public class Monitor implements ChangeListener {
 			if (elementShouldBeIgnored(op))
 				continue;
 			
-			String methodName = mappingHelper.getJavaMethodName(op);
+			String methodName = mappingHelper.getVMMethodName(op);
 			List<VMMethod> methods = vmType.getMethodsByName(methodName);
 			
 			for (VMMethod m : methods) {
-				// TODO: Check parameter types
-				if (m.getArgumentTypes().size() == op.allParams().size()) {
+				if (mappingHelper.methodMatches(m, op)) {
 					fireNewLogMessage(Level.FINER, "Registering operation call interest for operation " + m.toString());
 					m.setUSEOperation(op);
 					adapterMethodMapping.put(m.getId(), m);
@@ -701,7 +685,7 @@ public class Monitor implements ChangeListener {
 	 * @return
 	 */
 	private VMType getVMType(MClass cls) {
-    	return adapter.getVMType(mappingHelper.getJavaClassName(cls));
+    	return adapter.getVMType(mappingHelper.getVMClassName(cls));
     }
 
 	private VMField getVMField(VMType type, MAttribute attr) {
@@ -751,13 +735,6 @@ public class Monitor implements ChangeListener {
 	 */
 	private void setupClassMappings() {
 		Collection<MClass> useClasses = getSystem().model().classes();
-		useClassMappings = new HashMap<MClass, Set<VMType>>(useClasses.size());
-		
-		// To be able to quickly check if a VMType is handled by the model 
-		HashSet<String> allHandledClassNames = new HashSet<String>(useClasses.size());
-		for (MClass useClass : useClasses) {
-			allHandledClassNames.add(mappingHelper.getJavaClassName(useClass));
-		}
 		
 		// This loop builds-up the mapping of use classes to VMTypes.
 		// A single USE class can represent more than one VMType.
@@ -766,9 +743,6 @@ public class Monitor implements ChangeListener {
 				// Ignore this class
 				continue;
 			}
-			
-			Set<VMType> mappedTypes = new HashSet<VMType>();
-			useClassMappings.put(useClass, mappedTypes);
 			
 			VMType vmType = getVMType(useClass);
 			
@@ -779,15 +753,14 @@ public class Monitor implements ChangeListener {
 				while (!toDo.isEmpty()) {
 					VMType workingType = toDo.pop();
 					
-					mappedTypes.add(workingType);
 					workingType.setUSEClass(useClass);
-					vmTypeMappings.put(workingType, useClass);
+					mappingHelper.addHandledVMType(workingType, useClass);
 					
 					if (!elementShouldBeIgnored(useClass)) {		
 						//FIXME: Change to allSubClasses()
 						for (VMType t : workingType.getSubClasses()) {
 							// Subtype is handled by its own class?
-							if (!allHandledClassNames.contains(t.getName())) {
+							if (!mappingHelper.isVMTypeMapped(t)) {
 								toDo.push(t);
 							}
 						}
@@ -802,13 +775,7 @@ public class Monitor implements ChangeListener {
 		
 		fireSnapshotStart("Initializing...", classes.size());
 		
-		// Init caches
-		this.vmTypeMappings = new HashMap<VMType, MClass>();
-		this.useClassMappings = new HashMap<MClass, Set<VMType>>();
-		
 		this.adapterObjectMapping = HashBiMap.create();
-		
-		setupClassMappings();
 		
 		long start = System.currentTimeMillis();
 		ProgressArgs args = new ProgressArgs("Reading instances", 0, classes.size());
@@ -839,11 +806,11 @@ public class Monitor implements ChangeListener {
     	// Find all subclasses of the reference type which are not modeled in
     	// the USE file, because instances() only returns concrete instances
     	// of a type (and not of subclasses) 
-    	Set<VMType> typesToRead = useClassMappings.get(cls);
+    	Set<VMType> typesToRead = mappingHelper.getVMTypes(cls);
 
     	if (typesToRead.isEmpty()) {
     		fireNewLogMessage(Level.FINE, "VM class "
-					+ StringUtil.inQuotes(mappingHelper.getJavaClassName(cls))
+					+ StringUtil.inQuotes(mappingHelper.getVMClassName(cls))
 					+ " could not be found for USE class "
 					+ StringUtil.inQuotes(cls.name())
 					+ ". Maybe not loaded, yet.");
@@ -1643,6 +1610,7 @@ public class Monitor implements ChangeListener {
 			fireNewLogMessage(Level.INFO, "New runtime class loaded: " + type.toString());
 			MClass useClass = mappingHelper.getUseClass(type);
 			registerOperationBreakPoints(useClass);
+			//FIXME: Possibly a sub class of an abstracted superclass
 			adapter.unregisterClassPrepareInterest(adapterEventInformation);
 		}
 

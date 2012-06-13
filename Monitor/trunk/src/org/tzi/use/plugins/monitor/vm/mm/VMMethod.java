@@ -5,6 +5,7 @@ package org.tzi.use.plugins.monitor.vm.mm;
 
 import java.util.List;
 
+import org.tzi.use.plugins.monitor.vm.adapter.VMAccessException;
 import org.tzi.use.uml.mm.MOperation;
 
 /**
@@ -31,8 +32,9 @@ public interface VMMethod {
 	 * Names are not always present in a VM,
 	 * therefore the order is important.
 	 * @return
+	 * @throws VMAccessException 
 	 */
-	List<VMType> getArgumentTypes();
+	List<VMType> getArgumentTypes() throws VMAccessException;
 	
 	/**
 	 * The USE operation represented by this operation.

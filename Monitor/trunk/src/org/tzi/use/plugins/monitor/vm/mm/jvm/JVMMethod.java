@@ -4,9 +4,9 @@
 package org.tzi.use.plugins.monitor.vm.mm.jvm;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import org.tzi.use.plugins.monitor.vm.adapter.VMAccessException;
 import org.tzi.use.plugins.monitor.vm.adapter.jvm.JVMAdapter;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
 import org.tzi.use.plugins.monitor.vm.mm.VMType;
@@ -51,7 +51,7 @@ public class JVMMethod extends JVMBase implements VMMethod {
 	 * @see org.tzi.use.plugins.monitor.vm.mm.VMMethod#getArgumentTypes()
 	 */
 	@Override
-	public List<VMType> getArgumentTypes() {
+	public List<VMType> getArgumentTypes() throws VMAccessException {
 		try {
 			List<VMType> types = new ArrayList<VMType>(method.argumentTypes().size());
 			
@@ -61,10 +61,8 @@ public class JVMMethod extends JVMBase implements VMMethod {
 			
 			return types;
 		} catch (ClassNotLoadedException e) {
-			//FIXME: How to handle??
+			throw new VMAccessException(e);
 		}
-		
-		return Collections.emptyList();
 	}
 
 	/**
