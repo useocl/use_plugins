@@ -94,10 +94,8 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 /**
- * This class handles the monitoring of a Java application
- * via the remote debugger.
- * It connects to the virtual machine and keeps track of
- * operation calls and instance creation when attached.
+ * This class handles the monitoring of a VM application
+ * via a VMAdapter.
  * 
  * @author Lars Hamann
  */
@@ -202,7 +200,6 @@ public class Monitor implements ChangeListener {
      * Internal mapping for the adapters from a VM specific key
      * to the intermediate representation as a {@link VMObject}.
      */
-    // private Map<Object, VMObject> adapterObjectMapping;
     private BiMap<Object, VMObject> adapterObjectMapping;
     
     /**
@@ -375,13 +372,13 @@ public class Monitor implements ChangeListener {
 		isRunning = true;
 		isPaused = false;
 		
-		fireMonitorStart();
-		
 		if (suspend) {
 			pause(false);
 		} else {
 			adapter.resume();
 		}
+		
+		fireMonitorStart();
     }
 
     /**
@@ -421,10 +418,8 @@ public class Monitor implements ChangeListener {
     }
 
     private void calculateCurrentCallStack() {
-    	//FIXME: Dynamic monitoring
-    	
+ 
     	/*
-    	 
 		// Find the thread we are monitoring!
     	ThreadReference identifiedThread = null;
     	
@@ -470,7 +465,6 @@ public class Monitor implements ChangeListener {
 			fireNewLogMessage(Level.SEVERE, "Could not retrieve stack frame of identified thread: " + e.getMessage());
 			return;
 		}
-		
 		*/
 	}
 
