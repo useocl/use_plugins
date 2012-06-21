@@ -7,7 +7,7 @@
 
   <!-- create jar -->
   <target name="create-jar">
-    <jar jarfile="${use_loc}/lib/plugins/xmihandler.jar" basedir="." manifest="META-INF/MANIFEST.MF">
+    <jar jarfile="dist/xmihandler.jar" basedir="." manifest="META-INF/MANIFEST.MF">
     	<zipfileset src="lib/org.eclipse.emf.ecore_2.5.0.v200906151043.jar" excludes="META-INF/*"/>
     	<zipfileset src="lib/org.eclipse.emf.ecore.xmi_2.5.0.v200906151043.jar" excludes="META-INF/*"/>
     	<zipfileset src="lib/org.eclipse.emf.common_2.5.0.v200906151043.jar" excludes="META-INF/*"/>
@@ -21,6 +21,7 @@
        <exclude name="build.xml"/>
        <exclude name="lib/**"/>
        <exclude name="src/**"/>
-    </jar> 
+    </jar>
+  	<copy file="dist/xmihandler.jar" tofile="${use_loc}/lib/plugins/xmihandler.jar"/>
   </target>
 </project>
