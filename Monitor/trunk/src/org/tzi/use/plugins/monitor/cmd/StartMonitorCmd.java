@@ -1,12 +1,11 @@
 package org.tzi.use.plugins.monitor.cmd;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.plugins.monitor.MonitorPlugin;
 import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
+import org.tzi.use.plugins.monitor.vm.adapter.VMAdapter;
 import org.tzi.use.util.Log;
+import org.tzi.use.util.StringUtil;
 
 public class StartMonitorCmd extends AbstractMonitorCmd {
 
@@ -18,30 +17,25 @@ public class StartMonitorCmd extends AbstractMonitorCmd {
     	}
     	
     	String[] args = pluginCommand.getCmdArguments().split(" ");
-    	String host = "";
-    	String port = "";
 
-    	if (args.length == 1) {
-    		String[] hostAndPort = args[0].split(":");
-    		if (hostAndPort.length == 1) {
-        		port = hostAndPort[0];
-        	} else {
-        		host = hostAndPort[0];
-        		port = hostAndPort[1];
-        	}
-    	} else if (args.length == 0) {
-    		Log.println("Using default value for remote debugger: localhost:6000");
-    	} else {
-    		Log.println("Wrong number of arguments. Usage: start monitor [hostname:]port [suspend]");
+    	if (args.length == 0) {
+    		Log.println("Using default value for JVM remote debugger: localhost:6000");
+    	} 
+    	
+    	String adpaterName = args[0];
+		VMAdapter adapter = MonitorPlugin.getInstance().getAdapterRegistry().getAdapterByName(adpaterName);
+    	
+    	if (adapter == null) {
+    		Log.print("Invalid adapter name " + StringUtil.inQuotes(adpaterName) + " specified.");
     		return;
     	}
-    	
-    	Map<String,String> monArgs = new HashMap<String, String>();
-    	monArgs.put("host", host);
-    	monArgs.put("port", port);
+    		
+    	for (int i = 1; i < args.length;++i) {
+    		
+    	}
     	
 		try {
-			MonitorPlugin.getInstance().startMonitor(pluginCommand.getSession(), monArgs, false);
+			MonitorPlugin.getInstance().startMonitor(pluginCommand.getSession(), adapter, false);
 		} catch (InvalidAdapterConfiguration e) {
 			Log.println("Invalid adapter configuration: " + e.getMessage());
 		}

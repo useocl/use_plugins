@@ -15,14 +15,15 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -32,6 +33,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -39,7 +41,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
+import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JTree;
@@ -47,6 +49,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
@@ -66,6 +70,8 @@ import org.tzi.use.plugins.monitor.MonitorStateListener;
 import org.tzi.use.plugins.monitor.ProgressArgs;
 import org.tzi.use.plugins.monitor.ProgressListener;
 import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
+import org.tzi.use.plugins.monitor.vm.adapter.VMAdapter;
+import org.tzi.use.plugins.monitor.vm.adapter.VMAdapterSetting;
 import org.tzi.use.plugins.monitor.vm.adapter.jvm.JVMAdapter;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAttribute;
@@ -84,12 +90,13 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 	private JButton button_Play;
 	private JToggleButton button_Pause;
 	private JButton button_Stop;
+
+	private JComboBox cbo_adapter;
 	
-	private JTextField text_host;
-	private JTextField text_port;
 	private JCheckBox check_suspend;
 	private JCheckBox check_determineStates;
 	private JCheckBox check_useSOIL;
+	private JTable table_AdapterSettings;
 	
 	private JLabel label_useModel;
 	
@@ -141,13 +148,8 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 				MonitorSwingWorker worker = new MonitorSwingWorker() {
 					@Override
 					protected void doMonitorInBackground() {
-						Map<String,String> monArgs = new HashMap<String, String>();
-				    	monArgs.put("host", text_host.getText());
-				    	monArgs.put("port", text_port.getText());
-				    	
 						try {
-							MonitorPlugin.getInstance().getMonitor()
-									.configure(session, new JVMAdapter(), monArgs);
+							MonitorPlugin.getInstance().getMonitor().configure(session, (JVMAdapter)cbo_adapter.getSelectedItem());
 						} catch (InvalidAdapterConfiguration e) {
 							JOptionPane.showMessageDialog(
 									MonitorControlView.this, e.getMessage(),
@@ -257,32 +259,46 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			info.add(label_useModel, cData);
 			cData.gridy++;
 			
-			info.add(new JLabel("Remote host:"), cLabel);
-			cLabel.gridy++;
-	
-			text_host = new JTextField("localhost");
-			info.add(text_host, cData);
-			cData.gridy++;
-	
-			info.add(new JLabel("Port:"), cLabel);
-			cLabel.gridy++;
-	
-			text_port = new JTextField("6000");
-			info.add(text_port, cData);
-			cData.gridy++;
-	
-			check_suspend = new JCheckBox("Suspend at connect", true);
+			check_suspend = new JCheckBox("Suspend at connect", true);			
 			info.add(check_suspend, cData);
 			cData.gridy++;
-						
+			cLabel.gridy++;
+			
 			check_determineStates = new JCheckBox("Determine states after suspend", true);
 			info.add(check_determineStates, cData);
-						
 			cData.gridy++;
+			cLabel.gridy++;
 			
 			check_useSOIL = new JCheckBox("Use SOIL statements for state changes", true);
 			info.add(check_useSOIL, cData);
+			cData.gridy++;
+			cLabel.gridy++;
 			
+			info.add(new JLabel("Adapter:"), cLabel);
+			cLabel.gridy++;
+			
+			cbo_adapter = new JComboBox(MonitorPlugin.getInstance().getAdapterRegistry().loadAvailableAdapter()); 
+			cbo_adapter.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					if (e.getStateChange() == ItemEvent.SELECTED) {
+						TableModel tm = new SettingsTableModel(((VMAdapter)e.getItem()).getSettings());
+						table_AdapterSettings.setModel(tm);
+					}
+				}
+			});
+			
+			info.add(cbo_adapter, cData);
+			cData.gridy++;
+			
+			info.add(new JLabel("Adapter settings:"), cLabel);
+			cLabel.gridy++;
+			
+			VMAdapter selectedAdapter = (VMAdapter)cbo_adapter.getSelectedItem();
+			TableModel tm = new SettingsTableModel(selectedAdapter.getSettings()); 
+			table_AdapterSettings = new JTable(tm);
+			info.add(table_AdapterSettings, cData);
+				
 			tapPanel.add(info, BorderLayout.NORTH);
 			tabs.addTab("Settings", tapPanel);
 		}
@@ -486,8 +502,8 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		boolean isMonitoring = monitor.isRunning();
 		boolean isPaused = monitor.isPaused();
 		
-		this.text_host.setEnabled(!isMonitoring);
-		this.text_port.setEnabled(!isMonitoring);
+		this.cbo_adapter.setEnabled(!isMonitoring);
+		this.table_AdapterSettings.setEnabled(!isMonitoring);
 		this.check_suspend.setEnabled(!isMonitoring);
 		this.check_useSOIL.setEnabled(!isMonitoring);
 		
@@ -561,6 +577,12 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 			button_Pause.setEnabled(false);
 			button_Play.setEnabled(false);
 			button_Stop.setEnabled(false);
+			check_determineStates.setEnabled(false);
+			check_suspend.setEnabled(false);
+			check_useSOIL.setEnabled(false);
+			cbo_adapter.setEnabled(false);
+			table_AdapterSettings.setEnabled(false);
+			
 			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 						
 			doMonitorInBackground();
@@ -691,5 +713,78 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		public void close() throws IOException {
 						
 		}
+	}
+	
+	private class SettingsTableModel extends AbstractTableModel {
+		public List<VMAdapterSetting> values;
+
+		public SettingsTableModel(List<VMAdapterSetting> values) {
+			this.values = values;
+		}
+		
+		/* (non-Javadoc)
+		 * @see javax.swing.table.TableModel#getRowCount()
+		 */
+		@Override
+		public int getRowCount() {
+			return values.size();
+		}
+
+		/* (non-Javadoc)
+		 * @see javax.swing.table.TableModel#getColumnCount()
+		 */
+		@Override
+		public int getColumnCount() {
+			return 2;
+		}
+
+		/* (non-Javadoc)
+		 * @see javax.swing.table.TableModel#getValueAt(int, int)
+		 */
+		@Override
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			VMAdapterSetting row = values.get(rowIndex);
+			switch(columnIndex) {
+			case 0: 
+					return row.name;
+			case 1:
+					return row.value;
+			}
+			
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see javax.swing.table.AbstractTableModel#getColumnName(int)
+		 */
+		@Override
+		public String getColumnName(int column) {
+			switch (column) {
+			case 0:
+				return "Parameter";
+			case 1:
+				return "Value";
+			}
+			
+			return "";
+		}
+
+		/* (non-Javadoc)
+		 * @see javax.swing.table.AbstractTableModel#isCellEditable(int, int)
+		 */
+		@Override
+		public boolean isCellEditable(int rowIndex, int columnIndex) {
+			return columnIndex == 1;
+		}
+
+		/* (non-Javadoc)
+		 * @see javax.swing.table.AbstractTableModel#setValueAt(java.lang.Object, int, int)
+		 */
+		@Override
+		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+			if (columnIndex == 0) return;
+			values.get(rowIndex).value = aValue.toString();
+		}
+		
 	}
 }

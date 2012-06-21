@@ -179,11 +179,6 @@ public class Monitor implements ChangeListener {
     private boolean isResetting = false;
     
     /**
-     * The maximum number of instances which are read for a single type.
-     */
-    private long maxInstances = 10000;
-    
-    /**
      * When true, Soil statements are used for system state manipulation.
      * Otherwise the objects are created directly by using operations of
      * system and system state
@@ -233,40 +228,18 @@ public class Monitor implements ChangeListener {
     }
     
     /**
-     * Configures the monitor to attach to the specified <code>host</code> on <code>port</code>
-     * using the provided session.
-     * <p>
-     * If <code>host</code> is <code>null</code> or an empty string the current {@link MModel} is queried
-     * for an annotation value <code>@Monitor(host="...")</code>. If no such annotation is present, <code>localhost</code>
-     * is used.
-     * </p> 
-     * <p>
-     * If <code>port</code> is <code>null</code> or an empty string the current {@link MModel} is queried
-     * for an annotation value <code>@Monitor(port="...")</code>. If no such annotation is present <code>6000</code>
-     * is used.
-     * </p>
+     * Configures the monitor to attach to the specified virtual machine configured for the specified adapter.
      * @param session The USE session to use for the monitoring process. The monitor reacts on state changes of the session.
-     * @param host The host which runs a JVM with enabled remote debugger capabilities.
-     * @param port The port the JVM is listening for remote debugger connections.
-     * @throws InvalidAdapterConfiguration If an invalid configuration for the selected adapter is given by <code>args</code>. 
-     * @throws IllegalArgumentException If an invalid port number is provided as an argument or specified in the model annotation.
+     * @throws InvalidAdapterConfiguration If an invalid configuration for the selected adapter is given by <code>args</code>.
      */
-    public void configure(Session session, VMAdapter adapter, Map<String, String> args) throws InvalidAdapterConfiguration {
+    public void configure(Session session, VMAdapter adapter) throws InvalidAdapterConfiguration {
     	this.adapter = adapter;
-    	this.adapter.configure(new Controller(), args);
+    	this.adapter.configure(new Controller());
     	
     	this.session = session;
     	this.session.addChangeListener(this);
     	this.mappingHelper = new IdentifierMappingHelper(session.system().model());
     }
-
-	public long getMaxInstances() {
-		return maxInstances;
-	}
-
-	public void setMaxInstances(long newValue) {
-		maxInstances = newValue;
-	}
 	
     /**
      * If <code>true</code>, SOIL Statements are used for all state manipulating
@@ -352,6 +325,8 @@ public class Monitor implements ChangeListener {
     	this.adapterFieldMapping = HashBiMap.create();
     	
     	this.monitoredCalls = new Stack<VMMethodCall>();
+    	
+    	this.mappingHelper = new IdentifierMappingHelper(session.system().model());
     	
     	this.hasSnapshot = false;
     	

@@ -1,6 +1,6 @@
 package org.tzi.use.plugins.monitor.vm.adapter;
 
-import java.util.Map;
+import java.util.List;
 
 import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorException;
@@ -18,7 +18,7 @@ import org.tzi.use.uml.ocl.value.Value;
  */
 public interface VMAdapter {
 		
-	void configure(Monitor.Controller controller, Map<String, String> arguments) throws InvalidAdapterConfiguration;
+	void configure(Monitor.Controller controller) throws InvalidAdapterConfiguration;
 	
 	/**
 	 * Called to establish a connection to a possible
@@ -97,4 +97,9 @@ public interface VMAdapter {
 	 * @param f
 	 */
 	void registerFieldModificationInterest(VMField f);
+
+	/**
+	 * @return
+	 */
+	List<VMAdapterSetting> getSettings();
 }

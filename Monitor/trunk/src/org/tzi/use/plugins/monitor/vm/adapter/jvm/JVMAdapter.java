@@ -13,11 +13,11 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.logging.Level;
 
-import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorException;
+import org.tzi.use.plugins.monitor.vm.adapter.AbstractVMAdapter;
 import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
 import org.tzi.use.plugins.monitor.vm.adapter.VMAccessException;
-import org.tzi.use.plugins.monitor.vm.adapter.VMAdapter;
+import org.tzi.use.plugins.monitor.vm.adapter.VMAdapterSetting;
 import org.tzi.use.plugins.monitor.vm.mm.VMField;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
 import org.tzi.use.plugins.monitor.vm.mm.VMMethodCall;
@@ -76,22 +76,28 @@ import com.sun.tools.jdi.SocketAttachingConnector;
  * @author Lars Hamann
  *
  */
-public class JVMAdapter implements VMAdapter {
+public class JVMAdapter extends AbstractVMAdapter {
 
-	/**
-	 * Controller for the monitor instance to be able
-	 * to notify the monitor about certain events. 
-	 */
-	private Monitor.Controller controller;
+	private static final int SETTING_HOST = 0;
+	
+	private static final int SETTING_PORT = 1;
+	
+	private static final int SETTING_MAXINSTANCES = 2;
 	
 	/**
 	 * The host name where the monitored VM is running on
 	 */
 	private String host;
+	
 	/**
 	 * The port where the monitored VM is providing debugging events
 	 */
 	private int port;
+	
+	/**
+	 * The maximum number of instances to read for a single type.
+	 */
+	private long maxInstances;
 	
 	/**
 	 * true if the adapter is connected to a JVM.
@@ -116,36 +122,50 @@ public class JVMAdapter implements VMAdapter {
     /**
      * In memory mapping of type mapping from JVM to the USE monitor type abstraction.
      */
-	private final Map<String, VMType> typeMapping = new HashMap<String, VMType>();
+	private Map<String, VMType> typeMapping = new HashMap<String, VMType>();
+	
+	public JVMAdapter() {
+		super();
+	}
 	
 	/* (non-Javadoc)
-	 * @see org.tzi.use.plugins.monitor.vmadapter.VMAdapter#configure(Monitor.Controller, java.util.Map)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.AbstractVMAdapter#validateSettings()
 	 */
 	@Override
-	public void configure(Monitor.Controller ctr, Map<String, String> arguments)
-			throws InvalidAdapterConfiguration {
-		if (!arguments.containsKey("host") || arguments.get("host").equals("") )
+	protected void validateSettings() throws InvalidAdapterConfiguration {
+		if (settings.get(SETTING_HOST) == null || settings.get(SETTING_HOST).equals("") )
 			throw new InvalidAdapterConfiguration("The hostname is missing!"); 
 		
-		if (!arguments.containsKey("port") || arguments.get("port").equals("") )
-			throw new InvalidAdapterConfiguration("The port is missing!");
+		this.host = settings.get(SETTING_HOST).value;
 		
-		this.host = arguments.get("host");
 		try {
-			this.port = Integer.parseInt(arguments.get("port"));
+			this.port = Integer.parseInt(settings.get(SETTING_PORT).value);
 		} catch (NumberFormatException e) {
 			throw new InvalidAdapterConfiguration("Port is not a number!");
 		}
 		
-		this.controller = ctr;
+		try {
+			this.maxInstances = Long.parseLong(settings.get(SETTING_MAXINSTANCES).value);
+		} catch (NumberFormatException e) {
+			throw new InvalidAdapterConfiguration("Max. instances is not a number!");
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.AbstractVMAdapter#createSettings(java.util.List)
+	 */
+	@Override
+	protected void createSettings(List<VMAdapterSetting> settings) {
+		settings.add(SETTING_HOST, new VMAdapterSetting("Host", "localhost"));
+		settings.add(SETTING_PORT, new VMAdapterSetting("Port", "6000"));
+		settings.add(SETTING_MAXINSTANCES, new VMAdapterSetting("Max. instances", "10000"));
 	}
 
 	/**
 	 * @return
 	 */
 	public long getMaxInstances() {
-		//TODO: Provide argument
-		return 600000;
+		return maxInstances;
 	}
 	
 	/* (non-Javadoc)
@@ -153,6 +173,8 @@ public class JVMAdapter implements VMAdapter {
 	 */
 	@Override
 	public void attachToVM() throws MonitorException {
+		this.typeMapping = new HashMap<String, VMType>();
+		
 		connector = new SocketAttachingConnector();
     	@SuppressWarnings("unchecked")
 		Map<String, Argument> args = connector.defaultArguments();
@@ -192,6 +214,8 @@ public class JVMAdapter implements VMAdapter {
 		isConnected = false;
 		if (monitoredVM != null)
     		monitoredVM.dispose();
+		
+		this.typeMapping = null;
 	}
 
 	/* (non-Javadoc)

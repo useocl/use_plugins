@@ -1,11 +1,8 @@
 package org.tzi.use.plugins.monitor;
 
-import java.util.Map;
-
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
 import org.tzi.use.plugins.monitor.vm.adapter.VMAdapter;
-import org.tzi.use.plugins.monitor.vm.adapter.jvm.JVMAdapter;
 import org.tzi.use.runtime.impl.Plugin;
 import org.tzi.use.util.Log;
 
@@ -16,8 +13,8 @@ public class MonitorPlugin extends Plugin {
 	private static MonitorPlugin pluginInstance;
 	
 	private Monitor monitor = new Monitor();
-	
-	private VMAdapter adapter = new JVMAdapter();
+		
+	private AdapterRegistry adapterRegistry = null;
 	
 	public static MonitorPlugin getInstance() {
 		return pluginInstance;
@@ -40,13 +37,8 @@ public class MonitorPlugin extends Plugin {
 		return monitor;
 	}
 	
-	public void setAdapter(VMAdapter a) {
-		
-	}
-	
-	public void startMonitor(Session session, Map<String, String> args,
-			boolean suspend) throws InvalidAdapterConfiguration {
-		this.monitor.configure(session, adapter, args);
+	public void startMonitor(Session session, VMAdapter adapter, boolean suspend) throws InvalidAdapterConfiguration {
+		this.monitor.configure(session, adapter);
 		this.monitor.start(suspend);
 	}
 
@@ -61,5 +53,15 @@ public class MonitorPlugin extends Plugin {
 
 	public void endMonitor() {
 		monitor.end();
+	}
+
+	/**
+	 * @return
+	 */
+	public AdapterRegistry getAdapterRegistry() {
+		if (this.adapterRegistry == null)
+			this.adapterRegistry = new AdapterRegistry();
+		
+		return this.adapterRegistry;
 	}
 }

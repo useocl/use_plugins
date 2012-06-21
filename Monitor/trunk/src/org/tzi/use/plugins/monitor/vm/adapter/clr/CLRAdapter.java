@@ -3,8 +3,6 @@
  */
 package org.tzi.use.plugins.monitor.vm.adapter.clr;
 
-import java.util.Map;
-
 import org.tzi.use.plugins.monitor.Monitor;
 import org.tzi.use.plugins.monitor.MonitorException;
 import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
@@ -23,12 +21,8 @@ public abstract class CLRAdapter implements VMAdapter {
 	 * @see org.tzi.use.plugins.monitor.vmadapter.VMAdapter#configure(org.tzi.use.uml.sys.MSystem, java.util.Map)
 	 */
 	@Override
-	public void configure(Monitor.Controller ctr, Map<String, String> arguments)
-			throws InvalidAdapterConfiguration {
-
+	public void configure(Monitor.Controller ctr) throws InvalidAdapterConfiguration {
 		System.loadLibrary("clradapter.dll");
-		
-		String pid = arguments.get("pid");
 	}
 
 	/* (non-Javadoc)
