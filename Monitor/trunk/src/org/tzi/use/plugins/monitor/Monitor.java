@@ -585,8 +585,18 @@ public class Monitor implements ChangeListener {
 			fireNewLogMessage(Level.INFO, "No runtime class found for model class " + cls.name() + ", yet.");
 			return;
 		}
-							
-		fireNewLogMessage(Level.FINE, "Registering operation call interest for class " + cls.name());
+		
+		registerOperationBreakPoints(vmType);
+	}
+	
+	private void registerOperationBreakPoints(VMType vmType) {
+		
+		if (vmType.getUSEClass() == null) {
+			fireNewLogMessage(Level.INFO, "No runtime class set for " + vmType.toString() + ", yet.");
+			return;
+		}
+		
+		MClass cls = vmType.getUSEClass();
 		for (MOperation op : cls.operations()) {
 			
 			if (elementShouldBeIgnored(op))
@@ -722,8 +732,7 @@ public class Monitor implements ChangeListener {
 				while (!toDo.isEmpty()) {
 					VMType workingType = toDo.pop();
 					
-					workingType.setUSEClass(useClass);
-					mappingHelper.addHandledVMType(workingType, useClass);
+					setupClassMapping(useClass, workingType);
 					
 					if (!elementShouldBeIgnored(useClass)) {		
 						//FIXME: Change to allSubClasses()
@@ -737,6 +746,11 @@ public class Monitor implements ChangeListener {
 				}
 			}
 		}
+	}
+
+	private void setupClassMapping(MClass useClass, VMType workingType) {
+		workingType.setUSEClass(useClass);
+		mappingHelper.addHandledVMType(workingType, useClass);
 	}
 	
 	private void readSnapshot() {
@@ -1578,9 +1592,14 @@ public class Monitor implements ChangeListener {
 		public void onNewVMTypeLoaded(Object adapterEventInformation, JVMType type) {
 			fireNewLogMessage(Level.INFO, "New runtime class loaded: " + type.toString());
 			MClass useClass = mappingHelper.getUseClass(type);
-			registerOperationBreakPoints(useClass);
-			//FIXME: Possibly a sub class of an abstracted superclass
-			adapter.unregisterClassPrepareInterest(adapterEventInformation);
+			
+			if (useClass != null) {
+				setupClassMapping(useClass, type);
+				registerOperationBreakPoints(type);
+				
+				//FIXME: Possibly a sub class of an abstracted superclass
+				adapter.unregisterClassPrepareInterest(adapterEventInformation);
+			}
 		}
 
 		/**
@@ -1637,7 +1656,7 @@ public class Monitor implements ChangeListener {
 	    	} else if (field.getUSEAssociationEnd() != null) {
 	    		// Link end
 	    		MNavigableElement end = field.getUSEAssociationEnd();
-	    		if (!end.isCollection()) {
+	    		if (!end.isCollection() && !end.association().hasQualifiedEnds()) {
 	    			// Destroy possible existing link
 	    			List<MAssociationEnd> ends = new ArrayList<MAssociationEnd>(end.association().associationEnds());
 	    			ends.remove(end);
@@ -1677,7 +1696,8 @@ public class Monitor implements ChangeListener {
 					if (useValue != null && !useValue.isUndefined()) {
 						
 						if (!useValue.isObject()) {
-							fireNewLogMessage(Level.WARNING, "Need an USE object value for links!");
+							fireNewLogMessage(Level.WARNING, "Need an USE object value for links! Got: " + useValue.toString());
+							return;
 						}
 						
 						MObject newValue = ((ObjectValue)useValue).value();
@@ -1700,6 +1720,14 @@ public class Monitor implements ChangeListener {
 							fireNewLogMessage(Level.WARNING, "Could not create new link:" + e.getMessage());
 						}
 					}
+	    		} else if (!end.isCollection() && end.association().hasQualifiedEnds()) {
+	    			// qualified end of an association was edited (the array or list or...)
+	    			if (!useValue.isSequence()) {
+	    				fireNewLogMessage(Level.WARNING, "Need as sequence value for qualified associations! Got: " + useValue.toString());
+	    				return;
+	    			}
+	    				    			
+	    			readQualifiedLinks(useObject, (MAssociationEnd)end, (SequenceValue)useValue, Collections.<Value>emptyList());
 	    		}
 	    	} else {
 	    		fireNewLogMessage(Level.WARNING, "No USE-Attribute or -Association end for VMField " + field + " was set.");

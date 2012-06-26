@@ -288,6 +288,7 @@ public class JVMAdapter extends AbstractVMAdapter {
 							ClassPrepareEvent ce = (ClassPrepareEvent)e;
 							controller.newLogMessage(this, Level.FINE, "Java class loaded:" + ce.referenceType().name() + ".");
 							JVMType type = new JVMType(JVMAdapter.this, ce.referenceType());
+							typeMapping.put(ce.referenceType().name(), type);
 							controller.onNewVMTypeLoaded(ce, type);
 						} else if (e instanceof ModificationWatchpointEvent) {
 							ModificationWatchpointEvent we = (ModificationWatchpointEvent)e;

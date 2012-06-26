@@ -165,4 +165,11 @@ public class JVMType extends JVMBase implements VMType {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "JVMType [runtime:" + type.name() + (useClass == null ? "" : ", USE: " + useClass.toString()) + "]";
+	}
 }

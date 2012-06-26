@@ -45,6 +45,9 @@ public class AdapterRegistry {
 			// Cannot happen, runtime is already up
 		}
 		
+		if (!pluginDir.exists())
+			return result.toArray(new VMAdapter[1]);
+		
 		File[] adapterJars = pluginDir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
