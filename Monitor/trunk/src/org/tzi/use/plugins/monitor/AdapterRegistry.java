@@ -28,7 +28,12 @@ import org.tzi.use.plugins.monitor.vm.adapter.jvm.JVMAdapter;
  */
 public class AdapterRegistry {
 	
+	private static VMAdapter[] adapters = null;
+	
 	public VMAdapter[] loadAvailableAdapter() {
+		
+		if (adapters != null)
+			return adapters;
 		
 		List<VMAdapter> result = new ArrayList<VMAdapter>();
 		
@@ -99,7 +104,8 @@ public class AdapterRegistry {
 			}
 		}
 		
-		return result.toArray(new VMAdapter[result.size()]);
+		adapters = result.toArray(new VMAdapter[result.size()]);
+		return adapters;
 	}
 
 	/**
