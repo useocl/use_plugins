@@ -80,7 +80,7 @@ public class AdapterRegistry {
 			Enumeration<JarEntry> enumEntries = jarFile.entries();
 			while(enumEntries.hasMoreElements()) {
 				JarEntry entry = enumEntries.nextElement();
-			
+				
 				if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
 					try {
 						Class<?> clazz = Class.forName(entry.getName().replace('/', '.').replace(".class", ""), true, loader);
@@ -98,6 +98,7 @@ public class AdapterRegistry {
 					catch (InstantiationException e) {}
 					catch (IllegalAccessException e) {}
 					catch (InvocationTargetException e) {}
+					catch (ClassCastException e) {}
 					
 				}
 				

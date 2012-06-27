@@ -149,7 +149,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 					@Override
 					protected void doMonitorInBackground() {
 						try {
-							MonitorPlugin.getInstance().getMonitor().configure(session, (JVMAdapter)cbo_adapter.getSelectedItem());
+							MonitorPlugin.getInstance().getMonitor().configure(session, (VMAdapter)cbo_adapter.getSelectedItem());
 						} catch (InvalidAdapterConfiguration e) {
 							JOptionPane.showMessageDialog(
 									MonitorControlView.this, e.getMessage(),
