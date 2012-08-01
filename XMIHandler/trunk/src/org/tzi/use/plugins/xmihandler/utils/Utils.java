@@ -21,6 +21,9 @@ public class Utils {
   private static ModelFactory modelFactory = null;
 
   private static PrintWriter logWriter = null;
+  
+  private static File currentDirectory = null;
+  
 
   public static void out(String output) {
     Log.println(output);
@@ -30,6 +33,7 @@ public class Utils {
   }
 
   public static void error(Exception error) {
+    error.printStackTrace();
     String errMsg = error.getMessage();
     if (errMsg == null || errMsg.isEmpty()) {
        errMsg = "Unknown Error";
@@ -109,4 +113,19 @@ public class Utils {
     }
     return true;
   }
+  
+  public static File getCurrentDirectory() {
+    if (currentDirectory == null) {
+      currentDirectory = new File (System.getProperty("user.home"));
+    }
+    if (!currentDirectory.isDirectory()) {
+      currentDirectory = currentDirectory.getParentFile();
+    }
+    return currentDirectory;
+  }
+  
+  public static void setCurrentDirectory(File theCurrentDirectory) {
+    currentDirectory = theCurrentDirectory;
+  }
+
 }

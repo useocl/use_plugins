@@ -11,6 +11,7 @@ import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.main.Session;
 import org.tzi.use.plugins.xmihandler.XMIHandlerPlugin;
 import org.tzi.use.plugins.xmihandler.utils.IWorkerRunner;
+import org.tzi.use.plugins.xmihandler.utils.Utils;
 
 @SuppressWarnings("serial")
 public class XMIHandlerView extends JFileChooser {
@@ -36,6 +37,7 @@ public class XMIHandlerView extends JFileChooser {
   private void initGUI(final ViewMode viewMode) {
     setFileFilter(new FileNameExtensionFilter("Eclipse UML2 (v3.x) XMI (*.uml, *.xmi)", "uml", "xmi"));
     int returnVal = -1;
+    setCurrentDirectory(Utils.getCurrentDirectory());
     if (viewMode == ViewMode.EXPORT) {
       setDialogTitle("Export to XMI");
       returnVal = showDialog(mainWindow, "Export");      
@@ -44,6 +46,7 @@ public class XMIHandlerView extends JFileChooser {
       returnVal = showDialog(mainWindow, "Import");      
     }
     if (returnVal == JFileChooser.APPROVE_OPTION) {
+      Utils.setCurrentDirectory(getSelectedFile());
       WaitDialog dlg = new WaitDialog(mainWindow, true);
       dlg.start(new IWorkerRunner() {
 
