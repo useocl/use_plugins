@@ -17,10 +17,11 @@
     	<zipfileset src="lib/org.eclipse.uml2.uml_3.0.1.v200908281330.jar" excludes="META-INF/*"/>
       <fileset dir="bin" includes="**"/>
       <exclude name="bin/"/>
-       <exclude name="plugin.jardesc"/>
-       <exclude name="build.xml"/>
-       <exclude name="lib/**"/>
-       <exclude name="src/**"/>
+    	<exclude name="dist/"/>
+      <exclude name="plugin.jardesc"/>
+      <exclude name="build.xml"/>
+      <exclude name="lib/**"/>
+      <exclude name="src/**"/>
     </jar>
   	<copy file="dist/xmihandler.jar" tofile="${use_loc}/lib/plugins/xmihandler.jar"/>
   </target>
