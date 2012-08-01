@@ -5,17 +5,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
 
+import org.eclipse.emf.common.util.BasicEList;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.uml2.uml.AggregationKind;
 import org.eclipse.uml2.uml.Association;
 import org.eclipse.uml2.uml.Classifier;
+import org.eclipse.uml2.uml.Constraint;
 import org.eclipse.uml2.uml.Enumeration;
 import org.eclipse.uml2.uml.EnumerationLiteral;
 import org.eclipse.uml2.uml.Generalization;
+import org.eclipse.uml2.uml.LiteralString;
 import org.eclipse.uml2.uml.LiteralUnlimitedNatural;
 import org.eclipse.uml2.uml.Model;
-import org.eclipse.uml2.uml.PrimitiveType;
+import org.eclipse.uml2.uml.Operation;
 import org.eclipse.uml2.uml.Property;
 import org.eclipse.uml2.uml.Type;
 import org.eclipse.uml2.uml.UMLFactory;
@@ -30,6 +34,9 @@ import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.mm.MOperation;
+import org.tzi.use.uml.ocl.expr.VarDecl;
+import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.EnumType;
 
@@ -47,12 +54,17 @@ public class XMIExporter {
     return model;
   }
 
-  private static PrimitiveType createPrimitiveType(
+  private static Type getOrCreateType(
       org.eclipse.uml2.uml.Package package_, String name) {
-    PrimitiveType primitiveType = (PrimitiveType) package_
-        .createOwnedPrimitiveType(name);
+    
+    Type theType = package_.getOwnedType(name);
 
-    return primitiveType;
+    if (theType == null) {
+      theType = package_
+          .createOwnedPrimitiveType(name);
+    }    
+
+    return theType;
   }
 
   private static Enumeration createEnumeration(
@@ -168,17 +180,50 @@ public class XMIExporter {
           isOrdered = true;
         }
 
-        Type theType = umlModel.getOwnedType(typeName);
-
-        if (theType == null) {
-          theType = createPrimitiveType(umlModel, typeName);
-        }
+        Type theType = getOrCreateType(umlModel, typeName);
 
         createAttribute(umlClass, useAttribute.name(), theType, isUnique,
             isOrdered, lowerBound, upperBound);
 
       }
 
+    }
+  }
+  
+  private static void createOperations(Model umlModel, MModel useModel) {
+    for (MClass useClass : useModel.classes()) {
+
+      org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) umlModel
+          .getOwnedType(useClass.name());
+
+      for (MOperation useOperation : useClass.operations()) {
+        
+        VarDeclList varDeclList = useOperation.paramList();
+        
+        EList<String> parameterNames = new BasicEList<String>();
+        EList<Type> parameterTypes = new BasicEList<Type>();
+
+        for (int i = 0; i < varDeclList.size(); i++) {
+          VarDecl varDecl = varDeclList.varDecl(i);
+          parameterNames.add(varDecl.name());
+          parameterTypes.add(getOrCreateType(umlModel, varDecl.type().shortName()));
+        }
+        
+        Operation operation = null;
+        
+        if (useOperation.resultType() != null) {
+          Type returnType = getOrCreateType(umlModel, useOperation.resultType().shortName());
+          operation = umlClass.createOwnedOperation(useOperation.name(), parameterNames, parameterTypes, returnType);          
+        } else {
+          operation = umlClass.createOwnedOperation(useOperation.name(), parameterNames, parameterTypes);
+        }
+        
+        if (operation != null) {
+          Constraint constr = operation.createBodyCondition(null);
+          LiteralString valueSpec = (LiteralString) constr.createSpecification(null, null, UMLPackage.Literals.LITERAL_STRING);
+          valueSpec.setValue(useOperation.expression().toString());
+        }
+      }
     }
   }
 
@@ -297,6 +342,8 @@ public class XMIExporter {
     createClasses(umlModel, useModel);
 
     createAttributes(umlModel, useModel);
+    
+    createOperations(umlModel, useModel);
 
     createGeneralizations(umlModel, useModel);
 

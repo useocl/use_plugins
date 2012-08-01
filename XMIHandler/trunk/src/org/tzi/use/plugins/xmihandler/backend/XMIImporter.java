@@ -17,8 +17,13 @@ import org.eclipse.uml2.uml.EnumerationLiteral;
 import org.eclipse.uml2.uml.Generalization;
 import org.eclipse.uml2.uml.LiteralUnlimitedNatural;
 import org.eclipse.uml2.uml.Model;
+import org.eclipse.uml2.uml.MultiplicityElement;
 import org.eclipse.uml2.uml.NamedElement;
+import org.eclipse.uml2.uml.Operation;
+import org.eclipse.uml2.uml.Parameter;
+import org.eclipse.uml2.uml.ParameterDirectionKind;
 import org.eclipse.uml2.uml.Property;
+import org.eclipse.uml2.uml.TypedElement;
 import org.eclipse.uml2.uml.UMLPackage;
 import org.eclipse.uml2.uml.internal.impl.ClassImpl;
 import org.eclipse.uml2.uml.internal.impl.EnumerationImpl;
@@ -39,7 +44,10 @@ import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MMultiplicity;
+import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.VarDecl;
+import org.tzi.use.uml.ocl.expr.VarDeclList;
+import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.sys.MSystem;
 
@@ -80,6 +88,81 @@ public class XMIImporter {
       }
     }
   }
+  
+  private static Type convertType(MModel useModel, TypedElement prop) {
+    boolean isSet = false;
+    boolean isOrderedSet = false;
+    boolean isBag = false;
+    
+    Type convertedType = null;
+    
+    if (prop != null) {
+      if (prop.getType() instanceof PrimitiveTypeImpl) {
+        if (prop instanceof MultiplicityElement) {
+          if (((MultiplicityElement)prop).getUpper() == LiteralUnlimitedNatural.UNLIMITED) {
+            if (((MultiplicityElement)prop).isUnique()) {
+              if (((MultiplicityElement)prop).isOrdered()) {
+                isOrderedSet = true;
+              } else {
+                isSet = true;
+              }
+            } else {
+              isBag = true;
+            }
+          }      
+        }
+        
+        if (prop.getType().getName().equals("String")) {
+          if (isSet) {
+                convertedType = TypeFactory.mkSet(TypeFactory.mkString());
+          } else if (isOrderedSet) {
+            convertedType = TypeFactory.mkOrderedSet(TypeFactory.mkString());
+          } else if (isBag) {
+            convertedType = TypeFactory.mkBag(TypeFactory.mkString());
+          } else {
+            convertedType = TypeFactory.mkString();
+          }
+        } else if (prop.getType().getName().equals("Integer")) {
+          if (isSet) {
+            convertedType = TypeFactory.mkSet(TypeFactory.mkInteger());
+          } else if (isOrderedSet) {
+            convertedType = TypeFactory.mkOrderedSet(TypeFactory.mkInteger());
+          } else if (isBag) {
+            convertedType = TypeFactory.mkBag(TypeFactory.mkInteger());
+          } else {
+            convertedType = TypeFactory.mkInteger();
+          }
+        } else if (prop.getType().getName().equals("Boolean")) {
+          if (isSet) {
+            convertedType = TypeFactory.mkSet(TypeFactory.mkBoolean());
+          } else if (isOrderedSet) {
+            convertedType = TypeFactory.mkOrderedSet(TypeFactory.mkBoolean());
+          } else if (isBag) {
+            convertedType = TypeFactory.mkBag(TypeFactory.mkBoolean());
+          } else {
+            convertedType = TypeFactory.mkBoolean();
+          }
+        } else if (prop.getType().getName().equals("Real")) {
+          if (isSet) {
+            convertedType = TypeFactory.mkSet(TypeFactory.mkReal());
+          } else if (isOrderedSet) {
+            convertedType = TypeFactory.mkOrderedSet(TypeFactory.mkReal());
+          } else if (isBag) {
+            convertedType = TypeFactory.mkBag(TypeFactory.mkReal());
+          } else {
+            convertedType = TypeFactory.mkReal();
+          }
+        }
+      } else if (prop.getType() instanceof ClassImpl) {
+          convertedType = TypeFactory.mkObjectType(
+              useModel.getClass(prop.getType().getName()));
+      } else if (prop.getType() instanceof EnumerationImpl) {
+          convertedType = useModel.enumType(prop.getType().getName());
+      }
+    }
+
+    return convertedType;
+  }
 
   private static void createAttributes(MModel useModel,
       EList<Element> allResourceElements) throws Exception {
@@ -99,89 +182,7 @@ public class XMIImporter {
               prop.getType().getName()
               : prop.getName();
 
-          if (prop.getType() instanceof PrimitiveTypeImpl) {
-            boolean isSet = false;
-            boolean isOrderedSet = false;
-            boolean isBag = false;
-
-            if (prop.getUpper() == LiteralUnlimitedNatural.UNLIMITED) {
-              if (prop.isUnique()) {
-                if (prop.isOrdered()) {
-                  isOrderedSet = true;
-                } else {
-                  isSet = true;
-                }
-              } else {
-                isBag = true;
-              }
-            }
-
-            if (prop.getType().getName().equals("String")) {
-              if (isSet) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkSet(TypeFactory.mkString()));
-              } else if (isOrderedSet) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkOrderedSet(TypeFactory.mkString()));
-              } else if (isBag) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkBag(TypeFactory.mkString()));
-              } else {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkString());
-              }
-            } else if (prop.getType().getName().equals("Integer")) {
-              if (isSet) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkSet(TypeFactory.mkInteger()));
-              } else if (isOrderedSet) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkOrderedSet(TypeFactory.mkInteger()));
-              } else if (isBag) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkBag(TypeFactory.mkInteger()));
-              } else {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkInteger());
-              }
-            } else if (prop.getType().getName().equals("Boolean")) {
-              if (isSet) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkSet(TypeFactory.mkBoolean()));
-              } else if (isOrderedSet) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkOrderedSet(TypeFactory.mkBoolean()));
-              } else if (isBag) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkBag(TypeFactory.mkBoolean()));
-              } else {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkBoolean());
-              }
-            } else if (prop.getType().getName().equals("Real")) {
-              if (isSet) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkSet(TypeFactory.mkReal()));
-              } else if (isOrderedSet) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkOrderedSet(TypeFactory.mkReal()));
-              } else if (isBag) {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkBag(TypeFactory.mkReal()));
-              } else {
-                attr = Utils.getModelFactory().createAttribute(propName,
-                    TypeFactory.mkReal());
-              }
-            }
-          } else if (prop.getType() instanceof ClassImpl) {
-            attr = Utils.getModelFactory().createAttribute(
-                propName,
-                TypeFactory.mkObjectType(useModel.getClass(prop.getType()
-                    .getName())));
-          } else if (prop.getType() instanceof EnumerationImpl) {
-            attr = Utils.getModelFactory().createAttribute(propName,
-                useModel.enumType(prop.getType().getName()));
-          }
+          attr = Utils.getModelFactory().createAttribute(propName, convertType(useModel, prop));
 
           if (attr != null) {
             useClass.addAttribute(attr);
@@ -190,7 +191,44 @@ public class XMIImporter {
       }
     }
   }
+  
+  private static void createOperations(MModel useModel,
+      EList<Element> allResourceElements) throws Exception {
+    for (Element elem : allResourceElements) {
 
+      if (elem instanceof org.eclipse.uml2.uml.Class) {
+
+        org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) elem;
+
+        MClass useClass = useModel.getClass(umlClass.getName());
+
+        for (Operation operation : umlClass.getOperations()) {
+          EList<Parameter> parameters = operation.getOwnedParameters();
+          Type returnType = null;
+          VarDeclList varDeclList = null;
+          for (Parameter p : parameters) {
+            if (p.getDirection() != ParameterDirectionKind.RETURN_LITERAL) {
+              VarDecl varDecl = new VarDecl(p.getName(), convertType(useModel, p));
+              if (varDeclList == null) {
+                varDeclList = new VarDeclList(varDecl);
+              } else {
+                varDeclList.add(varDecl);
+              }
+            }
+          }
+          if (varDeclList == null) {
+            varDeclList = new VarDeclList(true);
+          }
+          returnType = convertType(useModel, operation.getReturnResult());
+          MOperation useOperation = Utils.getModelFactory().
+              createOperation(operation.getName(), varDeclList,
+                  returnType);
+          useClass.addOperation(useOperation);
+        }
+      }
+    }
+  }
+  
   private static void createGeneralizations(MModel useModel,
       EList<Element> allResourceElements) {
     DirectedGraph<MClass, MGeneralization> genGraph = useModel
@@ -407,6 +445,8 @@ public class XMIImporter {
     createClasses(useModel, allResourceElements);
 
     createAttributes(useModel, allResourceElements);
+    
+    createOperations(useModel, allResourceElements);
 
     createGeneralizations(useModel, allResourceElements);
 
