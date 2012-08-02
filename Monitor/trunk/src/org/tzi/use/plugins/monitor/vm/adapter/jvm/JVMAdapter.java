@@ -4,6 +4,7 @@
 package org.tzi.use.plugins.monitor.vm.adapter.jvm;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -46,6 +47,7 @@ import com.sun.jdi.ClassType;
 import com.sun.jdi.Field;
 import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.IntegerValue;
+import com.sun.jdi.LongValue;
 import com.sun.jdi.Method;
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
@@ -123,6 +125,8 @@ public class JVMAdapter extends AbstractVMAdapter {
      * In memory mapping of type mapping from JVM to the USE monitor type abstraction.
      */
 	private Map<String, VMType> typeMapping = new HashMap<String, VMType>();
+	
+	Collection<Object> c;
 	
 	public JVMAdapter() {
 		super();
@@ -423,6 +427,7 @@ public class JVMAdapter extends AbstractVMAdapter {
      *    <li><code>java.util.ArrayList</code> -> SequenceValue with mapped values (rec. invocation).</li>
      *    <li><code>java.util.HashSet</code> -> SetValue with mapped values (rec. invocation).</li>
      *    <li><code>java.util.TreeMap</code> -> SetValue with mapped key and values (rec. invocation) as <code>Tuple(key, value)</code>.</li>
+     *    <li><code>java.util.HashMap</code> -> SetValue with mapped key and values (rec. invocation) as <code>Tuple(key, value)</code>.</li>
      * 	</ol>
      * <li><b>ArrayReference</b> -> SequenceValue with mapped values (rec. invocation).</li>
      * <li><b>StringReference</b> -> StringValue</li>
@@ -460,6 +465,8 @@ public class JVMAdapter extends AbstractVMAdapter {
 		// Primitive integer, i.e., int
 		} else if (javaValue instanceof IntegerValue) {
 			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf(((IntegerValue)javaValue).intValue());
+		} else if (javaValue instanceof LongValue) {
+			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf(((LongValue)javaValue).intValue());
 		} else if (javaValue instanceof BooleanValue) {
 			boolean b = ((BooleanValue)javaValue).booleanValue();
 			v = org.tzi.use.uml.ocl.value.BooleanValue.get(b);
@@ -538,10 +545,7 @@ public class JVMAdapter extends AbstractVMAdapter {
 		    	Field field = refValue.referenceType().fieldByName("root");
 		    	com.sun.jdi.Value root = refValue.getValue(field);
 		    	
-		    	TupleType.Part keyPart = new TupleType.Part("key", TypeFactory.mkOclAny());
-		    	TupleType.Part valPart = new TupleType.Part("value", TypeFactory.mkOclAny());
-		    	
-		    	TupleType resType = TypeFactory.mkTuple(new TupleType.Part[]{keyPart, valPart});
+		    	TupleType resType = createMapTuple();
 		    	
 		    	if (root != null) {
 			    	ObjectReference currentNode = (ObjectReference)root;
@@ -580,16 +584,68 @@ public class JVMAdapter extends AbstractVMAdapter {
 			    	}
 			    }
 		    	v = new SetValue(TypeFactory.mkVoidType(), useValues);
+			} else if (refValue.type().name().equals("java.util.HashMap")) {
+				List<Value> useValues = new LinkedList<Value>();
+				
+		    	// Values are stored in the field "table[]:Entry"
+		    	Field field = refValue.referenceType().fieldByName("table");
+		    	ArrayReference tableValue = (ArrayReference)refValue.getValue(field);
+		    	
+		    	List<com.sun.jdi.Value> mapEntries = tableValue.getValues();
+		    	Field fieldKey = null;
+		    	Field fieldNext = null;
+		    	Field fieldValue = null;
+		    	
+		    	TupleType resType = createMapTuple();
+		    	
+		    	
+		    	for (com.sun.jdi.Value value : mapEntries) {
+		    		if (value != null) {
+		    			ObjectReference mapEntry = (ObjectReference)value;
+		    		
+		    			if (fieldKey == null) {
+		    				fieldKey = mapEntry.referenceType().fieldByName("key");
+		    				fieldNext = mapEntry.referenceType().fieldByName("next");
+		    				fieldValue = mapEntry.referenceType().fieldByName("value");
+		    			}
+
+		    			ObjectReference keyObject   = (ObjectReference)mapEntry.getValue(fieldKey);
+		    			ObjectReference valueObject = (ObjectReference)mapEntry.getValue(fieldValue);
+		    			
+		    			while(mapEntry != null) {
+		    				Value useKey = getUSEValue(keyObject);
+		    				Value useValue = getUSEValue(valueObject);
+		    				
+		    				Map<String,Value> parts = new HashMap<String, Value>();
+		    				parts.put("key", useKey);
+		    				parts.put("value", useValue);
+			    		
+		    				useValues.add(new TupleValue(resType, parts));
+		    			
+		    				mapEntry = (ObjectReference)mapEntry.getValue(fieldNext);
+		    			}
+		    		}
+		    	}
+		    	
+		    	v = new SetValue(TypeFactory.mkVoidType(), useValues);
 			} else {
-				controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + javaValue.toString());
+				controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + javaValue.type().toString());
 			}
 			
 		} else {
-			controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + javaValue.toString());
+			controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + javaValue.type().toString());
 		}
 		
 		return v;
     }
+
+	private TupleType createMapTuple() {
+		TupleType.Part keyPart = new TupleType.Part("key", TypeFactory.mkOclAny());
+		TupleType.Part valPart = new TupleType.Part("value", TypeFactory.mkOclAny());
+		
+		TupleType resType = TypeFactory.mkTuple(new TupleType.Part[]{keyPart, valPart});
+		return resType;
+	}
 
     /**
 	 * @param expectedType

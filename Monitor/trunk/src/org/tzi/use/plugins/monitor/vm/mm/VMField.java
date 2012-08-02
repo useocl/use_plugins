@@ -11,17 +11,10 @@ import org.tzi.use.uml.mm.MAttribute;
  * @author Lars Hamann
  *
  */
-public interface VMField {
+public interface VMField extends VMIdentifiable {
 	
 	String getName();
 
-	/**
-	 * A unique id for the field inside of the VM.
-	 * @return
-	 */
-	Object getId();
-	
-	
 	void setUSEAttribute(MAttribute attr);
 	
 	MAttribute getUSEAttribute();

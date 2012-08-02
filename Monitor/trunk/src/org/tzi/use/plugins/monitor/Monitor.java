@@ -579,14 +579,16 @@ public class Monitor implements ChangeListener {
 	 * is loaded classes in the VM.
 	 */
 	private void registerOperationBreakPoints(MClass cls) {
-		VMType vmType = getVMType(cls);  
+		Set<VMType> allTypes = mappingHelper.getVMTypes(cls);
 		
-		if (vmType == null) {
+		if (allTypes.isEmpty()) {
 			fireNewLogMessage(Level.INFO, "No runtime class found for model class " + cls.name() + ", yet.");
 			return;
 		}
 		
-		registerOperationBreakPoints(vmType);
+		for (VMType t : allTypes) {
+			registerOperationBreakPoints(t);
+		}
 	}
 	
 	private void registerOperationBreakPoints(VMType vmType) {

@@ -1,0 +1,27 @@
+<project name="XMIHandler" default="create-jar" basedir=".">
+  <description>Build file for XMIHandler</description>
+	
+  <!-- perform all major targets. Should be done before a checkin to
+       avoid broken snapshots.  -->
+  <target name="all" description="perform create-jar" depends="create-jar" />
+
+  <!-- create jar -->
+  <target name="create-jar">
+    <jar jarfile="dist/xmihandler.jar" basedir="." manifest="META-INF/MANIFEST.MF">
+    	<zipfileset src="lib/org.eclipse.emf.ecore_2.5.0.v200906151043.jar" excludes="META-INF/*"/>
+    	<zipfileset src="lib/org.eclipse.emf.ecore.xmi_2.5.0.v200906151043.jar" excludes="META-INF/*"/>
+    	<zipfileset src="lib/org.eclipse.emf.common_2.5.0.v200906151043.jar" excludes="META-INF/*"/>
+    	<zipfileset src="lib/org.eclipse.emf.mapping.ecore2xml_2.5.0.v200906151043.jar" excludes="META-INF/*"/>
+    	<zipfileset src="lib/org.eclipse.uml2.common_1.5.0.v200905041045.jar" excludes="META-INF/*"/>
+    	<zipfileset src="lib/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar" excludes="META-INF/*"/>
+    	<zipfileset src="lib/org.eclipse.uml2.uml_3.0.1.v200908281330.jar" excludes="META-INF/*"/>
+      <fileset dir="bin" includes="**"/>
+      <exclude name="bin/"/>
+       <exclude name="plugin.jardesc"/>
+       <exclude name="build.xml"/>
+       <exclude name="lib/**"/>
+       <exclude name="src/**"/>
+    </jar>
+  	<copy file="dist/xmihandler.jar" tofile="${use_loc}/lib/plugins/xmihandler.jar"/>
+  </target>
+</project>
