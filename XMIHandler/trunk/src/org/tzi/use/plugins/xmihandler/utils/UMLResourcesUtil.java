@@ -11,6 +11,7 @@
  */
 package org.tzi.use.plugins.xmihandler.utils;
 
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -93,9 +94,10 @@ public class UMLResourcesUtil
    *          The resource set whose registries to initialize, or
    *          <code>null</code>.
    * @return The resource set (or <code>null</code>).
+   * @throws Exception 
    * 
    */
-  public static ResourceSet init(ResourceSet resourceSet) {
+  public static ResourceSet init(ResourceSet resourceSet) throws Exception {
     EPackage.Registry packageRegistry = resourceSet == null
         ? EPackage.Registry.INSTANCE
         : resourceSet.getPackageRegistry();
@@ -133,16 +135,22 @@ public class UMLResourcesUtil
     Map<URI, URI> uriMap = resourceSet == null
         ? URIConverter.URI_MAP
         : resourceSet.getURIConverter().getURIMap();
+    
+    String path = "lib/plugins/xmihandler.jar";    
+    
+    FileInputStream in = new FileInputStream(path);
+    in.close();
 
-    uriMap.put(URI.createURI(UMLResource.LIBRARIES_PATHMAP), URI
-        .createPlatformPluginURI(
-            "/org.eclipse.uml2.uml.resources/libraries/", true)); //$NON-NLS-1$
-    uriMap.put(URI.createURI(UMLResource.METAMODELS_PATHMAP), URI
-        .createPlatformPluginURI(
-            "/org.eclipse.uml2.uml.resources/metamodels/", true)); //$NON-NLS-1$
-    uriMap.put(URI.createURI(UMLResource.PROFILES_PATHMAP), URI
-        .createPlatformPluginURI(
-            "/org.eclipse.uml2.uml.resources/profiles/", true)); //$NON-NLS-1$
+    path = path.replace('\\', '/');
+
+    URI uri = URI.createURI("jar:file:" + path + "!/");
+
+    uriMap.put(URI.createURI(UMLResource.LIBRARIES_PATHMAP),  uri
+        .appendSegment("libraries").appendSegment("")); //$NON-NLS-1$
+    uriMap.put(URI.createURI(UMLResource.METAMODELS_PATHMAP), uri
+        .appendSegment("metamodels").appendSegment("")); //$NON-NLS-1$
+    uriMap.put(URI.createURI(UMLResource.PROFILES_PATHMAP), uri
+        .appendSegment("profiles").appendSegment("")); //$NON-NLS-1$
 
     List<ContentHandler> contentHandlers;
 

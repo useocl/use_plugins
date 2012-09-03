@@ -390,7 +390,7 @@ public class XMIImporter {
     }
 
     if (modelList.size() > 1) {
-      addModelNamePrefixes(allResourceElements);
+      //addModelNamePrefixes(allResourceElements);
     }
 
     for (Model m : modelList) {
