@@ -343,7 +343,7 @@ public class XMIExporter {
 
     createAttributes(umlModel, useModel);
     
-    createOperations(umlModel, useModel);
+    //createOperations(umlModel, useModel);
 
     createGeneralizations(umlModel, useModel);
 
