@@ -1,7 +1,7 @@
 <project name="useKodkodPlugin" default="fatjar" basedir=".">
 
-	<property name="compiler" value="1.7" />
-	<property name="use.path" value="../use" />
+	<property name="compiler" value="1.6" />
+	<property name="use.path" value="../../../use/branches/psm" />
 	<property name="filename_thin" value="ModelValidatorPlugin_thin.jar" />
 	<property name="filename_fat" value="ModelValidator_fat.jar" />
 

@@ -27,6 +27,7 @@ import org.tzi.use.uml.ocl.expr.ExpNavigation;
 import org.tzi.use.uml.ocl.expr.ExpObjAsSet;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpObjRef;
+import org.tzi.use.uml.ocl.expr.ExpOclInState;
 import org.tzi.use.uml.ocl.expr.ExpOne;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
@@ -42,6 +43,8 @@ import org.tzi.use.uml.ocl.expr.ExpUndefined;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
 import org.tzi.use.uml.ocl.expr.ExpressionVisitor;
 import org.tzi.use.uml.ocl.expr.ExpressionWithValue;
+import org.tzi.use.uml.ocl.expr.VarDecl;
+import org.tzi.use.uml.ocl.expr.VarDeclList;
 
 /**
  * Simple implementation of the visitor interface for use expressions.
@@ -260,6 +263,24 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public void visitClosure(ExpClosure expClosure) {
 		LOG.debug("ExpClosure");
+	}
+
+	@Override
+	public void visitOclInState(ExpOclInState expOclInState) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void visitVarDeclList(VarDeclList varDeclList) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void visitVarDecl(VarDecl varDecl) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

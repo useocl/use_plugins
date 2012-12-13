@@ -147,7 +147,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 			objectVariable(varDecl, varName);
 
 			if (replace) {
-				List<Variable> variable = new ArrayList<>();
+				List<Variable> variable = new ArrayList<Variable>();
 				variable.add((Variable) variables.get(varName));
 				replaceVariables.put(varDecl.name(), variable);
 			}
