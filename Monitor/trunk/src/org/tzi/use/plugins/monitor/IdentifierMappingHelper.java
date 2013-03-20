@@ -158,7 +158,7 @@ public class IdentifierMappingHelper {
 		// FIXME Handle parameter types
 		try {
 			if (getVMMethodName(useOperation).equals(method.getName()) &&
-				method.getArgumentTypes().size() == useOperation.allParams().size()) {
+				method.getArgumentTypes().size() == useOperation.paramList().size()) {
 				return true;
 			}
 		} catch (VMAccessException e) {}

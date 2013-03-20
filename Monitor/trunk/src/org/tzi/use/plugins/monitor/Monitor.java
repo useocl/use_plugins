@@ -53,6 +53,7 @@ import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MClassifier;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
@@ -60,7 +61,7 @@ import org.tzi.use.uml.mm.MPrePostCondition;
 import org.tzi.use.uml.ocl.expr.ExpObjRef;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.ExpressionWithValue;
-import org.tzi.use.uml.ocl.expr.VarDecl;
+import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.uml.ocl.value.CollectionValue;
 import org.tzi.use.uml.ocl.value.IntegerValue;
@@ -89,6 +90,7 @@ import org.tzi.use.uml.sys.soil.MNewObjectStatement;
 import org.tzi.use.uml.sys.soil.MObjectDestructionStatement;
 import org.tzi.use.uml.sys.soil.MRValue;
 import org.tzi.use.util.StringUtil;
+import org.tzi.use.util.collections.CollectionUtil;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -463,12 +465,12 @@ public class Monitor implements ChangeListener {
 		Map<String, Expression> arguments = new HashMap<String, Expression>();
     	
 		MOperation useOperation = call.getMethod().getUSEOperation();
-		List<VarDecl> allParams = useOperation.allParams();
+		VarDeclList allParams = useOperation.paramList();
 		
     	int numArgs = allParams.size();
     	
     	for (int index = 0; index < numArgs; index++) {    		
-    		arguments.put(allParams.get(index).name(), new ExpressionWithValue(vmArguments.get(index)));
+    		arguments.put(allParams.varDecl(index).name(), new ExpressionWithValue(vmArguments.get(index)));
     	}
     	
     	PPCHandler handler = (validatePreConditions ? ppcHandler : DoNothingPPCHandler.getInstance());
@@ -832,7 +834,7 @@ public class Monitor implements ChangeListener {
 		MObject useObject;
 		
 		if (useSoil) {
-			MNewObjectStatement stmt = new MNewObjectStatement(cls);
+			MNewObjectStatement stmt = new MNewObjectStatement(cls, (String)null);
 			getSystem().execute(stmt);
 			useObject = stmt.getCreatedObject();
 		} else {
@@ -998,7 +1000,7 @@ public class Monitor implements ChangeListener {
 	}
 
 	private void readLinks(VMObject objRef, MObject o) {
-		Set<MClass> allClasses = new HashSet<MClass>(o.cls().allParents());
+		Set<MClass> allClasses = new HashSet<MClass>(CollectionUtil.<MClassifier,MClass>downCastUnsafe(o.cls().allParents()));
 		allClasses.add(o.cls());
 		
 		for (MClass cls : allClasses) {
@@ -1504,7 +1506,7 @@ public class Monitor implements ChangeListener {
 	    	MObject self = vmThisObject.getUSEObject();
 	    	
 			try {
-				if (useOperation.allParams().size() != vmMethodCall.getNumArguments()) {
+				if (useOperation.paramList().size() != vmMethodCall.getNumArguments()) {
 					fireNewLogMessage(Level.WARNING, "Wrong number of arguments!");
 					return;
 				}
@@ -1561,7 +1563,7 @@ public class Monitor implements ChangeListener {
 				result = new ExpressionWithValue(resultValue);
 			}
 
-			MExitOperationStatement stmt = new MExitOperationStatement(result, ppcHandler);
+			MExitOperationStatement stmt = new MExitOperationStatement(result, ppcHandler, currentUseOperationCall);
 			
 			try {
 				StatementEvaluationResult statResult = getSystem().execute(stmt);
@@ -1647,7 +1649,7 @@ public class Monitor implements ChangeListener {
 	    	VMField field = adapterFieldMapping.get(fieldId);
 	    	
 	    	if (field.getUSEAttribute() != null) {
-				MAttributeAssignmentStatement stmt = new MAttributeAssignmentStatement(new ExpObjRef(useObject), field.getUSEAttribute(), useValue);
+				MAttributeAssignmentStatement stmt = new MAttributeAssignmentStatement(useObject, field.getUSEAttribute(), useValue);
 	    		
 				try {
 					getSystem().execute(stmt);

@@ -118,9 +118,6 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		initGUI();
 		
 		stateChangeListener = new AbstractMonitorStateListener() {
-			/* (non-Javadoc)
-			 * @see org.tzi.use.plugins.monitor.AbstractMonitorStateListener#monitorStateChanged(org.tzi.use.plugins.monitor.Monitor)
-			 */
 			@Override
 			public void monitorStateChanged(Monitor source) {
 				configureComponents();

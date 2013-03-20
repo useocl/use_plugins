@@ -4,6 +4,7 @@
 package org.tzi.use.plugins.monitor.vm.adapter.jvm;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -562,15 +563,15 @@ public class JVMAdapter extends AbstractVMAdapter {
 			    	// Values are stored in the fields "left" and "right"
 			    	Stack<ObjectReference> toDo = new Stack<ObjectReference>();
 			    	toDo.add(currentNode);
-			    	Map<String,Value> parts = new HashMap<String, Value>();
+			    	List<TupleValue.Part> parts = new ArrayList<TupleValue.Part>();
 			    	
 			    	while (!toDo.isEmpty()) { 
 			    		currentNode = toDo.pop();
 			    		
 			    		key   = getUSEValue(currentNode.getValue(keyField));
 			    		value = getUSEValue(currentNode.getValue(valueField));
-			    		parts.put("key", key);
-			    		parts.put("value", value);
+			    		parts.add(new TupleValue.Part(0, "key", key));
+			    		parts.add(new TupleValue.Part(1, "value", value));
 			    		
 			    		useValues.add(new TupleValue(resType, parts));
 			    		
@@ -616,9 +617,9 @@ public class JVMAdapter extends AbstractVMAdapter {
 		    				Value useKey = getUSEValue(keyObject);
 		    				Value useValue = getUSEValue(valueObject);
 		    				
-		    				Map<String,Value> parts = new HashMap<String, Value>();
-		    				parts.put("key", useKey);
-		    				parts.put("value", useValue);
+		    				List<TupleValue.Part> parts = new ArrayList<TupleValue.Part>(1);
+		    				parts.add(new TupleValue.Part(0, "key", useKey));
+		    				parts.add(new TupleValue.Part(1, "value", useValue));
 			    		
 		    				useValues.add(new TupleValue(resType, parts));
 		    			
@@ -640,8 +641,8 @@ public class JVMAdapter extends AbstractVMAdapter {
     }
 
 	private TupleType createMapTuple() {
-		TupleType.Part keyPart = new TupleType.Part("key", TypeFactory.mkOclAny());
-		TupleType.Part valPart = new TupleType.Part("value", TypeFactory.mkOclAny());
+		TupleType.Part keyPart = new TupleType.Part(0, "key", TypeFactory.mkOclAny());
+		TupleType.Part valPart = new TupleType.Part(1, "value", TypeFactory.mkOclAny());
 		
 		TupleType resType = TypeFactory.mkTuple(new TupleType.Part[]{keyPart, valPart});
 		return resType;
