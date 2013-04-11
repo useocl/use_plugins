@@ -1,0 +1,105 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Debuggee", "Debuggee\Debuggee.csproj", "{830C0DE3-34B6-40E1-B8CB-38E70F774C07}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLRDebugger", "CLRDebugger\CLRDebugger.vcxproj", "{D8D93CBC-EA75-EE17-FCC5-64F537D99270}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLRAdapter", "CLRAdapter\CLRAdapter.vcxproj", "{B7F85490-164D-FE90-A6A5-E0E7F767360E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{AF2609B2-8086-4FE7-85E6-FC1921797AE6}"
+	ProjectSection(SolutionItems) = preProject
+		Common\CLRDebugCallback.cpp = Common\CLRDebugCallback.cpp
+		Common\CLRDebugCallback.h = Common\CLRDebugCallback.h
+		Common\CLRDebugCore.cpp = Common\CLRDebugCore.cpp
+		Common\CLRDebugCore.h = Common\CLRDebugCore.h
+		Common\CLRFieldBase.cpp = Common\CLRFieldBase.cpp
+		Common\CLRFieldBase.h = Common\CLRFieldBase.h
+		Common\CLRFieldList.cpp = Common\CLRFieldList.cpp
+		Common\CLRFieldList.h = Common\CLRFieldList.h
+		Common\CLRFieldReference.cpp = Common\CLRFieldReference.cpp
+		Common\CLRFieldReference.h = Common\CLRFieldReference.h
+		Common\CLRFieldValue.cpp = Common\CLRFieldValue.cpp
+		Common\CLRFieldValue.h = Common\CLRFieldValue.h
+		Common\CLRInfoBase.cpp = Common\CLRInfoBase.cpp
+		Common\CLRInfoBase.h = Common\CLRInfoBase.h
+		Common\CLRMetaField.cpp = Common\CLRMetaField.cpp
+		Common\CLRMetaField.h = Common\CLRMetaField.h
+		Common\CLRObject.cpp = Common\CLRObject.cpp
+		Common\CLRObject.h = Common\CLRObject.h
+		Common\CLRType.cpp = Common\CLRType.cpp
+		Common\CLRType.h = Common\CLRType.h
+		Common\CommonTypes.cpp = Common\CommonTypes.cpp
+		Common\CommonTypes.h = Common\CommonTypes.h
+		Common\DebugBuffer.cpp = Common\DebugBuffer.cpp
+		Common\DebugBuffer.h = Common\DebugBuffer.h
+		Common\DebugValueHelper.cpp = Common\DebugValueHelper.cpp
+		Common\DebugValueHelper.h = Common\DebugValueHelper.h
+		Common\DefaultCallback.h = Common\DefaultCallback.h
+		Common\HeapInfoHelper.cpp = Common\HeapInfoHelper.cpp
+		Common\HeapInfoHelper.h = Common\HeapInfoHelper.h
+		Common\InfoBoard.cpp = Common\InfoBoard.cpp
+		Common\InfoBoard.h = Common\InfoBoard.h
+		Common\ObjectInfoHelper.cpp = Common\ObjectInfoHelper.cpp
+		Common\ObjectInfoHelper.h = Common\ObjectInfoHelper.h
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Debug|Win32.ActiveCfg = Debug|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Debug|Win32.Build.0 = Debug|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Debug|x86.ActiveCfg = Debug|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Debug|x86.Build.0 = Debug|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Release|Any CPU.ActiveCfg = Release|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Release|Mixed Platforms.Build.0 = Release|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Release|Win32.ActiveCfg = Release|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Release|Win32.Build.0 = Release|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Release|x86.ActiveCfg = Release|x86
+		{830C0DE3-34B6-40E1-B8CB-38E70F774C07}.Release|x86.Build.0 = Release|x86
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Debug|Win32.Build.0 = Debug|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Debug|x86.ActiveCfg = Debug|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Debug|x86.Build.0 = Debug|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Release|Any CPU.ActiveCfg = Release|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Release|Win32.ActiveCfg = Release|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Release|Win32.Build.0 = Release|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Release|x86.ActiveCfg = Release|Win32
+		{D8D93CBC-EA75-EE17-FCC5-64F537D99270}.Release|x86.Build.0 = Release|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Debug|Win32.Build.0 = Debug|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Debug|x86.ActiveCfg = Debug|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Debug|x86.Build.0 = Debug|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Release|Any CPU.ActiveCfg = Release|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Release|Win32.ActiveCfg = Release|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Release|Win32.Build.0 = Release|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Release|x86.ActiveCfg = Release|Win32
+		{B7F85490-164D-FE90-A6A5-E0E7F767360E}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

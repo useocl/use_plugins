@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/Users/daniel/Uni-Bremen/dbs/use_monitor_plugin/Adapter/CLR/trunk/native/CLR-Adapter/Build/CLRAdapter/Debug"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/use-monitor-plugin"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/use_psm"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

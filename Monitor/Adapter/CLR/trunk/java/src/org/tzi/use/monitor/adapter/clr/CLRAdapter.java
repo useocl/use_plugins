@@ -1,0 +1,305 @@
+/**
+ * 
+ */
+package org.tzi.use.monitor.adapter.clr;
+
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+
+import org.tzi.use.plugins.monitor.MonitorException;
+import org.tzi.use.plugins.monitor.vm.adapter.AbstractVMAdapter;
+import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
+import org.tzi.use.plugins.monitor.vm.adapter.VMAdapterSetting;
+import org.tzi.use.plugins.monitor.vm.mm.VMField;
+import org.tzi.use.plugins.monitor.vm.mm.VMMethod;
+import org.tzi.use.plugins.monitor.vm.mm.VMMethodCall;
+import org.tzi.use.plugins.monitor.vm.mm.VMObject;
+import org.tzi.use.plugins.monitor.vm.mm.VMType;
+import org.tzi.use.plugins.monitor.vm.mm.clr.CLRField;
+import org.tzi.use.plugins.monitor.vm.mm.clr.CLRObject;
+import org.tzi.use.plugins.monitor.vm.mm.clr.CLRType;
+import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapArray;
+import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapBase;
+import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapReference;
+import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapValue;
+import org.tzi.use.uml.ocl.value.UndefinedValue;
+import org.tzi.use.uml.ocl.value.Value;
+
+/**
+ * @author Lars Hamann
+ * @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+ *
+ */
+public class CLRAdapter extends AbstractVMAdapter {
+
+	/**
+	 * Static initializer to load the native clr adapter library.
+	 */
+	static {
+		System.loadLibrary("clradapter");
+	}	
+	
+	private static final int SETTING_PID = 0;
+	
+	private static final int SETTING_MAXINSTANCES = 1;
+	
+	/**
+	 * true if the adapter is connected to a JVM.
+	 */
+	private boolean isConnected = false;
+			
+	/**
+	 * The process id of the monitored application.
+	 */
+	private int pid;
+	
+	/**
+	 * The maximum number of instances to read for a single type.
+	 */
+	private long maxInstances;
+	
+	
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.AbstractVMAdapter#validateSettings()
+	 */
+	@Override
+	protected void validateSettings() throws InvalidAdapterConfiguration {
+		if (settings.get(SETTING_PID) == null || settings.get(SETTING_PID).equals("") )
+			throw new InvalidAdapterConfiguration("The PID is missing!"); 
+				
+		try {
+			this.pid = Integer.parseInt(settings.get(SETTING_PID).value);
+		} catch (NumberFormatException e) {
+			throw new InvalidAdapterConfiguration("PID is not a number!");
+		}
+		
+		try {
+			this.maxInstances = Long.parseLong(settings.get(SETTING_MAXINSTANCES).value);
+		} catch (NumberFormatException e) {
+			throw new InvalidAdapterConfiguration("Max. instances is not a number!");
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.AbstractVMAdapter#createSettings(java.util.List)
+	 */
+	@Override
+	protected void createSettings(List<VMAdapterSetting> settings) {
+		settings.add(SETTING_PID, new VMAdapterSetting("Process ID", ""));
+		settings.add(SETTING_MAXINSTANCES, new VMAdapterSetting("Max. CLR instances", "10000"));
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#attachToVM()
+	 */
+	@Override
+	public void attachToVM() throws MonitorException {
+		int res = 0;
+		try {
+			res = attachToCLR(pid);
+		} catch (UnsatisfiedLinkError e){
+			throw new MonitorException("Could not find CLRAdapter.attachToCLR().");
+		}
+		if (res != 0)
+			throw new MonitorException("Could not connect to virtual machine with process ID " + Long.toString(pid));
+		
+    	isConnected = true;
+    	
+    	// debugging output
+    	System.out.println("Number of modules: " + getNumOfModules());
+    	System.out.println("Number of types: " + getNumOfTypes());
+    	System.out.println("Number of instances: " + getNumOfInstances());
+    	CLRType test = getCLRType("Debuggee.Dog");
+    	System.out.println("Test: " + test + " " + test.getAdapter().toString());
+    	Set<VMObject> instances = getInstances(test);
+    	System.out.println("Geladene Objekte: " + instances.size());
+    	CLRField field = (CLRField) test.getFieldByName("Name");
+    	System.out.println("Feld: " + field.getName() + ":" + field.getId());
+    	for (VMObject vmObject : instances) {
+    		CLRObject o = (CLRObject) vmObject;
+    		System.out.println("Object to Wrap: " + o.getIdCLR() + ":" + o.getType().getName());
+        	CLRFieldWrapBase wrap = getFieldWrap(o, field);
+        	System.out.println("Wrap: " + wrap);
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#resume()
+	 */
+	@Override
+	public void resume() {
+		int res = resumeCLR();
+		if (res != 0)
+			controller.newLogMessage(this, Level.WARNING, "Could not resume CLR.");
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#suspend()
+	 */
+	@Override
+	public void suspend() {
+		int res = suspendCLR();
+		if (res != 0)
+			controller.newLogMessage(this, Level.WARNING, "Could not suspend CLR.");
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#stop()
+	 */
+	@Override
+	public void stop() {
+		int res = stopCLR();
+    	isConnected = false;
+		if (res != 0)
+			controller.newLogMessage(this, Level.WARNING, "Could not stop CLR correctly.");
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#getVMType(java.lang.String)
+	 */
+	@Override
+	public VMType getVMType(String name) {	
+		return getCLRType(name);
+	}
+
+	public Set<VMObject> readInstances(CLRType clrType) {
+		return getInstances(clrType);
+	}
+	
+    public Value getUSEValue(CLRFieldWrapBase field) {
+    	Value v = UndefinedValue.instance;
+    	
+    	if (field instanceof CLRFieldWrapValue) {
+    		
+    	} else if (field instanceof CLRFieldWrapReference) {
+    		
+    	} else if (field instanceof CLRFieldWrapArray) {
+    		
+    	}
+    	
+    	return v;
+    }
+	
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#registerClassPrepareEvent(java.lang.String)
+	 */
+	@Override
+	public void registerClassPrepareEvent(String javaClassName) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#unregisterClassPrepareInterest(java.lang.Object)
+	 */
+	@Override
+	public void unregisterClassPrepareInterest(Object adapterEventInformation) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#isVMTypeLoaded(java.lang.String)
+	 */
+	@Override
+	public boolean isVMTypeLoaded(String javaClassName) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#registerOperationCallInterest(org.tzi.use.plugins.monitor.vm.mm.VMMethod)
+	 */
+	@Override
+	public void registerOperationCallInterest(VMMethod m) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#registerMethodExit(org.tzi.use.plugins.monitor.vm.mm.VMMethodCall)
+	 */
+	@Override
+	public void registerMethodExit(VMMethodCall call) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#unregisterOperationeExit(java.lang.Object)
+	 */
+	@Override
+	public void unregisterOperationeExit(Object adapterExitInformation) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#registerConstructorCallInterest(org.tzi.use.plugins.monitor.vm.mm.VMType)
+	 */
+	@Override
+	public void registerConstructorCallInterest(VMType vmType) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#registerFieldModificationInterest(org.tzi.use.plugins.monitor.vm.mm.VMField)
+	 */
+	@Override
+	public void registerFieldModificationInterest(VMField f) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#getMethodResultValue(java.lang.Object)
+	 */
+	@Override
+	public Value getMethodResultValue(Object adapterExitInformation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Microsoft CLR";
+	}
+	
+	public CLRField getCLRFieldByName(CLRType type, String name)
+	{
+		return getFieldByName(type, name);
+	}
+	
+	public CLRFieldWrapBase getFieldWrap(CLRObject object, CLRField field)
+	{
+		return getWrappedField(object, field);
+	}
+	
+	private native Set<VMObject> getInstances(CLRType clrType);
+	
+	private native CLRType getCLRType(String name);
+	
+	private native int attachToCLR(long pid);
+	
+	private native int resumeCLR();
+
+	private native int suspendCLR();
+		
+	private native int stopCLR();
+	
+	private native CLRField getFieldByName(CLRType type, String name);
+	
+	private native CLRFieldWrapBase getWrappedField(CLRObject object, CLRField field);
+	
+	// debug information
+	private native int getNumOfInstances();
+	
+	private native int getNumOfTypes();
+	
+	private native int getNumOfModules();
+}
