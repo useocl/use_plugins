@@ -3,6 +3,7 @@
  */
 package org.tzi.use.plugins.monitor.vm.mm.clr;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +45,7 @@ public class CLRType extends CLRBase implements VMType {
 	@Override
 	public Set<VMType> getSuperClasses() {
 		// TODO Auto-generated method stub
-		return null;
+		return Collections.emptySet();
 	}
 
 	/* (non-Javadoc)
@@ -52,8 +53,7 @@ public class CLRType extends CLRBase implements VMType {
 	 */
 	@Override
 	public Set<VMType> getSubClasses() {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.emptySet();
 	}
 
 	/* (non-Javadoc)
@@ -62,7 +62,7 @@ public class CLRType extends CLRBase implements VMType {
 	@Override
 	public boolean isClassType() {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	/* (non-Javadoc)
@@ -78,8 +78,7 @@ public class CLRType extends CLRBase implements VMType {
 	 */
 	@Override
 	public List<VMMethod> getMethodsByName(String methodName) {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.emptyList();
 	}
 
 	/* (non-Javadoc)
