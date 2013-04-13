@@ -1,0 +1,15 @@
+@Monitor(defaultPackage="Debuggee")
+model CatsAndDogs
+
+class Pet
+  attributes
+    Name:String
+    Age:Integer
+end
+
+class Dog < Pet
+end
+
+class Cat < Pet
+end
+

@@ -23,6 +23,7 @@ import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapArray;
 import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapBase;
 import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapReference;
 import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapValue;
+import org.tzi.use.uml.ocl.value.StringValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
 
@@ -172,13 +173,43 @@ public class CLRAdapter extends AbstractVMAdapter {
     public Value getUSEValue(CLRFieldWrapBase field) {
     	Value v = UndefinedValue.instance;
     	
+    	if (field == null)
+    		return null;
+    	
     	if (field instanceof CLRFieldWrapValue) {
+    		Object o = ((CLRFieldWrapValue) field).getValue();
+    		
+    		if (o instanceof Boolean) {
+    			boolean b = ((Boolean) o).booleanValue();
+    			v = org.tzi.use.uml.ocl.value.BooleanValue.get(b);
+    		} else if (o instanceof Character) {
+    			String s = String.valueOf((Character) o);
+    			v = new StringValue(s);    			
+    		} else if (o instanceof Byte) {
+    			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf((Byte) o);
+    		} else if (o instanceof Short) {
+    			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf((Short) o);
+    		} else if (o instanceof Integer) {
+    			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf((Integer) o);
+    		} else if (o instanceof Long) {
+    			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf((Integer) o);
+    		} else if (o instanceof Float) {
+    			v = new org.tzi.use.uml.ocl.value.RealValue((Double) o);
+    		} else if (o instanceof Double) {
+    			v = new org.tzi.use.uml.ocl.value.RealValue((Double) o);
+    		} else if (o instanceof String) {
+    			v = new StringValue((String) o);
+    		} else {
+    			controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + o.getClass().toString());
+    		}
     		
     	} else if (field instanceof CLRFieldWrapReference) {
     		
     	} else if (field instanceof CLRFieldWrapArray) {
     		
-    	}
+		} else {
+			controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + field.toString());
+		}
     	
     	return v;
     }
