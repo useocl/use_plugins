@@ -110,18 +110,20 @@ public class CLRAdapter extends AbstractVMAdapter {
     	System.out.println("Number of modules: " + getNumOfModules());
     	System.out.println("Number of types: " + getNumOfTypes());
     	System.out.println("Number of instances: " + getNumOfInstances());
-    	CLRType test = getCLRType("Debuggee.Dog");
+    	CLRType test = getCLRType("Debuggee.Cat");
     	System.out.println("Test: " + test + " " + test.getAdapter().toString());
     	Set<VMObject> instances = getInstances(test);
     	System.out.println("Geladene Objekte: " + instances.size());
-    	CLRField field = (CLRField) test.getFieldByName("Name");
-    	System.out.println("Feld: " + field.getName() + ":" + field.getId());
-    	for (VMObject vmObject : instances) {
-    		CLRObject o = (CLRObject) vmObject;
-    		System.out.println("Object to Wrap: " + o.getIdCLR() + ":" + o.getType().getName());
-        	CLRFieldWrapBase wrap = getFieldWrap(o, field);
-        	System.out.println("Wrap: " + wrap);
-		}
+    	CLRField field = (CLRField) test.getFieldByName("ArrayChildren");
+    	if (field != null) {
+	    	System.out.println("Feld: " + field.getName() + ":" + field.getId());
+	    	for (VMObject vmObject : instances) {
+	    		CLRObject o = (CLRObject) vmObject;
+	    		System.out.println("Object to Wrap: " + o.getIdCLR() + ":" + o.getType().getName());
+	        	CLRFieldWrapBase wrap = getFieldWrap(o, field);
+	        	System.out.println("Wrap: " + wrap);
+			}
+    	}
 	}
 
 	/* (non-Javadoc)

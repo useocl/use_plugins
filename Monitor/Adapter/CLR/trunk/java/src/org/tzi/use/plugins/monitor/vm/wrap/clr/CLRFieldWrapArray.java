@@ -19,5 +19,10 @@ public class CLRFieldWrapArray extends CLRFieldWrapBase {
 	public Set<Long> getReferences() {
 		return references;
 	}
+
+	@Override
+	public String toString() {
+		return "CLRFieldWrapArray [references=" + references + "]";
+	}
 	
 }

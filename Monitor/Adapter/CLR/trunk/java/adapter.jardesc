@@ -11,6 +11,8 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
-        <javaElement handleIdentifier="=use-monitor-adapter-clr"/>
+        <file path="/use-monitor-adapter-clr/adapter.jardesc"/>
+        <folder path="/use-monitor-adapter-clr/META-INF"/>
+        <javaElement handleIdentifier="=use-monitor-adapter-clr/src"/>
     </selectedElements>
 </jardesc>

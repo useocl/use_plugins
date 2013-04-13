@@ -45,13 +45,15 @@ void CLRType::Print(bool instances, bool fields)
 
 CLRMetaField* CLRType::GetFieldByName(CString name)
 {
-  CString searchString("<");
-  searchString += name;
-  int size = searchString.GetLength();
+  CString searchString1(_T("<"));
+  searchString1 += name;
+  int size = searchString1.GetLength();
+
+  CString searchString2(name);
 
   for(std::vector<CLRMetaField*>::const_iterator iter = this->fieldDefs.begin(); iter != this->fieldDefs.end(); ++iter)
   {
-    if((*iter)->name.Left(size) == searchString)
+    if((*iter)->name.Left(size) == searchString1 || (*iter)->name.Left(size - 1) == searchString2)
       return *iter;
   }
   return NULL;

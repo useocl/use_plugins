@@ -234,7 +234,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getFie
     return clrField;
 
   // create new CLRField
-  jlong token = (long)clrMField->fieldDef;
+  jlong token = (jlong)clrMField->fieldDef;
   clrField = env->NewObject(clrFieldClass, clrFieldConstructor, adapter, name, token);
 
   if((ex = env->ExceptionOccurred()) != NULL)
@@ -262,38 +262,12 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
   CLRFieldBase* pField = NULL;
   mdFieldDef fieldToken = 0;
   FieldMap::const_iterator gotField;
-  jlong address = 0;
   ObjectMap::const_iterator gotObject;
 
   // get pointer to given clr object
-  jclass clazz = env->GetObjectClass(clrObject);
-
-  if((ex = env->ExceptionOccurred()) != NULL)
-    goto exception_handler;
-
-  jmethodID mid = env->GetMethodID(clazz, "getIdCLR", "()J");
-
-  if((ex = env->ExceptionOccurred()) != NULL)
-    goto exception_handler;
-
-  jlong resL = env->CallLongMethod(clrObject, mid);
-
-
-  if((ex = env->ExceptionOccurred()) != NULL)
-    goto exception_handler;
-
-  address = (CORDB_ADDRESS)resL;
-
-  // search given object in loaded ones
-  gotObject = InfoBoard::theInstance()->currentObjects.find(address);
-
-  if(gotObject != InfoBoard::theInstance()->currentObjects.end())
-    pClrObject = (*gotObject).second;
-
-  // For test purposes only, can be null in rael adapter
-  assert(pClrObject != NULL);
-
-  return wrapper;
+  pClrObject = JNIHelper::GetCLRObject(env, clrObject);
+  if(!pClrObject)
+    return wrapper;
 
   // get field token for given field
   fieldToken = JNIHelper::GetFieldDef(env, clrField);
@@ -321,7 +295,10 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
       
       // get value
       if(pFieldV->corType == ELEMENT_TYPE_STRING)
-        res = env->NewStringUTF((const char*)(LPCTSTR)pFieldV->valueAsString);
+      {
+        CStringA str(pFieldV->valueAsString);
+        res = env->NewStringUTF((const char*)str);
+      }
       else
         res = JNIHelper::GetFieldPValue(env, pFieldV->genericDebugValue, pFieldV->corType);
 
@@ -360,8 +337,8 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
       if((ex = env->ExceptionOccurred()) != NULL)
         goto exception_handler;
 
-      jlong token = pFieldR->fieldDefToken;
-      jlong address = pFieldR->address;
+      jlong token = (jlong)pFieldR->fieldDefToken;
+      jlong address = (jlong)pFieldR->address;
 
       wrapper = env->NewObject(fieldClass, fieldConstructor, token, address);
 
@@ -388,6 +365,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
       jlong token = pFieldL->fieldDefToken;
 
       wrapper = env->NewObject(fieldClass, fieldConstructor, token);
+
 
       if((ex = env->ExceptionOccurred()) != NULL)
         goto exception_handler;

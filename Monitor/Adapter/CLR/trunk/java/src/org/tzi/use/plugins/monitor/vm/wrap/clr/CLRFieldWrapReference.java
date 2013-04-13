@@ -12,4 +12,9 @@ public class CLRFieldWrapReference extends CLRFieldWrapBase {
 		return reference;
 	}
 
+	@Override
+	public String toString() {
+		return "CLRFieldWrapReference [reference=" + reference + "]";
+	}
+
 }

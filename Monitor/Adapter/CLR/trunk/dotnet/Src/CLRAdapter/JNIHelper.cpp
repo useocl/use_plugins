@@ -33,7 +33,7 @@ CLRType* JNIHelper::GetCLRType(JNIEnv* env, const jobject clrType)
   if((ex = env->ExceptionOccurred()) != NULL)
     goto exception_handler;
 
-  jlong typeId = env->CallLongMethod(clrType, typeGetId);
+  jlong typeId = env->CallNonvirtualLongMethod(clrType, typeClass, typeGetId);
  
   if((ex = env->ExceptionOccurred()) != NULL)
     goto exception_handler;
@@ -77,13 +77,12 @@ CLRObject* JNIHelper::GetCLRObject(JNIEnv* env, const jobject clrObject)
   if((ex = env->ExceptionOccurred()) != NULL)
     goto exception_handler;
 
-  jmethodID objectCLRGetId = env->GetMethodID(objectCLRClass, "getId", "()J");
+  jmethodID objectCLRGetId = env->GetMethodID(objectCLRClass, "getIdCLR", "()J");
 
   if((ex = env->ExceptionOccurred()) != NULL)
     goto exception_handler;
 
-  // TODO: FIXME!
-  jlong objectCLRId = env->CallLongMethod(objectCLRClass, objectCLRGetId);
+  jlong objectCLRId = env->CallNonvirtualLongMethod(clrObject, objectCLRClass, objectCLRGetId);
 
   if((ex = env->ExceptionOccurred()) != NULL)
     goto exception_handler;
@@ -120,7 +119,8 @@ mdFieldDef JNIHelper::GetFieldDef(JNIEnv* env, const jobject clrField)
   if((ex = env->ExceptionOccurred()) != NULL)
     goto exception_handler;
 
-  jlong fieldId = env->CallLongMethod(fieldClass, fieldGetId);
+  //jlong fieldId = env->CallLongMethod(fieldClass, fieldGetId);
+  jlong fieldId = env->CallNonvirtualLongMethod(clrField, fieldClass, fieldGetId);
 
   if((ex = env->ExceptionOccurred()) != NULL)
     goto exception_handler;
@@ -137,8 +137,12 @@ exception_handler:
 
 jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue, CorElementType type)
 {
-  jobject res = env->NewGlobalRef(NULL);
   HRESULT hr = E_FAIL;
+
+  jobject res = env->NewGlobalRef(NULL);
+  jthrowable ex = NULL;
+  jclass resClass = NULL;
+  jmethodID resCtor = 0;
 
   if(!debugValue)
     return res;
@@ -148,13 +152,23 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_BOOLEAN:
     {
       bool value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jboolean jRes = value;
-        res = (jobject)jRes;
+        jboolean jRes = (jboolean)value;
+
+        resClass = env->FindClass("java/lang/Boolean");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(Z)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
@@ -162,13 +176,23 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_CHAR:
     {
       char value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jchar jRes = value;
-        res = (jobject)jRes;
+        jchar jRes = (jchar)value;
+
+        resClass = env->FindClass("java/lang/Character");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(C)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
@@ -176,13 +200,23 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_I1:               // 8 bit signed integer
     {
       __int8 value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jbyte jRes = value;
-        res = (jobject)jRes;
+        jbyte jRes = (jbyte)value;
+
+        resClass = env->FindClass("java/lang/Byte");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(B)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
@@ -190,13 +224,23 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_U1:               // 8 bit unsigned integer
     {
       unsigned __int8 value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jshort jRes = value;
-        res = (jobject)jRes;
+        jshort jRes = (jshort)value;
+
+        resClass = env->FindClass("java/lang/Short");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(S)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
@@ -204,13 +248,23 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_I2:               // 16 bit signed integer
     {
       __int16 value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jshort jRes = value;
-        res = (jobject)jRes;
+        jshort jRes = (jshort)value;
+
+        resClass = env->FindClass("java/lang/Short");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(S)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
@@ -218,13 +272,23 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_U2:               // 16 bit unsigned integer
     {
       unsigned __int16 value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jint jRes = value;
-        res = (jobject)jRes;
+        jint jRes = (jint)value;
+
+        resClass = env->FindClass("java/lang/Integer");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(I)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
@@ -233,13 +297,23 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_I:
     {
       __int32 value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jint jRes = value;
-        res = (jobject)jRes;
+        jint jRes = (jint)value;
+
+        resClass = env->FindClass("java/lang/Integer");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(I)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
@@ -248,13 +322,23 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_U:
     {
       unsigned __int32 value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jlong jRes = value;
-        res = (jobject)jRes;
+        jlong jRes = (jlong)value;
+
+        resClass = env->FindClass("java/lang/Long");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(J)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
@@ -262,13 +346,23 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_I8:               // 64 bit signed integer
     {
       __int64 value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jlong jRes = value;
-        res = (jobject)jRes;
+        jlong jRes = (jlong)value;
+
+        resClass = env->FindClass("java/lang/Long");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(J)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
@@ -276,50 +370,84 @@ jobject JNIHelper::GetFieldPValue(JNIEnv* env, ICorDebugGenericValue* debugValue
   case ELEMENT_TYPE_U8:               // 64 bit unsigned integer
     {
       unsigned __int64 value;
-
       hr = debugValue->GetValue(&value);
 
       if(SUCCEEDED(hr))
       {
-        jlong jRes = value;
-        res = (jobject)jRes;
+        jlong jRes = (jlong)value;
+
+        resClass = env->FindClass("java/lang/Long");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(J)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
       }
     }
     break;
 
-    //TODO: FIXME!
 
-  //case ELEMENT_TYPE_R4:               // 32 bit float
-  //  {
-  //    float value;
+  case ELEMENT_TYPE_R4:               // 32 bit float
+    {
+      float value;
+      hr = debugValue->GetValue(&value);
 
-  //    hr = debugValue->GetValue(&value);
+      if(SUCCEEDED(hr))
+      {
+        jfloat jRes = (jfloat)value;
 
-  //    if(SUCCEEDED(hr))
-  //    {
-  //      jfloat jRes = value;
-  //      res = (jobject)jRes;
-  //    }
-  //  }
-  //  break;
+        resClass = env->FindClass("java/lang/Float");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
 
-  //case ELEMENT_TYPE_R8:               // 64 bit float
-  //  {
-  //    double value;
+        resCtor = env->GetMethodID(resClass, "<init>", "(F)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
 
-  //    hr = debugValue->GetValue(&value);
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+      }
+    }
+    break;
 
-  //    if(SUCCEEDED(hr))
-  //    {
-  //      jdouble jRes = value;
-  //      res = (jobject)jRes;
-  //    }
-  //  }
-  //  break;
+  case ELEMENT_TYPE_R8:               // 64 bit float
+    {
+      double value;
+      hr = debugValue->GetValue(&value);
+
+      if(SUCCEEDED(hr))
+      {
+        jdouble jRes = (jdouble)value;
+
+        resClass = env->FindClass("java/lang/Double");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        resCtor = env->GetMethodID(resClass, "<init>", "(D)V");
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+
+        res = env->NewObject(resClass, resCtor, jRes);
+        if((ex = env->ExceptionOccurred()) != NULL)
+          goto exception_handler;
+      }
+    }
+    break;
 
   default:
     break;
   }
 
+  return res;
+
+exception_handler:
+  env->ExceptionDescribe();
+  env->ExceptionClear();
   return res;
 }

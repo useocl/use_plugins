@@ -8,6 +8,7 @@ package org.tzi.use.plugins.monitor.vm.wrap.clr;
  * @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
  */
 public class CLRFieldWrapValue extends CLRFieldWrapBase {
+
 	private final Object value;
 	
 	public CLRFieldWrapValue(long token, Object value) {
@@ -19,4 +20,8 @@ public class CLRFieldWrapValue extends CLRFieldWrapBase {
 		return value;
 	}
 	
+	@Override
+	public String toString() {
+		return "CLRFieldWrapValue [value=" + this.value + "]";
+	}	
 }
