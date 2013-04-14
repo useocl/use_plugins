@@ -19,10 +19,16 @@ import org.tzi.use.plugins.monitor.vm.mm.VMType;
 import org.tzi.use.plugins.monitor.vm.mm.clr.CLRField;
 import org.tzi.use.plugins.monitor.vm.mm.clr.CLRObject;
 import org.tzi.use.plugins.monitor.vm.mm.clr.CLRType;
-import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapArray;
+import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapRefArray;
 import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapBase;
 import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapReference;
 import org.tzi.use.plugins.monitor.vm.wrap.clr.CLRFieldWrapValue;
+import org.tzi.use.uml.ocl.type.TypeFactory;
+import org.tzi.use.uml.ocl.value.BooleanValue;
+import org.tzi.use.uml.ocl.value.IntegerValue;
+import org.tzi.use.uml.ocl.value.ObjectValue;
+import org.tzi.use.uml.ocl.value.RealValue;
+import org.tzi.use.uml.ocl.value.SequenceValue;
 import org.tzi.use.uml.ocl.value.StringValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
@@ -174,39 +180,56 @@ public class CLRAdapter extends AbstractVMAdapter {
     	Value v = UndefinedValue.instance;
     	
     	if (field == null)
-    		return null;
+    		return v;
     	
     	if (field instanceof CLRFieldWrapValue) {
     		Object o = ((CLRFieldWrapValue) field).getValue();
     		
     		if (o instanceof Boolean) {
     			boolean b = ((Boolean) o).booleanValue();
-    			v = org.tzi.use.uml.ocl.value.BooleanValue.get(b);
+    			v = BooleanValue.get(b);
     		} else if (o instanceof Character) {
     			String s = String.valueOf((Character) o);
     			v = new StringValue(s);    			
     		} else if (o instanceof Byte) {
-    			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf((Byte) o);
+    			v = IntegerValue.valueOf((Byte) o);
     		} else if (o instanceof Short) {
-    			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf((Short) o);
+    			v = IntegerValue.valueOf((Short) o);
     		} else if (o instanceof Integer) {
-    			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf((Integer) o);
+    			v = IntegerValue.valueOf((Integer) o);
     		} else if (o instanceof Long) {
-    			v = org.tzi.use.uml.ocl.value.IntegerValue.valueOf((Integer) o);
+    			v = IntegerValue.valueOf((Integer) o);
     		} else if (o instanceof Float) {
-    			v = new org.tzi.use.uml.ocl.value.RealValue((Double) o);
+    			v = new RealValue((Double) o);
     		} else if (o instanceof Double) {
-    			v = new org.tzi.use.uml.ocl.value.RealValue((Double) o);
+    			v = new RealValue((Double) o);
     		} else if (o instanceof String) {
     			v = new StringValue((String) o);
     		} else {
     			controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + o.getClass().toString());
-    		}
-    		
+    		}   		
     	} else if (field instanceof CLRFieldWrapReference) {
+    		long ref = ((CLRFieldWrapReference) field).getReference();
     		
-    	} else if (field instanceof CLRFieldWrapArray) {
+    		if (controller.existsVMObject(ref)) {
+    			VMObject obj = controller.getVMObject(ref);
+    			v = new ObjectValue(obj.getUSEObject().type(), obj.getUSEObject());
+    		}
+    	} else if (field instanceof CLRFieldWrapRefArray) {
+    		// TODO: Treat other element types, too.
+    		Set<Long> addresses = ((CLRFieldWrapRefArray) field).getReferences();
+    		Value[] useValues = new Value[addresses.size()];
+    		int i = 0;
     		
+    		for (long ref : addresses) {
+        		if (controller.existsVMObject(ref)) {
+        			VMObject obj = controller.getVMObject(ref);
+        			useValues[i] = new ObjectValue(obj.getUSEObject().type(), obj.getUSEObject());
+        		}
+        		++i;
+			}
+    		
+    		v = new SequenceValue(TypeFactory.mkVoidType(), useValues);
 		} else {
 			controller.newLogMessage(this, Level.WARNING, "Unhandled type:" + field.toString());
 		}

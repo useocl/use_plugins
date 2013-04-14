@@ -1,15 +1,32 @@
 @Monitor(defaultPackage="Debuggee")
 model CatsAndDogs
 
+-- classes
+
 class Pet
   attributes
-    Name:String
-    Age:Integer
+    Name : String
+    Age : Integer
 end
 
 class Dog < Pet
+  attributes
+    Color : PetColor
 end
 
 class Cat < Pet
 end
 
+class PetColor
+  attributes
+    R : Integer
+    G : Integer
+    B : Integer
+end
+
+-- associations
+
+association Color between
+  Dog[0..1] role ColoredDog
+  PetColor[0..1] role Color
+end

@@ -352,7 +352,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
       CLRFieldList* pFieldL = static_cast<CLRFieldList*>(pField);
 
       // create array field wrapper
-      jclass fieldClass = env->FindClass("org/tzi/use/plugins/monitor/vm/wrap/clr/CLRFieldWrapArray");
+      jclass fieldClass = env->FindClass("org/tzi/use/plugins/monitor/vm/wrap/clr/CLRFieldWrapRefArray");
 
       if((ex = env->ExceptionOccurred()) != NULL)
         goto exception_handler;
