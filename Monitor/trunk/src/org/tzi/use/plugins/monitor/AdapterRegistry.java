@@ -43,7 +43,7 @@ public class AdapterRegistry {
 		// Read all jars which are named "MonitorAdapter_*.jar"
 		File pluginDir = null;
 		try {
-			pluginDir = new File(new URL(Options.pluginDir + "/monitor_adapter" ).toURI());
+			pluginDir = new File(new URL("file:///" + Options.pluginDir + "/monitor_adapter" ).toURI());
 		} catch (MalformedURLException e) {
 			// Cannot happen, runtime is already up
 		} catch (URISyntaxException e) {
