@@ -11,7 +11,7 @@ namespace Debuggee
     bool LikesDogs { get; set; }
   }
 
-  class Pet
+  abstract class Pet
   {
     private readonly int NUM_OF_CHILDS = 10;
     public int Age { get; set; }
@@ -27,7 +27,7 @@ namespace Debuggee
     public void SayName() { Console.WriteLine(this.Name); }
   }
 
-  class PetColor
+  public sealed class PetColor
   {
     public byte R { get; set; }
     public byte G { get; set; }
