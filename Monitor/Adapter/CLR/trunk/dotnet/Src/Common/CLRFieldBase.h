@@ -9,6 +9,8 @@ public:
   mdFieldDef fieldDefToken;
   bool isNull;
   FieldType type;
+  CString info;
+  CorElementType corType;
 
   CLRFieldBase(CString name, ICorDebugValue* debugValue, mdFieldDef fieldDefToken);
   virtual ~CLRFieldBase();

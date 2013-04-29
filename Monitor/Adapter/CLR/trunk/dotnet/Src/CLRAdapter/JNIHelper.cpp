@@ -1,6 +1,6 @@
 #include "JNIHelper.h"
 
-CLRType* JNIHelper::GetCLRType(JNIEnv* env, const jobject clrType)
+CLRType* JNIHelper::GetCLRType(JNIEnv* env, const jobject clrType, const TypeInfoHelper& typeInfo)
 {
   jthrowable ex = NULL;
   mdTypeDef clrTypeDef = 0;
@@ -40,18 +40,12 @@ CLRType* JNIHelper::GetCLRType(JNIEnv* env, const jobject clrType)
 
   searchName = CString(strTypeName);
   clrTypeDef = (mdTypeDef)typeId;
-  gotType = InfoBoard::theInstance()->loadedTypes.find(searchName);
+  pClrType = typeInfo.GetType(clrTypeDef);
 
-  if(gotType != InfoBoard::theInstance()->loadedTypes.end())
-  {
-    pClrType = (*gotType).second;
-    assert(pClrType->typeDefToken == clrTypeDef);
-  }
-  else
-  {
-    //TODO: throw exception
-    return NULL;
-  }
+  // TODO: remove search name
+  assert(pClrType);
+  assert(pClrType->typeDefToken == clrTypeDef);
+  assert(pClrType->name == searchName);
 
   // release
   env->ReleaseStringUTFChars((jstring)typeName, strTypeName);
@@ -64,11 +58,10 @@ exception_handler:
   return NULL;
 }
 
-CLRObject* JNIHelper::GetCLRObject(JNIEnv* env, const jobject clrObject)
+CLRObject* JNIHelper::GetCLRObject(JNIEnv* env, const jobject clrObject, const ObjectInfoHelper& objectInfo)
 {
   jthrowable ex = NULL;
   CORDB_ADDRESS address = 0;
-  CLRObject* pClrObject = NULL;
   ObjectMap::const_iterator gotObject;
 
   // get address from given object
@@ -89,13 +82,7 @@ CLRObject* JNIHelper::GetCLRObject(JNIEnv* env, const jobject clrObject)
 
   address = (CORDB_ADDRESS)objectCLRId;
 
-  // search given object in loaded ones
-  gotObject = InfoBoard::theInstance()->currentObjects.find(address);
-
-  if(gotObject != InfoBoard::theInstance()->currentObjects.end())
-    pClrObject = (*gotObject).second;
-
-  return pClrObject;
+  return objectInfo.GetCLRObject(address);
 
 exception_handler:
   env->ExceptionDescribe();
@@ -119,7 +106,6 @@ mdFieldDef JNIHelper::GetFieldDef(JNIEnv* env, const jobject clrField)
   if((ex = env->ExceptionOccurred()) != NULL)
     goto exception_handler;
 
-  //jlong fieldId = env->CallLongMethod(fieldClass, fieldGetId);
   jlong fieldId = env->CallNonvirtualLongMethod(clrField, fieldClass, fieldGetId);
 
   if((ex = env->ExceptionOccurred()) != NULL)

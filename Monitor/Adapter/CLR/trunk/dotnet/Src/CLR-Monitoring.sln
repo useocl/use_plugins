@@ -33,15 +33,31 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{AF2609
 		Common\CommonTypes.h = Common\CommonTypes.h
 		Common\DebugBuffer.cpp = Common\DebugBuffer.cpp
 		Common\DebugBuffer.h = Common\DebugBuffer.h
-		Common\DebugValueHelper.cpp = Common\DebugValueHelper.cpp
-		Common\DebugValueHelper.h = Common\DebugValueHelper.h
 		Common\DefaultCallback.h = Common\DefaultCallback.h
-		Common\HeapInfoHelper.cpp = Common\HeapInfoHelper.cpp
-		Common\HeapInfoHelper.h = Common\HeapInfoHelper.h
+		Common\FieldValueHelper.cpp = Common\FieldValueHelper.cpp
+		Common\FieldValueHelper.h = Common\FieldValueHelper.h
 		Common\InfoBoard.cpp = Common\InfoBoard.cpp
 		Common\InfoBoard.h = Common\InfoBoard.h
 		Common\ObjectInfoHelper.cpp = Common\ObjectInfoHelper.cpp
 		Common\ObjectInfoHelper.h = Common\ObjectInfoHelper.h
+		Common\Settings.cpp = Common\Settings.cpp
+		Common\Settings.h = Common\Settings.h
+		Common\TypeInfoHelper.cpp = Common\TypeInfoHelper.cpp
+		Common\TypeInfoHelper.h = Common\TypeInfoHelper.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{11B5658B-BC2D-464D-B72A-0727A4A325E2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pugixml", "pugixml", "{BB20D4A6-04C6-4ADF-BF1F-7F1819DA3312}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\pugixml\pugiconfig.hpp = Tools\pugixml\pugiconfig.hpp
+		Tools\pugixml\pugixml.cpp = Tools\pugixml\pugixml.cpp
+		Tools\pugixml\pugixml.hpp = Tools\pugixml\pugixml.hpp
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Settings", "Settings", "{92526E2B-0E28-4CEB-A52C-196BE8DB6BD0}"
+	ProjectSection(SolutionItems) = preProject
+		..\Doc\clr_adapter_settings.xml = ..\Doc\clr_adapter_settings.xml
 	EndProjectSection
 EndProject
 Global
@@ -101,5 +117,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BB20D4A6-04C6-4ADF-BF1F-7F1819DA3312} = {11B5658B-BC2D-464D-B72A-0727A4A325E2}
 	EndGlobalSection
 EndGlobal

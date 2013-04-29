@@ -2,20 +2,27 @@
 
 #include "../Common/CLRInfoBase.h"
 #include "../Common/CLRMetaField.h"
+#include "../Common/CLRObject.h"
 
 class CLRType : public CLRInfoBase
 {
 public:
-  CLRType(CString name, mdTypeDef typeDefToken);
+  CLRType(CString name, mdTypeDef typeDefToken, ICorDebugModule* module);
   virtual ~CLRType();
 
-  std::vector<CORDB_ADDRESS> instances;
-  std::vector<CLRMetaField*> fieldDefs;
+  MetaFieldMap fieldDefs;
+  ObjectVector instances;
 
-  bool fieldsInitialized;
+  CLRType* baseClass;
+  std::vector<CLRType*> subClasses; 
+
+  CorTypeAttr typeAttr;
+  ICorDebugModule* module;
 
   virtual void Print();
-  virtual void Print(bool instances, bool fields);
+  virtual void Print(bool fields);
+  virtual void PrintInstances();
 
-  virtual CLRMetaField* GetFieldByName(CString name);
+  virtual CLRMetaField* GetField(const CString name) const;
+  virtual CLRMetaField* GetField(const mdFieldDef token) const;
 };

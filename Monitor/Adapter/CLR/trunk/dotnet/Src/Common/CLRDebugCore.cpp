@@ -8,20 +8,17 @@ CLRDebugCore::CLRDebugCore() : pid(0),
   pDebugProcess(NULL), 
   pDebugProcess5(NULL),
   pEnum(NULL),
-  pUnk(NULL)
+  pUnk(NULL),
+  callback(NULL)
 { }
 
-CLRDebugCore::CLRDebugCore(DWORD pid) : pid(pid),
-  hProcess(NULL), 
-  pMetaHost(NULL), 
-  pCorDebug(NULL), 
-  pRuntimeInfo(NULL), 
-  pDebugProcess(NULL), 
-  pDebugProcess5(NULL),
-  pEnum(NULL),
-  pUnk(NULL)
+CLRDebugCore* CLRDebugCore::instance = 0;
+
+CLRDebugCore* CLRDebugCore::theInstance()
 {
-  initializeProcessesByPid();
+  if(!CLRDebugCore::instance)
+    CLRDebugCore::instance = new CLRDebugCore();
+  return CLRDebugCore::instance;
 }
 
 CLRDebugCore::~CLRDebugCore()
@@ -40,13 +37,11 @@ CLRDebugCore::~CLRDebugCore()
   {
     pDebugProcess5->Release();
     pDebugProcess5 = NULL;
-    InfoBoard::theInstance()->pDebugProcess5 = NULL;
   }
   if(pDebugProcess)
   {
     pDebugProcess->Release();
     pDebugProcess = NULL;
-    InfoBoard::theInstance()->pDebugProcess = NULL;
   }
   if(pRuntimeInfo)
   {
@@ -67,9 +62,10 @@ CLRDebugCore::~CLRDebugCore()
     hProcess = NULL;
 }
 
-void CLRDebugCore::initializeProcessesByPid(DWORD pid)
+void CLRDebugCore::InitializeProcessesByPid(DWORD pid, DefaultCallback* callback)
 {
   this->pid = pid;
+  this->callback = callback;
   this->initializeProcessesByPid();
 }
 
@@ -109,7 +105,7 @@ void CLRDebugCore::initializeProcessesByPid()
       ((version.buffer[0] == L'v') || (version.buffer[0] == L'V')) &&
       ((version.buffer[1] >= L'4') || (version.buffer[2] != L'.')))
     {
-      if(InfoBoard::theInstance()->appType == DEBUGGER)
+      if(InfoBoard::theInstance()->AppType == DEBUGGER)
         wprintf(L"Debuggee CLR Version %s\n", version.buffer);
 
       hr = pRuntimeInfo->GetInterface(CLSID_CLRDebuggingLegacy, IID_ICorDebug, (LPVOID*)&pCorDebug);
@@ -120,7 +116,6 @@ void CLRDebugCore::initializeProcessesByPid()
       if(FAILED(hr))
         wprintf(L"ICorDebug initialize failed w/hr 0x%08lx\n", hr);
 
-      CLRDebugCallback* callback = new CLRDebugCallback();
       hr = pCorDebug->SetManagedHandler(callback);
       if(FAILED(hr))
         wprintf(L"SetManagedHandler failed w/hr 0x%08lx\n", hr);
@@ -133,10 +128,12 @@ void CLRDebugCore::initializeProcessesByPid()
       if(FAILED(hr))
         wprintf(L"DebugActiveProcess5 failed w/hr 0x%08lx\n", hr);
 
-      InfoBoard::theInstance()->pDebugProcess = pDebugProcess;
-      InfoBoard::theInstance()->pDebugProcess5 = pDebugProcess5;
-
       break;
     }
   }
+}
+
+void CLRDebugCore::Release()
+{
+  this->~CLRDebugCore();
 }

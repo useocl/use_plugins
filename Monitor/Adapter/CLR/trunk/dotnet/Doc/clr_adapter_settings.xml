@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Settings>
+  <ObjectInfoHelper InMemoryInstanceMap="0" CompareTypeNames="1"></ObjectInfoHelper>
+  <TypesOfInterest>
+    <TypeOfInterest Name="Debuggee.Cat"></TypeOfInterest>
+    <TypeOfInterest Name="Debuggee.Dog"></TypeOfInterest>
+    <TypeOfInterest Name="Debuggee.PetColor"></TypeOfInterest>
+  </TypesOfInterest>
+  <ModulesToIgnore>
+    <ModuleToIgnore Name="mscorlib.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.Core.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.dll"></ModuleToIgnore>
+  </ModulesToIgnore>
+</Settings>

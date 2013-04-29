@@ -6,9 +6,10 @@
 class CLRMetaField : public CLRInfoBase
 {
 public:
-  mdFieldDef fieldDef;
+  const mdFieldDef fieldDef;
+  const DWORD fieldAttr;
 
-  CLRMetaField(CString name, mdFieldDef fieldDefToken);
+  CLRMetaField(CString name, const mdTypeDef typeDefToken, const mdFieldDef fieldDefToken, const DWORD fieldAttr);
 
   virtual void Print();
 };

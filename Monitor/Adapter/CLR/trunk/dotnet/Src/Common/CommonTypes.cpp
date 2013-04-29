@@ -275,3 +275,29 @@ CString HelperMethods::GetValueAsString(ICorDebugGenericValue* debugValue, CorEl
   return valueStr;
 }
 
+CString HelperMethods::GetTypeInfoAsString(const TypeInfo type)
+{
+  switch (type)
+  {
+  case NClass:
+    {
+      return CString(_T("Class"));
+      break;
+    }
+  case AClass:
+    {
+      return CString(_T("Abstract classs"));
+      break;
+    }
+  case Inter:
+    {
+      return CString(_T("Interface"));
+      break;
+    }
+  default:
+    {
+      return CString(_T("Unknown"));
+      break;
+    }
+  }
+}

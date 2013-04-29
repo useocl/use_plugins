@@ -5,7 +5,9 @@ CLRFieldBase::CLRFieldBase(CString name, ICorDebugValue* debugValue, mdFieldDef 
   debugValue(debugValue),
   fieldDefToken(fieldDefToken),
   isNull(false),
-  type(UNKNOWN)
+  type(FieldType::UNKNOWN),
+  info(_T("")),
+  corType(ELEMENT_TYPE_MAX)
 {
 }
 

@@ -2,43 +2,32 @@
 
 #include "JNIHelper.h"
 #include "../Common/CLRDebugCore.h"
-#include "../Common/HeapInfoHelper.h"
 #include "../Common/CLRFieldBase.h"
 #include "../Common/CLRFieldValue.h"
 #include "../Common/CLRFieldReference.h"
 #include "../Common/CLRFieldList.h"
+#include "../Common/CLRDebugCallback.h"
+#include "../Common/TypeInfoHelper.h"
+#include "../Common/ObjectInfoHelper.h"
 
-CLRDebugCore debug;
-HeapInfoHelper* heapHelper = NULL;
+TypeInfoHelper typeInfo;
+ObjectInfoHelper objectInfo;
 
 JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_attachToCLR
   (JNIEnv* env, jobject adapter, jlong pid)
 {
-  //set debuggee types of interest
-  InfoBoard::theInstance()->typesOfInterest.insert(L"Debuggee.Cat");
-  InfoBoard::theInstance()->typesOfInterest.insert(L"Debuggee.Dog");
-  InfoBoard::theInstance()->typesOfInterest.insert(L"Debuggee.PetColor");
-
   HRESULT hr = E_FAIL;
 
-  debug.initializeProcessesByPid((DWORD)pid);
+  CLRDebugCore::theInstance()->InitializeProcessesByPid((DWORD)pid, new CLRDebugCallback(typeInfo));
 
-  // collecting information for snapshot
-  hr = InfoBoard::theInstance()->pDebugProcess->Stop(0);
-
-  heapHelper = new HeapInfoHelper();
-  heapHelper->iterateOverHeap();
-
-  hr = InfoBoard::theInstance()->pDebugProcess->Continue(FALSE);
-
-  return InfoBoard::theInstance()->pDebugProcess ? 0 : -1;
+  return CLRDebugCore::theInstance()->pDebugProcess ? 0 : -1;
 }
 
 JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_resumeCLR
   (JNIEnv* env, jobject adapter)
 {
   HRESULT hr = E_FAIL;
-  hr = InfoBoard::theInstance()->pDebugProcess->Continue(FALSE);
+  hr = CLRDebugCore::theInstance()->pDebugProcess->Continue(FALSE);
   if(FAILED(hr))
     return -1;
   else
@@ -49,7 +38,7 @@ JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_suspendCL
   (JNIEnv* env, jobject adapter)
 {
   HRESULT hr = E_FAIL;
-  hr = InfoBoard::theInstance()->pDebugProcess->Stop(0);
+  hr = CLRDebugCore::theInstance()->pDebugProcess->Stop(0);
   if(FAILED(hr))
     return -1;
   else
@@ -60,9 +49,9 @@ JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_stopCLR
   (JNIEnv* env, jobject adapter)
 {
   HRESULT hr = E_FAIL;
-  hr = InfoBoard::theInstance()->pDebugProcess->Detach();
-  InfoBoard::theInstance()->release();
-  heapHelper->~HeapInfoHelper();
+  CLRDebugCore::theInstance()->pDebugProcess->Stop(0);
+  hr = CLRDebugCore::theInstance()->pDebugProcess->Detach();
+  CLRDebugCore::theInstance()->Release();
   if(FAILED(hr))
     return -1;
   else
@@ -72,19 +61,22 @@ JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_stopCLR
 JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getNumOfInstances
   (JNIEnv* env, jobject adapter)
 {
-  return InfoBoard::theInstance()->currentObjects.size();
+  jint res = (jint)objectInfo.InstanceCount();
+  return res;
 }
 
 JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getNumOfTypes
   (JNIEnv* env, jobject adapter)
 {
-  return InfoBoard::theInstance()->loadedTypes.size();
+  jint res = (jint)typeInfo.TypeCount();
+  return res;
 }
 
 JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getNumOfModules
   (JNIEnv* env, jobject adapter)
 {
-  return InfoBoard::theInstance()->loadedModules.size();
+  jint res = (jint)typeInfo.ModuleCount();
+  return res;
 }
 
 JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLRType
@@ -93,7 +85,6 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLR
   jboolean isCopyName = JNI_FALSE;
   const char* typeName = env->GetStringUTFChars(name, &isCopyName);
   CString searchName(typeName);
-  TypeMap::const_iterator gotType = InfoBoard::theInstance()->loadedTypes.find(searchName);
   jobject clrType = env->NewGlobalRef(NULL);
   jthrowable ex = NULL;
 
@@ -108,11 +99,10 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLR
     goto exception_handler;
 
   //search type
-  CLRType* type = NULL;
+  CLRType* type = typeInfo.GetType(searchName);
   
-  if(gotType != InfoBoard::theInstance()->loadedTypes.end())
+  if(type)
   {
-    type = (*gotType).second;
     jlong typeId = type->typeDefToken;
     jobject res = env->NewObject(typeClass, constructorId, adapter, typeId, name);
 
@@ -163,7 +153,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getIns
     goto exception_handler;
 
   // get type information
-  pClrType = JNIHelper::GetCLRType(env, clrType);
+  pClrType = JNIHelper::GetCLRType(env, clrType, typeInfo);
   if(!pClrType)
     return hashSet;
 
@@ -179,9 +169,11 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getIns
   if((ex = env->ExceptionOccurred()) != NULL)
     goto exception_handler;
 
-  for(std::vector<CORDB_ADDRESS>::const_iterator address = pClrType->instances.begin(); address != pClrType->instances.end(); ++address)
+  objectInfo.GetInstances(pClrType);
+
+  for(ObjectVector::const_iterator obj = pClrType->instances.begin(); obj != pClrType->instances.end(); ++obj)
   {
-    jlong jAddress = *address;
+    jlong jAddress = (*obj)->address;
     clrObject = env->NewObject(clrObjectClass, clrObjectConstructor, adapter, clrType, jAddress);
 
     if((ex = env->ExceptionOccurred()) != NULL)
@@ -224,12 +216,12 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getFie
     goto exception_handler;
 
   // find given type
-  pClrType = JNIHelper::GetCLRType(env, clrType);
+  pClrType = JNIHelper::GetCLRType(env, clrType, typeInfo);
   if(!pClrType)
     return clrField;
 
   // find field def token
-  clrMField = pClrType->GetFieldByName(searchName);
+  clrMField = pClrType->GetField(searchName);
   if(!clrMField)
     return clrField;
 
@@ -265,7 +257,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
   ObjectMap::const_iterator gotObject;
 
   // get pointer to given clr object
-  pClrObject = JNIHelper::GetCLRObject(env, clrObject);
+  pClrObject = JNIHelper::GetCLRObject(env, clrObject, objectInfo);
   if(!pClrObject)
     return wrapper;
 
@@ -352,7 +344,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
       CLRFieldList* pFieldL = static_cast<CLRFieldList*>(pField);
 
       // create array field wrapper
-      jclass fieldClass = env->FindClass("org/tzi/use/plugins/monitor/vm/wrap/clr/CLRFieldWrapRefArray");
+      jclass fieldClass = env->FindClass("org/tzi/use/plugins/monitor/vm/wrap/clr/CLRFieldWrapArray");
 
       if((ex = env->ExceptionOccurred()) != NULL)
         goto exception_handler;

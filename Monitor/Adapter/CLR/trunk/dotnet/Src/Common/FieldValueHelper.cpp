@@ -1,262 +1,107 @@
-#include "../Common/DebugValueHelper.h"
+#include "../Common/FieldValueHelper.h"
 
-DebugValueHelper::DebugValueHelper(ICorDebugValue* const currentObject, CLRType* const type) : 
-  currentObject(currentObject),
-  clrType(type),
-  clrObject(NULL)
-{
-  GetCurrentObjectData();
-  GetFields();
-  GetFieldValues();
-}
-
-DebugValueHelper::~DebugValueHelper()
-{
-  if(currentObject)
-  {
-    currentObject->Release();
-  }
-}
-
-void DebugValueHelper::GetCurrentObjectData()
-{
-  HRESULT hr                                    = E_FAIL;
-  ICorDebugReferenceValue* referencedDebugValue = NULL;
-  ICorDebugValue2* debugValue2                  = NULL;
-  ICorDebugType* debugType                      = NULL;
-  CORDB_ADDRESS address                         = 0;
-  CorElementType corType                        = ELEMENT_TYPE_MAX;
-  CorElementType corTypeExact                   = ELEMENT_TYPE_MAX;
-
-  try
-  {
-    hr = currentObject->GetAddress(&address);
-    if(FAILED(hr))
-    {
-      wprintf(L"GetAddress failed w/hr 0x%08lx\n", hr);
-      throw hr;
-    }
-    hr = currentObject->GetType(&corType);
-    if(FAILED(hr))
-    {
-      wprintf(L"GetType failed w/hr 0x%08lx\n", hr);
-      throw hr;
-    }
-
-    // Set type specific information and
-    // add reference to the current object
-    clrType->corType = corType;
-    clrType->instances.push_back(address);
-
-    currentObject->AddRef();
-
-    hr = currentObject->QueryInterface(__uuidof(ICorDebugValue2), reinterpret_cast<LPVOID*>(&debugValue2));
-    if(FAILED(hr))
-    {
-      wprintf(L"QueryInterface ICorDebugValue2 failed w/hr 0x%08lx\n", hr);
-      throw hr;
-    }
-
-    hr = debugValue2->GetExactType(&debugType);
-    if(FAILED(hr))
-    {
-      wprintf(L"GetExactType failed w/hr 0x%08lx\n", hr);
-      throw hr;
-    }
-
-    hr = debugType->GetType(&corTypeExact);
-    if(FAILED(hr))
-    {
-      wprintf(L"GetType (exact) failed w/hr 0x%08lx\n", hr);
-      throw hr;
-    }
-
-    // add new clr object to global map
-    clrObject = new CLRObject(clrType->name, currentObject, clrType->typeDefToken, address);
-    InfoBoard::theInstance()->currentObjects.insert(ObjectMapValue(address, clrObject));
-
-    // release local objects
-    if(referencedDebugValue)
-    {
-      referencedDebugValue->Release();
-      referencedDebugValue = NULL;
-    }
-    if(debugValue2)
-    {
-      debugValue2->Release();
-      debugValue2 = NULL;
-    }
-    if(debugType)
-    {
-      debugType->Release();
-      debugType = NULL;
-    }
-  }
-  catch(HRESULT const &hr)
-  {
-    wprintf(L"HRESULT 0x%08lx\n recived during COM operation.", hr);
-  }
-}
-
-void DebugValueHelper::GetFields()
+CLRFieldBase* FieldValueHelper::GetField(const CLRType* type, const CLRObject* object, const mdFieldDef field)
 {
   HRESULT hr                             = E_FAIL;
-  ICorDebugClass* objectClass            = NULL;
-  ICorDebugModule* currentModule         = NULL;
   ICorDebugObjectValue* debugObjectValue = NULL;
-  IMetaDataImport* metaData              = NULL;
+  ICorDebugClass* objectClass            = NULL;
+  CLRFieldBase* res                      = NULL;
+  ICorDebugValue* debugObject            = NULL;
+
+  CString error(_T(""));
+
+  if(!type)
+    return res;
+
+  if(!object)
+    return res;
+
+  debugObject = object->debugValue;
+  const CLRMetaField* metaField = type->GetField(field);
+
+  if(!metaField)
+    return res;
 
   try
   {
-    currentObject->AddRef();
+    debugObject->AddRef();
 
-    hr = currentObject->QueryInterface(__uuidof(ICorDebugObjectValue), reinterpret_cast<LPVOID*>(&debugObjectValue));
+    hr = debugObject->QueryInterface(__uuidof(ICorDebugObjectValue), reinterpret_cast<LPVOID*>(&debugObjectValue));
 
     if(SUCCEEDED(hr))
     {
       hr = debugObjectValue->GetClass(&objectClass);
       if(FAILED(hr))
       {
-        wprintf(L"GetClass failed w/hr 0x%08lx\n", hr);
+        error = _T("GetClass");
         throw hr;
       }
 
-      mdTypeDef classTokenToGetFieldsFor;
-      hr = objectClass->GetToken(&classTokenToGetFieldsFor);
+      objectClass->Release();
+
+      hr = type->module->GetClassFromToken(metaField->typeDefToken, &objectClass);
       if(FAILED(hr))
       {
-        wprintf(L"GetToken failed w/hr 0x%08lx\n", hr);
+        wprintf(L"GetClassFromToken failed w/hr 0x%08lx\n", hr);
         throw hr;
       }
 
-      hr = objectClass->GetModule(&currentModule);
-      if(FAILED(hr))
+      ICorDebugValue* actualFieldObject = NULL;
+
+      if(fdStatic & metaField->fieldAttr)
       {
-        wprintf(L"GetModule failed w/hr 0x%08lx\n", hr);
-        throw hr;
+        hr = objectClass->GetStaticFieldValue(metaField->fieldDef, NULL, &actualFieldObject);
+        if(FAILED(hr))
+        {
+          //If the variable is optimized away, this is okay
+          if(CORDBG_E_VARIABLE_IS_ACTUALLY_LITERAL != hr)
+          {
+            error = _T("GetStaticFieldValue");
+            throw hr;
+          }
+        }
       }
-
-      do
+      else
       {
-        hr = currentModule->GetMetaDataInterface(IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&metaData));
+        mdFieldDef token =  metaField->fieldDef;
+        hr = debugObjectValue->GetFieldValue(objectClass, token, &actualFieldObject);
         if(FAILED(hr))
         {
-          wprintf(L"GetMetaDataInterface failed w/hr 0x%08lx\n", hr);
+          error = _T("GetFieldValue");
           throw hr;
         }
-
-        HCORENUM fieldEnumerator = NULL;
-        unsigned long numberFieldsRetrieved = 0;
-        mdFieldDef symbolicField = 0;
-
-        do
-        {
-          hr = metaData->EnumFields(&fieldEnumerator, classTokenToGetFieldsFor, &symbolicField, 1, &numberFieldsRetrieved);
-          if(FAILED(hr))
-          {
-            wprintf(L"EnumFields failed w/hr 0x%08lx\n", hr);
-            throw hr;
-          }
-
-          // If no fields are returned, we have nothing to do
-          if(numberFieldsRetrieved == 0)
-            break;
-
-          DebugBuffer fieldName(1024);
-          DWORD fieldAttributes = 0;
-
-          hr = metaData->GetFieldProps(
-            symbolicField,
-            NULL,
-            fieldName.buffer,
-            fieldName.buffer[0]*fieldName.size,
-            &fieldName.size,
-            &fieldAttributes,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            NULL
-           );
-          if(FAILED(hr))
-          {
-            wprintf(L"GetFieldProps failed w/hr 0x%08lx\n", hr);
-            throw hr;
-          }
-
-          ICorDebugValue* actualFieldObject = NULL;
-
-          if(fdStatic & fieldAttributes)
-          {
-            hr = objectClass->GetStaticFieldValue(symbolicField, NULL, &actualFieldObject);
-            if(FAILED(hr))
-            {
-              //If the variable is optimized away, this is okay
-              if(CORDBG_E_VARIABLE_IS_ACTUALLY_LITERAL != hr)
-              {
-                wprintf(L"GetStaticFieldValue failed w/hr 0x%08lx\n", hr);
-                throw hr;
-              }
-            }
-          }
-          else
-          {
-            hr = debugObjectValue->GetFieldValue(objectClass, symbolicField, &actualFieldObject);
-            if(FAILED(hr))
-            {
-              wprintf(L"GetFieldValue failed w/hr 0x%08lx\n", hr);
-              throw hr;
-            }
-          }
-
-          // create new CLRField instance
-          AddSpecificField(fieldName.ToCString(), actualFieldObject, symbolicField);
-
-          // add myTypeDef token to type
-          if(!clrType->fieldsInitialized)
-            clrType->fieldDefs.push_back(new CLRMetaField(fieldName.ToCString(), symbolicField));
-
-        } while(true); // loop over properties
-
-        metaData->CloseEnum(fieldEnumerator);
-
-        mdTypeDef parentClassToken = 0;
-        hr = metaData->GetTypeDefProps(classTokenToGetFieldsFor, NULL, NULL, NULL, NULL, &parentClassToken);
-        if(FAILED(hr))
-        {
-          wprintf(L"GetTypeDefProps failed w/hr 0x%08lx\n", hr);
-          throw hr;
-        }
-
-        // If it is a top-level object, we have nothing to do
-        // parentClassToken == mdTypeDefNil || parentClassToken == mdTypeRefNil
-        if(parentClassToken == 0x1000001)
-          break;
-
-        classTokenToGetFieldsFor = parentClassToken;
-
-        objectClass->Release();
-
-        hr = currentModule->GetClassFromToken(classTokenToGetFieldsFor, &objectClass);
-        if(FAILED(hr))
-        {
-          wprintf(L"GetClassFromToken failed w/hr 0x%08lx\n", hr);
-          throw hr;
-        }
-
-      } while(true); // loop over base types
-
-      // field types are initialized now
-      clrType->fieldsInitialized = true;
+      }
+      res = CreateSpecificField(metaField->name, actualFieldObject, metaField->fieldDef);
     }
+
+    if(res)
+      SetFieldValue(res);
+
+    if(debugObjectValue)
+    {
+      debugObjectValue->Release();
+      debugObjectValue = NULL;
+    }
+    if(objectClass)
+    {
+      objectClass->Release();
+      objectClass = NULL;
+    }
+    if(debugObject)
+    {
+      debugObject = NULL;
+    }
+
+    return res;
   }
   catch(HRESULT const &hr)
   {
-    wprintf(L"HRESULT 0x%08lx\n recived during COM operation.", hr);
-  }
+    std::wcerr << _T("Error occured during COM operation: ") << (const wchar_t*)error << _T(": ") << hr << std::endl;
+    return res;
+  }  
 }
 
-void DebugValueHelper::AddSpecificField(CString name, ICorDebugValue* debugValue, mdFieldDef fieldDefToken)
+CLRFieldBase* FieldValueHelper::CreateSpecificField(CString name, ICorDebugValue* debugValue, mdFieldDef fieldDefToken)
 {
   HRESULT hr                                    = E_FAIL;
   ICorDebugValue* fieldDebugValue               = NULL;
@@ -268,6 +113,10 @@ void DebugValueHelper::AddSpecificField(CString name, ICorDebugValue* debugValue
   CString value                                 = _T("");
   bool isNull                                   = false;
   CLRFieldBase* field                           = NULL;
+  CString error(_T(""));
+
+  if(!debugValue)
+    return field;
 
   try
   {
@@ -286,7 +135,7 @@ void DebugValueHelper::AddSpecificField(CString name, ICorDebugValue* debugValue
         hr = referencedDebugValue->IsNull(&variableIsNull);
         if(FAILED(hr))
         {
-          wprintf(L"Get IsNull from object failed w/hr 0x%08lx\n", hr);
+          error = _T("debug value: IsNull");
           throw hr;
         }
 
@@ -295,7 +144,7 @@ void DebugValueHelper::AddSpecificField(CString name, ICorDebugValue* debugValue
           hr = referencedDebugValue->Dereference(&dereferencedValue);
           if(FAILED(hr))
           {
-            wprintf(L"Dereference object failed w/hr 0x%08lx\n", hr);
+            error = _T("Dereference");
             throw hr;
           }
 
@@ -318,7 +167,7 @@ void DebugValueHelper::AddSpecificField(CString name, ICorDebugValue* debugValue
       hr = boxedDebugValue->GetObject(&debugObjectValue);
       if(FAILED(hr))
       {
-        wprintf(L"Unbox failed w/hr 0x%08lx\n", hr);
+        error = _T("GetObject");
         throw hr;
       }
       fieldDebugValue->Release();
@@ -328,16 +177,16 @@ void DebugValueHelper::AddSpecificField(CString name, ICorDebugValue* debugValue
     hr = fieldDebugValue->GetType(&objectType);
     if(FAILED(hr))
     {
-      wprintf(L"GetType failed w/hr 0x%08lx\n", hr);
+      error = _T("GetType");
       throw hr;
     }
 
     // istantiate specific clr field
     if(objectType == ELEMENT_TYPE_BOOLEAN || objectType == ELEMENT_TYPE_CHAR || objectType == ELEMENT_TYPE_I1 ||
-       objectType == ELEMENT_TYPE_U1      || objectType == ELEMENT_TYPE_I2   || objectType == ELEMENT_TYPE_U2 ||
-       objectType == ELEMENT_TYPE_I4      || objectType == ELEMENT_TYPE_I    || objectType == ELEMENT_TYPE_U4 ||
-       objectType == ELEMENT_TYPE_I8      || objectType == ELEMENT_TYPE_U8   || objectType == ELEMENT_TYPE_R4 ||
-       objectType == ELEMENT_TYPE_U       || objectType == ELEMENT_TYPE_R8   || objectType == ELEMENT_TYPE_STRING)
+      objectType == ELEMENT_TYPE_U1      || objectType == ELEMENT_TYPE_I2   || objectType == ELEMENT_TYPE_U2 ||
+      objectType == ELEMENT_TYPE_I4      || objectType == ELEMENT_TYPE_I    || objectType == ELEMENT_TYPE_U4 ||
+      objectType == ELEMENT_TYPE_I8      || objectType == ELEMENT_TYPE_U8   || objectType == ELEMENT_TYPE_R4 ||
+      objectType == ELEMENT_TYPE_U       || objectType == ELEMENT_TYPE_R8   || objectType == ELEMENT_TYPE_STRING)
     {
       field = new CLRFieldValue(name, fieldDebugValue, fieldDefToken);
       field->corType = objectType;
@@ -362,10 +211,6 @@ void DebugValueHelper::AddSpecificField(CString name, ICorDebugValue* debugValue
       field->type = ARRAY;
     }
 
-    // add the specific field to the clr object
-    if(field)
-      clrObject->fields.insert(FieldMapValue(field->fieldDefToken, field));
-
     // release local debug values
     if(referencedDebugValue)
     {
@@ -382,39 +227,24 @@ void DebugValueHelper::AddSpecificField(CString name, ICorDebugValue* debugValue
       debugObjectValue->Release();
       debugObjectValue = NULL;
     }
-    field = NULL;
-    fieldDebugValue = NULL;
+
+    return field;
+
   }
   catch(HRESULT const &hr)
   {
-    wprintf(L"HRESULT 0x%08lx\n recived during COM operation.", hr);
-  }
+    std::wcerr << _T("Error occured during COM operation: ") << (const wchar_t*)error << _T(": ") << hr << std::endl;
+    return field;
+  }  
 }
 
-COR_TYPE_LAYOUT DebugValueHelper::GetTypeLayout(const COR_TYPEID& type)
+void FieldValueHelper::SetFieldValue(CLRFieldBase* field)
 {
-  HRESULT hr = E_FAIL;
-  COR_TYPE_LAYOUT layout;
+  if(!field)
+    return;
 
-  hr =  InfoBoard::theInstance()->pDebugProcess5->GetTypeLayout(type, &layout);
-  if(FAILED(hr))
-  {
-    wprintf(L"GetTypeLayout failed w/hr 0x%08lx\n", hr);
-    throw hr;
-  }
-  return layout;    
-}
+  CString error(_T(""));
 
-void DebugValueHelper::GetFieldValues()
-{
-  for (FieldMap::const_iterator it = clrObject->fields.begin(); it != clrObject->fields.end(); ++it) 
-  {
-    GetFieldValue((*it).second);
-  }
-}
-
-void DebugValueHelper::GetFieldValue(CLRFieldBase* field)
-{
   try
   {
     switch (field->corType)
@@ -462,14 +292,14 @@ void DebugValueHelper::GetFieldValue(CLRFieldBase* field)
           hr = stringDebugValue->GetLength(&length);
           if(FAILED(hr))
           {
-            wprintf(L"String GetLength failed w/hr 0x%08lx\n", hr);
+            error = _T("stringDebugValue->GetLength");
             throw hr;
           }
           DebugBuffer stringValue(length+1);
           hr = stringDebugValue->GetString(length*stringValue.buffer[0], (ULONG32*)&stringValue.size, stringValue.buffer);
           if(FAILED(hr))
           {
-            wprintf(L"GetString failed w/hr 0x%08lx\n", hr);
+            error = _T("GetString");
             throw hr;
           }
           fieldValue->valueAsString = stringValue.ToCString();
@@ -508,42 +338,42 @@ void DebugValueHelper::GetFieldValue(CLRFieldBase* field)
         hr = fieldValue->debugValue->QueryInterface(__uuidof(ICorDebugValue2), reinterpret_cast<LPVOID*>(&debugValue2));
         if(FAILED(hr))
         {
-          wprintf(L"QueryInterface ICorDebugValue2 failed w/hr 0x%08lx\n", hr);
+          error = _T("QueryInterface: ICorDebugValue2");
           throw hr;
         }
 
         hr = debugValue2->GetExactType(&debugType);
         if(FAILED(hr))
         {
-          wprintf(L"GetExactType failed w/hr 0x%08lx\n", hr);
+          error = _T("GetExactType");
           throw hr;
         }
 
         hr = debugType->GetClass(&objectClass);
         if(FAILED(hr))
         {
-          wprintf(L"GetClass failed w/hr 0x%08lx\n", hr);
+          error = _T("GetClass");
           throw hr;
         }
 
         hr = objectClass->GetModule(&currentModule);
         if(FAILED(hr))
         {
-          wprintf(L"GetModule failed w/hr 0x%08lx\n", hr);
+          error = _T("GetModule");
           throw hr;
         }
 
         hr = currentModule->GetMetaDataInterface(IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&metaDataImport));
         if(FAILED(hr))
         {
-          wprintf(L"GetMetaDataInterface failed w/hr 0x%08lx\n", hr);
+          error = _T("GetMetaDataInterface");
           throw hr;
         }
 
         hr = objectClass->GetToken(&objectClassToken);
         if(FAILED(hr))
         {
-          wprintf(L"GetToken failed w/hr 0x%08lx\n", hr);
+          error = _T("GetToken");
           throw hr;
         }
         field->typeDefToken = objectClassToken;
@@ -551,14 +381,14 @@ void DebugValueHelper::GetFieldValue(CLRFieldBase* field)
         hr = metaDataImport->GetTypeDefProps(objectClassToken, typeName.buffer, typeName.buffer[0]*typeName.size, &typeName.size, (DWORD*)&typeFlag, &baseToken); 
         if(FAILED(hr))
         {
-          wprintf(L"GetTypeDefProps failed w/hr 0x%08lx\n", hr);
+          error = _T("GetTypeDefProps");
           throw hr;
         }
 
         hr = fieldValue->debugValue->GetAddress(&address);
         if(FAILED(hr))
         {
-          wprintf(L"GetAddress failed w/hr 0x%08lx\n", hr);
+          error = _T("GetAddress");
           throw hr;
         }
 
@@ -569,10 +399,10 @@ void DebugValueHelper::GetFieldValue(CLRFieldBase* field)
         //TODO: clean up the test!
         if(!field->isNull)
         {
-          hr =  InfoBoard::theInstance()->pDebugProcess5->GetObjectW(address, &object);
+          hr =  CLRDebugCore::theInstance()->pDebugProcess5->GetObjectW(address, &object);
           if(FAILED(hr))
           {
-            wprintf(L"GetObjectW failed w/hr 0x%08lx\n", hr);
+            error = _T("GetObjectW");
             throw hr;
           }
         }
@@ -648,7 +478,7 @@ void DebugValueHelper::GetFieldValue(CLRFieldBase* field)
               hr = element->GetAddress(&address);
               if(FAILED(hr))
               {
-                wprintf(L"Element GetAddress failed w/hr 0x%08lx\n", hr);
+                error = _T("GetAddress");
                 throw hr;
               }
 
@@ -663,16 +493,16 @@ void DebugValueHelper::GetFieldValue(CLRFieldBase* field)
                 hr = referencedElement->IsNull(&variableIsNull);
                 if(FAILED(hr))
                 {
-                  wprintf(L"Element Get IsNull from object failed w/hr 0x%08lx\n", hr);
+                  error = _T("IsNull");
                   throw hr;
                 }
 
-                if(!variableIsNull)
+                if(variableIsNull == FALSE)
                 {
                   hr = referencedElement->Dereference(&dereferencedElement);
                   if(FAILED(hr))
                   {
-                    wprintf(L"Element Dereference object failed w/hr 0x%08lx\n", hr);
+                    error = _T("Dereference");
                     throw hr;
                   }
 
@@ -724,6 +554,6 @@ void DebugValueHelper::GetFieldValue(CLRFieldBase* field)
   }
   catch(HRESULT const &hr)
   {
-    wprintf(L"HRESULT 0x%08lx\n recived during COM operation.", hr);
+    std::wcerr << _T("Error occured during COM operation: ") << (const wchar_t*)error << _T(": ") << hr << std::endl;
   }
 }

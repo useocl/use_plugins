@@ -1,14 +1,16 @@
 #include "../Common/CLRDebugCallback.h"
 
-CLRDebugCallback::CLRDebugCallback() : DefaultCallback() { }
+CLRDebugCallback::CLRDebugCallback(TypeInfoHelper& typeInfoHelper) : DefaultCallback(),
+    typeInfoHelper(typeInfoHelper)
+{ }
 
 COM_METHOD CLRDebugCallback::CreateAppDomain(ICorDebugProcess* pProcess, ICorDebugAppDomain* pAppDomain)
 {
   pAppDomain->Attach();
-  DebugBuffer name(255);
+  DebugBuffer name(_MAX_PATH);
   pAppDomain->GetName(name.size, (ULONG32*)&name.size, name.buffer);
 
-  if(InfoBoard::theInstance()->appType == DEBUGGER)
+  if(InfoBoard::theInstance()->AppType == DEBUGGER)
     wprintf(L"CreateAppDomain %s\n", name.buffer);
 
   pProcess->Continue(FALSE);
@@ -19,7 +21,23 @@ COM_METHOD CLRDebugCallback::LoadModule(ICorDebugAppDomain* pAppDomain, ICorDebu
 {
   DebugBuffer name(_MAX_PATH);
   pModule->GetName(name.size, (ULONG32*)&name.size, name.buffer);
-  InfoBoard::theInstance()->loadedModules.insert(pModule);
+
+  bool ignore = false;
+
+  for(CStringSet::const_iterator it = Settings::theInstance()->modulesToIgnore.begin(); it != Settings::theInstance()->modulesToIgnore.end(); ++it) 
+  {
+    if(name.ToCString().Right((*it).GetLength()) == *it)
+    {
+      ignore = true;
+      break;
+    }
+  }
+
+  if(!ignore)
+    typeInfoHelper.AddModule(pModule);
+
+  if(InfoBoard::theInstance()->AppType == DEBUGGER)
+    wprintf(L"LoadModule %s. Interesting: %s\n", name.buffer, ignore ? L"false" : L"true");
 
   pModule->EnableClassLoadCallbacks(TRUE);
   pAppDomain->Continue(FALSE);
@@ -28,7 +46,7 @@ COM_METHOD CLRDebugCallback::LoadModule(ICorDebugAppDomain* pAppDomain, ICorDebu
 
 COM_METHOD CLRDebugCallback::UnloadModule(ICorDebugAppDomain* pAppDomain, ICorDebugModule* pModule)
 {
-  InfoBoard::theInstance()->loadedModules.erase(pModule);
+  typeInfoHelper.RemoveModule(pModule);
 
   pAppDomain->Continue(FALSE);
   return S_OK;

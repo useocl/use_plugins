@@ -3,8 +3,12 @@
 #include <iostream>
 #include "../Common/CommonTypes.h"
 #include "../Common/DebugBuffer.h"
-#include "../Common/DebugValueHelper.h"
 #include "../Common/CLRType.h"
+#include "../Common/Settings.h"
+#include "../Common/CLRDebugCore.h"
+#include "../Common/CLRObject.h"
+#include "../Common/CLRFieldBase.h"
+#include "../Common/FieldValueHelper.h"
 
 class ObjectInfoHelper
 {
@@ -12,9 +16,19 @@ public:
   ObjectInfoHelper();
   virtual ~ObjectInfoHelper();
 
-  int instances;
-  void getCurrentObjectInfo(const COR_HEAPOBJECT* currentObject);
+  void GetInstances(CLRType* type);
+  CLRObject* GetCLRObject(const CORDB_ADDRESS address) const;
+  CLRFieldBase* GetField(const CLRType* type, const CORDB_ADDRESS object, const mdFieldDef field);
+
+  unsigned int InstanceCount() const;
 
 private:
-  HRESULT hr;
+  ObjectMap loadedInstances;
+  bool inMemoryInstanceMap;
+  bool compareTypeNames;
+
+  bool isHeapValid() const;
+  void iterateOverHeap(CLRType* type);
+  void createCLRObject(const COR_HEAPOBJECT* currentObject, CLRType* type);
+  CLRObject* createCLRObject(const CORDB_ADDRESS address) const;
 };

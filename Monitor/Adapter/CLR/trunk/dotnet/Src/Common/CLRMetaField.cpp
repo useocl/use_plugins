@@ -1,7 +1,9 @@
 #include "../Common/CLRMetaField.h"
 
-CLRMetaField::CLRMetaField(CString name, mdFieldDef fieldDefToken) : CLRInfoBase(name, 0),
-  fieldDef(fieldDefToken)
+CLRMetaField::CLRMetaField(CString name, const mdTypeDef typeDefToken, const mdFieldDef fieldDefToken, const DWORD fieldAttr) : 
+  CLRInfoBase(name, typeDefToken),
+  fieldDef(fieldDefToken),
+  fieldAttr(fieldAttr)
 { }
 
 

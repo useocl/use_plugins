@@ -68,6 +68,10 @@
     <BuildLog>
       <Path>$(SolutionDir)\..\..\Build\$(ProjectName)\$(Configuration)\$(Configuration)\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -106,10 +110,11 @@
     <ClCompile Include="..\Common\CLRType.cpp" />
     <ClCompile Include="..\Common\CommonTypes.cpp" />
     <ClCompile Include="..\Common\DebugBuffer.cpp" />
-    <ClCompile Include="..\Common\DebugValueHelper.cpp" />
-    <ClCompile Include="..\Common\HeapInfoHelper.cpp" />
+    <ClCompile Include="..\Common\FieldValueHelper.cpp" />
     <ClCompile Include="..\Common\InfoBoard.cpp" />
     <ClCompile Include="..\Common\ObjectInfoHelper.cpp" />
+    <ClCompile Include="..\Common\Settings.cpp" />
+    <ClCompile Include="..\Common\TypeInfoHelper.cpp" />
     <ClCompile Include="CLRDebugger.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -125,10 +130,12 @@
     <ClInclude Include="..\Common\CLRType.h" />
     <ClInclude Include="..\Common\CommonTypes.h" />
     <ClInclude Include="..\Common\DebugBuffer.h" />
-    <ClInclude Include="..\Common\DebugValueHelper.h" />
-    <ClInclude Include="..\Common\HeapInfoHelper.h" />
+    <ClInclude Include="..\Common\DefaultCallback.h" />
+    <ClInclude Include="..\Common\FieldValueHelper.h" />
     <ClInclude Include="..\Common\InfoBoard.h" />
     <ClInclude Include="..\Common\ObjectInfoHelper.h" />
+    <ClInclude Include="..\Common\Settings.h" />
+    <ClInclude Include="..\Common\TypeInfoHelper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

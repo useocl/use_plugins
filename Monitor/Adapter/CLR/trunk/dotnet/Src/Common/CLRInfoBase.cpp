@@ -2,18 +2,13 @@
 
 CLRInfoBase::CLRInfoBase(CString name, mdTypeDef typeDefToken) : 
   name(name),
-  typeDefToken(typeDefToken),
-  corType(ELEMENT_TYPE_END),
-  info(_T(""))
+  typeDefToken(typeDefToken)
 {
 }
 
 
 CLRInfoBase::~CLRInfoBase()
-{
-  name.~CStringT();
-  info.~CStringT();
-}
+{ }
 
 
 void CLRInfoBase::Print()
