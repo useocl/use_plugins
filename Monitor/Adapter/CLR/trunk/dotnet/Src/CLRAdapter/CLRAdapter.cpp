@@ -16,8 +16,6 @@ ObjectInfoHelper objectInfo;
 JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_attachToCLR
   (JNIEnv* env, jobject adapter, jlong pid)
 {
-  HRESULT hr = E_FAIL;
-
   CLRDebugCore::theInstance()->InitializeProcessesByPid((DWORD)pid, new CLRDebugCallback(typeInfo));
 
   return CLRDebugCore::theInstance()->pDebugProcess ? 0 : -1;
@@ -51,7 +49,12 @@ JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_stopCLR
   HRESULT hr = E_FAIL;
   CLRDebugCore::theInstance()->pDebugProcess->Stop(0);
   hr = CLRDebugCore::theInstance()->pDebugProcess->Detach();
+
+  objectInfo.Detach();
+  typeInfo.Detach();
+
   CLRDebugCore::theInstance()->Release();
+
   if(FAILED(hr))
     return -1;
   else

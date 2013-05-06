@@ -22,6 +22,8 @@ public:
 
   unsigned int InstanceCount() const;
 
+  void Detach();
+
 private:
   ObjectMap loadedInstances;
   bool inMemoryInstanceMap;

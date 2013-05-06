@@ -11,6 +11,11 @@ ObjectInfoHelper::~ObjectInfoHelper()
   loadedInstances.clear();
 }
 
+void ObjectInfoHelper::Detach()
+{
+  loadedInstances.clear();
+}
+
 void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRType* type)
 {
   HRESULT  hr                                   = E_FAIL;

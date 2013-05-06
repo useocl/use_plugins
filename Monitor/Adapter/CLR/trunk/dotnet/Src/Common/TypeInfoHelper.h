@@ -29,6 +29,8 @@ public:
   unsigned int ModuleCount() const;
   unsigned int TypeCount() const;
 
+  void Detach();
+
 private:
   void GetTypesFromModules(ICorDebugModule* module);
   void GetFieldInformation(CLRType* type, IMetaDataImport* metaData) const;

@@ -12,6 +12,12 @@ TypeInfoHelper::~TypeInfoHelper()
   loadedModules.clear();
 }
 
+void TypeInfoHelper::Detach()
+{
+  loadedTypes.clear();
+  loadedModules.clear();
+}
+
 void TypeInfoHelper::AddModule(ICorDebugModule* module)
 {
   GetTypesFromModules(module);
