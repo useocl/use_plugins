@@ -77,6 +77,14 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
 
 /*
  * Class:     org_tzi_use_monitor_adapter_clr_CLRAdapter
+ * Method:    isCLRAdapterInitialized
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_isCLRAdapterInitialized
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_tzi_use_monitor_adapter_clr_CLRAdapter
  * Method:    getNumOfInstances
  * Signature: ()I
  */

@@ -314,3 +314,14 @@ void TypeInfoHelper::PrintSimpleInheritance() const
     }
   }
 }
+
+bool TypeInfoHelper::IsInitialized() const
+{
+  if(Settings::theInstance()->MinNumberOfModules == 0)
+  {
+    std::wcerr << _T("Settings: MinNumberOfModules is 0. At least one module should the minimum.") << std::endl;
+    return false;
+  }
+
+  return ModuleCount() >= Settings::theInstance()->MinNumberOfModules;
+}

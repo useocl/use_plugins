@@ -391,3 +391,9 @@ exception_handler:
   env->ExceptionClear();
   return wrapper;
 }
+
+JNIEXPORT jboolean JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_isCLRAdapterInitialized
+  (JNIEnv *, jobject)
+{
+  return typeInfo.IsInitialized();
+}

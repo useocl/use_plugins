@@ -111,11 +111,17 @@ public class CLRAdapter extends AbstractVMAdapter {
 		if (res != 0)
 			throw new MonitorException("Could not connect to virtual machine with process ID " + Long.toString(pid));
 		
+		int i = 0;
 		do
 		{
-			if(getNumOfModules() > 0)
-				break;
-		} while (true);
+			try {
+				Thread.sleep(250);
+			} catch (InterruptedException e) {
+				throw new MonitorException("Could not wait until adapter is initialized.");
+			}
+			i++;
+		} while (!isCLRAdapterInitialized() && i <= 3);
+		
 		
     	isConnected = true;
     	
@@ -357,6 +363,8 @@ public class CLRAdapter extends AbstractVMAdapter {
 	private native CLRField getFieldByName(CLRType type, String name);
 	
 	private native CLRFieldWrapBase getWrappedField(CLRObject object, CLRField field);
+	
+	private native boolean isCLRAdapterInitialized();
 	
 	// debug information
 	private native int getNumOfInstances();

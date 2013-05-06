@@ -3,6 +3,7 @@
 #include "../Common/CommonTypes.h"
 #include "../Common/DebugBuffer.h"
 #include "../Common/CLRType.h"
+#include "../Common/Settings.h"
 
 class TypeInfoHelper
 {
@@ -17,6 +18,7 @@ public:
   CLRType* GetType(CString name) const;
   CLRType* GetType(mdTypeDef token) const;
   bool HasAny() const;
+  bool IsInitialized() const;
 
   AppType appType;
 

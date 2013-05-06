@@ -11,6 +11,7 @@ public:
 
   bool InMemoryInstanceMap;
   bool CompareTypeNames;
+  unsigned int MinNumberOfModules;
 
   CStringSet typesOfInterest;
   CStringSet modulesToIgnore;

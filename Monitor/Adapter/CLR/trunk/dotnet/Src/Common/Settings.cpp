@@ -3,6 +3,7 @@
 Settings::Settings() :
   InMemoryInstanceMap(false),
   CompareTypeNames(false),
+  MinNumberOfModules(0),
   typesOfInterest(CStringSet()),
   modulesToIgnore(CStringSet())
 {
@@ -42,8 +43,9 @@ void Settings::readSettings()
   if(!res)
     std::cerr << "Settings: " <<  res.description() << std::endl;
 
-  InMemoryInstanceMap = doc.child("Settings").child("ObjectInfoHelper").attribute("InMemoryInstanceMap").as_bool();
+  MinNumberOfModules = doc.child("Settings").child("TypeInfoHelper").attribute("MinNumberOfModules").as_uint();
   CompareTypeNames    = doc.child("Settings").child("ObjectInfoHelper").attribute("CompareTypeNames").as_bool();
+  InMemoryInstanceMap    = doc.child("Settings").child("ObjectInfoHelper").attribute("InMemoryInstanceMap").as_bool();
 
   pugi::xml_node types = doc.child("Settings").child("TypesOfInterest");
   for (pugi::xml_node type = types.child("TypeOfInterest"); type; type = type.next_sibling("TypeOfInterest"))
