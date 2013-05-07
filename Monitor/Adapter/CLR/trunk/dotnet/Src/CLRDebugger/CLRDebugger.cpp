@@ -34,7 +34,7 @@ int main(int argc, const char* argv[])
   system("PAUSE");
 
   std::wcout << L"Setting InMemoryInstanceMap: " << Settings::theInstance()->InMemoryInstanceMap << std::endl;
-  std::wcout << L"Setting CompareTypeNames: "    << Settings::theInstance()->CompareTypeNames    << std::endl;
+  std::wcout << L"Setting MinNumberOfModules: "  << Settings::theInstance()->MinNumberOfModules  << std::endl;
 
   system("PAUSE");
 
@@ -63,7 +63,7 @@ int main(int argc, const char* argv[])
 
   system("PAUSE");
 
-  const CLRType* testType = typeInfoHelper.GetType(CString(_T("Debuggee.Cat")));
+  const CLRType* testType = typeInfoHelper.GetType(CString(_T("Debuggee.Dog")));
   const ObjectVector instances =  testType->instances;
   for(ObjectVector::const_iterator it = instances.begin(); it != instances.end(); ++it)
   {

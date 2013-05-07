@@ -2,8 +2,7 @@
 
 ObjectInfoHelper::ObjectInfoHelper() :
   loadedInstances(ObjectMap()),
-  inMemoryInstanceMap(Settings::theInstance()->InMemoryInstanceMap),
-  compareTypeNames(Settings::theInstance()->CompareTypeNames)
+  inMemoryInstanceMap(Settings::theInstance()->InMemoryInstanceMap)
 { }
 
 ObjectInfoHelper::~ObjectInfoHelper()
@@ -27,8 +26,8 @@ void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRT
   IMetaDataImport* metaData                     = NULL;
   ICorDebugModule* module                       = NULL;
   CLRObject* clrObject                          = NULL;
-  CorTypeAttr typeFlag                          = tdClass;
-  mdToken baseToken                             = 0;
+  CORDB_ADDRESS objectModuleAddress             = 0;
+  CORDB_ADDRESS typeModuleAddress               = 0;
   CString error(_T(""));
   DebugBuffer typeName(_MAX_PATH);
 
@@ -67,49 +66,34 @@ void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRT
           throw hr;
         }
 
-        if(!compareTypeNames)
+        hr = objectClass->GetModule(&module);
+        if(FAILED(hr))
         {
-          if(type->typeDefToken == objectClassToken)
-          {
-            clrObject = new CLRObject(type->name, object, type->typeDefToken, currentObject->address);
-            type->instances.push_back(clrObject);
-
-            if(inMemoryInstanceMap)
-              loadedInstances.insert(ObjectMapValue(clrObject->address, clrObject));
-          }
+          error = _T("GetModule");
+          throw hr;
         }
-        else
+
+        hr = module->GetBaseAddress(&objectModuleAddress);
+        if(FAILED(hr))
         {
-          hr = objectClass->GetModule(&module);
-          if(FAILED(hr))
-          {
-            error = _T("GetModule");
-            throw hr;
-          }
+          error = _T("GetToken object module");
+          throw hr;
+        }
 
-          hr = module->GetMetaDataInterface(IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&metaData));
-          if(FAILED(hr))
-          {
-            error = _T("GetMetaDataInterface");
-            throw hr;
-          }
+        hr = type->module->GetBaseAddress(&typeModuleAddress);
+        if(FAILED(hr))
+        {
+          error = _T("GetToken typ module");
+          throw hr;
+        }
 
-          hr = metaData->GetTypeDefProps(objectClassToken, typeName.buffer, typeName.buffer[0]*typeName.size, &typeName.size, (DWORD*)&typeFlag, &baseToken); 
-          if(FAILED(hr))
-          {
-            error = _T("GetTypeDefProps");
-            throw hr;
-          }
+        if(type->typeDefToken == objectClassToken && objectModuleAddress == typeModuleAddress)
+        {
+          clrObject = new CLRObject(type->name, object, type->typeDefToken, currentObject->address);
+          type->instances.push_back(clrObject);
 
-          if(type->typeDefToken == objectClassToken && typeName.ToCString() == type->name)
-          {
-            clrObject = new CLRObject(type->name, object, type->typeDefToken, currentObject->address);
-            type->instances.push_back(clrObject);
-
-            if(inMemoryInstanceMap)
-              loadedInstances.insert(ObjectMapValue(clrObject->address, clrObject));
-          }
-
+          if(inMemoryInstanceMap)
+            loadedInstances.insert(ObjectMapValue(clrObject->address, clrObject));
         }
       }
     }

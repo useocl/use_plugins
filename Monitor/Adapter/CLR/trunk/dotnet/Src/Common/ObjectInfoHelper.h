@@ -27,7 +27,6 @@ public:
 private:
   ObjectMap loadedInstances;
   bool inMemoryInstanceMap;
-  bool compareTypeNames;
 
   bool isHeapValid() const;
   void iterateOverHeap(CLRType* type);
