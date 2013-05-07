@@ -103,7 +103,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLR
 
   //search type
   CLRType* type = typeInfo.GetType(searchName);
-  
+
   if(type)
   {
     jlong typeId = type->typeDefToken;
@@ -122,9 +122,9 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLR
   return clrType;
 
 exception_handler:
-    env->ExceptionDescribe();
-    env->ExceptionClear();
-    return clrType;
+  env->ExceptionDescribe();
+  env->ExceptionClear();
+  return clrType;
 }
 
 JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getInstances
@@ -248,16 +248,20 @@ exception_handler:
 }
 
 JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWrappedField
-  (JNIEnv* env, jobject adapter, jobject clrObject, jobject clrField)
+  (JNIEnv* env, jobject adapter, jobject clrType, jobject clrObject, jobject clrField)
 {
   jthrowable ex = NULL;
   jobject wrapper = env->NewGlobalRef(NULL);
   jobject res = env->NewGlobalRef(NULL);
   CLRObject* pClrObject = NULL;
   CLRFieldBase* pField = NULL;
+  CLRType* pClrType = NULL;
   mdFieldDef fieldToken = 0;
-  FieldMap::const_iterator gotField;
-  ObjectMap::const_iterator gotObject;
+
+  // find given type
+  pClrType = JNIHelper::GetCLRType(env, clrType, typeInfo);
+  if(!pClrType)
+    return wrapper;
 
   // get pointer to given clr object
   pClrObject = JNIHelper::GetCLRObject(env, clrObject, objectInfo);
@@ -270,11 +274,8 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
     return wrapper;
 
   // get desired field
-  gotField = pClrObject->fields.find(fieldToken);
-
-  if(gotField != pClrObject->fields.end())
-    pField = (*gotField).second;
-  else
+  pField = objectInfo.GetField(pClrType, pClrObject->address, fieldToken);
+  if(!pField)
     return wrapper;
 
   // if null value return
@@ -287,7 +288,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
   case VALUE:
     {
       CLRFieldValue* pFieldV = static_cast<CLRFieldValue*>(pField);
-      
+
       // get value
       if(pFieldV->corType == ELEMENT_TYPE_STRING)
       {
@@ -384,7 +385,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
       break;
     }
   default:
-   return wrapper;
+    return wrapper;
   }
 
   return wrapper;

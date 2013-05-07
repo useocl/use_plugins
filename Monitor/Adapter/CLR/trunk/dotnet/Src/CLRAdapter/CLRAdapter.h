@@ -70,10 +70,10 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getFie
 /*
  * Class:     org_tzi_use_monitor_adapter_clr_CLRAdapter
  * Method:    getWrappedField
- * Signature: (Lorg/tzi/use/plugins/monitor/vm/mm/clr/CLRObject;Lorg/tzi/use/plugins/monitor/vm/mm/clr/CLRField;)Lorg/tzi/use/plugins/monitor/vm/wrap/clr/CLRFieldWrapBase;
+ * Signature: (Lorg/tzi/use/plugins/monitor/vm/mm/clr/CLRType;Lorg/tzi/use/plugins/monitor/vm/mm/clr/CLRObject;Lorg/tzi/use/plugins/monitor/vm/mm/clr/CLRField;)Lorg/tzi/use/plugins/monitor/vm/wrap/clr/CLRFieldWrapBase;
  */
 JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWrappedField
-  (JNIEnv *, jobject, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jobject, jobject);
 
 /*
  * Class:     org_tzi_use_monitor_adapter_clr_CLRAdapter

@@ -124,26 +124,7 @@ public class CLRAdapter extends AbstractVMAdapter {
 		
 		
     	isConnected = true;
-    	
-    	// debugging output
-    	System.out.println("Number of modules: " + getNumOfModules());
-    	System.out.println("Number of types: " + getNumOfTypes());
-    	System.out.println("Number of instances: " + getNumOfInstances());
-    	CLRType test = getCLRType("Debuggee.Cat");
-    	System.out.println("Test: " + test + " " + test.getAdapter().toString());
-    	Set<VMObject> instances = getInstances(test);
-    	System.out.println("Geladene Objekte: " + instances.size());
-//    	CLRField field = (CLRField) test.getFieldByName("ArrayChildren");
-//    	if (field != null) {
-//	    	System.out.println("Feld: " + field.getName() + ":" + field.getId());
-//	    	for (VMObject vmObject : instances) {
-//	    		CLRObject o = (CLRObject) vmObject;
-//	    		System.out.println("Object to Wrap: " + o.getIdCLR() + ":" + o.getType().getName());
-//	        	CLRFieldWrapBase wrap = getFieldWrap(o, field);
-//	        	System.out.println("Wrap: " + wrap);
-//			}
-//    	}
-	}
+   	}
 
 	/* (non-Javadoc)
 	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#resume()
@@ -343,9 +324,9 @@ public class CLRAdapter extends AbstractVMAdapter {
 		return getFieldByName(type, name);
 	}
 	
-	public CLRFieldWrapBase getFieldWrap(CLRObject object, CLRField field)
+	public CLRFieldWrapBase getFieldWrap(CLRType type, CLRObject object, CLRField field)
 	{
-		return getWrappedField(object, field);
+		return getWrappedField(type, object, field);
 	}
 	
 	private native Set<VMObject> getInstances(CLRType clrType);
@@ -362,7 +343,7 @@ public class CLRAdapter extends AbstractVMAdapter {
 	
 	private native CLRField getFieldByName(CLRType type, String name);
 	
-	private native CLRFieldWrapBase getWrappedField(CLRObject object, CLRField field);
+	private native CLRFieldWrapBase getWrappedField(CLRType type, CLRObject object, CLRField field);
 	
 	private native boolean isCLRAdapterInitialized();
 	

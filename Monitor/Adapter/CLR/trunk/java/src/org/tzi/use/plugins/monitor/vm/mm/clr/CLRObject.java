@@ -66,7 +66,7 @@ public class CLRObject extends CLRBase implements VMObject {
 	@Override
 	public Value getValue(VMField field) {
 		CLRField f = (CLRField) field;
-		CLRFieldWrapBase w = adapter.getFieldWrap(this, f);
+		CLRFieldWrapBase w = adapter.getFieldWrap((CLRType)type, this, f);
 		return adapter.getUSEValue(w);
 	}
 
