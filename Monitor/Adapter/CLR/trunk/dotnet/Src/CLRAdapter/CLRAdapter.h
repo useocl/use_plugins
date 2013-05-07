@@ -85,6 +85,30 @@ JNIEXPORT jboolean JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_isCLR
 
 /*
  * Class:     org_tzi_use_monitor_adapter_clr_CLRAdapter
+ * Method:    isCLRClassType
+ * Signature: (Lorg/tzi/use/plugins/monitor/vm/mm/clr/CLRType;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_isCLRClassType
+  (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     org_tzi_use_monitor_adapter_clr_CLRAdapter
+ * Method:    getCLRSuperClasses
+ * Signature: (Lorg/tzi/use/plugins/monitor/vm/mm/clr/CLRType;)Ljava/util/Set;
+ */
+JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLRSuperClasses
+  (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     org_tzi_use_monitor_adapter_clr_CLRAdapter
+ * Method:    getCLRSubClasses
+ * Signature: (Lorg/tzi/use/plugins/monitor/vm/mm/clr/CLRType;)Ljava/util/Set;
+ */
+JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLRSubClasses
+  (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     org_tzi_use_monitor_adapter_clr_CLRAdapter
  * Method:    getNumOfInstances
  * Signature: ()I
  */

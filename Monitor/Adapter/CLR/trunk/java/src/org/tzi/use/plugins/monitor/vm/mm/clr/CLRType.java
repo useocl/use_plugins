@@ -44,8 +44,7 @@ public class CLRType extends CLRBase implements VMType {
 	 */
 	@Override
 	public Set<VMType> getSuperClasses() {
-		// TODO Auto-generated method stub
-		return Collections.emptySet();
+		return adapter.getSuperClasses(this);
 	}
 
 	/* (non-Javadoc)
@@ -53,7 +52,7 @@ public class CLRType extends CLRBase implements VMType {
 	 */
 	@Override
 	public Set<VMType> getSubClasses() {
-		return Collections.emptySet();
+		return adapter.getSubClasses(this);
 	}
 
 	/* (non-Javadoc)
@@ -61,8 +60,7 @@ public class CLRType extends CLRBase implements VMType {
 	 */
 	@Override
 	public boolean isClassType() {
-		// TODO Auto-generated method stub
-		return true;
+		return adapter.isClassType(this);
 	}
 
 	/* (non-Javadoc)
@@ -78,6 +76,7 @@ public class CLRType extends CLRBase implements VMType {
 	 */
 	@Override
 	public List<VMMethod> getMethodsByName(String methodName) {
+		//TODO: implement me!
 		return Collections.emptyList();
 	}
 

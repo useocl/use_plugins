@@ -329,6 +329,21 @@ public class CLRAdapter extends AbstractVMAdapter {
 		return getWrappedField(type, object, field);
 	}
 	
+	public Set<VMType> getSuperClasses(CLRType type)
+	{
+		return getCLRSuperClasses(type);
+	}
+	
+	public Set<VMType> getSubClasses(CLRType type)
+	{
+		return getCLRSubClasses(type);
+	}
+	
+	public boolean isClassType(CLRType type)
+	{
+		return isCLRClassType(type);
+	}
+	
 	private native Set<VMObject> getInstances(CLRType clrType);
 	
 	private native CLRType getCLRType(String name);
@@ -346,6 +361,12 @@ public class CLRAdapter extends AbstractVMAdapter {
 	private native CLRFieldWrapBase getWrappedField(CLRType type, CLRObject object, CLRField field);
 	
 	private native boolean isCLRAdapterInitialized();
+	
+	private native boolean isCLRClassType(CLRType type);
+	
+	private native Set<VMType> getCLRSuperClasses(CLRType type);
+	
+	private native Set<VMType> getCLRSubClasses(CLRType type);	
 	
 	// debug information
 	private native int getNumOfInstances();

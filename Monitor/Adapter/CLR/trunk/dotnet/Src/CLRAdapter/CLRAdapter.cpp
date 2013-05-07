@@ -372,7 +372,7 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getWra
       if((ex = env->ExceptionOccurred()) != NULL)
         goto exception_handler;
 
-      for (std::vector<CORDB_ADDRESS>::const_iterator refit = pFieldL->references.begin(); refit != pFieldL->references.end(); ++refit) 
+      for(std::vector<CORDB_ADDRESS>::const_iterator refit = pFieldL->references.begin(); refit != pFieldL->references.end(); ++refit) 
       {
         jlong address = *refit;
 
@@ -400,4 +400,165 @@ JNIEXPORT jboolean JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_isCLR
   (JNIEnv *, jobject)
 {
   return typeInfo.IsInitialized();
+}
+
+JNIEXPORT jboolean JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_isCLRClassType
+  (JNIEnv* env, jobject adapter, jobject clrType)
+{
+  CLRType* pClrType = NULL;
+
+  // get type information
+  pClrType = JNIHelper::GetCLRType(env, clrType, typeInfo);
+  if(!pClrType)
+    return false;
+  
+  return typeInfo.GetTypeInfo(pClrType->typeAttr) == TypeInfo::NClass || typeInfo.GetTypeInfo(pClrType->typeAttr) == TypeInfo::AClass;
+}
+
+JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLRSuperClasses
+  (JNIEnv* env, jobject adapter, jobject clrType)
+{
+  jthrowable ex = NULL;
+  jobject hashSet = env->NewGlobalRef(NULL);
+  CLRType* pClrType = NULL;
+
+  // create java HashSet to return
+  jclass setClass = env->FindClass("java/util/HashSet");
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  jmethodID setConstructor = env->GetMethodID(setClass, "<init>", "()V");
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  hashSet = env->NewObject(setClass, setConstructor);
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  jmethodID setAdd = env->GetMethodID(setClass, "add", "(Ljava/lang/Object;)Z");
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  // get type information
+  pClrType = JNIHelper::GetCLRType(env, clrType, typeInfo);
+  if(!pClrType)
+    return hashSet;
+
+  std::wcerr << _T("Baseclass of ") << (const wchar_t*)pClrType->name << std::endl;
+
+  // create type of baseclass if available
+  if(pClrType->baseClass)
+  {
+    jclass typeClass = env->FindClass("org/tzi/use/plugins/monitor/vm/mm/clr/CLRType");
+
+    if((ex = env->ExceptionOccurred()) != NULL)
+      goto exception_handler;
+
+    jmethodID constructorId = env->GetMethodID(typeClass, "<init>", "(Lorg/tzi/use/monitor/adapter/clr/CLRAdapter;JLjava/lang/String;)V");
+
+    if((ex = env->ExceptionOccurred()) != NULL)
+      goto exception_handler;
+
+    jlong typeId = pClrType->baseClass->typeDefToken;
+    CStringA str(pClrType->baseClass->name);
+    jstring name = env->NewStringUTF((const char*)str);
+
+    if((ex = env->ExceptionOccurred()) != NULL)
+      goto exception_handler;
+
+    jobject clrType = env->NewObject(typeClass, constructorId, adapter, typeId, name);
+
+    if((ex = env->ExceptionOccurred()) != NULL)
+      goto exception_handler;
+    else
+    {
+      env->CallBooleanMethod(hashSet, setAdd, clrType);
+      if((ex = env->ExceptionOccurred()) != NULL)
+        goto exception_handler;
+    }
+  }
+
+  return hashSet;
+
+exception_handler:
+  env->ExceptionDescribe();
+  env->ExceptionClear();
+  return hashSet;
+}
+
+JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLRSubClasses
+  (JNIEnv* env, jobject adapter, jobject clrType)
+{
+  jthrowable ex = NULL;
+  jobject hashSet = env->NewGlobalRef(NULL);
+  CLRType* pClrType = NULL;
+
+  // create java HashSet to return
+  jclass setClass = env->FindClass("java/util/HashSet");
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  jmethodID setConstructor = env->GetMethodID(setClass, "<init>", "()V");
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  hashSet = env->NewObject(setClass, setConstructor);
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  jmethodID setAdd = env->GetMethodID(setClass, "add", "(Ljava/lang/Object;)Z");
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  // get type information
+  pClrType = JNIHelper::GetCLRType(env, clrType, typeInfo);
+  if(!pClrType)
+    return hashSet;
+
+  // create type of subclasses if available
+  jclass typeClass = env->FindClass("org/tzi/use/plugins/monitor/vm/mm/clr/CLRType");
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  jmethodID constructorId = env->GetMethodID(typeClass, "<init>", "(Lorg/tzi/use/monitor/adapter/clr/CLRAdapter;JLjava/lang/String;)V");
+
+  if((ex = env->ExceptionOccurred()) != NULL)
+    goto exception_handler;
+
+  for(std::vector<CLRType*>::const_iterator subType = pClrType->subClasses.begin(); subType != pClrType->subClasses.end(); ++subType) 
+  {
+    jlong typeId = (*subType)->typeDefToken;
+    CStringA str((*subType)->name);
+    jstring name = env->NewStringUTF((const char*)str);
+
+    if((ex = env->ExceptionOccurred()) != NULL)
+      goto exception_handler;
+
+    jobject clrType = env->NewObject(typeClass, constructorId, adapter, typeId, name);
+
+    if((ex = env->ExceptionOccurred()) != NULL)
+      goto exception_handler;
+    else
+    {
+      env->CallBooleanMethod(hashSet, setAdd, clrType);
+      if((ex = env->ExceptionOccurred()) != NULL)
+        goto exception_handler;
+    }
+  }
+
+  return hashSet;
+
+exception_handler:
+  env->ExceptionDescribe();
+  env->ExceptionClear();
+  return hashSet;
 }
