@@ -11,7 +11,7 @@ public:
   virtual ~CLRType();
 
   MetaFieldMap fieldDefs;
-  ObjectVector instances;
+  std::vector<CORDB_ADDRESS> instances;
 
   CLRType* baseClass;
   std::vector<CLRType*> subClasses; 

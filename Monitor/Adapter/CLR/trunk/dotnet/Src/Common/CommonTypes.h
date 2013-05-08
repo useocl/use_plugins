@@ -23,7 +23,6 @@ struct CStringHash
 
 typedef std::unordered_set<ICorDebugModule*> ModuleSet;
 typedef std::unordered_set<CString, CStringHash> CStringSet;
-typedef std::vector<CLRObject*> ObjectVector;
 
 typedef std::unordered_map<mdTypeDef, CLRType*> TypeMap;
 typedef TypeMap::value_type TypeMapValue;

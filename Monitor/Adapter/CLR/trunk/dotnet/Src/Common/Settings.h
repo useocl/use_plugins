@@ -10,6 +10,7 @@ public:
   void release();
 
   bool InMemoryInstanceMap;
+  bool CacheAtStartUp;
   unsigned int MinNumberOfModules;
 
   CStringSet typesOfInterest;

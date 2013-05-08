@@ -174,9 +174,9 @@ JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getIns
 
   objectInfo.GetInstances(pClrType);
 
-  for(ObjectVector::const_iterator obj = pClrType->instances.begin(); obj != pClrType->instances.end(); ++obj)
+  for(std::vector<CORDB_ADDRESS>::const_iterator obj = pClrType->instances.begin(); obj != pClrType->instances.end(); ++obj)
   {
-    jlong jAddress = (*obj)->address;
+    jlong jAddress = *obj;
     clrObject = env->NewObject(clrObjectClass, clrObjectConstructor, adapter, clrType, jAddress);
 
     if((ex = env->ExceptionOccurred()) != NULL)

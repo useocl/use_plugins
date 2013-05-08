@@ -5,7 +5,7 @@ CLRType::CLRType(CString name, mdTypeDef typeDefToken, ICorDebugModule* module) 
   fieldDefs(MetaFieldMap()),
   baseClass(NULL),
   subClasses(std::vector<CLRType*>()),
-  instances(ObjectVector()),
+  instances(std::vector<CORDB_ADDRESS>()),
   typeAttr(tdClass),
   module(module)
 { }
@@ -44,9 +44,9 @@ void CLRType::Print(bool fields)
 void CLRType::PrintInstances()
 {
   std::wcout << L"Instances of " << (const wchar_t*)this->name << L":" << std::endl;
-  for(ObjectVector::const_iterator iter = this->instances.begin(); iter != this->instances.end(); ++iter)
+  for(std::vector<CORDB_ADDRESS>::const_iterator iter = this->instances.begin(); iter != this->instances.end(); ++iter)
   {
-    std::wcout << "\t" << (*iter)->address << std::endl;
+    std::wcout << "\t" << *iter << std::endl;
   }
 }
 

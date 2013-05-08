@@ -35,6 +35,7 @@ int main(int argc, const char* argv[])
 
   std::wcout << L"Setting InMemoryInstanceMap: " << Settings::theInstance()->InMemoryInstanceMap << std::endl;
   std::wcout << L"Setting MinNumberOfModules: "  << Settings::theInstance()->MinNumberOfModules  << std::endl;
+  std::wcout << L"Setting CacheAtStartUp: "  << Settings::theInstance()->CacheAtStartUp  << std::endl;
 
   system("PAUSE");
 
@@ -51,7 +52,7 @@ int main(int argc, const char* argv[])
   system("PAUSE");
 
   CLRDebugCore::theInstance()->pDebugProcess->Stop(0);
-  ObjectInfoHelper o;
+  ObjectInfoHelper o(typeInfoHelper);
   o.GetInstances(typeInfoHelper.GetType(CString(_T("Debuggee.Cat"))));
   o.GetInstances(typeInfoHelper.GetType(CString(_T("Debuggee.Dog"))));
   o.GetInstances(typeInfoHelper.GetType(CString(_T("Debuggee.PetColor"))));
@@ -64,23 +65,23 @@ int main(int argc, const char* argv[])
   system("PAUSE");
 
   const CLRType* testType = typeInfoHelper.GetType(CString(_T("Debuggee.Dog")));
-  const ObjectVector instances =  testType->instances;
-  for(ObjectVector::const_iterator it = instances.begin(); it != instances.end(); ++it)
+  const std::vector<CORDB_ADDRESS> instances =  testType->instances;
+  for(std::vector<CORDB_ADDRESS>::const_iterator it = instances.begin(); it != instances.end(); ++it)
   {
-    CLRObject * res = o.GetCLRObject((*it)->address);
+    CLRObject * res = o.GetCLRObject(*it);
     wprintf(L"Loaded instance of type: %s\n", res->name);
     wprintf(L"\t Addresses: %d", res->address);
-    wprintf(L" : %d\n", (*it)->address);
+    wprintf(L" : %d\n", *it);
   }
 
   system("PAUSE");
 
-  for(ObjectVector::const_iterator it = instances.begin(); it != instances.end(); ++it)
+  for(std::vector<CORDB_ADDRESS>::const_iterator it = instances.begin(); it != instances.end(); ++it)
   {
     CLRMetaField* mField = testType->GetField(_T("ArrayChildren"));
     if(mField)
     {
-      CLRFieldBase* res = o.GetField(testType, (*it)->address, mField->fieldDef);
+      CLRFieldBase* res = o.GetField(testType, *it, mField->fieldDef);
       if(res)
         wprintf(L"Array done!\n");
     }

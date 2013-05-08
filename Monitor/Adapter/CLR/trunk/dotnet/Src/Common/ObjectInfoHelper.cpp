@@ -1,8 +1,11 @@
 #include "../Common/ObjectInfoHelper.h"
 
-ObjectInfoHelper::ObjectInfoHelper() :
+ObjectInfoHelper::ObjectInfoHelper(const TypeInfoHelper& typeInfo) :
+  typeInfo(typeInfo),
   loadedInstances(ObjectMap()),
-  inMemoryInstanceMap(Settings::theInstance()->InMemoryInstanceMap)
+  inMemoryInstanceMap(Settings::theInstance()->InMemoryInstanceMap),
+  cacheAtStartUp(Settings::theInstance()->CacheAtStartUp),
+  isCacheInitialized(false)
 { }
 
 ObjectInfoHelper::~ObjectInfoHelper()
@@ -15,7 +18,7 @@ void ObjectInfoHelper::Detach()
   loadedInstances.clear();
 }
 
-void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRType* type)
+void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRType* type, bool init)
 {
   HRESULT  hr                                   = E_FAIL;
   ICorDebugType* objectDebugType                = NULL;
@@ -23,13 +26,15 @@ void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRT
   ICorDebugClass* objectClass                   = NULL;
   mdTypeDef objectClassToken                    = 0;
   CorElementType corType                        = ELEMENT_TYPE_MAX;
-  IMetaDataImport* metaData                     = NULL;
   ICorDebugModule* module                       = NULL;
   CLRObject* clrObject                          = NULL;
   CORDB_ADDRESS objectModuleAddress             = 0;
   CORDB_ADDRESS typeModuleAddress               = 0;
+  IMetaDataImport* metaDataImport                = NULL;
   CString error(_T(""));
   DebugBuffer typeName(_MAX_PATH);
+  CorTypeAttr typeFlag = tdClass;
+  mdToken baseToken;
 
   try
   {
@@ -73,27 +78,65 @@ void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRT
           throw hr;
         }
 
-        hr = module->GetBaseAddress(&objectModuleAddress);
-        if(FAILED(hr))
+        if(!init)
         {
-          error = _T("GetToken object module");
-          throw hr;
+          hr = module->GetBaseAddress(&objectModuleAddress);
+          if(FAILED(hr))
+          {
+            error = _T("GetToken object module");
+            throw hr;
+          }
+
+          hr = type->module->GetBaseAddress(&typeModuleAddress);
+          if(FAILED(hr))
+          {
+            error = _T("GetToken typ module");
+            throw hr;
+          }
+
+          if(type->typeDefToken == objectClassToken && objectModuleAddress == typeModuleAddress)
+          {
+            clrObject = new CLRObject(type->name, object, type->typeDefToken, currentObject->address);
+            type->instances.push_back(currentObject->address);
+
+            if(inMemoryInstanceMap)
+              loadedInstances.insert(ObjectMapValue(clrObject->address, clrObject));
+          }
         }
-
-        hr = type->module->GetBaseAddress(&typeModuleAddress);
-        if(FAILED(hr))
+        else
         {
-          error = _T("GetToken typ module");
-          throw hr;
-        }
+          hr = module->GetMetaDataInterface(IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&metaDataImport));
+          if(FAILED(hr))
+          {
+            wprintf(L"GetMetaDataInterface failed w/hr 0x%08lx\n", hr);
+            return;
+          }
 
-        if(type->typeDefToken == objectClassToken && objectModuleAddress == typeModuleAddress)
-        {
-          clrObject = new CLRObject(type->name, object, type->typeDefToken, currentObject->address);
-          type->instances.push_back(clrObject);
+          hr = objectClass->GetToken(&objectClassToken);
+          if(FAILED(hr))
+          {
+            wprintf(L"GetToken failed w/hr 0x%08lx\n", hr);
+            return;
+          }
 
-          if(inMemoryInstanceMap)
-            loadedInstances.insert(ObjectMapValue(clrObject->address, clrObject));
+          hr = metaDataImport->GetTypeDefProps(objectClassToken, typeName.buffer, typeName.buffer[0]*typeName.size, &typeName.size, (DWORD*)&typeFlag, &baseToken); 
+          if(FAILED(hr))
+          {
+            wprintf(L"GetNameFromToken failed w/hr 0x%08lx\n", hr);
+            return;
+          }
+
+          CLRType* type = typeInfo.GetType(typeName.ToCString());
+          if(type)
+          {
+            CStringSet::const_iterator got = Settings::theInstance()->typesOfInterest.find(typeName.ToCString());
+            if(got != Settings::theInstance()->typesOfInterest.end())
+            {
+              clrObject = new CLRObject(type->name, object, type->typeDefToken, currentObject->address);
+              type->instances.push_back(currentObject->address);
+              loadedInstances.insert(ObjectMapValue(clrObject->address, clrObject));
+            }
+          }
         }
       }
     }
@@ -113,10 +156,10 @@ void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRT
       object->Release();
       object = NULL;
     }
-    if(metaData)
+    if(metaDataImport)
     {
-      metaData->Release();
-      metaData = NULL;
+      metaDataImport->Release();
+      metaDataImport = NULL;
     }
     if(module)
     {
@@ -250,7 +293,7 @@ bool ObjectInfoHelper::isHeapValid() const
   }
 }
 
-void ObjectInfoHelper::iterateOverHeap(CLRType* type)
+void ObjectInfoHelper::iterateOverHeap(CLRType* type, bool init)
 {
   HRESULT hr = E_FAIL;
   ICorDebugHeapEnum* pCoreDebugHeapEnum = NULL;
@@ -281,7 +324,7 @@ void ObjectInfoHelper::iterateOverHeap(CLRType* type)
         throw hr;
       }
 
-      createCLRObject(&obj, type);
+      createCLRObject(&obj, type, init);
     }
 
     if(pCoreDebugHeapEnum)
@@ -301,8 +344,16 @@ void ObjectInfoHelper::GetInstances(CLRType* type)
   if(!type)
     return;
 
-  type->instances.clear();
-  iterateOverHeap(type);
+  if(cacheAtStartUp)
+  {
+    if(!isCacheInitialized)
+      initializeCache();
+  }
+  else
+  {
+    type->instances.clear();
+    iterateOverHeap(type);
+  }
 }
 
 CLRObject* ObjectInfoHelper::GetCLRObject(const CORDB_ADDRESS address) const
@@ -341,4 +392,14 @@ CLRFieldBase* ObjectInfoHelper::GetField(const CLRType* type, const CORDB_ADDRES
 unsigned int ObjectInfoHelper::InstanceCount() const
 {
   return loadedInstances.size();
+}
+
+void ObjectInfoHelper::initializeCache()
+{
+  if(isCacheInitialized)
+    return;
+
+  iterateOverHeap(NULL, true);
+
+  isCacheInitialized = true;
 }

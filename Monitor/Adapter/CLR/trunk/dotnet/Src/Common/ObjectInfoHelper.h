@@ -9,11 +9,12 @@
 #include "../Common/CLRObject.h"
 #include "../Common/CLRFieldBase.h"
 #include "../Common/FieldValueHelper.h"
+#include "../Common/TypeInfoHelper.h"
 
 class ObjectInfoHelper
 {
 public:
-  ObjectInfoHelper();
+  ObjectInfoHelper(const TypeInfoHelper& typeInfo);
   virtual ~ObjectInfoHelper();
 
   void GetInstances(CLRType* type);
@@ -25,11 +26,16 @@ public:
   void Detach();
 
 private:
+  const TypeInfoHelper& typeInfo;
   ObjectMap loadedInstances;
-  bool inMemoryInstanceMap;
+  const bool inMemoryInstanceMap;
+  const bool cacheAtStartUp;
 
   bool isHeapValid() const;
-  void iterateOverHeap(CLRType* type);
-  void createCLRObject(const COR_HEAPOBJECT* currentObject, CLRType* type);
+  void iterateOverHeap(CLRType* type, bool init = false);
+  void createCLRObject(const COR_HEAPOBJECT* currentObject, CLRType* type, bool init = false);
   CLRObject* createCLRObject(const CORDB_ADDRESS address) const;
+
+  bool isCacheInitialized;
+  void initializeCache();
 };
