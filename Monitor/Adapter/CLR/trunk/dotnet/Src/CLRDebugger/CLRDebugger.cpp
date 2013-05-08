@@ -32,88 +32,46 @@ int main(int argc, const char* argv[])
   CLRDebugCore::theInstance()->InitializeProcessesByPid((DWORD)pid, new CLRDebugCallback(typeInfoHelper));
 
   system("PAUSE");
+  std::wcout << L"\n" << std::endl;
 
-  std::wcout << L"Setting InMemoryInstanceMap: " << Settings::theInstance()->InMemoryInstanceMap << std::endl;
-  std::wcout << L"Setting MinNumberOfModules: "  << Settings::theInstance()->MinNumberOfModules  << std::endl;
-  std::wcout << L"Setting CacheAtStartUp: "  << Settings::theInstance()->CacheAtStartUp  << std::endl;
-
-  system("PAUSE");
-
-  typeInfoHelper.PrintLoadedModules();
-
-  system("PAUSE");
-
-  typeInfoHelper.PrintLoadedTypes(true);
-
-  system("PAUSE");
-
-  typeInfoHelper.PrintSimpleInheritance();
-
-  system("PAUSE");
-
-  CLRDebugCore::theInstance()->pDebugProcess->Stop(0);
-  ObjectInfoHelper o(typeInfoHelper);
-  o.GetInstances(typeInfoHelper.GetType(CString(_T("Debuggee.Cat"))));
-  o.GetInstances(typeInfoHelper.GetType(CString(_T("Debuggee.Dog"))));
-  o.GetInstances(typeInfoHelper.GetType(CString(_T("Debuggee.PetColor"))));
-  o.GetInstances(typeInfoHelper.GetType(CString(_T("Debuggee.Cat"))));
-
-  typeInfoHelper.GetType(CString(_T("Debuggee.Cat")))->PrintInstances();
-  typeInfoHelper.GetType(CString(_T("Debuggee.Dog")))->PrintInstances();
-  typeInfoHelper.GetType(CString(_T("Debuggee.PetColor")))->PrintInstances();
-
-  system("PAUSE");
-
-  const CLRType* testType = typeInfoHelper.GetType(CString(_T("Debuggee.Dog")));
-  const std::vector<CORDB_ADDRESS> instances =  testType->instances;
-  for(std::vector<CORDB_ADDRESS>::const_iterator it = instances.begin(); it != instances.end(); ++it)
+  if(Settings::theInstance()->DebuggerPrintSettings)
   {
-    CLRObject * res = o.GetCLRObject(*it);
-    wprintf(L"Loaded instance of type: %s\n", res->name);
-    wprintf(L"\t Addresses: %d", res->address);
-    wprintf(L" : %d\n", *it);
+    std::wcout << L"Current Settings:" << std::endl;
+    std::wcout << L"-------------------------------------------" << std::endl;
+    std::wcout << L"Setting InMemoryInstanceMap: " << Settings::theInstance()->InMemoryInstanceMap << std::endl;
+    std::wcout << L"Setting MinNumberOfModules: "  << Settings::theInstance()->MinNumberOfModules  << std::endl;
+    std::wcout << L"Setting CacheAtStartUp: "  << Settings::theInstance()->CacheAtStartUp  << std::endl;
+    system("PAUSE");
+    std::wcout << L"\n" << std::endl;
   }
 
-  system("PAUSE");
-
-  for(std::vector<CORDB_ADDRESS>::const_iterator it = instances.begin(); it != instances.end(); ++it)
+  if(Settings::theInstance()->DebuggerPrintLoadedModules)
   {
-    CLRMetaField* mField = testType->GetField(_T("ArrayChildren"));
-    if(mField)
-    {
-      CLRFieldBase* res = o.GetField(testType, *it, mField->fieldDef);
-      if(res)
-        wprintf(L"Array done!\n");
-    }
+    std::wcout << L"Loaded Modules:" << std::endl;
+    std::wcout << L"-------------------------------------------" << std::endl;
+    typeInfoHelper.PrintLoadedModules();
+    system("PAUSE");
+    std::wcout << L"\n" << std::endl;
   }
 
-  system("PAUSE");
+  if(Settings::theInstance()->DebuggerPrintLoadedTypes)
+  {
+    std::wcout << L"Loaded Types:" << std::endl;
+    std::wcout << L"-------------------------------------------" << std::endl;
+    typeInfoHelper.PrintLoadedTypes(Settings::theInstance()->DebuggerPrintLoadedTypeFields);
+    system("PAUSE");
+    std::wcout << L"\n" << std::endl;
+  }
 
-  //InfoBoard::theInstance()->pDebugProcess->Stop(0);
+  if(Settings::theInstance()->DebuggerPrintInheritance)
+  {
+    std::wcout << L"Inheritance information:" << std::endl;
+    std::wcout << L"-------------------------------------------" << std::endl;
+    typeInfoHelper.PrintSimpleInheritance();
+    system("PAUSE");
+    std::wcout << L"\n" << std::endl;
+  }
 
-  //HeapInfoHelper heapHelper;
-  //heapHelper.iterateOverHeap();
-
-  //system("PAUSE");
-
-  //InfoBoard::theInstance()->PrintLoadedTypes(false, true);
-
-  //system("PAUSE");
-
-  //InfoBoard::theInstance()->PrintObjects(true);
-
-  //system("PAUSE");
-
-  //// Test getting meta field information by name
-  //TypeMap::const_iterator gotType = InfoBoard::theInstance()->loadedTypes.find(_T("Debuggee.Dog"));
-  //if(gotType != InfoBoard::theInstance()->loadedTypes.end())
-  //{
-  //  CLRMetaField* f = (*gotType).second->GetFieldByName(_T("Name"));
-  //  if(!f)
-  //    std::cout << "Can not find field!" << std::endl;
-  //}
-
-  //system("PAUSE");
   CLRDebugCore::theInstance()->pDebugProcess->Stop(0);
   CLRDebugCore::theInstance()->pDebugProcess->Detach();
   CLRDebugCore::theInstance()->Release();

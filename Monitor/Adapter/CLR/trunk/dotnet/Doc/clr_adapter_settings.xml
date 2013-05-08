@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Settings>
   <TypeInfoHelper MinNumberOfModules="1"></TypeInfoHelper>
-  <ObjectInfoHelper InMemoryInstanceMap="1" CacheAtStartUp="0"></ObjectInfoHelper>
+  <ObjectInfoHelper InMemoryInstanceMap="1" 
+                    CacheAtStartUp="0">
+  </ObjectInfoHelper>
   <TypesOfInterest>
     <TypeOfInterest Name="Debuggee.Cat"></TypeOfInterest>
     <TypeOfInterest Name="Debuggee.Dog"></TypeOfInterest>
@@ -12,4 +14,11 @@
     <ModuleToIgnore Name="System.Core.dll"></ModuleToIgnore>
     <ModuleToIgnore Name="System.dll"></ModuleToIgnore>
   </ModulesToIgnore>
+  <Debugger PrintSettings="1" 
+            PrintAllModules="0" 
+            PrintLoadedModules="1" 
+            PrintLoadedTypes="1"
+            PrintLoadedTypesFields="0"
+            PrintInheritance="1">
+  </Debugger>
 </Settings>

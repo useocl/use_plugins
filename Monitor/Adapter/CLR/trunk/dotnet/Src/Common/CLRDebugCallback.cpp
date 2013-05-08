@@ -24,7 +24,7 @@ COM_METHOD CLRDebugCallback::LoadModule(ICorDebugAppDomain* pAppDomain, ICorDebu
 
   bool ignore = false;
 
-  for(CStringSet::const_iterator it = Settings::theInstance()->modulesToIgnore.begin(); it != Settings::theInstance()->modulesToIgnore.end(); ++it) 
+  for(CStringSet::const_iterator it = Settings::theInstance()->ModulesToIgnore.begin(); it != Settings::theInstance()->ModulesToIgnore.end(); ++it) 
   {
     if(name.ToCString().Right((*it).GetLength()) == *it)
     {
@@ -36,7 +36,7 @@ COM_METHOD CLRDebugCallback::LoadModule(ICorDebugAppDomain* pAppDomain, ICorDebu
   if(!ignore)
     typeInfoHelper.AddModule(pModule);
 
-  if(InfoBoard::theInstance()->AppType == DEBUGGER)
+  if(InfoBoard::theInstance()->AppType == DEBUGGER && Settings::theInstance()->DebuggerPrintAllModules)
     wprintf(L"LoadModule %s. Interesting: %s\n", name.buffer, ignore ? L"false" : L"true");
 
   pModule->EnableClassLoadCallbacks(TRUE);

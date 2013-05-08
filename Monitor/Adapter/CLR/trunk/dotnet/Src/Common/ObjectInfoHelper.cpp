@@ -129,8 +129,8 @@ void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRT
           CLRType* type = typeInfo.GetType(typeName.ToCString());
           if(type)
           {
-            CStringSet::const_iterator got = Settings::theInstance()->typesOfInterest.find(typeName.ToCString());
-            if(got != Settings::theInstance()->typesOfInterest.end())
+            CStringSet::const_iterator got = Settings::theInstance()->TypesOfInterest.find(typeName.ToCString());
+            if(got != Settings::theInstance()->TypesOfInterest.end())
             {
               clrObject = new CLRObject(type->name, object, type->typeDefToken, currentObject->address);
               type->instances.push_back(currentObject->address);

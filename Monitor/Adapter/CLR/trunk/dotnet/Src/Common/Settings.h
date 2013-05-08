@@ -13,8 +13,15 @@ public:
   bool CacheAtStartUp;
   unsigned int MinNumberOfModules;
 
-  CStringSet typesOfInterest;
-  CStringSet modulesToIgnore;
+  bool DebuggerPrintSettings;
+  bool DebuggerPrintAllModules;
+  bool DebuggerPrintLoadedModules;
+  bool DebuggerPrintLoadedTypes;
+  bool DebuggerPrintLoadedTypeFields;
+  bool DebuggerPrintInheritance;
+
+  CStringSet TypesOfInterest;
+  CStringSet ModulesToIgnore;
 
 private:
   static Settings* instance;

@@ -4,16 +4,22 @@ Settings::Settings() :
   InMemoryInstanceMap(false),
   CacheAtStartUp(false),
   MinNumberOfModules(0),
-  typesOfInterest(CStringSet()),
-  modulesToIgnore(CStringSet())
+  DebuggerPrintSettings(false),
+  DebuggerPrintAllModules(false),
+  DebuggerPrintLoadedModules(false),
+  DebuggerPrintLoadedTypes(false),
+  DebuggerPrintLoadedTypeFields(false),
+  DebuggerPrintInheritance(false),
+  TypesOfInterest(CStringSet()),
+  ModulesToIgnore(CStringSet())
 {
   readSettings();
 }
 
 Settings::~Settings()
 {
-  typesOfInterest.clear();
-  modulesToIgnore.clear();
+  TypesOfInterest.clear();
+  ModulesToIgnore.clear();
 }
 
 Settings* Settings::instance = 0;
@@ -43,21 +49,28 @@ void Settings::readSettings()
   if(!res)
     std::cerr << _T("Settings: ") <<  res.description() << std::endl;
 
-  MinNumberOfModules = doc.child("Settings").child("TypeInfoHelper").attribute("MinNumberOfModules").as_uint();
-  InMemoryInstanceMap    = doc.child("Settings").child("ObjectInfoHelper").attribute("InMemoryInstanceMap").as_bool();
-  CacheAtStartUp    = doc.child("Settings").child("ObjectInfoHelper").attribute("CacheAtStartUp").as_bool();
+  MinNumberOfModules   = doc.child("Settings").child("TypeInfoHelper").attribute("MinNumberOfModules").as_uint();
+  InMemoryInstanceMap  = doc.child("Settings").child("ObjectInfoHelper").attribute("InMemoryInstanceMap").as_bool();
+  CacheAtStartUp       = doc.child("Settings").child("ObjectInfoHelper").attribute("CacheAtStartUp").as_bool();
 
   pugi::xml_node types = doc.child("Settings").child("TypesOfInterest");
   for (pugi::xml_node type = types.child("TypeOfInterest"); type; type = type.next_sibling("TypeOfInterest"))
   {
-    typesOfInterest.insert(type.attribute("Name").as_string());
+    TypesOfInterest.insert(type.attribute("Name").as_string());
   }
 
   pugi::xml_node modules = doc.child("Settings").child("ModulesToIgnore");
   for (pugi::xml_node module = modules.child("ModuleToIgnore"); module; module = module.next_sibling("ModuleToIgnore"))
   {
-    modulesToIgnore.insert(module.attribute("Name").as_string());
+    ModulesToIgnore.insert(module.attribute("Name").as_string());
   }
+
+  DebuggerPrintSettings         = doc.child("Settings").child("Debugger").attribute("PrintSettings").as_bool();
+  DebuggerPrintAllModules       = doc.child("Settings").child("Debugger").attribute("PrintAllModules").as_bool();
+  DebuggerPrintLoadedModules    = doc.child("Settings").child("Debugger").attribute("PrintLoadedModules").as_bool();
+  DebuggerPrintLoadedTypes      = doc.child("Settings").child("Debugger").attribute("PrintLoadedTypes").as_bool();
+  DebuggerPrintLoadedTypeFields = doc.child("Settings").child("Debugger").attribute("PrintLoadedTypesFields").as_bool();
+  DebuggerPrintInheritance      = doc.child("Settings").child("Debugger").attribute("PrintInheritance").as_bool();
 
   // some verification
   if(CacheAtStartUp && !InMemoryInstanceMap)
