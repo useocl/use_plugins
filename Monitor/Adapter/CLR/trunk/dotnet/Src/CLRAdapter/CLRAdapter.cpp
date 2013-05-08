@@ -11,7 +11,7 @@
 #include "../Common/ObjectInfoHelper.h"
 
 TypeInfoHelper typeInfo;
-ObjectInfoHelper objectInfo;
+ObjectInfoHelper objectInfo(typeInfo);
 
 JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_attachToCLR
   (JNIEnv* env, jobject adapter, jlong pid)
