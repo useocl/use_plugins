@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="CLRDebugCallback" Collapsed="true">
+    <Position X="0.5" Y="2" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>CBAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAQAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRDebugCallback.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLRDebugCore" Collapsed="true">
+    <Position X="3.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABACAAAAAAACAKAAAAAAABABABAQAEAAEAACVAAAAE=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRDebugCore.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HelperMethods" Collapsed="true">
+    <Position X="3.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAAAAAAAAAAAAIAAAAAAAAAAAAAgAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DebugBuffer" Collapsed="true">
+    <Position X="5.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAACAAAAAAgAAAAABAIAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\DebugBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DefaultCallback" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>ABbEARBBAADABAURCAAUAEAAkEAAgCAEAIFwgNAAQBA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\DefaultCallback.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="FieldValueHelper" Collapsed="true">
+    <Position X="7" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgAAAAAAAAAAAAAgAAAAAAAAAAAAAgAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\FieldValueHelper.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="InfoBoard" Collapsed="true">
+    <Position X="5.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAABABAAAAAAAAAAACAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\InfoBoard.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ObjectInfoHelper" Collapsed="true">
+    <Position X="3.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAgAAAEAJAABAQgAAQBAAAAAEAAAQQAAQAgAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\ObjectInfoHelper.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Settings" Collapsed="true">
+    <Position X="5.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAACQAABAAAAgAAAAACAAQwBABAQAAAgAAACEAAIAI=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\Settings.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TypeInfoHelper" Collapsed="true">
+    <Position X="7" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAgEQABAIAAAIAAAAIgQBGAAEAAoEgBAAAAAQ=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\TypeInfoHelper.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="JNIHelper" Collapsed="true">
+    <Position X="7" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAAAAAEAAAAAAAAAAAAAAAAAAAgAEAAAAAAAA=</HashCode>
+      <FileName>JNIHelper.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="CStringHash" Collapsed="true">
+    <Position X="0.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Typedef Name="ModuleSet" Collapsed="true">
+    <Position X="0.5" Y="7.25" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="CStringSet" Collapsed="true">
+    <Position X="0.5" Y="5" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="TypeMap" Collapsed="true">
+    <Position X="0.5" Y="6.5" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="TypeMapValue" Collapsed="true">
+    <Position X="4.75" Y="6.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="ObjectMap" Collapsed="true">
+    <Position X="4.75" Y="8" Width="4.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="ObjectMapValue" Collapsed="true">
+    <Position X="0.5" Y="8" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="FieldMap" Collapsed="true">
+    <Position X="4.75" Y="5" Width="4.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="FieldMapValue" Collapsed="true">
+    <Position X="4.75" Y="7.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="MetaFieldMap" Collapsed="true">
+    <Position X="4.75" Y="5.75" Width="4.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="MetaFieldMapValue" Collapsed="true">
+    <Position X="0.5" Y="5.75" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Enum Name="AppType" Collapsed="true">
+    <Position X="3.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAQAAAAAAAAgAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="FieldType" Collapsed="true">
+    <Position X="5.25" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIABAAAAAAAAACAAAAAAAAAAAAAAAAAAAAIAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="TypeInfo" Collapsed="true">
+    <Position X="7" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAEAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAABAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CommonTypes.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

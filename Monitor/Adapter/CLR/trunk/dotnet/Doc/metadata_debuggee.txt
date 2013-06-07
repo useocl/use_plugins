@@ -1,6 +1,6 @@
 ﻿===========================================================
 ScopeName : Debuggee.exe
-MVID      : {2F7625BA-2954-4963-AED2-675FEB7CD3EE}
+MVID      : {927FEEBA-DB08-4C35-BF50-83E526735109}
 ===========================================================
 Global functions
 -------------------------------------------------------
@@ -13,78 +13,22 @@ Global MemberRefs
 
 TypeDef #1 (02000002)
 -------------------------------------------------------
-	TypDefName: Debuggee.NotADog  (02000002)
-	Flags     : [NotPublic] [AutoLayout] [Interface] [Abstract] [AnsiClass]  (000000a0)
-	Extends   : 01000000 [TypeRef] 
-	Method #1 (06000001) 
-	-------------------------------------------------------
-		MethodName: get_LikesDogs (06000001)
-		Flags     : [Public] [Virtual] [HideBySig] [NewSlot] [Abstract] [SpecialName]  (00000dc6)
-		RVA       : 0x00000000
-		ImplFlags : [IL] [Managed]  (00000000)
-		CallCnvntn: [DEFAULT]
-		hasThis 
-		ReturnType: Boolean
-		No arguments.
-
-	Method #2 (06000002) 
-	-------------------------------------------------------
-		MethodName: set_LikesDogs (06000002)
-		Flags     : [Public] [Virtual] [HideBySig] [NewSlot] [Abstract] [SpecialName]  (00000dc6)
-		RVA       : 0x00000000
-		ImplFlags : [IL] [Managed]  (00000000)
-		CallCnvntn: [DEFAULT]
-		hasThis 
-		ReturnType: Void
-		1 Arguments
-			Argument #1:  Boolean
-		1 Parameters
-			(1) ParamToken : (08000001) Name : value flags: [none] (00000000)
-
-	Property #1 (17000001)
-	-------------------------------------------------------
-		Prop.Name : LikesDogs (17000001)
-		Flags     : [none] (00000000)
-		CallCnvntn: [PROPERTY]
-		hasThis 
-		ReturnType: Boolean
-		No arguments.
-		DefltValue: 
-		Setter    : (06000002) set_LikesDogs
-		Getter    : (06000001) get_LikesDogs
-		0 Others
-
-
-TypeDef #2 (02000003)
--------------------------------------------------------
-	TypDefName: Debuggee.Pet  (02000003)
+	TypDefName: Debuggee.Pet  (02000002)
 	Flags     : [NotPublic] [AutoLayout] [Class] [AnsiClass] [BeforeFieldInit]  (00100000)
 	Extends   : 01000001 [TypeRef] System.Object
 	Field #1 (04000001)
 	-------------------------------------------------------
-		Field Name: <Name>k__BackingField (04000001)
+		Field Name: Father (04000001)
+		Flags     : [Public]  (00000006)
+		CallCnvntn: [FIELD]
+		Field type:  Class Debuggee.Pet
+
+	Field #2 (04000002)
+	-------------------------------------------------------
+		Field Name: <Age>k__BackingField (04000002)
 		Flags     : [Private]  (00000001)
 		CallCnvntn: [FIELD]
-		Field type:  String
-		CustomAttribute #1 (0c000001)
-		-------------------------------------------------------
-			CustomAttribute Type: 0a000012
-			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
-			Length: 4
-			Value : 01 00 00 00                                      >                <
-			ctor args: ()
-
-
-	Method #1 (06000003) 
-	-------------------------------------------------------
-		MethodName: get_Name (06000003)
-		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
-		RVA       : 0x000020d0
-		ImplFlags : [IL] [Managed]  (00000000)
-		CallCnvntn: [DEFAULT]
-		hasThis 
-		ReturnType: String
-		No arguments.
+		Field type:  I4
 		CustomAttribute #1 (0c000012)
 		-------------------------------------------------------
 			CustomAttribute Type: 0a000012
@@ -94,19 +38,12 @@ TypeDef #2 (02000003)
 			ctor args: ()
 
 
-	Method #2 (06000004) 
+	Field #3 (04000003)
 	-------------------------------------------------------
-		MethodName: set_Name (06000004)
-		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
-		RVA       : 0x000020e7
-		ImplFlags : [IL] [Managed]  (00000000)
-		CallCnvntn: [DEFAULT]
-		hasThis 
-		ReturnType: Void
-		1 Arguments
-			Argument #1:  String
-		1 Parameters
-			(1) ParamToken : (08000002) Name : value flags: [none] (00000000)
+		Field Name: <Name>k__BackingField (04000003)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  String
 		CustomAttribute #1 (0c000014)
 		-------------------------------------------------------
 			CustomAttribute Type: 0a000012
@@ -116,29 +53,281 @@ TypeDef #2 (02000003)
 			ctor args: ()
 
 
-	Method #3 (06000005) 
+	Field #4 (04000004)
 	-------------------------------------------------------
-		MethodName: SayName (06000005)
-		Flags     : [Public] [HideBySig] [ReuseSlot]  (00000086)
+		Field Name: <Alive>k__BackingField (04000004)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  Boolean
+		CustomAttribute #1 (0c000016)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Field #5 (04000005)
+	-------------------------------------------------------
+		Field Name: <Gender>k__BackingField (04000005)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  I4
+		CustomAttribute #1 (0c000018)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Field #6 (04000006)
+	-------------------------------------------------------
+		Field Name: <Color>k__BackingField (04000006)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  Class Debuggee.Color
+		CustomAttribute #1 (0c00001a)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #1 (06000001) 
+	-------------------------------------------------------
+		MethodName: get_Age (06000001)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x000020d0
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: I4
+		No arguments.
+		CustomAttribute #1 (0c000001)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #2 (06000002) 
+	-------------------------------------------------------
+		MethodName: set_Age (06000002)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x000020e7
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  I4
+		1 Parameters
+			(1) ParamToken : (08000001) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000011)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #3 (06000003) 
+	-------------------------------------------------------
+		MethodName: get_Name (06000003)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
 		RVA       : 0x000020f0
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
-		ReturnType: Void
+		ReturnType: String
 		No arguments.
+		CustomAttribute #1 (0c000013)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
 
-	Method #4 (06000006) 
+
+	Method #4 (06000004) 
 	-------------------------------------------------------
-		MethodName: .ctor (06000006)
+		MethodName: set_Name (06000004)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002107
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  String
+		1 Parameters
+			(1) ParamToken : (08000002) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000015)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #5 (06000005) 
+	-------------------------------------------------------
+		MethodName: get_Alive (06000005)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002110
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Boolean
+		No arguments.
+		CustomAttribute #1 (0c000017)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #6 (06000006) 
+	-------------------------------------------------------
+		MethodName: set_Alive (06000006)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002127
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  Boolean
+		1 Parameters
+			(1) ParamToken : (08000003) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000019)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #7 (06000007) 
+	-------------------------------------------------------
+		MethodName: get_Gender (06000007)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002130
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: I4
+		No arguments.
+		CustomAttribute #1 (0c00001b)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #8 (06000008) 
+	-------------------------------------------------------
+		MethodName: set_Gender (06000008)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002147
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  I4
+		1 Parameters
+			(1) ParamToken : (08000004) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c00001d)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #9 (06000009) 
+	-------------------------------------------------------
+		MethodName: get_Color (06000009)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002150
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Class Debuggee.Color
+		No arguments.
+		CustomAttribute #1 (0c00001f)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #10 (0600000a) 
+	-------------------------------------------------------
+		MethodName: set_Color (0600000A)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002167
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  Class Debuggee.Color
+		1 Parameters
+			(1) ParamToken : (08000005) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000021)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #11 (0600000b) 
+	-------------------------------------------------------
+		MethodName: .ctor (0600000B)
 		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName] [RTSpecialName] [.ctor]  (00001886)
-		RVA       : 0x000020ff
+		RVA       : 0x00002170
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Void
 		No arguments.
 
-	Property #1 (17000002)
+	Property #1 (17000001)
+	-------------------------------------------------------
+		Prop.Name : Age (17000001)
+		Flags     : [none] (00000000)
+		CallCnvntn: [PROPERTY]
+		hasThis 
+		ReturnType: I4
+		No arguments.
+		DefltValue: 
+		Setter    : (06000002) set_Age
+		Getter    : (06000001) get_Age
+		0 Others
+
+	Property #2 (17000002)
 	-------------------------------------------------------
 		Prop.Name : Name (17000002)
 		Flags     : [none] (00000000)
@@ -151,19 +340,282 @@ TypeDef #2 (02000003)
 		Getter    : (06000003) get_Name
 		0 Others
 
+	Property #3 (17000003)
+	-------------------------------------------------------
+		Prop.Name : Alive (17000003)
+		Flags     : [none] (00000000)
+		CallCnvntn: [PROPERTY]
+		hasThis 
+		ReturnType: Boolean
+		No arguments.
+		DefltValue: 
+		Setter    : (06000006) set_Alive
+		Getter    : (06000005) get_Alive
+		0 Others
+
+	Property #4 (17000004)
+	-------------------------------------------------------
+		Prop.Name : Gender (17000004)
+		Flags     : [none] (00000000)
+		CallCnvntn: [PROPERTY]
+		hasThis 
+		ReturnType: I4
+		No arguments.
+		DefltValue: 
+		Setter    : (06000008) set_Gender
+		Getter    : (06000007) get_Gender
+		0 Others
+
+	Property #5 (17000005)
+	-------------------------------------------------------
+		Prop.Name : Color (17000005)
+		Flags     : [none] (00000000)
+		CallCnvntn: [PROPERTY]
+		hasThis 
+		ReturnType: Class Debuggee.Color
+		No arguments.
+		DefltValue: 
+		Setter    : (0600000a) set_Color
+		Getter    : (06000009) get_Color
+		0 Others
+
+
+TypeDef #2 (02000003)
+-------------------------------------------------------
+	TypDefName: Debuggee.Color  (02000003)
+	Flags     : [NotPublic] [AutoLayout] [Class] [AnsiClass] [BeforeFieldInit]  (00100000)
+	Extends   : 01000001 [TypeRef] System.Object
+	Field #1 (04000007)
+	-------------------------------------------------------
+		Field Name: <R>k__BackingField (04000007)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  UI1
+		CustomAttribute #1 (0c00001c)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Field #2 (04000008)
+	-------------------------------------------------------
+		Field Name: <G>k__BackingField (04000008)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  UI1
+		CustomAttribute #1 (0c00001e)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Field #3 (04000009)
+	-------------------------------------------------------
+		Field Name: <B>k__BackingField (04000009)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  UI1
+		CustomAttribute #1 (0c000020)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #1 (0600000c) 
+	-------------------------------------------------------
+		MethodName: get_R (0600000C)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002178
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: UI1
+		No arguments.
+		CustomAttribute #1 (0c000024)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #2 (0600000d) 
+	-------------------------------------------------------
+		MethodName: set_R (0600000D)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x0000218f
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  UI1
+		1 Parameters
+			(1) ParamToken : (08000006) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000026)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #3 (0600000e) 
+	-------------------------------------------------------
+		MethodName: get_G (0600000E)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002198
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: UI1
+		No arguments.
+		CustomAttribute #1 (0c000028)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #4 (0600000f) 
+	-------------------------------------------------------
+		MethodName: set_G (0600000F)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x000021af
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  UI1
+		1 Parameters
+			(1) ParamToken : (08000007) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000029)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #5 (06000010) 
+	-------------------------------------------------------
+		MethodName: get_B (06000010)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x000021b8
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: UI1
+		No arguments.
+		CustomAttribute #1 (0c00002a)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #6 (06000011) 
+	-------------------------------------------------------
+		MethodName: set_B (06000011)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x000021cf
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  UI1
+		1 Parameters
+			(1) ParamToken : (08000008) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c00002c)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #7 (06000012) 
+	-------------------------------------------------------
+		MethodName: .ctor (06000012)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName] [RTSpecialName] [.ctor]  (00001886)
+		RVA       : 0x000021d8
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		No arguments.
+
+	Property #1 (17000006)
+	-------------------------------------------------------
+		Prop.Name : R (17000006)
+		Flags     : [none] (00000000)
+		CallCnvntn: [PROPERTY]
+		hasThis 
+		ReturnType: UI1
+		No arguments.
+		DefltValue: 
+		Setter    : (0600000d) set_R
+		Getter    : (0600000c) get_R
+		0 Others
+
+	Property #2 (17000007)
+	-------------------------------------------------------
+		Prop.Name : G (17000007)
+		Flags     : [none] (00000000)
+		CallCnvntn: [PROPERTY]
+		hasThis 
+		ReturnType: UI1
+		No arguments.
+		DefltValue: 
+		Setter    : (0600000f) set_G
+		Getter    : (0600000e) get_G
+		0 Others
+
+	Property #3 (17000008)
+	-------------------------------------------------------
+		Prop.Name : B (17000008)
+		Flags     : [none] (00000000)
+		CallCnvntn: [PROPERTY]
+		hasThis 
+		ReturnType: UI1
+		No arguments.
+		DefltValue: 
+		Setter    : (06000011) set_B
+		Getter    : (06000010) get_B
+		0 Others
+
 
 TypeDef #3 (02000004)
 -------------------------------------------------------
 	TypDefName: Debuggee.Dog  (02000004)
 	Flags     : [NotPublic] [AutoLayout] [Class] [AnsiClass] [BeforeFieldInit]  (00100000)
-	Extends   : 02000003 [TypeDef] Debuggee.Pet
-	Field #1 (04000002)
+	Extends   : 02000002 [TypeDef] Debuggee.Pet
+	Field #1 (0400000a)
 	-------------------------------------------------------
-		Field Name: <HasLicence>k__BackingField (04000002)
+		Field Name: <HasDogTag>k__BackingField (0400000A)
 		Flags     : [Private]  (00000001)
 		CallCnvntn: [FIELD]
 		Field type:  Boolean
-		CustomAttribute #1 (0c000011)
+		CustomAttribute #1 (0c000022)
 		-------------------------------------------------------
 			CustomAttribute Type: 0a000012
 			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
@@ -172,17 +624,17 @@ TypeDef #3 (02000004)
 			ctor args: ()
 
 
-	Method #1 (06000007) 
+	Method #1 (06000013) 
 	-------------------------------------------------------
-		MethodName: get_HasLicence (06000007)
+		MethodName: get_HasDogTag (06000013)
 		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
-		RVA       : 0x00002108
+		RVA       : 0x000021e0
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Boolean
 		No arguments.
-		CustomAttribute #1 (0c000016)
+		CustomAttribute #1 (0c00002f)
 		-------------------------------------------------------
 			CustomAttribute Type: 0a000012
 			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
@@ -191,11 +643,11 @@ TypeDef #3 (02000004)
 			ctor args: ()
 
 
-	Method #2 (06000008) 
+	Method #2 (06000014) 
 	-------------------------------------------------------
-		MethodName: set_HasLicence (06000008)
+		MethodName: set_HasDogTag (06000014)
 		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
-		RVA       : 0x0000211f
+		RVA       : 0x000021f7
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
@@ -203,8 +655,8 @@ TypeDef #3 (02000004)
 		1 Arguments
 			Argument #1:  Boolean
 		1 Parameters
-			(1) ParamToken : (08000003) Name : value flags: [none] (00000000)
-		CustomAttribute #1 (0c000017)
+			(1) ParamToken : (08000009) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000031)
 		-------------------------------------------------------
 			CustomAttribute Type: 0a000012
 			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
@@ -213,43 +665,43 @@ TypeDef #3 (02000004)
 			ctor args: ()
 
 
-	Method #3 (06000009) 
+	Method #3 (06000015) 
 	-------------------------------------------------------
-		MethodName: .ctor (06000009)
+		MethodName: .ctor (06000015)
 		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName] [RTSpecialName] [.ctor]  (00001886)
-		RVA       : 0x00002128
+		RVA       : 0x00002200
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Void
 		No arguments.
 
-	Property #1 (17000003)
+	Property #1 (17000009)
 	-------------------------------------------------------
-		Prop.Name : HasLicence (17000003)
+		Prop.Name : HasDogTag (17000009)
 		Flags     : [none] (00000000)
 		CallCnvntn: [PROPERTY]
 		hasThis 
 		ReturnType: Boolean
 		No arguments.
 		DefltValue: 
-		Setter    : (06000008) set_HasLicence
-		Getter    : (06000007) get_HasLicence
+		Setter    : (06000014) set_HasDogTag
+		Getter    : (06000013) get_HasDogTag
 		0 Others
 
 
 TypeDef #4 (02000005)
 -------------------------------------------------------
-	TypDefName: Debuggee.Cat  (02000005)
+	TypDefName: Debuggee.Mouse  (02000005)
 	Flags     : [NotPublic] [AutoLayout] [Class] [AnsiClass] [BeforeFieldInit]  (00100000)
-	Extends   : 02000003 [TypeDef] Debuggee.Pet
-	Field #1 (04000003)
+	Extends   : 02000002 [TypeDef] Debuggee.Pet
+	Field #1 (0400000b)
 	-------------------------------------------------------
-		Field Name: <IsSleeping>k__BackingField (04000003)
+		Field Name: <Safe>k__BackingField (0400000B)
 		Flags     : [Private]  (00000001)
 		CallCnvntn: [FIELD]
 		Field type:  Boolean
-		CustomAttribute #1 (0c000013)
+		CustomAttribute #1 (0c000023)
 		-------------------------------------------------------
 			CustomAttribute Type: 0a000012
 			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
@@ -258,32 +710,17 @@ TypeDef #4 (02000005)
 			ctor args: ()
 
 
-	Field #2 (04000004)
+	Method #1 (06000016) 
 	-------------------------------------------------------
-		Field Name: <LikesDogs>k__BackingField (04000004)
-		Flags     : [Private]  (00000001)
-		CallCnvntn: [FIELD]
-		Field type:  Boolean
-		CustomAttribute #1 (0c000015)
-		-------------------------------------------------------
-			CustomAttribute Type: 0a000012
-			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
-			Length: 4
-			Value : 01 00 00 00                                      >                <
-			ctor args: ()
-
-
-	Method #1 (0600000a) 
-	-------------------------------------------------------
-		MethodName: get_IsSleeping (0600000A)
+		MethodName: get_Safe (06000016)
 		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
-		RVA       : 0x00002130
+		RVA       : 0x00002208
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Boolean
 		No arguments.
-		CustomAttribute #1 (0c000018)
+		CustomAttribute #1 (0c000032)
 		-------------------------------------------------------
 			CustomAttribute Type: 0a000012
 			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
@@ -292,11 +729,11 @@ TypeDef #4 (02000005)
 			ctor args: ()
 
 
-	Method #2 (0600000b) 
+	Method #2 (06000017) 
 	-------------------------------------------------------
-		MethodName: set_IsSleeping (0600000B)
+		MethodName: set_Safe (06000017)
 		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
-		RVA       : 0x00002147
+		RVA       : 0x0000221f
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
@@ -304,8 +741,8 @@ TypeDef #4 (02000005)
 		1 Arguments
 			Argument #1:  Boolean
 		1 Parameters
-			(1) ParamToken : (08000004) Name : value flags: [none] (00000000)
-		CustomAttribute #1 (0c000019)
+			(1) ParamToken : (0800000a) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000033)
 		-------------------------------------------------------
 			CustomAttribute Type: 0a000012
 			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
@@ -314,129 +751,292 @@ TypeDef #4 (02000005)
 			ctor args: ()
 
 
-	Method #3 (0600000c) 
+	Method #3 (06000018) 
 	-------------------------------------------------------
-		MethodName: get_LikesDogs (0600000C)
-		Flags     : [Public] [Final] [Virtual] [HideBySig] [NewSlot] [SpecialName]  (000009e6)
-		RVA       : 0x00002150
-		ImplFlags : [IL] [Managed]  (00000000)
-		CallCnvntn: [DEFAULT]
-		hasThis 
-		ReturnType: Boolean
-		No arguments.
-		CustomAttribute #1 (0c00001a)
-		-------------------------------------------------------
-			CustomAttribute Type: 0a000012
-			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
-			Length: 4
-			Value : 01 00 00 00                                      >                <
-			ctor args: ()
-
-
-	Method #4 (0600000d) 
-	-------------------------------------------------------
-		MethodName: set_LikesDogs (0600000D)
-		Flags     : [Public] [Final] [Virtual] [HideBySig] [NewSlot] [SpecialName]  (000009e6)
-		RVA       : 0x00002167
-		ImplFlags : [IL] [Managed]  (00000000)
-		CallCnvntn: [DEFAULT]
-		hasThis 
-		ReturnType: Void
-		1 Arguments
-			Argument #1:  Boolean
-		1 Parameters
-			(1) ParamToken : (08000005) Name : value flags: [none] (00000000)
-		CustomAttribute #1 (0c00001b)
-		-------------------------------------------------------
-			CustomAttribute Type: 0a000012
-			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
-			Length: 4
-			Value : 01 00 00 00                                      >                <
-			ctor args: ()
-
-
-	Method #5 (0600000e) 
-	-------------------------------------------------------
-		MethodName: .ctor (0600000E)
+		MethodName: .ctor (06000018)
 		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName] [RTSpecialName] [.ctor]  (00001886)
-		RVA       : 0x00002170
+		RVA       : 0x00002228
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Void
 		No arguments.
 
-	Property #1 (17000004)
+	Property #1 (1700000a)
 	-------------------------------------------------------
-		Prop.Name : IsSleeping (17000004)
+		Prop.Name : Safe (1700000A)
 		Flags     : [none] (00000000)
 		CallCnvntn: [PROPERTY]
 		hasThis 
 		ReturnType: Boolean
 		No arguments.
 		DefltValue: 
-		Setter    : (0600000b) set_IsSleeping
-		Getter    : (0600000a) get_IsSleeping
+		Setter    : (06000017) set_Safe
+		Getter    : (06000016) get_Safe
 		0 Others
-
-	Property #2 (17000005)
-	-------------------------------------------------------
-		Prop.Name : LikesDogs (17000005)
-		Flags     : [none] (00000000)
-		CallCnvntn: [PROPERTY]
-		hasThis 
-		ReturnType: Boolean
-		No arguments.
-		DefltValue: 
-		Setter    : (0600000d) set_LikesDogs
-		Getter    : (0600000c) get_LikesDogs
-		0 Others
-
-	InterfaceImpl #1 (09000001)
-	-------------------------------------------------------
-		Class     : Debuggee.Cat
-		Token     : 02000002 [TypeDef] Debuggee.NotADog
 
 
 TypeDef #5 (02000006)
 -------------------------------------------------------
-	TypDefName: Debuggee.MainClass  (02000006)
+	TypDefName: Debuggee.Cat  (02000006)
+	Flags     : [NotPublic] [AutoLayout] [Class] [AnsiClass] [BeforeFieldInit]  (00100000)
+	Extends   : 02000002 [TypeDef] Debuggee.Pet
+	Field #1 (0400000c)
+	-------------------------------------------------------
+		Field Name: <Sleeping>k__BackingField (0400000C)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  Boolean
+		CustomAttribute #1 (0c000025)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Field #2 (0400000d)
+	-------------------------------------------------------
+		Field Name: <Hungry>k__BackingField (0400000D)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  Boolean
+		CustomAttribute #1 (0c000027)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #1 (06000019) 
+	-------------------------------------------------------
+		MethodName: get_Sleeping (06000019)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002230
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Boolean
+		No arguments.
+		CustomAttribute #1 (0c000034)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #2 (0600001a) 
+	-------------------------------------------------------
+		MethodName: set_Sleeping (0600001A)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002247
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  Boolean
+		1 Parameters
+			(1) ParamToken : (0800000b) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000035)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #3 (0600001b) 
+	-------------------------------------------------------
+		MethodName: get_Hungry (0600001B)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002250
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Boolean
+		No arguments.
+		CustomAttribute #1 (0c000036)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #4 (0600001c) 
+	-------------------------------------------------------
+		MethodName: set_Hungry (0600001C)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName]  (00000886)
+		RVA       : 0x00002267
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  Boolean
+		1 Parameters
+			(1) ParamToken : (0800000c) Name : value flags: [none] (00000000)
+		CustomAttribute #1 (0c000037)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #5 (0600001d) 
+	-------------------------------------------------------
+		MethodName: Eat (0600001D)
+		Flags     : [Public] [HideBySig] [ReuseSlot]  (00000086)
+		RVA       : 0x00002270
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		1 Arguments
+			Argument #1:  Class Debuggee.Mouse
+		1 Parameters
+			(1) ParamToken : (0800000d) Name : m flags: [none] (00000000)
+
+	Method #6 (0600001e) 
+	-------------------------------------------------------
+		MethodName: .ctor (0600001E)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName] [RTSpecialName] [.ctor]  (00001886)
+		RVA       : 0x00002303
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		No arguments.
+
+	Property #1 (1700000b)
+	-------------------------------------------------------
+		Prop.Name : Sleeping (1700000B)
+		Flags     : [none] (00000000)
+		CallCnvntn: [PROPERTY]
+		hasThis 
+		ReturnType: Boolean
+		No arguments.
+		DefltValue: 
+		Setter    : (0600001a) set_Sleeping
+		Getter    : (06000019) get_Sleeping
+		0 Others
+
+	Property #2 (1700000c)
+	-------------------------------------------------------
+		Prop.Name : Hungry (1700000C)
+		Flags     : [none] (00000000)
+		CallCnvntn: [PROPERTY]
+		hasThis 
+		ReturnType: Boolean
+		No arguments.
+		DefltValue: 
+		Setter    : (0600001c) set_Hungry
+		Getter    : (0600001b) get_Hungry
+		0 Others
+
+
+TypeDef #6 (02000007)
+-------------------------------------------------------
+	TypDefName: Debuggee.MainClass  (02000007)
 	Flags     : [NotPublic] [AutoLayout] [Class] [AnsiClass] [BeforeFieldInit]  (00100000)
 	Extends   : 01000001 [TypeRef] System.Object
-	Field #1 (04000005)
+	Field #1 (0400000e)
 	-------------------------------------------------------
-		Field Name: MAX_PETS (04000005)
-		Flags     : [Private] [InitOnly]  (00000021)
-		CallCnvntn: [FIELD]
-		Field type:  I4
-
-	Field #2 (04000006)
-	-------------------------------------------------------
-		Field Name: TIME_SPAN (04000006)
-		Flags     : [Private] [InitOnly]  (00000021)
-		CallCnvntn: [FIELD]
-		Field type:  I4
-
-	Field #3 (04000007)
-	-------------------------------------------------------
-		Field Name: Pets (04000007)
+		Field Name: pets (0400000E)
 		Flags     : [Private]  (00000001)
 		CallCnvntn: [FIELD]
 		Field type:  GenericInst Class System.Collections.Generic.List`1< Class Debuggee.Pet>
 
-	Method #1 (0600000f) [ENTRYPOINT]
+	Field #2 (0400000f)
 	-------------------------------------------------------
-		MethodName: Main (0600000F)
+		Field Name: colors (0400000F)
+		Flags     : [Private]  (00000001)
+		CallCnvntn: [FIELD]
+		Field type:  GenericInst Class System.Collections.Generic.List`1< Class Debuggee.Color>
+
+	Field #3 (04000010)
+	-------------------------------------------------------
+		Field Name: CS$<>9__CachedAnonymousMethodDelegate10 (04000010)
+		Flags     : [Private] [Static]  (00000011)
+		CallCnvntn: [FIELD]
+		Field type:  GenericInst Class System.Func`2< Class Debuggee.Pet, Boolean>
+		CustomAttribute #1 (0c00002b)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Field #4 (04000011)
+	-------------------------------------------------------
+		Field Name: CS$<>9__CachedAnonymousMethodDelegate11 (04000011)
+		Flags     : [Private] [Static]  (00000011)
+		CallCnvntn: [FIELD]
+		Field type:  GenericInst Class System.Func`2< Class Debuggee.Pet, Boolean>
+		CustomAttribute #1 (0c00002d)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Field #5 (04000012)
+	-------------------------------------------------------
+		Field Name: CS$<>9__CachedAnonymousMethodDelegate12 (04000012)
+		Flags     : [Private] [Static]  (00000011)
+		CallCnvntn: [FIELD]
+		Field type:  GenericInst Class System.Func`2< Class Debuggee.Pet, Boolean>
+		CustomAttribute #1 (0c00002e)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Field #6 (04000013)
+	-------------------------------------------------------
+		Field Name: CS$<>9__CachedAnonymousMethodDelegate13 (04000013)
+		Flags     : [Private] [Static]  (00000011)
+		CallCnvntn: [FIELD]
+		Field type:  GenericInst Class System.Func`2< Class Debuggee.Pet, Boolean>
+		CustomAttribute #1 (0c000030)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #1 (0600001f) [ENTRYPOINT]
+	-------------------------------------------------------
+		MethodName: Main (0600001F)
 		Flags     : [Private] [Static] [HideBySig] [ReuseSlot]  (00000091)
-		RVA       : 0x00002178
+		RVA       : 0x0000230c
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		ReturnType: Void
 		1 Arguments
 			Argument #1:  SZArray String
 		1 Parameters
-			(1) ParamToken : (08000006) Name : args flags: [none] (00000000)
-		CustomAttribute #1 (0c00001c)
+			(1) ParamToken : (0800000e) Name : args flags: [none] (00000000)
+		CustomAttribute #1 (0c000038)
 		-------------------------------------------------------
 			CustomAttribute Type: 0a000015
 			CustomAttributeName: System.STAThreadAttribute :: instance void .ctor()
@@ -445,51 +1045,111 @@ TypeDef #5 (02000006)
 			ctor args: ()
 
 
-	Method #2 (06000010) 
+	Method #2 (06000020) 
 	-------------------------------------------------------
-		MethodName: DoSomething (06000010)
+		MethodName: CreateBasicSnapshot (06000020)
 		Flags     : [Private] [HideBySig] [ReuseSlot]  (00000081)
-		RVA       : 0x000021a4
+		RVA       : 0x000023fc
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Void
 		No arguments.
 
-	Method #3 (06000011) 
+	Method #3 (06000021) 
 	-------------------------------------------------------
-		MethodName: CreateSomePets (06000011)
-		Flags     : [Private] [HideBySig] [ReuseSlot]  (00000081)
-		RVA       : 0x000021e0
+		MethodName: .ctor (06000021)
+		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName] [RTSpecialName] [.ctor]  (00001886)
+		RVA       : 0x0000281b
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Void
 		No arguments.
 
-	Method #4 (06000012) 
+	Method #4 (06000022) 
 	-------------------------------------------------------
-		MethodName: PrintName (06000012)
+		MethodName: <CreateBasicSnapshot>b__c (06000022)
 		Flags     : [Private] [Static] [HideBySig] [ReuseSlot]  (00000091)
-		RVA       : 0x000022d0
+		RVA       : 0x0000236c
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
-		ReturnType: Void
+		ReturnType: Boolean
 		1 Arguments
 			Argument #1:  Class Debuggee.Pet
 		1 Parameters
-			(1) ParamToken : (08000007) Name : pet flags: [none] (00000000)
+			(1) ParamToken : (0800000f) Name : x flags: [none] (00000000)
+		CustomAttribute #1 (0c000039)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
 
-	Method #5 (06000013) 
+
+	Method #5 (06000023) 
 	-------------------------------------------------------
-		MethodName: .ctor (06000013)
-		Flags     : [Public] [HideBySig] [ReuseSlot] [SpecialName] [RTSpecialName] [.ctor]  (00001886)
-		RVA       : 0x000022da
+		MethodName: <CreateBasicSnapshot>b__d (06000023)
+		Flags     : [Private] [Static] [HideBySig] [ReuseSlot]  (00000091)
+		RVA       : 0x00002390
 		ImplFlags : [IL] [Managed]  (00000000)
 		CallCnvntn: [DEFAULT]
-		hasThis 
-		ReturnType: Void
-		No arguments.
+		ReturnType: Boolean
+		1 Arguments
+			Argument #1:  Class Debuggee.Pet
+		1 Parameters
+			(1) ParamToken : (08000010) Name : x flags: [none] (00000000)
+		CustomAttribute #1 (0c00003a)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #6 (06000024) 
+	-------------------------------------------------------
+		MethodName: <CreateBasicSnapshot>b__e (06000024)
+		Flags     : [Private] [Static] [HideBySig] [ReuseSlot]  (00000091)
+		RVA       : 0x000023b4
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		ReturnType: Boolean
+		1 Arguments
+			Argument #1:  Class Debuggee.Pet
+		1 Parameters
+			(1) ParamToken : (08000011) Name : x flags: [none] (00000000)
+		CustomAttribute #1 (0c00003b)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
+
+	Method #7 (06000025) 
+	-------------------------------------------------------
+		MethodName: <CreateBasicSnapshot>b__f (06000025)
+		Flags     : [Private] [Static] [HideBySig] [ReuseSlot]  (00000091)
+		RVA       : 0x000023d8
+		ImplFlags : [IL] [Managed]  (00000000)
+		CallCnvntn: [DEFAULT]
+		ReturnType: Boolean
+		1 Arguments
+			Argument #1:  Class Debuggee.Pet
+		1 Parameters
+			(1) ParamToken : (08000012) Name : x flags: [none] (00000000)
+		CustomAttribute #1 (0c00003c)
+		-------------------------------------------------------
+			CustomAttribute Type: 0a000012
+			CustomAttributeName: System.Runtime.CompilerServices.CompilerGeneratedAttribute :: instance void .ctor()
+			Length: 4
+			Value : 01 00 00 00                                      >                <
+			ctor args: ()
+
 
 
 TypeRef #1 (01000001)
@@ -497,9 +1157,9 @@ TypeRef #1 (01000001)
 Token:             0x01000001
 ResolutionScope:   0x23000001
 TypeRefName:       System.Object
-	MemberRef #1 (0a000014)
+	MemberRef #1 (0a000013)
 	-------------------------------------------------------
-		Member: (0a000014) .ctor: 
+		Member: (0a000013) .ctor: 
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Void
@@ -770,23 +1430,16 @@ TypeRefName:       System.Runtime.CompilerServices.CompilerGeneratedAttribute
 TypeRef #22 (01000016)
 -------------------------------------------------------
 Token:             0x01000016
-ResolutionScope:   0x23000001
-TypeRefName:       System.Console
-	MemberRef #1 (0a000013)
+ResolutionScope:   0x23000002
+TypeRefName:       System.Diagnostics.Debug
+	MemberRef #1 (0a000014)
 	-------------------------------------------------------
-		Member: (0a000013) WriteLine: 
-		CallCnvntn: [DEFAULT]
-		ReturnType: Void
-		1 Arguments
-			Argument #1:  String
-	MemberRef #2 (0a000017)
-	-------------------------------------------------------
-		Member: (0a000017) WriteLine: 
+		Member: (0a000014) Assert: 
 		CallCnvntn: [DEFAULT]
 		ReturnType: Void
 		2 Arguments
-			Argument #1:  String
-			Argument #2:  Object
+			Argument #1:  Boolean
+			Argument #2:  String
 
 TypeRef #23 (01000017)
 -------------------------------------------------------
@@ -822,92 +1475,157 @@ TypeRefName:       System.Version
 TypeRef #26 (0100001a)
 -------------------------------------------------------
 Token:             0x0100001a
-ResolutionScope:   0x23000002
-TypeRefName:       System.Linq.Enumerable
-	MemberRef #1 (0a000018)
+ResolutionScope:   0x23000001
+TypeRefName:       System.Console
+	MemberRef #1 (0a000017)
 	-------------------------------------------------------
-		Member: (0a000018) Last: 
+		Member: (0a000017) WriteLine: 
 		CallCnvntn: [DEFAULT]
-		generic 
-		Type Arity:1 
-		ReturnType: MVar!!0
+		ReturnType: Void
+		2 Arguments
+			Argument #1:  String
+			Argument #2:  Object
+	MemberRef #2 (0a00001c)
+	-------------------------------------------------------
+		Member: (0a00001c) WriteLine: 
+		CallCnvntn: [DEFAULT]
+		ReturnType: Void
 		1 Arguments
-			Argument #1:  GenericInst Class System.Collections.Generic.IEnumerable`1< MVar!!0>
+			Argument #1:  String
+	MemberRef #3 (0a00001d)
+	-------------------------------------------------------
+		Member: (0a00001d) Read: 
+		CallCnvntn: [DEFAULT]
+		ReturnType: I4
+		No arguments.
 
 TypeRef #27 (0100001b)
 -------------------------------------------------------
 Token:             0x0100001b
-ResolutionScope:   0x23000001
-TypeRefName:       System.Collections.Generic.IEnumerable`1
+ResolutionScope:   0x23000002
+TypeRefName:       System.Diagnostics.Process
+	MemberRef #1 (0a000018)
+	-------------------------------------------------------
+		Member: (0a000018) GetCurrentProcess: 
+		CallCnvntn: [DEFAULT]
+		ReturnType: Class System.Diagnostics.Process
+		No arguments.
+	MemberRef #2 (0a000019)
+	-------------------------------------------------------
+		Member: (0a000019) get_Id: 
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: I4
+		No arguments.
 
 TypeRef #28 (0100001c)
 -------------------------------------------------------
 Token:             0x0100001c
 ResolutionScope:   0x23000001
-TypeRefName:       System.Threading.Thread
-	MemberRef #1 (0a000019)
+TypeRefName:       System.Int32
+	MemberRef #1 (0a00001a)
 	-------------------------------------------------------
-		Member: (0a000019) Sleep: 
+		Member: (0a00001a) ToString: 
 		CallCnvntn: [DEFAULT]
-		ReturnType: Void
-		1 Arguments
-			Argument #1:  I4
+		hasThis 
+		ReturnType: String
+		No arguments.
 
 TypeRef #29 (0100001d)
 -------------------------------------------------------
 Token:             0x0100001d
 ResolutionScope:   0x23000001
-TypeRefName:       System.Int32
+TypeRefName:       System.String
 	MemberRef #1 (0a00001b)
 	-------------------------------------------------------
-		Member: (0a00001b) ToString: 
-		CallCnvntn: [DEFAULT]
-		hasThis 
-		ReturnType: String
-		No arguments.
-
-TypeRef #30 (0100001e)
--------------------------------------------------------
-Token:             0x0100001e
-ResolutionScope:   0x23000001
-TypeRefName:       System.String
-	MemberRef #1 (0a00001c)
-	-------------------------------------------------------
-		Member: (0a00001c) Concat: 
+		Member: (0a00001b) Concat: 
 		CallCnvntn: [DEFAULT]
 		ReturnType: String
 		2 Arguments
 			Argument #1:  String
 			Argument #2:  String
+	MemberRef #2 (0a00001e)
+	-------------------------------------------------------
+		Member: (0a00001e) op_Equality: 
+		CallCnvntn: [DEFAULT]
+		ReturnType: Boolean
+		2 Arguments
+			Argument #1:  String
+			Argument #2:  String
+
+TypeRef #30 (0100001e)
+-------------------------------------------------------
+Token:             0x0100001e
+ResolutionScope:   0x23000001
+TypeRefName:       System.Func`2
+
+TypeRef #31 (0100001f)
+-------------------------------------------------------
+Token:             0x0100001f
+ResolutionScope:   0x23000003
+TypeRefName:       System.Linq.Enumerable
+	MemberRef #1 (0a000021)
+	-------------------------------------------------------
+		Member: (0a000021) Single: 
+		CallCnvntn: [DEFAULT]
+		generic 
+		Type Arity:1 
+		ReturnType: MVar!!0
+		2 Arguments
+			Argument #1:  GenericInst Class System.Collections.Generic.IEnumerable`1< MVar!!0>
+			Argument #2:  GenericInst Class System.Func`2< MVar!!0, Boolean>
+
+TypeRef #32 (01000020)
+-------------------------------------------------------
+Token:             0x01000020
+ResolutionScope:   0x23000001
+TypeRefName:       System.Collections.Generic.IEnumerable`1
 
 TypeSpec #1 (1b000001)
 -------------------------------------------------------
 	TypeSpec : GenericInst Class System.Collections.Generic.List`1< Class Debuggee.Pet>
-	MemberRef #1 (0a00001a)
+	MemberRef #1 (0a00001f)
 	-------------------------------------------------------
-		Member: (0a00001a) get_Count: 
-		CallCnvntn: [DEFAULT]
-		hasThis 
-		ReturnType: I4
-		No arguments.
-	MemberRef #2 (0a00001d)
-	-------------------------------------------------------
-		Member: (0a00001d) Add: 
+		Member: (0a00001f) Add: 
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Void
 		1 Arguments
 			Argument #1:  Var!0
-	MemberRef #3 (0a00001e)
+	MemberRef #2 (0a000022)
 	-------------------------------------------------------
-		Member: (0a00001e) .ctor: 
+		Member: (0a000022) .ctor: 
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		No arguments.
+
+TypeSpec #2 (1b000002)
+-------------------------------------------------------
+	TypeSpec : GenericInst Class System.Func`2< Class Debuggee.Pet, Boolean>
+	MemberRef #1 (0a000020)
+	-------------------------------------------------------
+		Member: (0a000020) .ctor: 
+		CallCnvntn: [DEFAULT]
+		hasThis 
+		ReturnType: Void
+		2 Arguments
+			Argument #1:  Object
+			Argument #2:  I
+
+TypeSpec #3 (1b000003)
+-------------------------------------------------------
+	TypeSpec : GenericInst Class System.Collections.Generic.List`1< Class Debuggee.Color>
+	MemberRef #1 (0a000023)
+	-------------------------------------------------------
+		Member: (0a000023) .ctor: 
 		CallCnvntn: [DEFAULT]
 		hasThis 
 		ReturnType: Void
 		No arguments.
 
 MethodSpec #1 (2b000001)
-	Parent   : 0x0a000018
+	Parent   : 0x0a000021
 		CallCnvntn: [GENERICINST]
 		1 Arguments
 			Argument #1:  Class Debuggee.Pet
@@ -916,29 +1634,60 @@ Signature #1 (0x11000001)
 -------------------------------------------------------
 		CallCnvntn: [LOCALSIG]
 		1 Arguments
-			Argument #1:  String
+			Argument #1:  I4
 
 Signature #2 (0x11000002)
 -------------------------------------------------------
 		CallCnvntn: [LOCALSIG]
 		1 Arguments
-			Argument #1:  Boolean
+			Argument #1:  String
 
 Signature #3 (0x11000003)
 -------------------------------------------------------
 		CallCnvntn: [LOCALSIG]
 		1 Arguments
-			Argument #1:  Class Debuggee.MainClass
+			Argument #1:  Boolean
 
 Signature #4 (0x11000004)
 -------------------------------------------------------
 		CallCnvntn: [LOCALSIG]
-		5 Arguments
-			Argument #1:  Class Debuggee.Cat
-			Argument #2:  Class Debuggee.Cat
-			Argument #3:  Class Debuggee.Dog
-			Argument #4:  Boolean
-			Argument #5:  I4
+		1 Arguments
+			Argument #1:  Class Debuggee.Color
+
+Signature #5 (0x11000005)
+-------------------------------------------------------
+		CallCnvntn: [LOCALSIG]
+		1 Arguments
+			Argument #1:  UI1
+
+Signature #6 (0x11000006)
+-------------------------------------------------------
+		CallCnvntn: [LOCALSIG]
+		2 Arguments
+			Argument #1:  Class Debuggee.MainClass
+			Argument #2:  I4
+
+Signature #7 (0x11000007)
+-------------------------------------------------------
+		CallCnvntn: [LOCALSIG]
+		17 Arguments
+			Argument #1:  Class Debuggee.Color
+			Argument #2:  Class Debuggee.Color
+			Argument #3:  Class Debuggee.Color
+			Argument #4:  Class Debuggee.Color
+			Argument #5:  Class Debuggee.Pet
+			Argument #6:  Class Debuggee.Color
+			Argument #7:  Class Debuggee.Color
+			Argument #8:  Class Debuggee.Color
+			Argument #9:  Class Debuggee.Color
+			Argument #10:  Class Debuggee.Cat
+			Argument #11:  Class Debuggee.Cat
+			Argument #12:  Class Debuggee.Cat
+			Argument #13:  Class Debuggee.Cat
+			Argument #14:  Class Debuggee.Cat
+			Argument #15:  Class Debuggee.Dog
+			Argument #16:  Class Debuggee.Mouse
+			Argument #17:  Class Debuggee.Mouse
 
 Assembly
 -------------------------------------------------------
@@ -961,6 +1710,31 @@ Assembly
 	Flags : [PublicKey]  (00000001)
 	CustomAttribute #1 (0c000002)
 	-------------------------------------------------------
+		CustomAttribute Type: 0a000010
+		CustomAttributeName: System.Runtime.CompilerServices.CompilationRelaxationsAttribute :: instance void .ctor(int32)
+		Length: 8
+		Value : 01 00 08 00 00 00 00 00                          >                <
+		ctor args: (8)
+
+	CustomAttribute #2 (0c000003)
+	-------------------------------------------------------
+		CustomAttribute Type: 0a00000f
+		CustomAttributeName: System.Diagnostics.DebuggableAttribute :: instance void .ctor(value class DebuggingModes)
+		Length: 8
+		Value : 01 00 07 01 00 00 00 00                          >                <
+		ctor args: ( <can not decode> )
+
+	CustomAttribute #3 (0c000004)
+	-------------------------------------------------------
+		CustomAttribute Type: 0a000011
+		CustomAttributeName: System.Runtime.CompilerServices.RuntimeCompatibilityAttribute :: instance void .ctor()
+		Length: 30
+		Value : 01 00 01 00 54 02 16 57  72 61 70 4e 6f 6e 45 78 >    T  WrapNonEx<
+                      : 63 65 70 74 69 6f 6e 54  68 72 6f 77 73 01       >ceptionThrows   <
+		ctor args: ()
+
+	CustomAttribute #4 (0c000005)
+	-------------------------------------------------------
 		CustomAttribute Type: 0a000001
 		CustomAttributeName: System.Runtime.Versioning.TargetFrameworkAttribute :: instance void .ctor(class System.String)
 		Length: 71
@@ -971,7 +1745,7 @@ Assembly
                       : 65 77 6f 72 6b 20 34                             >ework 4         <
 		ctor args: (".NETFramework,Version=v4.0")
 
-	CustomAttribute #2 (0c000003)
+	CustomAttribute #5 (0c000006)
 	-------------------------------------------------------
 		CustomAttribute Type: 0a000002
 		CustomAttributeName: System.Reflection.AssemblyTitleAttribute :: instance void .ctor(class System.String)
@@ -979,7 +1753,7 @@ Assembly
 		Value : 01 00 08 44 65 62 75 67  67 65 65 00 00          >   Debuggee     <
 		ctor args: ("Debuggee")
 
-	CustomAttribute #3 (0c000004)
+	CustomAttribute #6 (0c000007)
 	-------------------------------------------------------
 		CustomAttribute Type: 0a000003
 		CustomAttributeName: System.Reflection.AssemblyDescriptionAttribute :: instance void .ctor(class System.String)
@@ -987,16 +1761,23 @@ Assembly
 		Value : 01 00 00 00 00                                   >                <
 		ctor args: ("")
 
-	CustomAttribute #4 (0c000005)
+	CustomAttribute #7 (0c000008)
 	-------------------------------------------------------
-		CustomAttribute Type: 0a000011
-		CustomAttributeName: System.Runtime.CompilerServices.RuntimeCompatibilityAttribute :: instance void .ctor()
-		Length: 30
-		Value : 01 00 01 00 54 02 16 57  72 61 70 4e 6f 6e 45 78 >    T  WrapNonEx<
-                      : 63 65 70 74 69 6f 6e 54  68 72 6f 77 73 01       >ceptionThrows   <
-		ctor args: ()
+		CustomAttribute Type: 0a000004
+		CustomAttributeName: System.Reflection.AssemblyConfigurationAttribute :: instance void .ctor(class System.String)
+		Length: 5
+		Value : 01 00 00 00 00                                   >                <
+		ctor args: ("")
 
-	CustomAttribute #5 (0c000006)
+	CustomAttribute #8 (0c000009)
+	-------------------------------------------------------
+		CustomAttribute Type: 0a000005
+		CustomAttributeName: System.Reflection.AssemblyCompanyAttribute :: instance void .ctor(class System.String)
+		Length: 5
+		Value : 01 00 00 00 00                                   >                <
+		ctor args: ("")
+
+	CustomAttribute #9 (0c00000a)
 	-------------------------------------------------------
 		CustomAttribute Type: 0a000006
 		CustomAttributeName: System.Reflection.AssemblyProductAttribute :: instance void .ctor(class System.String)
@@ -1004,7 +1785,7 @@ Assembly
 		Value : 01 00 08 44 65 62 75 67  67 65 65 00 00          >   Debuggee     <
 		ctor args: ("Debuggee")
 
-	CustomAttribute #6 (0c000007)
+	CustomAttribute #10 (0c00000b)
 	-------------------------------------------------------
 		CustomAttribute Type: 0a000007
 		CustomAttributeName: System.Reflection.AssemblyCopyrightAttribute :: instance void .ctor(class System.String)
@@ -1013,15 +1794,7 @@ Assembly
                       : 20 32 30 31 32 00 00                             > 2012           <
 		ctor args: ("Copyright ©  2012")
 
-	CustomAttribute #7 (0c000008)
-	-------------------------------------------------------
-		CustomAttribute Type: 0a000010
-		CustomAttributeName: System.Runtime.CompilerServices.CompilationRelaxationsAttribute :: instance void .ctor(int32)
-		Length: 8
-		Value : 01 00 08 00 00 00 00 00                          >                <
-		ctor args: (8)
-
-	CustomAttribute #8 (0c000009)
+	CustomAttribute #11 (0c00000c)
 	-------------------------------------------------------
 		CustomAttribute Type: 0a000008
 		CustomAttributeName: System.Reflection.AssemblyTrademarkAttribute :: instance void .ctor(class System.String)
@@ -1029,23 +1802,15 @@ Assembly
 		Value : 01 00 00 00 00                                   >                <
 		ctor args: ("")
 
-	CustomAttribute #9 (0c00000a)
+	CustomAttribute #12 (0c00000d)
 	-------------------------------------------------------
-		CustomAttribute Type: 0a000004
-		CustomAttributeName: System.Reflection.AssemblyConfigurationAttribute :: instance void .ctor(class System.String)
+		CustomAttribute Type: 0a00000a
+		CustomAttributeName: System.Runtime.InteropServices.ComVisibleAttribute :: instance void .ctor(bool)
 		Length: 5
-		Value : 01 00 00 00 00                                   >                <
-		ctor args: ("")
+		Value : 01 00 01 00 00                                   >                <
+		ctor args: ( <can not decode> )
 
-	CustomAttribute #10 (0c00000b)
-	-------------------------------------------------------
-		CustomAttribute Type: 0a000005
-		CustomAttributeName: System.Reflection.AssemblyCompanyAttribute :: instance void .ctor(class System.String)
-		Length: 5
-		Value : 01 00 00 00 00                                   >                <
-		ctor args: ("")
-
-	CustomAttribute #11 (0c00000c)
+	CustomAttribute #13 (0c00000e)
 	-------------------------------------------------------
 		CustomAttribute Type: 0a00000b
 		CustomAttributeName: System.Runtime.InteropServices.GuidAttribute :: instance void .ctor(class System.String)
@@ -1054,22 +1819,6 @@ Assembly
                       : 2d 34 38 35 62 2d 38 36  31 64 2d 31 38 61 32 63 >-485b-861d-18a2c<
                       : 32 35 62 36 39 39 35 00  00                      >25b6995         <
 		ctor args: ("66bc17a0-a6ec-485b-861d-18a2c25b6995")
-
-	CustomAttribute #12 (0c00000d)
-	-------------------------------------------------------
-		CustomAttribute Type: 0a00000f
-		CustomAttributeName: System.Diagnostics.DebuggableAttribute :: instance void .ctor(value class DebuggingModes)
-		Length: 8
-		Value : 01 00 07 01 00 00 00 00                          >                <
-		ctor args: ( <can not decode> )
-
-	CustomAttribute #13 (0c00000e)
-	-------------------------------------------------------
-		CustomAttribute Type: 0a00000a
-		CustomAttributeName: System.Runtime.InteropServices.ComVisibleAttribute :: instance void .ctor(bool)
-		Length: 5
-		Value : 01 00 01 00 00                                   >                <
-		ctor args: ( <can not decode> )
 
 	CustomAttribute #14 (0c00000f)
 	-------------------------------------------------------
@@ -1107,6 +1856,21 @@ AssemblyRef #2 (23000002)
 -------------------------------------------------------
 	Token: 0x23000002
 	Public Key or Token: b7 7a 5c 56 19 34 e0 89 
+	Name: System
+	Version: 4.0.0.0
+	Major Version: 0x00000004
+	Minor Version: 0x00000000
+	Build Number: 0x00000000
+	Revision Number: 0x00000000
+	Locale: <null>
+	HashValue Blob:
+	Flags: [none] (00000000)
+
+
+AssemblyRef #3 (23000003)
+-------------------------------------------------------
+	Token: 0x23000003
+	Public Key or Token: b7 7a 5c 56 19 34 e0 89 
 	Name: System.Core
 	Version: 4.0.0.0
 	Major Version: 0x00000004
@@ -1120,9 +1884,23 @@ AssemblyRef #2 (23000002)
 
 User Strings
 -------------------------------------------------------
-70000001 : (22) L"Running under .NET {0}"
-7000002f : ( 4) L"Cat_"
-70000039 : ( 4) L"Dog_"
+70000001 : (11) L"UnsafeMouse"
+70000019 : (11) L"CatIsHungry"
+70000031 : (16) L"CatIsNotSleeping"
+70000053 : (10) L"CatIsAlive"
+70000069 : (12) L"CatNotHungry"
+70000083 : (12) L"VictimIsDead"
+7000009d : (22) L"Running under .NET {0}"
+700000cb : ( 8) L"My PID: "
+700000dd : (20) L"Press enter to exit!"
+70000107 : ( 3) L"Tom"
+7000010f : ( 5) L"Felix"
+7000011b : ( 3) L"Bob"
+70000123 : ( 4) L"Dana"
+7000012d : ( 3) L"Ada"
+70000135 : ( 3) L"Joe"
+7000013d : ( 5) L"Jerry"
+70000149 : ( 3) L"Amy"
 
 
 Coff symbol name overhead:  0

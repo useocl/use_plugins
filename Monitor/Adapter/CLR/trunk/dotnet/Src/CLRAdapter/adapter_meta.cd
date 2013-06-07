@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="CLRFieldBase">
+    <Position X="7.75" Y="3.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAEEAAAAAAAAAAAAAAAQAAABAAAAUAAACgAEAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRFieldBase.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLRFieldList">
+    <Position X="4" Y="7.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAhAAAAAAAAAAAAAAAAAAAAAAAAEAAAgAAEAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRFieldList.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLRFieldReference">
+    <Position X="7.5" Y="7.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAEAAAAAAAAAAAAAAIAIAAAAAAQAAAEAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRFieldReference.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLRFieldValue">
+    <Position X="10.5" Y="7.25" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>AAGBAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAEAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRFieldValue.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLRInfoBase">
+    <Position X="9.75" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAEAACAAEAAAAAAAAAAAkAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRInfoBase.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLRMetaField">
+    <Position X="1" Y="3.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAkAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRMetaField.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLRObject">
+    <Position X="14.5" Y="3.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAgAAAAEAAAAAAAAAAAAAIAAAAAAAAAAgAEAAA=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRObject.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLRType">
+    <Position X="17.75" Y="3.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AEABAAEAgAIAAAAAAAAAAIAAAABAABAAAAAAAAAEIAg=</HashCode>
+      <FileName>C:\Users\Daniel\Svn\dbs\Monitor\Adapter\CLR\trunk\dotnet\Src\Common\CLRType.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
