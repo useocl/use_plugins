@@ -1,0 +1,86 @@
+@Monitor(defaultPackage="Debuggee")
+
+model AnimalWorld
+
+-- classes
+
+class Pet
+  attributes
+    Age : Integer
+    Name : String
+    Gender : Integer
+    Alive : Boolean
+end
+
+class Dog < Pet
+  attributes
+    HasDogTag : Boolean
+end
+
+class Cat < Pet
+  attributes
+    Sleeping : Boolean
+    Hungry : Boolean
+  operations
+    Eat(m : Mouse)
+    begin
+      self.Hungry := false;
+      m.Alive := false;
+    end
+end
+
+class Mouse < Pet
+  attributes
+    Safe : Boolean
+end
+
+class Color
+  attributes
+    R : Integer
+    G : Integer
+    B : Integer
+end
+
+-- associations
+
+association PetColor between
+  Pet[0..*] role Pet
+  Color[1] role Color
+end
+
+association ParentHood between
+  Pet[0..1] role Father
+  @Monitor(ignore="true")
+  Pet[0..*] role Child
+end
+
+-- constraints
+
+constraints
+
+context Pet inv AgeNotNegative:
+  Age >= 0
+
+context p1:Pet inv NameIsUnique:
+  Pet.allInstances->forAll(p2 |
+    p1.Name = p2.Name implies p1 = p2)
+
+context p1:Pet inv FatherNotChild:
+  not(p1.Father = p1) and
+    p1.Child->excluding(p1) = p1.Child
+
+context p1:Pet inv FatherIsMale:
+  p1.Father = null or p1.Father.Gender = 1
+    
+context Color inv ColorRange:
+  R >= 0 and R <= 255 and
+  G >= 0 and G <= 255 and
+  B >= 0 and B <= 255
+  
+context Cat::Eat(m : Mouse)
+  pre UnsafeMouse:      not(m.Safe)
+  pre CatIsHungry:      Hungry
+  pre CatIsNotSleeping: not(Sleeping)
+  pre CatIsAlive:       Alive
+  post CatNotHungry:    not(Hungry)
+  post VictimIsDead:    not(m.Alive)

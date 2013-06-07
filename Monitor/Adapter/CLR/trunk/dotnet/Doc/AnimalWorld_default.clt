@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram_Layout version="10">
+  <diagramOptions>
+    <autolayout>false</autolayout>
+    <antialiasing>true</antialiasing>
+    <showassocnames>true</showassocnames>
+    <showattributes>true</showattributes>
+    <showmultiplicities>true</showmultiplicities>
+    <showoperations>true</showoperations>
+    <showrolenames>true</showrolenames>
+    <showgrid>false</showgrid>
+  </diagramOptions>
+  <node height="106.0" id="Pet" sizeCalculated="false" type="Class" width="100.0">
+    <name>Pet</name>
+    <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyFixed">
+      <x>295.34766677115243</x>
+      <y>108.3529830954447</y>
+    </strategy>
+    <hidden>false</hidden>
+  </node>
+  <node height="74.0" id="Cat" sizeCalculated="false" type="Class" width="109.0">
+    <name>Cat</name>
+    <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyFixed">
+      <x>297.988796056952</x>
+      <y>303.0</y>
+    </strategy>
+    <hidden>false</hidden>
+  </node>
+  <node height="53.0" id="Dog" sizeCalculated="false" type="Class" width="131.0">
+    <name>Dog</name>
+    <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyFixed">
+      <x>531.7472311633811</x>
+      <y>302.7515141320545</y>
+    </strategy>
+    <hidden>false</hidden>
+  </node>
+  <node height="53.0" id="Mouse" sizeCalculated="false" type="Class" width="94.0">
+    <name>Mouse</name>
+    <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyFixed">
+      <x>24.0</x>
+      <y>303.1201625338606</y>
+    </strategy>
+    <hidden>false</hidden>
+  </node>
+  <node height="96.0" id="Color" sizeCalculated="false" type="Class" width="71.0">
+    <name>Color</name>
+    <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyFixed">
+      <x>26.315784764936893</x>
+      <y>33.70963779433262</y>
+    </strategy>
+    <hidden>false</hidden>
+  </node>
+  <edge type="BinaryEdge">
+    <source>Pet</source>
+    <target>Pet</target>
+    <name>ParentHood</name>
+    <properties>
+      <edgeproperty id="ParentHood::target::rolename"
+        sizeCalculated="true" type="rolename" userDefined="true" visible="true">
+        <name>Child</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>4.0</useOffsetX>
+          <useOffsetY>1.0</useOffsetY>
+          <attached>ParentHood::WayPoint::4</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="ParentHood::target::multiplicity"
+        sizeCalculated="true" type="multiplicity" userDefined="true" visible="true">
+        <name>*</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>6.0</useOffsetX>
+          <useOffsetY>-6.0</useOffsetY>
+          <attached>ParentHood::WayPoint::4</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="ParentHood::AssociationName"
+        sizeCalculated="true" type="associationName" userDefined="true" visible="true">
+        <name>ParentHood</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyInBetween">
+          <useOffsetX>4.0</useOffsetX>
+          <useOffsetY>-12.0</useOffsetY>
+          <related length="2">
+            <related0>ParentHood::WayPoint::2</related0>
+            <related1>ParentHood::WayPoint::3</related1>
+          </related>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="ParentHood::source::rolename"
+        sizeCalculated="true" type="rolename" userDefined="true" visible="true">
+        <name>Father</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>3.0</useOffsetX>
+          <useOffsetY>6.0</useOffsetY>
+          <attached>ParentHood::WayPoint::0</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="ParentHood::source::multiplicity"
+        sizeCalculated="true" type="multiplicity" userDefined="true" visible="true">
+        <name>0..1</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>4.0</useOffsetX>
+          <useOffsetY>-11.0</useOffsetY>
+          <attached>ParentHood::WayPoint::0</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+    </properties>
+    <waypoints>
+      <edgeproperty height="8.0" id="ParentHood::WayPoint::0"
+        sizeCalculated="false" type="WayPoint" userDefined="false"
+        visible="true" width="8.0">
+        <name>0</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCorner">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+          <basisDeltaX>ABSOLUTE</basisDeltaX>
+          <deltaX>0.0</deltaX>
+          <basisDeltaY>RELATIVE</basisDeltaY>
+          <deltaY>-0.33</deltaY>
+          <corner>NORTH_EAST</corner>
+          <relativeNodeId>Pet</relativeNodeId>
+        </strategy>
+        <id>0</id>
+        <specialid>1</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0" id="ParentHood::WayPoint::1"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="false" width="8.0">
+        <name>1</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCorner">
+          <useOffsetX>-1.0</useOffsetX>
+          <useOffsetY>2.0</useOffsetY>
+          <basisDeltaX>RELATIVE</basisDeltaX>
+          <deltaX>0.67</deltaX>
+          <basisDeltaY>RELATIVE</basisDeltaY>
+          <deltaY>-0.33</deltaY>
+          <corner>NORTH_EAST</corner>
+          <relativeNodeId>Pet</relativeNodeId>
+        </strategy>
+        <id>1</id>
+        <specialid>3</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0" id="ParentHood::WayPoint::2"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="false" width="8.0">
+        <name>2</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCorner">
+          <useOffsetX>-1.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+          <basisDeltaX>RELATIVE</basisDeltaX>
+          <deltaX>0.67</deltaX>
+          <basisDeltaY>RELATIVE</basisDeltaY>
+          <deltaY>0.67</deltaY>
+          <corner>NORTH_EAST</corner>
+          <relativeNodeId>Pet</relativeNodeId>
+        </strategy>
+        <id>2</id>
+        <specialid>4</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0" id="ParentHood::WayPoint::3"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="false" width="8.0">
+        <name>3</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCorner">
+          <useOffsetX>-1.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+          <basisDeltaX>RELATIVE</basisDeltaX>
+          <deltaX>-0.33</deltaX>
+          <basisDeltaY>RELATIVE</basisDeltaY>
+          <deltaY>0.67</deltaY>
+          <corner>NORTH_EAST</corner>
+          <relativeNodeId>Pet</relativeNodeId>
+        </strategy>
+        <id>3</id>
+        <specialid>5</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0" id="ParentHood::WayPoint::4"
+        sizeCalculated="false" type="WayPoint" userDefined="false"
+        visible="true" width="8.0">
+        <name>4</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCorner">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+          <basisDeltaX>RELATIVE</basisDeltaX>
+          <deltaX>-0.33</deltaX>
+          <basisDeltaY>ABSOLUTE</basisDeltaY>
+          <deltaY>0.0</deltaY>
+          <corner>NORTH_EAST</corner>
+          <relativeNodeId>Pet</relativeNodeId>
+        </strategy>
+        <id>4</id>
+        <specialid>2</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+    </waypoints>
+    <hidden>false</hidden>
+  </edge>
+  <edge type="BinaryEdge">
+    <source>Pet</source>
+    <target>Color</target>
+    <name>PetColor</name>
+    <properties>
+      <edgeproperty id="PetColor::target::rolename"
+        sizeCalculated="true" type="rolename" userDefined="true" visible="true">
+        <name>Color</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>6.0</useOffsetY>
+          <attached>PetColor::WayPoint::1</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="PetColor::target::multiplicity"
+        sizeCalculated="true" type="multiplicity" userDefined="false" visible="true">
+        <name>1</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+          <attached>PetColor::WayPoint::1</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="PetColor::AssociationName" sizeCalculated="true"
+        type="associationName" userDefined="true" visible="true">
+        <name>PetColor</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyInBetween">
+          <useOffsetX>-7.0</useOffsetX>
+          <useOffsetY>12.0</useOffsetY>
+          <related length="2">
+            <related0>PetColor::WayPoint::0</related0>
+            <related1>PetColor::WayPoint::1</related1>
+          </related>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="PetColor::source::rolename"
+        sizeCalculated="true" type="rolename" userDefined="true" visible="true">
+        <name>Pet</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>-10.0</useOffsetX>
+          <useOffsetY>4.0</useOffsetY>
+          <attached>PetColor::WayPoint::0</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="PetColor::source::multiplicity"
+        sizeCalculated="true" type="multiplicity" userDefined="false" visible="true">
+        <name>*</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+          <attached>PetColor::WayPoint::0</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+    </properties>
+    <waypoints>
+      <edgeproperty height="8.0" id="PetColor::WayPoint::0"
+        sizeCalculated="false" type="WayPoint" userDefined="false"
+        visible="true" width="8.0">
+        <name>0</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyAttachedIntersection">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+        </strategy>
+        <id>0</id>
+        <specialid>1</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0" id="PetColor::WayPoint::1"
+        sizeCalculated="false" type="WayPoint" userDefined="false"
+        visible="true" width="8.0">
+        <name>1</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyAttachedIntersection">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+        </strategy>
+        <id>1</id>
+        <specialid>2</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+    </waypoints>
+    <hidden>false</hidden>
+  </edge>
+  <edge type="Generalization">
+    <source>Dog</source>
+    <target>Pet</target>
+    <name>Inheritance</name>
+    <properties/>
+    <waypoints>
+      <edgeproperty height="8.0"
+        id="Generalization::Dog::Pet::WayPoint::0"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="true" width="8.0">
+        <name>0</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCorner">
+          <useOffsetX>56.76406264764938</useOffsetX>
+          <useOffsetY>-3.0</useOffsetY>
+          <basisDeltaX>ABSOLUTE</basisDeltaX>
+          <deltaX>0.0</deltaX>
+          <basisDeltaY>ABSOLUTE</basisDeltaY>
+          <deltaY>0.0</deltaY>
+          <corner>NORTH_WEST</corner>
+          <relativeNodeId>Dog</relativeNodeId>
+        </strategy>
+        <id>0</id>
+        <specialid>1</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0"
+        id="Generalization::Dog::Pet::WayPoint::1"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="true" width="8.0">
+        <name>1</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyFixed">
+          <x>583.0</x>
+          <y>246.0</y>
+        </strategy>
+        <id>1</id>
+        <specialid>0</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0"
+        id="Generalization::Dog::Pet::WayPoint::2"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="true" width="8.0">
+        <name>2</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyFixed">
+          <x>348.0</x>
+          <y>246.0</y>
+        </strategy>
+        <id>2</id>
+        <specialid>0</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0"
+        id="Generalization::Dog::Pet::WayPoint::3"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="true" width="8.0">
+        <name>3</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCorner">
+          <useOffsetX>66.0</useOffsetX>
+          <useOffsetY>150.31374508859255</useOffsetY>
+          <basisDeltaX>ABSOLUTE</basisDeltaX>
+          <deltaX>0.0</deltaX>
+          <basisDeltaY>ABSOLUTE</basisDeltaY>
+          <deltaY>0.0</deltaY>
+          <corner>NORTH_WEST</corner>
+          <relativeNodeId>Pet</relativeNodeId>
+        </strategy>
+        <id>3</id>
+        <specialid>2</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+    </waypoints>
+    <hidden>false</hidden>
+  </edge>
+  <edge type="Generalization">
+    <source>Cat</source>
+    <target>Pet</target>
+    <name>Inheritance</name>
+    <properties/>
+    <waypoints>
+      <edgeproperty height="8.0"
+        id="Generalization::Cat::Pet::WayPoint::0"
+        sizeCalculated="false" type="WayPoint" userDefined="false"
+        visible="true" width="8.0">
+        <name>0</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyAttachedIntersection">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+        </strategy>
+        <id>0</id>
+        <specialid>1</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0"
+        id="Generalization::Cat::Pet::WayPoint::1"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="true" width="8.0">
+        <name>1</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCorner">
+          <useOffsetX>66.55189526364381</useOffsetX>
+          <useOffsetY>146.0</useOffsetY>
+          <basisDeltaX>ABSOLUTE</basisDeltaX>
+          <deltaX>0.0</deltaX>
+          <basisDeltaY>ABSOLUTE</basisDeltaY>
+          <deltaY>0.0</deltaY>
+          <corner>NORTH_WEST</corner>
+          <relativeNodeId>Pet</relativeNodeId>
+        </strategy>
+        <id>1</id>
+        <specialid>2</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+    </waypoints>
+    <hidden>false</hidden>
+  </edge>
+  <edge type="Generalization">
+    <source>Mouse</source>
+    <target>Pet</target>
+    <name>Inheritance</name>
+    <properties/>
+    <waypoints>
+      <edgeproperty height="8.0"
+        id="Generalization::Mouse::Pet::WayPoint::0"
+        sizeCalculated="false" type="WayPoint" userDefined="false"
+        visible="true" width="8.0">
+        <name>0</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyAttachedIntersection">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+        </strategy>
+        <id>0</id>
+        <specialid>1</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0"
+        id="Generalization::Mouse::Pet::WayPoint::1"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="true" width="8.0">
+        <name>1</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyFixed">
+          <x>67.0</x>
+          <y>246.0</y>
+        </strategy>
+        <id>1</id>
+        <specialid>0</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0"
+        id="Generalization::Mouse::Pet::WayPoint::2"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="true" width="8.0">
+        <name>2</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyFixed">
+          <x>348.0</x>
+          <y>246.0</y>
+        </strategy>
+        <id>2</id>
+        <specialid>0</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty height="8.0"
+        id="Generalization::Mouse::Pet::WayPoint::3"
+        sizeCalculated="false" type="WayPoint" userDefined="true"
+        visible="true" width="8.0">
+        <name>3</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCorner">
+          <useOffsetX>60.41795615765392</useOffsetX>
+          <useOffsetY>107.0</useOffsetY>
+          <basisDeltaX>ABSOLUTE</basisDeltaX>
+          <deltaX>0.0</deltaX>
+          <basisDeltaY>ABSOLUTE</basisDeltaY>
+          <deltaY>0.0</deltaY>
+          <corner>NORTH_WEST</corner>
+          <relativeNodeId>Pet</relativeNodeId>
+        </strategy>
+        <id>3</id>
+        <specialid>2</specialid>
+        <hidden>false</hidden>
+      </edgeproperty>
+    </waypoints>
+    <hidden>false</hidden>
+  </edge>
+</diagram_Layout>
