@@ -6,28 +6,17 @@ using System.Threading;
 
 namespace Debuggee
 {
-  interface NotADog
+  class Pet
   {
-    bool LikesDogs { get; set; }
-  }
-
-  abstract class Pet
-  {
-    private readonly int NUM_OF_CHILDS = 10;
     public int Age { get; set; }
     public string Name { get; set; }
-    public Pet Parent { get; set; }
-    public Pet[] ArrayChildren;
-
-    public Pet()
-    {
-      this.ArrayChildren = new Pet[NUM_OF_CHILDS];
-    }
-
-    public void SayName() { Console.WriteLine(this.Name); }
+    public bool Alive { get; set; }
+    public Pet Father;
+    public int Gender { get; set; }
+    public Color Color { get; set; }
   }
 
-  public sealed class PetColor
+  class Color
   {
     public byte R { get; set; }
     public byte G { get; set; }
@@ -36,21 +25,39 @@ namespace Debuggee
 
   class Dog : Pet
   {
-    public bool HasLicence { get; set; }
-    public PetColor Color { get; set; }
+    public bool HasDogTag { get; set; }
   }
 
-  class Cat : Pet, NotADog
+  class Mouse : Pet
   {
-    public bool IsSleeping { get; set; }
-    public bool LikesDogs { get; set; }
+    public bool Safe { get; set; }
+  }
+
+  class Cat : Pet
+  {
+    public bool Sleeping { get; set; }
+    public bool Hungry { get; set; }
+
+    public void Eat(Mouse m)
+    {
+      Debug.Assert(!m.Safe, "UnsafeMouse");
+      Debug.Assert(this.Hungry, "CatIsHungry");
+      Debug.Assert(!this.Sleeping, "CatIsNotSleeping");
+      Debug.Assert(!this.Alive, "CatIsAlive");
+
+      // do some work
+      this.Hungry = false;
+      m.Alive = false;
+
+      Debug.Assert(!this.Hungry, "CatNotHungry");
+      Debug.Assert(!m.Alive, "VictimIsDead");
+    }
   }
 
   class MainClass
   {
-    private readonly int MAX_PETS = 8;
-    private readonly int TIME_SPAN = 5000;
-    private List<Pet> Pets = new List<Pet>();
+    private List<Pet> pets = new List<Pet>();
+    private List<Color> colors = new List<Color>();
 
     [STAThread]
     static void Main(string[] args)
@@ -59,43 +66,40 @@ namespace Debuggee
       Console.WriteLine("My PID: " + Process.GetCurrentProcess().Id.ToString());
 
       MainClass c = new MainClass();
-      c.DoSomething();
+      c.CreateBasicSnapshot();
+
+      Console.WriteLine("Press enter to exit!");
+      Console.Read();
     }
 
-    private void DoSomething()
+    private void CreateBasicSnapshot()
     {
-      bool associationCreated = false;
+      Color black = new Color { R = 0, G = 0, B = 0 };
+      Color brown = new Color { R = 139, G = 69, B = 19 };
+      Color gray = new Color { R = 105, G = 105, B = 105 };
+      Color snow = new Color { R = 255, G = 250, B = 250 };
 
-      while (true)
-      {
-        CreateSomePets();
+      // Parent cats
+      pets.Add(new Cat { Age = 15, Alive = true, Hungry = false, Sleeping = true, Name = "Tom", Gender = 1, Color = black });
+      pets.Add(new Cat { Age = 13, Alive = true, Hungry = true, Sleeping = false, Name = "Ada", Gender = 2, Color = black });
 
-        if (!associationCreated)
-        {
-          Pets.First().ArrayChildren[0] = Pets.Last();
-          Pets.Last().Parent = Pets.First();
-          associationCreated = true;
-        }
+       // Child cats
+      pets.Add(new Cat { Age = 6, Alive = true, Hungry = false, Sleeping = true, Name = "Felix", Gender = 1, Color = black });
+      pets.Add(new Cat { Age = 7, Alive = true, Hungry = false, Sleeping = true, Name = "Bob", Gender = 2, Color = snow });
+      pets.Add(new Cat { Age = 8, Alive = true, Hungry = false, Sleeping = false, Name = "Dana", Gender = 1, Color = brown });
 
-        PrintName(Pets.Last());
-        Thread.Sleep(TIME_SPAN);
-      }
-    }
+      // Dog
+      pets.Add(new Dog { Age = 13, Alive = true, Name = "Joe", Gender = 1, Color = brown, HasDogTag = true });
 
-    private void CreateSomePets()
-    {
-      if (Pets.Count >= MAX_PETS)
-        return;
+      // Mice
+      pets.Add(new Mouse { Age = 9, Alive = true, Name = "Jerry", Gender = 1, Color = gray, Safe = true });
+      pets.Add(new Mouse { Age = 5, Alive = true, Name = "Amy", Gender = 2, Color = brown, Safe = false });
 
-      Pets.Add(new Cat { Age = Pets.Count + 1, Name = "Cat_" + (Pets.Count + 1).ToString("0000").PadLeft(Pets.Count + 1, '0'), IsSleeping = true });
-      Pets.Add(new Cat { Age = Pets.Count + 1, Name = "Cat_" + (Pets.Count + 1).ToString("0000").PadLeft(Pets.Count + 1, '0') });
-      Pets.Add(new Dog { Age = Pets.Count + 1, Name = "Dog_" + (Pets.Count + 1).ToString("0000").PadLeft(Pets.Count + 1, '0'), HasLicence = true });
-      Pets.Add(new Dog { Age = Pets.Count + 1, Name = "Dog_" + (Pets.Count + 1).ToString("0000").PadLeft(Pets.Count + 1, '0'), Color = new PetColor { R = 10, G = 10, B = 10 } });
-    }
-
-    static private void PrintName(Pet pet)
-    {
-      pet.SayName();
+      // Cat fatherhood
+      Pet father = pets.Single(x => x.Name == "Tom");
+      pets.Single(x => x.Name == "Felix").Father = father;
+      pets.Single(x => x.Name == "Bob").Father = father;
+      pets.Single(x => x.Name == "Dana").Father = father;
     }
   }
 }
