@@ -131,4 +131,8 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="adapter_meta.cd" />
+    <None Include="adapter_component.cd" />
+  </ItemGroup>
 </Project>

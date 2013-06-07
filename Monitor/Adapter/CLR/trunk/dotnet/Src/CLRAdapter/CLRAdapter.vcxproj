@@ -140,6 +140,10 @@ copy /Y "$(SolutionDir)\..\Doc\clr_adapter_settings.xml" "..\..\..\..\..\..\..\u
     <ClCompile Include="CLRAdapter.cpp" />
     <ClCompile Include="JNIHelper.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="adapter_meta.cd" />
+    <None Include="adapter_component.cd" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
