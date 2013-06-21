@@ -85,6 +85,19 @@ void CLRDebugCore::initializeProcessesByPid()
     wprintf(L"CLRCreateInstance failed w/hr 0x%08lx\n", hr);
 
   hr = pMetaHost->EnumerateLoadedRuntimes(hProcess, &pEnum);
+
+  if(hr == E_POINTER)
+  {
+    wprintf(L"No running CLR found! w/hr 0x%08lx\n", hr);
+    return;
+  }
+
+  if(hr == HRESULT_FROM_WIN32(ERROR_PARTIAL_COPY))
+  {
+    wprintf(L"No running 32-Bit CLR found! w/hr 0x%08lx\n", hr);
+    return;
+  }
+
   if(FAILED(hr))
     wprintf(L"EnumerateLoadedRuntimes failed w/hr 0x%08lx\n", hr);
 
