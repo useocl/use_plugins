@@ -1,0 +1,184 @@
+package org.tzi.use.kodkod.transform;
+
+import java.util.List;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.tzi.kodkod.helper.LogMessages;
+import org.tzi.kodkod.model.iface.IAssociation;
+import org.tzi.kodkod.model.iface.IAttribute;
+import org.tzi.kodkod.model.iface.IClass;
+import org.tzi.kodkod.model.iface.IModel;
+import org.tzi.kodkod.model.type.ConfigurableType;
+import org.tzi.kodkod.model.type.Type;
+import org.tzi.kodkod.model.type.TypeConstants;
+import org.tzi.kodkod.model.type.TypeFactory;
+import org.tzi.use.uml.mm.MAttribute;
+import org.tzi.use.uml.ocl.value.CollectionValue;
+import org.tzi.use.uml.ocl.value.Value;
+import org.tzi.use.uml.sys.MLink;
+import org.tzi.use.uml.sys.MLinkObject;
+import org.tzi.use.uml.sys.MObject;
+import org.tzi.use.uml.sys.MObjectState;
+import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.uml.sys.MSystemState;
+
+/**
+ * Class to extract an object diagram and enrich the model of the model
+ * validator.
+ * 
+ * @author Hendrik Reitmann
+ * 
+ */
+public class ObjectDiagramExtractor {
+
+	private static final Logger LOG = Logger.getLogger(ObjectDiagramExtractor.class);
+
+	private MSystem mSystem;
+
+	public ObjectDiagramExtractor(MSystem mSystem) {
+		this.mSystem = mSystem;
+	}
+
+	/**
+	 * Enrich the given model with the information of the object diagram.
+	 * 
+	 * @param model
+	 */
+	public void enrichModel(IModel model) {
+		try {
+			MSystemState systemState = mSystem.state();
+			extractObjects(model, systemState);
+			extractLinks(model, systemState);
+		} catch (Exception e) {
+			if (LOG.isDebugEnabled()) {
+				LOG.error(LogMessages.objDiagramExtractionError);
+			} else {
+				LOG.error(LogMessages.objDiagramExtractionError + " " + e);
+			}
+		}
+	}
+
+	/**
+	 * Extract the links of an object diagram.
+	 * 
+	 * @param model
+	 * @param systemState
+	 */
+	private void extractLinks(IModel model, MSystemState systemState) {
+		for (MLink link : systemState.allLinks()) {
+			List<MObject> linkedObjects = link.linkedObjects();
+			int index = 0;
+
+			String[] specificValue;
+			if (link instanceof MLinkObject) {
+				specificValue = new String[linkedObjects.size() + 1];
+
+				MLinkObject mLinkObject = (MLinkObject) link;
+				specificValue[0] = mLinkObject.cls().name() + "_" + mLinkObject.name();
+
+				index = 1;
+			} else {
+				specificValue = new String[linkedObjects.size()];
+			}
+
+			for (MObject linkedObject : linkedObjects) {
+				specificValue[index] = linkedObject.cls().name() + "_" + linkedObject.name();
+				index++;
+			}
+
+			IAssociation association = model.getAssociation(link.association().name());
+			association.getConfigurator().addSpecificValue(specificValue);
+		}
+	}
+
+	/**
+	 * Extract all object of the object diagram.
+	 * 
+	 * @param model
+	 * @param systemState
+	 */
+	private void extractObjects(IModel model, MSystemState systemState) {
+		IClass clazz;
+		String clazzName;
+
+		for (MObject mObject : systemState.allObjects()) {
+			clazzName = mObject.cls().name();
+			clazz = model.getClass(clazzName);
+			clazz.getConfigurator().addSpecificValue(new String[] { mObject.name() });
+			clazz.objectType().addValue(new String[] { mObject.name() });
+
+			extractAttributeValues(model, mObject.state(systemState), clazz, mObject);
+		}
+	}
+
+	/**
+	 * Extraction of the attribute values.
+	 * 
+	 * @param model
+	 * @param objectState
+	 * @param clazz
+	 * @param mObject
+	 */
+	private void extractAttributeValues(IModel model, MObjectState objectState, IClass clazz, MObject mObject) {
+		TypeFactory typeFactory = model.typeFactory();
+		IAttribute attribute;
+
+		for (MAttribute mAttribute : mObject.cls().allAttributes()) {
+			attribute = clazz.getAttribute(mAttribute.name());
+			Value value = objectState.attributeValue(mAttribute);
+			if (!value.isUndefined()) {
+
+				ValueConverter valueConverter = new ValueConverter();
+				Set<String> values = valueConverter.convert(value);
+
+				Type type = getType(typeFactory, value);
+
+				for (String stringValue : values) {
+					setAttributeValue(clazz.name() + "_" + mObject.name(), attribute, type, stringValue);
+					addValueToType(type, stringValue);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Sets the value for the given attribute.
+	 * 
+	 * @param name
+	 * @param attribute
+	 * @param type
+	 * @param value
+	 */
+	private void setAttributeValue(String name, IAttribute attribute, Type type, String value) {
+		if (type != null && type.isString()) {
+			attribute.getConfigurator().addSpecificValue(new String[] { name, TypeConstants.STRING + "_" + value });
+		} else {
+			attribute.getConfigurator().addSpecificValue(new String[] { name, value });
+		}
+	}
+
+	/**
+	 * Add a specific value to the type definition.
+	 * 
+	 * @param type
+	 * @param value
+	 */
+	private void addValueToType(Type type, String value) {
+		if (type != null && type instanceof ConfigurableType) {
+			((ConfigurableType) type).getConfigurator().addSpecificValue(new String[] { value });
+		}
+	}
+
+	private Type getType(TypeFactory typeFactory, Value value) {
+		String typeName;
+		if (value.isCollection()) {
+			typeName = ((CollectionValue) value).elemType().shortName();
+		} else {
+			typeName = value.type().shortName();
+		}
+		Type type = typeFactory.buildInType(typeName);
+		return type;
+	}
+
+}
