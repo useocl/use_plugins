@@ -7,6 +7,7 @@ public class KodkodValidateAction extends KodkodValidateCmd implements IPluginAc
 
 	@Override
 	public void performAction(IPluginAction pluginAction) {
+		out = pluginAction.getParent().logWriter();
 		initialize(pluginAction.getSession(), pluginAction.getParent());
 		noArguments();
 	}

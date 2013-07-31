@@ -1,5 +1,6 @@
 package org.tzi.kodkod.model.config.impl;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,7 +45,9 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	private Map<ConfigurableType, List<String[]>> typeSpecificValues;
 	private Map<ConfigurableType, TypeConfigurator> typeConfigurators;
 
-	public PropertyConfigurationVisitor(String file) throws ConfigurationException {
+	public PropertyConfigurationVisitor(String file, PrintWriter out) throws ConfigurationException {
+		super(out);
+		
 		config = new PropertiesConfiguration(file);
 
 		classSpecificValues = new HashMap<String, List<String[]>>();
@@ -185,7 +188,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			ranges.add(new Range(min, max));
 			configurator.setRanges(ranges);
 		} catch (Exception e) {
-			LOG.error(e.getMessage());
+			out.println(e.getMessage());
 		}
 
 		type.setConfigurator(configurator);
@@ -208,7 +211,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			if (status.equals("off")) {
 				configurator.setAggregationCycleFreeness(false);
 			} else {
-				LOG.info(LogMessages.aggregationcyclefreenessInfo());
+				out.println(LogMessages.aggregationcyclefreenessInfo());
 				configurator.setAggregationCycleFreeness(DefaultConfigurationValues.aggregationcyclefreeness);
 			}
 		}

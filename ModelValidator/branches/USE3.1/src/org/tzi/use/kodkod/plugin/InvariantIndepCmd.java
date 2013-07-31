@@ -1,5 +1,7 @@
 package org.tzi.use.kodkod.plugin;
 
+import java.io.PrintWriter;
+
 import org.tzi.kodkod.InvariantIndepChecker;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
@@ -17,9 +19,11 @@ public class InvariantIndepCmd extends AbstractPlugin implements IPluginShellCmd
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
 		initialize(pluginCommand.getSession());
-		objDiagramExtraction();
-
-		InvariantIndepChecker indepChecker = new InvariantIndepChecker();
+		PrintWriter out = new PrintWriter(Log.out());
+		
+		objDiagramExtraction(out);
+		
+		InvariantIndepChecker indepChecker = new InvariantIndepChecker(out);
 
 		String argument = pluginCommand.getCmdArguments();
 
@@ -30,10 +34,10 @@ public class InvariantIndepCmd extends AbstractPlugin implements IPluginShellCmd
 			if (split.length != 2) {
 				Log.error(LogMessages.invIndepSyntaxError(argument));
 			} else {
-				indepChecker.validate(model(), split[0], split[1]);
+				indepChecker.validate(model(out), split[0], split[1], out);
 			}
 		} else {
-			indepChecker.validate(model());
+			indepChecker.validate(model(out));
 		}
 	}
 }

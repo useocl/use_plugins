@@ -1,12 +1,12 @@
 package org.tzi.use.kodkod.transform;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationClass;
@@ -22,9 +22,11 @@ import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MClassifier;
 import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.type.EnumType;
+import org.tzi.use.util.Log;
 
 /**
  * Class to transform the use model in a model of the model validator.
@@ -33,23 +35,24 @@ import org.tzi.use.uml.ocl.type.EnumType;
  * 
  */
 public class ModelTransformator {
-
-	private static final Logger LOG = Logger.getLogger(ModelTransformator.class);
-
+	
+	private PrintWriter out;
+	
 	private final IModelFactory factory;
 	private final TypeFactory typeFactory;
 
-	public ModelTransformator(final IModelFactory factory, final TypeFactory typeFactory) {
+	public ModelTransformator(final IModelFactory factory, final TypeFactory typeFactory, final PrintWriter out) {
 		this.factory = factory;
 		this.typeFactory = typeFactory;
+		this.out = out;
 	}
 
 	public IModel transform(MModel mModel) {
 		long startTime = System.currentTimeMillis();
 
-		LOG.info(LogMessages.startModelTransform(mModel.name()));
+		out.println(LogMessages.startModelTransform(mModel.name()));
 
-		IModel model = factory.createModel(mModel.name(), factory, typeFactory);
+		IModel model = factory.createModel(mModel.name(), factory, typeFactory, out);
 
 		try {
 			transformEnums(model, mModel.enumTypes());
@@ -75,15 +78,14 @@ public class ModelTransformator {
 			InvariantTransformator invariantTransformator = new InvariantTransformator(factory, typeFactory);
 			invariantTransformator.transformAndAdd(model, mModel.classInvariants());
 
-			LOG.info(LogMessages.modelTransformSuccessful);
-			LOG.info(LogMessages.modelTransformTime((System.currentTimeMillis() - startTime)));
+			out.println(LogMessages.modelTransformSuccessful);
+			out.println(LogMessages.modelTransformTime((System.currentTimeMillis() - startTime)));
 
 		} catch (Exception exception) {
-			if (LOG.isDebugEnabled()) {
-				LOG.error(LogMessages.modelTransformError, exception);
-			} else {
-				LOG.error(LogMessages.modelTransformError);
+			if (Log.isDebug()) {
+				Log.error(LogMessages.modelTransformError, exception);
 			}
+			out.println(LogMessages.modelTransformError);
 		}
 
 		return model;
@@ -106,7 +108,7 @@ public class ModelTransformator {
 				IClass kClass = factory.createClass(model, mClass.name(), mClass.isAbstract());
 				model.addClass(kClass);
 			} else {
-				LOG.error(LogMessages.className$Error);
+				out.println(LogMessages.className$Error);
 			}
 		}
 	}
@@ -162,7 +164,7 @@ public class ModelTransformator {
 		}
 	}
 
-	private void transformGeneralization(IModel model, DirectedGraph<MClass, MGeneralization> mGeneralizationGraph) {
+	private void transformGeneralization(IModel model, DirectedGraph<MClassifier, MGeneralization> mGeneralizationGraph) {
 		IClass source, target;
 
 		Iterator<MGeneralization> iterator = mGeneralizationGraph.edgeIterator();

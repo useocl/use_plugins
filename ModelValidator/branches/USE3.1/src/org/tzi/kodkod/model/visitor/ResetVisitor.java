@@ -1,5 +1,7 @@
 package org.tzi.kodkod.model.visitor;
 
+import java.io.PrintWriter;
+
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
@@ -14,6 +16,10 @@ import org.tzi.kodkod.model.type.ConfigurableType;
  * 
  */
 public class ResetVisitor extends SimpleVisitor {
+
+	public ResetVisitor(PrintWriter out) {
+		super(out);
+	}
 
 	@Override
 	public void visitModel(IModel model) {

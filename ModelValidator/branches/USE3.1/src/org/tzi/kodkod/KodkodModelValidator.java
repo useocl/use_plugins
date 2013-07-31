@@ -1,11 +1,14 @@
 package org.tzi.kodkod;
 
+import java.io.PrintWriter;
+import java.util.Iterator;
 import java.util.Map;
 
 import kodkod.ast.Relation;
 import kodkod.engine.Evaluator;
 import kodkod.engine.Solution;
 import kodkod.engine.Statistics;
+import kodkod.engine.fol2sat.TranslationRecord;
 import kodkod.instance.TupleSet;
 
 import org.apache.log4j.Logger;
@@ -26,6 +29,12 @@ public abstract class KodkodModelValidator {
 	protected Solution solution;
 	protected Evaluator evaluator;
 
+	protected final PrintWriter out;
+	
+	public KodkodModelValidator(PrintWriter out) {
+		this.out = out;
+	}
+	
 	/**
 	 * Validates the given model.
 	 * 
@@ -36,20 +45,30 @@ public abstract class KodkodModelValidator {
 
 		KodkodSolver kodkodSolver = new KodkodSolver();
 		try {
-			solution = kodkodSolver.solve(model);
+			solution = kodkodSolver.solve(model, out);
 		} catch (Exception e) {
-			LOG.error(LogMessages.validationException);
+			out.println(LogMessages.validationException);
 			if (LOG.isDebugEnabled()) {
-				e.printStackTrace();
+				LOG.error(LogMessages.validationException, e);
 			}
 			return;
 		}
 
-		LOG.info(solution.outcome());
+		out.println(solution.outcome());
 
 		Statistics statistics = solution.stats();
-		LOG.info(LogMessages.kodkodStatistics(statistics));
+		out.println(LogMessages.kodkodStatistics(statistics));
 
+		if (solution.proof() != null) {
+			solution.proof().minimize(null);
+			out.println("Unsatisfiable proof:");
+			Iterator<TranslationRecord> iter = solution.proof().core(); 
+			while (iter.hasNext()) {
+				TranslationRecord rec = iter.next();
+				out.println(rec.toString()); 
+			}
+		}
+		
 		switch (solution.outcome()) {
 		case SATISFIABLE:
 			satisfiable(kodkodSolver);

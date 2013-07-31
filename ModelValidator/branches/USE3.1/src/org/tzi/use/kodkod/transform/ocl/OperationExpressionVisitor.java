@@ -21,6 +21,7 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.VarDecl;
+import org.tzi.use.uml.ocl.expr.VarDeclList;
 
 /**
  * Extension of DefaultExpressionVisitor to visit the operations of an
@@ -145,7 +146,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 	
 	protected void visitParams(MOperation operation, org.tzi.use.uml.ocl.expr.Expression[] arguments) {
 		DefaultExpressionVisitor visitor;
-		List<VarDecl> params = operation.allParams();
+		VarDeclList params = operation.paramList();
 		if (params.size() > 0) {
 
 			VarDecl currentParam;
@@ -153,7 +154,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 				visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 				arguments[i + 1].processWithVisitor(visitor);
 
-				currentParam = params.get(i);
+				currentParam = params.varDecl(i);
 				opVariables.put(currentParam.name(), (Node) visitor.getObject());
 				if (currentParam.type().isCollection(true)) {
 					opCollectionVariables.add(currentParam.name());

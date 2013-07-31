@@ -62,7 +62,7 @@ public class OCLTest {
 		session.setSystem(mSystem);
 		errorWriter = new PrintWriter(System.out);
 
-		Options.checkWarningsUnrelatedTypes = WarningType.IGNORE;
+		Options.setCheckWarningsUnrelatedTypes(WarningType.IGNORE);
 		Options.doPLUGIN = false;
 		Shell.createInstance(session, null);
 		Shell shell = Shell.getInstance();
@@ -88,7 +88,7 @@ public class OCLTest {
 		shell.processLineSafely("!create examAdaBobCyd:Exam_AC between (ada,bob,cyd)");
 		shell.processLineSafely("!create examDanBobCyd:Exam_AC between (dan,bob,cyd)");
 
-		model = PluginModelFactory.INSTANCE.getModel(mModel);
+		model = PluginModelFactory.INSTANCE.getModel(mModel, new PrintWriter(System.out));
 
 		OCLGroupRegistry registry = OCLGroupRegistry.INSTANCE;
 		registry.unregisterAll();

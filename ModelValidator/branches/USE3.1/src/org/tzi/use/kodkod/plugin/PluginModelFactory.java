@@ -1,6 +1,7 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
+import java.io.PrintWriter;
 
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.iface.IModelFactory;
@@ -48,14 +49,14 @@ public enum PluginModelFactory {
 	 * @param mModel
 	 * @return
 	 */
-	public IModel getModel(final MModel mModel) {
+	public IModel getModel(final MModel mModel, PrintWriter out) {
 		File file = new File(mModel.filename());
 
 		if (!modelStatistics.equals(mModel.getStats()) || lastModified != file.lastModified()) {
 			modelStatistics = mModel.getStats();
 			lastModified = file.lastModified();
 
-			ModelTransformator transformator = new ModelTransformator(modelFactory, typeFactory);
+			ModelTransformator transformator = new ModelTransformator(modelFactory, typeFactory, out);
 			model = transformator.transform(mModel);
 		}
 

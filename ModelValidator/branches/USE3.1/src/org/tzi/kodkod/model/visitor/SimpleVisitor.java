@@ -1,5 +1,6 @@
 package org.tzi.kodkod.model.visitor;
 
+import java.io.PrintWriter;
 import java.util.Iterator;
 
 import org.tzi.kodkod.model.iface.IAssociation;
@@ -26,6 +27,12 @@ import org.tzi.kodkod.model.type.TypeLiterals;
  */
 public class SimpleVisitor implements Visitor {
 
+	protected PrintWriter out;
+	
+	public SimpleVisitor(PrintWriter out) {
+		this.out = out;
+	}
+	
 	protected void iterate(Iterator<?> iter) {
 		while (iter.hasNext()) {
 			((IElement) iter.next()).accept(this);
