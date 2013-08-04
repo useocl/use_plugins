@@ -728,6 +728,9 @@ public class Monitor implements ChangeListener {
 			}
 			
 			VMType vmType = getVMType(useClass);
+			if (!vmType.isClassType()) {
+				fireNewLogMessage(Level.FINE, String.format("Found VM type for class %s, but the returned type is not a class", useClass.name()));
+			}
 			
 			if (vmType != null && vmType.isClassType()) {
 				Stack<VMType> toDo = new Stack<VMType>();
