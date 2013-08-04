@@ -63,6 +63,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;CLRADAPTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnablePREfast>false</EnablePREfast>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -76,6 +77,9 @@
       <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "..\..\..\..\..\..\..\use_psm\lib\plugins\monitor_adapter\$(ProjectName).dll"
 copy /Y "$(SolutionDir)\..\Doc\clr_adapter_settings.xml" "..\..\..\..\..\..\..\use_psm\lib\plugins\monitor_adapter\clr_adapter_settings.xml"</Command>
     </PostBuildEvent>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

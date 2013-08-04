@@ -1,3 +1,10 @@
+/** 
+* @file Settings.cpp
+* This file impements the singleton class Settings. It reads the configuration file and
+* provides its data as global attributes.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/Settings.h"
 
 Settings::Settings() :
@@ -10,6 +17,7 @@ Settings::Settings() :
   DebuggerPrintLoadedTypes(false),
   DebuggerPrintLoadedTypeFields(false),
   DebuggerPrintInheritance(false),
+  DebuggerDebugFamilyLines(false),
   TypesOfInterest(CStringSet()),
   ModulesToIgnore(CStringSet())
 {
@@ -71,6 +79,7 @@ void Settings::readSettings()
   DebuggerPrintLoadedTypes      = doc.child("Settings").child("Debugger").attribute("PrintLoadedTypes").as_bool();
   DebuggerPrintLoadedTypeFields = doc.child("Settings").child("Debugger").attribute("PrintLoadedTypesFields").as_bool();
   DebuggerPrintInheritance      = doc.child("Settings").child("Debugger").attribute("PrintInheritance").as_bool();
+  DebuggerDebugFamilyLines      = doc.child("Settings").child("Debugger").attribute("DebugFamilyLines").as_bool();
 
   // some verification
   if(CacheAtStartUp && !InMemoryInstanceMap)

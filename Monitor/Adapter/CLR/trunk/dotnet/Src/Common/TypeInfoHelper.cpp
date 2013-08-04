@@ -1,3 +1,9 @@
+/** 
+* @file TypeInfoHelper.cpp
+* This file implements the class TypeInfoHelper, that manages the loaded types and modules.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/TypeInfoHelper.h"
 
 TypeInfoHelper::TypeInfoHelper() : 
@@ -26,7 +32,19 @@ void TypeInfoHelper::AddModule(ICorDebugModule* module)
 
 void TypeInfoHelper::RemoveModule(ICorDebugModule* module)
 {
-  //TODO: implement me!
+  // TODO: treat optimization strategies.
+
+  // remove the types declared by this module
+  for(TypeMap::const_iterator it = loadedTypes.begin(); it != loadedTypes.end(); ++it)
+  {
+    if((*it).second->module == module)
+    {
+      loadedTypes.erase((*it).first);
+    }
+  }
+
+  // remove the module
+  loadedModules.erase(module);
 }
 
 bool TypeInfoHelper::HasAny() const
@@ -121,25 +139,13 @@ void TypeInfoHelper::GetTypesFromModules(ICorDebugModule* module)
 
 TypeInfo TypeInfoHelper::GetTypeInfo(const CorTypeAttr type) const
 {
-  //TODO: nested types.
-  //TODO: made interface work.
   TypeInfo res = TypeInfo::NotKnown;
 
-  if(type == (tdNotPublic | tdClass | tdBeforeFieldInit))
-    res = TypeInfo::NClass;
-  else if(type == (tdPublic | tdClass | tdBeforeFieldInit))
-    res = TypeInfo::NClass;
-  else if(type == (tdNotPublic | tdClass | tdSealed | tdBeforeFieldInit))
-    res = TypeInfo::NClass;
-  else if(type == (tdPublic | tdClass | tdSealed | tdBeforeFieldInit))
-    res = TypeInfo::NClass;
-  else if(type == (tdNotPublic | tdAbstract | tdBeforeFieldInit))
+  if((type & tdAbstract) == tdAbstract)
     res = TypeInfo::AClass;
-  else if(type == (tdPublic | tdAbstract | tdBeforeFieldInit))
-    res = TypeInfo::AClass;
-  else if(type == (tdNotPublic | tdInterface))
-    res = TypeInfo::Inter;
-  else if(type == (tdPublic | tdInterface))
+  else if((type & tdClassSemanticsMask) == tdClass)
+    res = TypeInfo::NClass;
+  else if((type & tdClassSemanticsMask) == tdInterface)
     res = TypeInfo::Inter;
 
   return res;

@@ -1,3 +1,9 @@
+/** 
+* @file CLRFieldBase.cpp
+* This file implements the base class of all field value representing classes.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/CLRFieldBase.h"
 
 
@@ -8,8 +14,7 @@ CLRFieldBase::CLRFieldBase(CString name, ICorDebugValue* debugValue, mdFieldDef 
   type(FieldType::UNKNOWN),
   info(_T("")),
   corType(ELEMENT_TYPE_MAX)
-{
-}
+{ }
 
 
 CLRFieldBase::~CLRFieldBase()

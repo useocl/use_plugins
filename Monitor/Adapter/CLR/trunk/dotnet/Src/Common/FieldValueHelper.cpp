@@ -1,3 +1,9 @@
+/** 
+* @file FieldValueHelper.cpp
+* This file implements the class FieldValueHelper, that provides functionality to get the
+* field value of a given field.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
 #include "../Common/FieldValueHelper.h"
 
 CLRFieldBase* FieldValueHelper::GetField(const CLRType* type, const CLRObject* object, const mdFieldDef field)
@@ -30,6 +36,7 @@ CLRFieldBase* FieldValueHelper::GetField(const CLRType* type, const CLRObject* o
 
     if(SUCCEEDED(hr))
     {
+      // TODO: clean up!
       hr = debugObjectValue->GetClass(&objectClass);
       if(FAILED(hr))
       {
@@ -53,7 +60,7 @@ CLRFieldBase* FieldValueHelper::GetField(const CLRType* type, const CLRObject* o
         hr = objectClass->GetStaticFieldValue(metaField->fieldDef, NULL, &actualFieldObject);
         if(FAILED(hr))
         {
-          //If the variable is optimized away, this is okay
+          // if the variable is optimized away, this is okay
           if(CORDBG_E_VARIABLE_IS_ACTUALLY_LITERAL != hr)
           {
             error = _T("GetStaticFieldValue");

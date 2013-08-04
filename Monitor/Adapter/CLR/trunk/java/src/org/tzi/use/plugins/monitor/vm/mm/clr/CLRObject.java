@@ -12,6 +12,7 @@ import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MObject;
 
 /**
+ * This class represents a CLR heap object.
  * @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
  */
 public class CLRObject extends CLRBase implements VMObject {

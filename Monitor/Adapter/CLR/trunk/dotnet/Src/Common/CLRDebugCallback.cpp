@@ -1,7 +1,13 @@
+/** 
+* @file CLRDebugCallback.cpp
+* This file implements the CLRDebugCallback, which is derived from DefaultCallback.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/CLRDebugCallback.h"
 
 CLRDebugCallback::CLRDebugCallback(TypeInfoHelper& typeInfoHelper) : DefaultCallback(),
-    typeInfoHelper(typeInfoHelper)
+  typeInfoHelper(typeInfoHelper)
 { }
 
 COM_METHOD CLRDebugCallback::CreateAppDomain(ICorDebugProcess* pProcess, ICorDebugAppDomain* pAppDomain)

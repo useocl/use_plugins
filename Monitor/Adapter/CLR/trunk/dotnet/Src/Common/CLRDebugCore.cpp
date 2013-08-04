@@ -1,6 +1,13 @@
+/** 
+* @file CLRDebugCore.cpp
+* This file implements the singleton class CLRDebugCore. It is responsible for the connection to the 
+* debuggee, to control it, and to get the CLR interfaces used to analyze the debuggee.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/CLRDebugCore.h"
 
-CLRDebugCore::CLRDebugCore() : pid(0),
+CLRDebugCore::CLRDebugCore() : 
   hProcess(NULL), 
   pMetaHost(NULL), 
   pCorDebug(NULL), 
@@ -8,8 +15,7 @@ CLRDebugCore::CLRDebugCore() : pid(0),
   pDebugProcess(NULL), 
   pDebugProcess5(NULL),
   pEnum(NULL),
-  pUnk(NULL),
-  callback(NULL)
+  pUnk(NULL)
 { }
 
 CLRDebugCore* CLRDebugCore::instance = 0;
@@ -63,13 +69,6 @@ CLRDebugCore::~CLRDebugCore()
 }
 
 void CLRDebugCore::InitializeProcessesByPid(DWORD pid, DefaultCallback* callback)
-{
-  this->pid = pid;
-  this->callback = callback;
-  this->initializeProcessesByPid();
-}
-
-void CLRDebugCore::initializeProcessesByPid()
 {
   HRESULT hr = E_FAIL;
 

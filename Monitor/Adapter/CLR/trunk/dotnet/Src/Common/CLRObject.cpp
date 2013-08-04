@@ -1,3 +1,9 @@
+/** 
+* @file CLRObject.cpp
+* This file implements a class, that represents information about by the CLR loaded instances.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/CLRObject.h"
 
 CLRObject::CLRObject(CString name, ICorDebugValue* debugValue, mdTypeDef typeDefToken, CORDB_ADDRESS address) :

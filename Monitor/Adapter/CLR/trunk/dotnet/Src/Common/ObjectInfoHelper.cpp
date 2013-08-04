@@ -1,3 +1,8 @@
+/** 
+* @file ObjectInfoHelper.cpp
+* This file implements the class ObjectInfoHelper, that manages the heap objects.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
 #include "../Common/ObjectInfoHelper.h"
 
 ObjectInfoHelper::ObjectInfoHelper(const TypeInfoHelper& typeInfo) :
@@ -41,8 +46,9 @@ void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRT
     hr =  CLRDebugCore::theInstance()->pDebugProcess5->GetTypeForTypeID(currentObject->type, &objectDebugType);
     if(FAILED(hr))
     {
-      error = _T("GetTypeForTypeID");
-      throw hr;
+      if(InfoBoard::theInstance()->AppType == AppType::DEBUGGER)
+        std::wcout << L"GetTypeForTypeID fail!" << std::endl;
+      return;
     }
 
     hr = objectDebugType->GetType(&corType);
@@ -83,24 +89,26 @@ void ObjectInfoHelper::createCLRObject(const COR_HEAPOBJECT* currentObject, CLRT
           hr = module->GetBaseAddress(&objectModuleAddress);
           if(FAILED(hr))
           {
-            error = _T("GetToken object module");
+            error = _T("GetBaseAddress object module");
             throw hr;
           }
 
           hr = type->module->GetBaseAddress(&typeModuleAddress);
           if(FAILED(hr))
           {
-            error = _T("GetToken typ module");
+            error = _T("GetBaseAddress typ module");
             throw hr;
           }
 
           if(type->typeDefToken == objectClassToken && objectModuleAddress == typeModuleAddress)
           {
-            clrObject = new CLRObject(type->name, object, type->typeDefToken, currentObject->address);
             type->instances.push_back(currentObject->address);
 
             if(inMemoryInstanceMap)
+            {
+              clrObject = new CLRObject(type->name, object, type->typeDefToken, currentObject->address);
               loadedInstances.insert(ObjectMapValue(clrObject->address, clrObject));
+            }
           }
         }
         else

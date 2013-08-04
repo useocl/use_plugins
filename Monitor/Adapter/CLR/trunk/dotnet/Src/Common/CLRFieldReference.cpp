@@ -1,3 +1,9 @@
+/** 
+* @file CLRFieldReference.cpp
+* This file implements a class, that represents information about reference field values.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "CLRFieldReference.h"
 
 
@@ -5,8 +11,7 @@ CLRFieldReference::CLRFieldReference(CString name, ICorDebugValue* debugValue, m
   CLRFieldBase(name, debugValue, fieldDefToken),
   typeName(_T("")),
   address(0)
-{
-}
+{ }
 
 
 CLRFieldReference::~CLRFieldReference()

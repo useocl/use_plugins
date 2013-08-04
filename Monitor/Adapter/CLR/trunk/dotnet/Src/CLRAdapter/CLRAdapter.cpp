@@ -1,3 +1,9 @@
+/** 
+* @file CLRAdapter.cpp
+* This file implements a the machine generated JNI header. Methods are declared in the Java class CLRAdapter.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "CLRAdapter.h"
 
 #include "JNIHelper.h"
@@ -10,8 +16,8 @@
 #include "../Common/TypeInfoHelper.h"
 #include "../Common/ObjectInfoHelper.h"
 
-TypeInfoHelper typeInfo;
-ObjectInfoHelper objectInfo(typeInfo);
+TypeInfoHelper typeInfo;                /**< The instance of TypeInfoHelper for the entire adapter. */
+ObjectInfoHelper objectInfo(typeInfo);  /**< The instance of ObjectInfoHelper for the entire adapter. */
 
 JNIEXPORT jint JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_attachToCLR
   (JNIEnv* env, jobject adapter, jlong pid)
@@ -411,8 +417,8 @@ JNIEXPORT jboolean JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_isCLR
   pClrType = JNIHelper::GetCLRType(env, clrType, typeInfo);
   if(!pClrType)
     return false;
-  
-  return typeInfo.GetTypeInfo(pClrType->typeAttr) == TypeInfo::NClass || typeInfo.GetTypeInfo(pClrType->typeAttr) == TypeInfo::AClass;
+
+  return typeInfo.GetTypeInfo(pClrType->typeAttr) == TypeInfo::NClass;
 }
 
 JNIEXPORT jobject JNICALL Java_org_tzi_use_monitor_adapter_clr_CLRAdapter_getCLRSuperClasses

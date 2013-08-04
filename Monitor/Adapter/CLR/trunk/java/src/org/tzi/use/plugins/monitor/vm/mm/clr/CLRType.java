@@ -15,6 +15,7 @@ import org.tzi.use.plugins.monitor.vm.mm.VMType;
 import org.tzi.use.uml.mm.MClass;
 
 /**
+ * This class represents a CLR type.
  * @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
  */
 public class CLRType extends CLRBase implements VMType {

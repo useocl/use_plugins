@@ -55,26 +55,6 @@
     <target>Pet</target>
     <name>ParentHood</name>
     <properties>
-      <edgeproperty id="ParentHood::target::rolename"
-        sizeCalculated="true" type="rolename" userDefined="true" visible="true">
-        <name>Child</name>
-        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
-          <useOffsetX>4.0</useOffsetX>
-          <useOffsetY>1.0</useOffsetY>
-          <attached>ParentHood::WayPoint::4</attached>
-        </strategy>
-        <hidden>false</hidden>
-      </edgeproperty>
-      <edgeproperty id="ParentHood::target::multiplicity"
-        sizeCalculated="true" type="multiplicity" userDefined="true" visible="true">
-        <name>*</name>
-        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
-          <useOffsetX>6.0</useOffsetX>
-          <useOffsetY>-6.0</useOffsetY>
-          <attached>ParentHood::WayPoint::4</attached>
-        </strategy>
-        <hidden>false</hidden>
-      </edgeproperty>
       <edgeproperty id="ParentHood::AssociationName"
         sizeCalculated="true" type="associationName" userDefined="true" visible="true">
         <name>ParentHood</name>
@@ -105,6 +85,26 @@
           <useOffsetX>4.0</useOffsetX>
           <useOffsetY>-11.0</useOffsetY>
           <attached>ParentHood::WayPoint::0</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="ParentHood::target::rolename"
+        sizeCalculated="true" type="rolename" userDefined="true" visible="true">
+        <name>Child</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>4.0</useOffsetX>
+          <useOffsetY>1.0</useOffsetY>
+          <attached>ParentHood::WayPoint::4</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="ParentHood::target::multiplicity"
+        sizeCalculated="true" type="multiplicity" userDefined="true" visible="true">
+        <name>*</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>6.0</useOffsetX>
+          <useOffsetY>-6.0</useOffsetY>
+          <attached>ParentHood::WayPoint::4</attached>
         </strategy>
         <hidden>false</hidden>
       </edgeproperty>
@@ -208,26 +208,6 @@
     <target>Color</target>
     <name>PetColor</name>
     <properties>
-      <edgeproperty id="PetColor::target::rolename"
-        sizeCalculated="true" type="rolename" userDefined="true" visible="true">
-        <name>Color</name>
-        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
-          <useOffsetX>0.0</useOffsetX>
-          <useOffsetY>6.0</useOffsetY>
-          <attached>PetColor::WayPoint::1</attached>
-        </strategy>
-        <hidden>false</hidden>
-      </edgeproperty>
-      <edgeproperty id="PetColor::target::multiplicity"
-        sizeCalculated="true" type="multiplicity" userDefined="false" visible="true">
-        <name>1</name>
-        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
-          <useOffsetX>0.0</useOffsetX>
-          <useOffsetY>0.0</useOffsetY>
-          <attached>PetColor::WayPoint::1</attached>
-        </strategy>
-        <hidden>false</hidden>
-      </edgeproperty>
       <edgeproperty id="PetColor::AssociationName" sizeCalculated="true"
         type="associationName" userDefined="true" visible="true">
         <name>PetColor</name>
@@ -258,6 +238,26 @@
           <useOffsetX>0.0</useOffsetX>
           <useOffsetY>0.0</useOffsetY>
           <attached>PetColor::WayPoint::0</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="PetColor::target::multiplicity"
+        sizeCalculated="true" type="multiplicity" userDefined="false" visible="true">
+        <name>1</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>0.0</useOffsetY>
+          <attached>PetColor::WayPoint::1</attached>
+        </strategy>
+        <hidden>false</hidden>
+      </edgeproperty>
+      <edgeproperty id="PetColor::target::rolename"
+        sizeCalculated="true" type="rolename" userDefined="true" visible="true">
+        <name>Color</name>
+        <strategy type="org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToAttached">
+          <useOffsetX>0.0</useOffsetX>
+          <useOffsetY>6.0</useOffsetY>
+          <attached>PetColor::WayPoint::1</attached>
         </strategy>
         <hidden>false</hidden>
       </edgeproperty>

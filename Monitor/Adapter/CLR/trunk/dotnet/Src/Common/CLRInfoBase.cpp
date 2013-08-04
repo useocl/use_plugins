@@ -1,3 +1,9 @@
+/** 
+* @file CLRInfoBase.cpp
+* This file implements the base class of all used meta data classes.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/CLRInfoBase.h"
 
 CLRInfoBase::CLRInfoBase(CString name, mdTypeDef typeDefToken) : 

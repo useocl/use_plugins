@@ -1,3 +1,9 @@
+/** 
+* @file JNIHelper.cpp
+* This file implements a class that provides helping methods for the work with JNI.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "JNIHelper.h"
 
 CLRType* JNIHelper::GetCLRType(JNIEnv* env, const jobject clrType, const TypeInfoHelper& typeInfo)

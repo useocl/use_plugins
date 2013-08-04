@@ -1,3 +1,8 @@
+/** 
+* @file CLRDebugger.cpp
+* This file implements the main class of the CLRDebugger.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
 #pragma once
 
 #include <iostream>
@@ -72,8 +77,42 @@ int main(int argc, const char* argv[])
     std::wcout << L"\n" << std::endl;
   }
 
+  if(Settings::theInstance()->DebuggerDebugFamilyLines)
+  {
+    CLRDebugCore::theInstance()->pDebugProcess->Stop(0);
+    ObjectInfoHelper o(typeInfoHelper);
+    CLRType* tempType = typeInfoHelper.GetType(CString(_T("KBS.FamilyLinesLib.Person")));
+    o.GetInstances(tempType);
+
+    typeInfoHelper.GetTypeInfo(tempType->typeAttr);
+
+    system("PAUSE");
+
+    tempType->Print(true);
+    CLRMetaField* fieldFName = tempType->GetField(L"firstName");
+    wprintf(L"Find meta field: %s\n", fieldFName->name);
+    CLRMetaField* fieldLName = tempType->GetField(L"lastName");
+    wprintf(L"Find meta field: %s\n", fieldLName->name);
+
+    std::vector<CORDB_ADDRESS> instances = tempType->instances;
+    for(std::vector<CORDB_ADDRESS>::const_iterator it = instances.begin(); it != instances.end(); ++it)
+    {
+      CLRObject* res = o.GetCLRObject(*it);
+      wprintf(L"Loaded instance of type: %s\n", res->name);
+      wprintf(L"\t Address: %d\n", res->address);
+      wprintf(L"\t Vorname: %s", ((CLRFieldValue*)o.GetField(tempType, *it, fieldFName->fieldDef))->valueAsString);
+      wprintf(L"\t Nachname: %s\n", ((CLRFieldValue*)o.GetField(tempType, *it, fieldLName->fieldDef))->valueAsString);
+    }
+    o.Detach();
+  }
+
+  system("PAUSE");
+
   CLRDebugCore::theInstance()->pDebugProcess->Stop(0);
   CLRDebugCore::theInstance()->pDebugProcess->Detach();
+
+  typeInfoHelper.Detach();
+
   CLRDebugCore::theInstance()->Release();
 
   return 0;

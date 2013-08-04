@@ -111,6 +111,7 @@ public class CLRAdapter extends AbstractVMAdapter {
 		if (res != 0)
 			throw new MonitorException("Could not connect to virtual machine with process ID " + Long.toString(pid));
 		
+		// wait until the adapter is initialized
 		int i = 0;
 		do
 		{
@@ -121,7 +122,6 @@ public class CLRAdapter extends AbstractVMAdapter {
 			}
 			i++;
 		} while (!isCLRAdapterInitialized() && i <= 3);
-		
 		
     	isConnected = true;
    	}
@@ -161,7 +161,7 @@ public class CLRAdapter extends AbstractVMAdapter {
 	 * @see org.tzi.use.plugins.monitor.vm.adapter.VMAdapter#getVMType(java.lang.String)
 	 */
 	@Override
-	public VMType getVMType(String name) {	
+	public VMType getVMType(String name) {
 		return getCLRType(name);
 	}
 
@@ -171,7 +171,7 @@ public class CLRAdapter extends AbstractVMAdapter {
 	
     public Value getUSEValue(CLRFieldWrapBase field) {
     	Value v = UndefinedValue.instance;
-    	
+
     	if (field == null)
     		return v;
     	

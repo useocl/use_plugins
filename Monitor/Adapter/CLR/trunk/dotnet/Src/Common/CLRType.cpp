@@ -1,3 +1,9 @@
+/** 
+* @file CLRType.cpp
+* This file implements a class, that represents information about by the CLR loaded types.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/CLRType.h"
 
 CLRType::CLRType(CString name, mdTypeDef typeDefToken, ICorDebugModule* module) : 

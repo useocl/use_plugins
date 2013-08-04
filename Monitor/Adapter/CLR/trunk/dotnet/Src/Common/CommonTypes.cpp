@@ -1,3 +1,9 @@
+/** 
+* @file CommonTypes.cpp
+* This file implements often used methods for the debugger and the adapter.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/CommonTypes.h"
 
 CString HelperMethods::GetCorTypeAsString(CorElementType type)

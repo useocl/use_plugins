@@ -1,24 +1,51 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Settings>
   <TypeInfoHelper MinNumberOfModules="1"></TypeInfoHelper>
-  <ObjectInfoHelper InMemoryInstanceMap="1" 
+  <ObjectInfoHelper InMemoryInstanceMap="0" 
                     CacheAtStartUp="0">
   </ObjectInfoHelper>
   <TypesOfInterest>
     <TypeOfInterest Name="Debuggee.Cat"></TypeOfInterest>
     <TypeOfInterest Name="Debuggee.Dog"></TypeOfInterest>
-    <TypeOfInterest Name="Debuggee.PetColor"></TypeOfInterest>
-  </TypesOfInterest>
+    <TypeOfInterest Name="Debuggee.Color"></TypeOfInterest>
+    <TypeOfInterest Name="Debuggee.Pet"></TypeOfInterest>
+    <TypeOfInterest Name="Debuggee.Mouse"></TypeOfInterest>
+ </TypesOfInterest>
   <ModulesToIgnore>
     <ModuleToIgnore Name="mscorlib.dll"></ModuleToIgnore>
     <ModuleToIgnore Name="System.Core.dll"></ModuleToIgnore>
     <ModuleToIgnore Name="System.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.Windows.Forms.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.Drawing.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="Microsoft.VisualBasic.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="WindowsBase.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.Configuration.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="Microsoft.GeneratedCode"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationCore.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.Xml.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.Xaml.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.Runtime.Remoting.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationFramework.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.Runtime.Remoting.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationFramework-SystemXml.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationFramework.resources.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="WindowsFormsIntegration.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationCore.resources.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationFramework.Aero2.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationFramework-SystemCore.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="UIAutomationTypes.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationUI.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationUI.resources.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="System.Xml.Linq.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="PresentationFramework-SystemXmlLinq.dll"></ModuleToIgnore>
+    <ModuleToIgnore Name="FamilyLines.exe"></ModuleToIgnore>
   </ModulesToIgnore>
   <Debugger PrintSettings="1" 
             PrintAllModules="0" 
             PrintLoadedModules="1" 
             PrintLoadedTypes="1"
             PrintLoadedTypesFields="0"
-            PrintInheritance="1">
+            PrintInheritance="0"
+            DebugFamilyLines="0">
   </Debugger>
 </Settings>

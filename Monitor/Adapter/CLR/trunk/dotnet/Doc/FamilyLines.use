@@ -1,0 +1,11 @@
+@Monitor(defaultPackage="KBS.FamilyLinesLib")
+
+model FamilyLines
+
+-- classes
+
+class Person
+  attributes
+    firstName : String
+    lastName : String
+end

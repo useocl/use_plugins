@@ -9,6 +9,7 @@ import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 
 /**
+ * This class represents a CLR field.
  * @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
  */
 public class CLRField extends CLRBase implements VMField {

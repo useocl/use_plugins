@@ -1,3 +1,10 @@
+/** 
+* @file CLRFieldList.cpp
+* This file implements a class, that represents information about fields that points to data structures
+* including references to other instances.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #include "../Common/CLRFieldList.h"
 
 
@@ -5,8 +12,7 @@ CLRFieldList::CLRFieldList(CString name, ICorDebugValue* debugValue, mdFieldDef 
   CLRFieldBase(name, debugValue, fieldDefToken),
   refCount(0),
   references(std::vector<CORDB_ADDRESS>())
-{
-}
+{ }
 
 
 CLRFieldList::~CLRFieldList()

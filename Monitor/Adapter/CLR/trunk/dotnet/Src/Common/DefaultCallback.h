@@ -1,3 +1,11 @@
+/** 
+* @file DefaultCallback.h
+* This file declares and implements the default implmentation of the 
+* interfaces ICorDebugManagedCallback and ICorDebugManagedCallback2.
+* Each method returns a E_NOTIMPL value, that the controller is able to continue the adapter.
+* @author <a href="mailto:dhonsel@informatik.uni-bremen.de">Daniel Honsel</a>
+*/
+
 #define COM_METHOD  HRESULT STDMETHODCALLTYPE
 
 #pragma once
@@ -65,6 +73,7 @@ public:
   {
     return E_NOTIMPL;
   }
+
   COM_METHOD Break(ICorDebugAppDomain* pAppDomain,
     ICorDebugThread* thread)
   {
