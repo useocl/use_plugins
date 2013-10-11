@@ -1,6 +1,5 @@
 package org.tzi.kodkod.model.visitor;
 
-import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -32,8 +31,7 @@ public class BoundsVisitor extends SimpleVisitor {
 	private Bounds bounds;
 	private TupleFactory tupleFactory;
 
-	public BoundsVisitor(Bounds bounds, TupleFactory tupleFactory, PrintWriter out) {
-		super(out);
+	public BoundsVisitor(Bounds bounds, TupleFactory tupleFactory) {
 		this.bounds = bounds;
 		this.tupleFactory = tupleFactory;
 	}

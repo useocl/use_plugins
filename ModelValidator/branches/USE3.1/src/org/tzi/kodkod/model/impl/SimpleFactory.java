@@ -1,7 +1,5 @@
 package org.tzi.kodkod.model.impl;
 
-import java.io.PrintWriter;
-
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationClass;
 import org.tzi.kodkod.model.iface.IAssociationEnd;
@@ -22,8 +20,8 @@ import org.tzi.kodkod.model.type.TypeFactory;
 public class SimpleFactory implements IModelFactory {
 
 	@Override
-	public IModel createModel(String name, IModelFactory modelFactory, TypeFactory typeFactory, PrintWriter out) {
-		return new Model(name, modelFactory, typeFactory, out);
+	public IModel createModel(String name, IModelFactory modelFactory, TypeFactory typeFactory) {
+		return new Model(name, modelFactory, typeFactory);
 	}
 
 	@Override

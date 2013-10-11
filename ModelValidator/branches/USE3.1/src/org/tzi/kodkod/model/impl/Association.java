@@ -12,6 +12,7 @@ import kodkod.ast.Variable;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
 
+import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.ConstraintHelper;
 import org.tzi.kodkod.helper.PrintHelper;
 import org.tzi.kodkod.model.config.impl.AssociationConfigurator;
@@ -22,7 +23,6 @@ import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.visitor.Visitor;
-import org.tzi.use.util.Log;
 
 /**
  * Implementation of IAssociation.
@@ -32,7 +32,7 @@ import org.tzi.use.util.Log;
  */
 public class Association extends ModelElement implements IAssociation {
 
-	// private static final Logger LOG = Logger.getLogger(Association.class);
+	private static final Logger LOG = Logger.getLogger(Association.class);
 
 	private int arity = 0;
 	private IAssociationClass associationClass;
@@ -109,7 +109,7 @@ public class Association extends ModelElement implements IAssociation {
 			}
 
 			formulas.add(formula);
-			Log.debug("Type of " + name() + ": " + PrintHelper.prettyKodkod(formula));
+			LOG.debug("Type of " + name() + ": " + PrintHelper.prettyKodkod(formula));
 		}
 		return Formula.and(formulas);
 	}
@@ -164,7 +164,7 @@ public class Association extends ModelElement implements IAssociation {
 				formula = formula.forAll(variableDeclarations);
 
 				formulas.add(formula);
-				Log.debug("Mult for " + name() + ": " + PrintHelper.prettyKodkod(formula));
+				LOG.debug("Mult for " + name() + ": " + PrintHelper.prettyKodkod(formula));
 			}
 		}
 
@@ -190,7 +190,7 @@ public class Association extends ModelElement implements IAssociation {
 		}
 
 		Formula formula1 = linkedObjects.lone().forAll(variableDeclarations);
-		Log.debug("Mult for association class " + name() + ": " + PrintHelper.prettyKodkod(formula1));
+		LOG.debug("Mult for association class " + name() + ": " + PrintHelper.prettyKodkod(formula1));
 
 		Variable acVariable = Variable.unary("ac");
 		variableDeclarations = acVariable.oneOf(associationClass.relation());
@@ -210,7 +210,7 @@ public class Association extends ModelElement implements IAssociation {
 		}
 
 		formula2 = formula2.forAll(variableDeclarations);
-		Log.debug("Mult for association class " + name() + ": " + PrintHelper.prettyKodkod(formula2));
+		LOG.debug("Mult for association class " + name() + ": " + PrintHelper.prettyKodkod(formula2));
 
 		return formula1.and(formula2);
 	}

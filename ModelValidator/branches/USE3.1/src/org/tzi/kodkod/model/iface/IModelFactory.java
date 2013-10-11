@@ -1,7 +1,5 @@
 package org.tzi.kodkod.model.iface;
 
-import java.io.PrintWriter;
-
 import org.tzi.kodkod.model.impl.Multiplicity;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeFactory;
@@ -23,7 +21,7 @@ public interface IModelFactory {
 	 * @param typeFactory
 	 * @return
 	 */
-	public IModel createModel(String name, IModelFactory modelFactory, TypeFactory typeFactory, PrintWriter out);
+	public IModel createModel(String name, IModelFactory modelFactory, TypeFactory typeFactory);
 
 	/**
 	 * Creates an instance of IClass.

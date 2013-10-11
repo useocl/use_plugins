@@ -18,7 +18,7 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 
 	@Override
 	protected void noArguments() {
-		out.println(LogMessages.pagingCmdError);
+		LOG.info(LogMessages.pagingCmdError);
 	}
 
 	@Override
@@ -39,14 +39,14 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 			if (file.exists() && file.canRead() && !file.isDirectory()) {
 				extractConfigureAndValidate(file);
 			} else {
-				out.println(LogMessages.pagingCmdError);
+				LOG.error(LogMessages.pagingCmdError);
 			}
 		}
 	}
 
 	private boolean checkValidator() {
 		if (validator == null) {
-			out.println(LogMessages.pagingCmdFileFirst);
+			LOG.error(LogMessages.pagingCmdFileFirst);
 			return false;
 		}
 		return true;
@@ -54,7 +54,7 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 
 	@Override
 	protected KodkodModelValidator createValidator() {
-		validator = new UseScrollingKodkodModelValidator(mSystem, out);
+		validator = new UseScrollingKodkodModelValidator(mSystem);
 		return validator;
 	}
 }

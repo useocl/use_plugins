@@ -1,6 +1,5 @@
 package org.tzi.use.kodkod.plugin;
 
-import java.io.PrintWriter;
 import java.util.Collection;
 
 import org.apache.log4j.Logger;
@@ -44,47 +43,47 @@ public abstract class AbstractPlugin {
 	/**
 	 * Extracts the object diagram.
 	 */
-	protected void objDiagramExtraction(PrintWriter out) {
+	protected void objDiagramExtraction() {
 		ObjectDiagramExtractor extractor = new ObjectDiagramExtractor(mSystem);
-		extractor.enrichModel(model(out));
+		extractor.enrichModel(model());
 	}
 
-	protected IModel model(PrintWriter out) {
-		return PluginModelFactory.INSTANCE.getModel(mModel, out);
+	protected IModel model() {
+		return PluginModelFactory.INSTANCE.getModel(mModel);
 	}
 
 	/**
 	 * Transforms the invariants of the generator and enrich the model.
 	 */
-	protected void enrichModelWithLoadedInvariants(PrintWriter out) {
+	protected void enrichModelWithLoadedInvariants() {
 		try {
-			ModelConfigurator configurator = (ModelConfigurator) model(out).getConfigurator();
+			ModelConfigurator configurator = (ModelConfigurator) model().getConfigurator();
 			configurator.clear();
 			
 			GModel gModel=null;
 			try {
 				gModel = mSystem.generator().gModel();
 			} catch (NoSuchMethodError e) {
-				out.println(LogMessages.noSuchMethodError + ". " + e);
+				LOG.error(LogMessages.noSuchMethodError, e);
 			}
 			
 			Collection<MClassInvariant> loadedClassInvariants = gModel.loadedClassInvariants();
 
 			if (loadedClassInvariants.size() > 0) {
-				out.println(LogMessages.enrichWithLoadedInvariants);
+				LOG.info(LogMessages.enrichWithLoadedInvariants);
 
-				InvariantTransformator invariantTransformator = new InvariantTransformator(model(out).modelFactory(), model(out).typeFactory());
+				InvariantTransformator invariantTransformator = new InvariantTransformator(model().modelFactory(), model().typeFactory());
 
 				for (MClassInvariant loadedInvariant : loadedClassInvariants) {
 					if (!configurator.getInvariants().containsValue(loadedInvariant.name())) {
 
-						IInvariant invariant = invariantTransformator.transform(model(out), loadedInvariant);
+						IInvariant invariant = invariantTransformator.transform(model(), loadedInvariant);
 						configurator.addInvariant(invariant);
 					}
 				}
 			}
 		} catch (Exception e) {
-			out.println(LogMessages.errorWithLoadedInvariants);
+			LOG.error(LogMessages.errorWithLoadedInvariants);
 			if (LOG.isDebugEnabled()) {
 				e.printStackTrace();
 			}

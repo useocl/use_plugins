@@ -1,6 +1,5 @@
 package org.tzi.kodkod.model.impl;
 
-import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,6 +7,7 @@ import java.util.TreeMap;
 
 import kodkod.ast.Formula;
 
+import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.Configurator;
 import org.tzi.kodkod.model.config.impl.ModelConfigurator;
@@ -28,7 +28,9 @@ import org.tzi.kodkod.model.visitor.Visitor;
  * 
  */
 public final class Model implements IModel{
-		
+	
+	private static final Logger LOG = Logger.getLogger(Model.class);
+	
 	private final String name;
     private Map<String, EnumType> enums;
     private Map<String, IClass> classes;
@@ -36,16 +38,14 @@ public final class Model implements IModel{
     private IModelFactory modelFactory;
     private TypeFactory typeFactory;
     private Configurator<IModel> configurator;
-    private PrintWriter out;
-    
-    Model(String name, IModelFactory modelFactory, TypeFactory typeFactory, PrintWriter out){
+
+    Model(String name, IModelFactory modelFactory,TypeFactory typeFactory){
     	this.name=name;
     	this.modelFactory=modelFactory;
     	this.typeFactory=typeFactory;
-    	this.out = out;
-    	this.enums = new TreeMap<String, EnumType>();
-    	this.classes = new TreeMap<String, IClass>();
-    	this.associations = new TreeMap<String, IAssociation>();
+    	enums=new TreeMap<String, EnumType>();
+    	classes=new TreeMap<String, IClass>();
+    	associations=new TreeMap<String, IAssociation>();
     	resetConfigurator();
     }
 
@@ -116,8 +116,8 @@ public final class Model implements IModel{
 
 	@Override
 	public void reset() {
-		accept(new ResetVisitor(out));
-		out.println(LogMessages.modelResetSuccessful);
+		accept(new ResetVisitor());
+		LOG.info(LogMessages.modelResetSuccessful);
 	}
 
 	@Override

@@ -147,8 +147,8 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 	protected void visitParams(MOperation operation, org.tzi.use.uml.ocl.expr.Expression[] arguments) {
 		DefaultExpressionVisitor visitor;
 		VarDeclList params = operation.paramList();
+		
 		if (params.size() > 0) {
-
 			VarDecl currentParam;
 			for (int i = 0; i < params.size(); i++) {
 				visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);

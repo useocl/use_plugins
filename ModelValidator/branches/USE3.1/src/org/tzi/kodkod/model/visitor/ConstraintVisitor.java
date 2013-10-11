@@ -1,7 +1,5 @@
 package org.tzi.kodkod.model.visitor;
 
-import java.io.PrintWriter;
-
 import kodkod.ast.Formula;
 
 import org.tzi.kodkod.model.iface.IAssociation;
@@ -20,8 +18,7 @@ public class ConstraintVisitor extends SimpleVisitor {
 
 	private Formula formula = null;
 
-	public ConstraintVisitor(PrintWriter out) {
-		super(out);
+	public ConstraintVisitor() {
 		formula = Formula.TRUE;
 	}
 

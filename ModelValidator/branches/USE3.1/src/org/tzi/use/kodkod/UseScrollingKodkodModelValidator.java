@@ -1,6 +1,5 @@
 package org.tzi.use.kodkod;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +22,8 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 	private int solutionIndex = 0;
 	private List<Map<Relation, TupleSet>> solutions;
 
-	public UseScrollingKodkodModelValidator(MSystem mSystem, PrintWriter out) {
-		super(mSystem, out);
+	public UseScrollingKodkodModelValidator(MSystem mSystem) {
+		super(mSystem);
 		solutions = new ArrayList<Map<Relation, TupleSet>>();
 	}
 
@@ -33,7 +32,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 		boolean errors = createObjectDiagram(solution.instance().relationTuples());
 		if (!errors) {
 			solutions.add(solution.instance().relationTuples());
-			out.println(LogMessages.pagingNext);
+			LOG.info(LogMessages.pagingNext);
 			previousLog();
 		}
 	}
@@ -52,7 +51,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 
 	private void previousLog() {
 		if (solutions.size() > 0) {
-			out.println(LogMessages.pagingPrevious);
+			LOG.info(LogMessages.pagingPrevious);
 		}
 	}
 
@@ -76,7 +75,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 			solutionIndex--;
 			createObjectDiagram(solutions.get(solutionIndex));
 		} else {
-			out.println(LogMessages.pagingFirst);
+			LOG.info(LogMessages.pagingFirst);
 		}
 	}
 

@@ -27,11 +27,10 @@ import org.tzi.use.uml.sys.MSystem;
 public class UseKodkodModelValidator extends KodkodModelValidator {
 
 	protected static final Logger LOG = Logger.getLogger(UseKodkodModelValidator.class);
-	
+
 	private MSystem mSystem;
 
-	public UseKodkodModelValidator(MSystem mSystem, PrintWriter out) {
-		super(out);
+	public UseKodkodModelValidator(MSystem mSystem) {
 		this.mSystem = mSystem;
 	}
 
@@ -66,7 +65,7 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 	 * @param relationTuples
 	 */
 	protected boolean createObjectDiagram(Map<Relation, TupleSet> relationTuples) {
-		out.println(LogMessages.objDiagramCreation);
+		LOG.info(LogMessages.objDiagramCreation);
 
 		mSystem.reset();
 		ObjectDiagramCreator diagramCreator = new ObjectDiagramCreator(model, mSystem);
@@ -76,9 +75,9 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 		} catch (Exception exception) {
 			if (LOG.isDebugEnabled()) {
 				LOG.error(LogMessages.objDiagramCreationError, exception);
+			} else {
+				LOG.error(LogMessages.objDiagramCreationError);
 			}
-			out.println(LogMessages.objDiagramCreationError);
-			
 			return true;
 		}
 	}
@@ -118,11 +117,11 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 			for (IInvariant invariant : clazz.invariants()) {
 				if (!invariant.isActivated()) {
 					if (!info) {
-						out.println(LogMessages.inactiveInvariantEval);
+						LOG.debug(LogMessages.inactiveInvariantEval);
 						info = true;
 					}
 
-					out.println("Invariant " + invariant.name() + ": " + evaluator.evaluate(invariant.formula()));
+					LOG.debug("Invariant " + invariant.name() + ": " + evaluator.evaluate(invariant.formula()));
 				}
 			}
 		}

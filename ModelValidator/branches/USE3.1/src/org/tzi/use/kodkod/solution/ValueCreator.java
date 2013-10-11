@@ -142,7 +142,7 @@ public class ValueCreator {
 			setValue = (SetValue) mObjectState.attributeValue(mAttribute);
 		}
 		Value val = createValue(setValue.elemType(), atom);
-		setValue = setValue.including(setValue.type(), val);
+		setValue = setValue.including(setValue.elemType(), val);
 
 		return setValue;
 	}

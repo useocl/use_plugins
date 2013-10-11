@@ -1,7 +1,6 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
-import java.io.PrintWriter;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.tzi.kodkod.KodkodModelValidator;
@@ -12,7 +11,6 @@ import org.tzi.use.kodkod.UseDefaultConfigKodkodModelValidator;
 import org.tzi.use.kodkod.UseKodkodModelValidator;
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
-import org.tzi.use.util.Log;
 
 /**
  * Cmd-Class for a simple model validation.
@@ -22,8 +20,6 @@ import org.tzi.use.util.Log;
  */
 public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmdDelegate {
 
-	protected PrintWriter out = new PrintWriter(Log.out());
-	
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
 		initialize(pluginCommand.getSession());
@@ -42,10 +38,10 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	protected void noArguments() {
 		try {
 			File file = configureModel();
-			objDiagramExtraction(out);
-			validate(new UseDefaultConfigKodkodModelValidator(mSystem, file, out));
+			objDiagramExtraction();
+			validate(new UseDefaultConfigKodkodModelValidator(mSystem, file));
 		} catch (Exception e) {
-			out.println(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
+			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
 	}
 
@@ -60,7 +56,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 		if (file.exists() && file.canRead() && !file.isDirectory()) {
 			extractConfigureAndValidate(file);
 		} else {
-			out.println(LogMessages.fileCmdError(file));
+			LOG.error(LogMessages.fileCmdError(file));
 		}
 	}
 
@@ -73,10 +69,10 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	protected void extractConfigureAndValidate(File file) {
 		try {
 			configureModel(file);
-			objDiagramExtraction(out);
+			objDiagramExtraction();
 			validate(createValidator());
 		} catch (ConfigurationException e) {
-			out.println(LogMessages.propertiesConfigurationReadError + ". " + e.getMessage());
+			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + e.getMessage());
 		}
 	}
 
@@ -86,7 +82,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * @return
 	 */
 	protected KodkodModelValidator createValidator() {
-		return new UseKodkodModelValidator(mSystem, out);
+		return new UseKodkodModelValidator(mSystem);
 	}
 
 	/**
@@ -96,10 +92,10 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * @throws ConfigurationException
 	 */
 	private void configureModel(File file) throws ConfigurationException {
-		PropertyConfigurationVisitor configurationVisitor = new PropertyConfigurationVisitor(file.getAbsolutePath(), out);
-		model(out).accept(configurationVisitor);
+		PropertyConfigurationVisitor configurationVisitor = new PropertyConfigurationVisitor(file.getAbsolutePath());
+		model().accept(configurationVisitor);
 
-		out.println(LogMessages.modelConfigurationSuccessful);
+		LOG.info(LogMessages.modelConfigurationSuccessful);
 	}
 
 	/**
@@ -109,16 +105,16 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * @throws Exception
 	 */
 	private File configureModel() throws Exception {
-		DefaultConfigurationVisitor configurationVisitor = new DefaultConfigurationVisitor(mModel.filename(), out);
-		model(out).accept(configurationVisitor);
+		DefaultConfigurationVisitor configurationVisitor = new DefaultConfigurationVisitor(mModel.filename());
+		model().accept(configurationVisitor);
 
-		out.println(LogMessages.modelConfigurationSuccessful);
+		LOG.info(LogMessages.modelConfigurationSuccessful);
 
 		return configurationVisitor.getFile();
 	}
 
 	private void validate(KodkodModelValidator modelValidator) {
-		enrichModelWithLoadedInvariants(out);
-		modelValidator.validate(model(out));
+		enrichModelWithLoadedInvariants();
+		modelValidator.validate(model());
 	}
 }

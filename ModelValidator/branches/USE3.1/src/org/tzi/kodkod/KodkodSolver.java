@@ -1,6 +1,5 @@
 package org.tzi.kodkod;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +11,7 @@ import kodkod.engine.Solver;
 import kodkod.instance.Bounds;
 import kodkod.instance.Universe;
 
+import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
@@ -19,7 +19,6 @@ import org.tzi.kodkod.model.type.IntegerType;
 import org.tzi.kodkod.model.type.TypeAtoms;
 import org.tzi.kodkod.model.visitor.BoundsVisitor;
 import org.tzi.kodkod.model.visitor.ConstraintVisitor;
-import org.tzi.use.util.Log;
 
 /**
  * Encapsulation of the base algorithm for the model validiation with kodkod.
@@ -29,18 +28,20 @@ import org.tzi.use.util.Log;
  */
 public class KodkodSolver {
 
+	private static final Logger LOG = Logger.getLogger(KodkodSolver.class);
+
 	private Evaluator evaluator;
 
-	public Solution solve(IModel model, PrintWriter out) throws Exception {
-		Bounds bounds = createBounds(model, out);
-		Formula constraint = createConstraint(model, out);
+	public Solution solve(IModel model) throws Exception {
+		Bounds bounds = createBounds(model);
+		Formula constraint = createConstraint(model);
 
 		KodkodSolverConfiguration configuration = KodkodSolverConfiguration.INSTANCE;
 
 		final Solver solver = new Solver();
 		solver.options().setLogTranslation(1);
 		
-		out.println(LogMessages.searchSolution(configuration.satFactory().toString(), configuration.bitwidth()));
+		LOG.info(LogMessages.searchSolution(configuration.satFactory().toString(), configuration.bitwidth()));
 
 		solver.options().setSolver(configuration.satFactory());
 		solver.options().setBitwidth(configuration.bitwidth());
@@ -48,7 +49,7 @@ public class KodkodSolver {
 		Solution solution = solver.solve(constraint, bounds);
 		createEvaluator(solver, solution);
 
-		Log.debug("\n" + solution);
+		LOG.debug("\n" + solution);
 
 		return solution;
 	}
@@ -59,10 +60,12 @@ public class KodkodSolver {
 	 * @param model
 	 * @return
 	 */
-	private Formula createConstraint(IModel model, PrintWriter out) {
-		ConstraintVisitor constraintVisitor = new ConstraintVisitor(out);
+	private Formula createConstraint(IModel model) {
+		ConstraintVisitor constraintVisitor = new ConstraintVisitor();
 		model.accept(constraintVisitor);
 		Formula constraint = constraintVisitor.getFormula();
+
+		// LOG.debug("\n" + PrintHelper.prettyKodkod(constraint));
 
 		return constraint;
 	}
@@ -73,12 +76,12 @@ public class KodkodSolver {
 	 * @param model
 	 * @return
 	 */
-	private Bounds createBounds(IModel model, PrintWriter out) {
+	private Bounds createBounds(IModel model) {
 		Universe universe = createUniverse(model);
 		Bounds bounds = new Bounds(universe);
-		model.accept(new BoundsVisitor(bounds, universe.factory(), out));
+		model.accept(new BoundsVisitor(bounds, universe.factory()));
 
-		Log.debug("\n" + bounds);
+		LOG.debug("\n" + bounds);
 
 		return bounds;
 	}

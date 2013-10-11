@@ -1,6 +1,5 @@
 package org.tzi.kodkod;
 
-import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -29,12 +28,6 @@ public abstract class KodkodModelValidator {
 	protected Solution solution;
 	protected Evaluator evaluator;
 
-	protected final PrintWriter out;
-	
-	public KodkodModelValidator(PrintWriter out) {
-		this.out = out;
-	}
-	
 	/**
 	 * Validates the given model.
 	 * 
@@ -45,27 +38,31 @@ public abstract class KodkodModelValidator {
 
 		KodkodSolver kodkodSolver = new KodkodSolver();
 		try {
-			solution = kodkodSolver.solve(model, out);
+			solution = kodkodSolver.solve(model);
 		} catch (Exception e) {
-			out.println(LogMessages.validationException);
+			LOG.error(LogMessages.validationException);
 			if (LOG.isDebugEnabled()) {
-				LOG.error(LogMessages.validationException, e);
+				e.printStackTrace();
 			}
 			return;
 		}
 
-		out.println(solution.outcome());
+		LOG.info(solution.outcome());
 
 		Statistics statistics = solution.stats();
-		out.println(LogMessages.kodkodStatistics(statistics));
+		LOG.info(LogMessages.kodkodStatistics(statistics));
 
 		if (solution.proof() != null) {
-			solution.proof().minimize(null);
-			out.println("Unsatisfiable proof:");
+			try {
+				solution.proof().minimize(null);
+			} catch (NullPointerException e) { }
+			
+			LOG.info("Unsatisfiable proof:");
+			
 			Iterator<TranslationRecord> iter = solution.proof().core(); 
 			while (iter.hasNext()) {
 				TranslationRecord rec = iter.next();
-				out.println(rec.toString()); 
+				LOG.info(rec.toString()); 
 			}
 		}
 		

@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,8 +33,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	private BufferedWriter writer;
 	private File file;
 
-	public DefaultConfigurationVisitor(String fileName, PrintWriter out) throws Exception {
-		super(out);
+	public DefaultConfigurationVisitor(String fileName) throws Exception {
 		fileName = fileName.replaceAll("\\.use", "");
 		file = new File(fileName + ".properties");
 		file.createNewFile();
@@ -59,7 +57,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		try {
 			writer.close();
 		} catch (IOException e) {
-			out.println(LogMessages.propertiesConfigurationCloseError + ". " + e.getMessage());
+			LOG.error(LogMessages.propertiesConfigurationCloseError + ". " + e.getMessage());
 		}
 	}
 
@@ -131,7 +129,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 			write(minName, minValue);
 			write(maxName, maxValue);
 		} catch (Exception e) {
-			out.println(e.getMessage());
+			LOG.error(e.getMessage());
 		}
 	}
 
@@ -147,7 +145,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 			writer.newLine();
 			writer.newLine();
 		} catch (IOException e) {
-			out.println(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
+			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
 	}
 
@@ -164,7 +162,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 			writer.newLine();
 			writer.newLine();
 		} catch (IOException e) {
-			out.println(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
+			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
 	}
 }

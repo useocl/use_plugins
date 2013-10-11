@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 
 import org.tzi.kodkod.helper.InvariantHelper;
@@ -24,8 +23,8 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 	private boolean allInactive = false;
 	private List<IInvariant> allInvariants;
 
-	public UseDefaultConfigKodkodModelValidator(MSystem mSystem, File configFile, PrintWriter out) {
-		super(mSystem, out);
+	public UseDefaultConfigKodkodModelValidator(MSystem mSystem, File configFile) {
+		super(mSystem);
 		this.configFile = configFile;
 	}
 
@@ -80,13 +79,13 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 				}
 			}
 		} catch (Exception e) {
-			out.println(LogMessages.propertiesConfigurationWriteError);
+			LOG.error(LogMessages.propertiesConfigurationWriteError);
 		} finally {
 			if (writer != null) {
 				try {
 					writer.close();
 				} catch (IOException e) {
-					out.println(LogMessages.propertiesConfigurationCloseError + ". " + e.getMessage());
+					LOG.error(LogMessages.propertiesConfigurationCloseError + ". " + e.getMessage());
 				}
 			}
 		}
