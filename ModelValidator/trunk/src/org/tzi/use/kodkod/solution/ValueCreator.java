@@ -13,11 +13,14 @@ import org.tzi.use.uml.ocl.type.OrderedSetType;
 import org.tzi.use.uml.ocl.type.SequenceType;
 import org.tzi.use.uml.ocl.type.SetType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.value.BagValue;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.ocl.value.EnumValue;
 import org.tzi.use.uml.ocl.value.IntegerValue;
 import org.tzi.use.uml.ocl.value.ObjectValue;
+import org.tzi.use.uml.ocl.value.OrderedSetValue;
 import org.tzi.use.uml.ocl.value.RealValue;
+import org.tzi.use.uml.ocl.value.SequenceValue;
 import org.tzi.use.uml.ocl.value.SetValue;
 import org.tzi.use.uml.ocl.value.StringValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
@@ -141,24 +144,48 @@ public class ValueCreator {
 		} else {
 			setValue = (SetValue) mObjectState.attributeValue(mAttribute);
 		}
-		Value val = createValue(setValue.elemType(), atom);
+		Value val = createValue(attributeType.elemType(), atom);
 		setValue = setValue.including(val);
 
 		return setValue;
 	}
 
 	private Value createSequenceValue(Object atom, SequenceType attributeType) {
-		LOG.warn(LogMessages.noValueCreation("SequenceTypes"));
-		return null;
+		SequenceValue sequenceValue;
+		if (mObjectState.attributeValue(mAttribute).isUndefined()) {
+			sequenceValue = new SequenceValue(attributeType.elemType());
+		} else {
+			sequenceValue = (SequenceValue) mObjectState.attributeValue(mAttribute);
+		}
+		Value val = createValue(attributeType.elemType(), atom);
+		sequenceValue = sequenceValue.append(val);
+
+		return sequenceValue;
 	}
 
 	private Value createOrderedSetValue(Object atom, OrderedSetType attributeType) {
-		LOG.warn(LogMessages.noValueCreation("OrderedSetTypes"));
-		return null;
+		OrderedSetValue orderedSetValue;
+		if (mObjectState.attributeValue(mAttribute).isUndefined()) {
+			orderedSetValue = new OrderedSetValue(attributeType.elemType());
+		} else {
+			orderedSetValue = (OrderedSetValue) mObjectState.attributeValue(mAttribute);
+		}
+		Value val = createValue(attributeType.elemType(), atom);
+		orderedSetValue = orderedSetValue.append(val);
+
+		return orderedSetValue;
 	}
 
 	private Value createBagValue(Object atom, BagType attributeType) {
-		LOG.warn(LogMessages.noValueCreation("BagTypes"));
-		return null;
+		BagValue bagValue;
+		if (mObjectState.attributeValue(mAttribute).isUndefined()) {
+			bagValue = new BagValue(attributeType.elemType());
+		} else {
+			bagValue = (BagValue) mObjectState.attributeValue(mAttribute);
+		}
+		Value val = createValue(attributeType.elemType(), atom);
+		bagValue = bagValue.including(val);
+
+		return bagValue;
 	}
 }

@@ -30,7 +30,7 @@ public class StandardOperationVisitor extends DefaultExpressionVisitor {
 	private List<Object> arguments;
 
 	public StandardOperationVisitor(IModel model, Map<String, Node> variables, Map<String, IClass> variableClasses,
-			Map<String, List<Variable>> replaceVariables, List<String> collectionVariables) {
+			Map<String, Variable> replaceVariables, List<String> collectionVariables) {
 		super(model, variables, variableClasses, replaceVariables, collectionVariables);
 		id = UUID.randomUUID();
 	}

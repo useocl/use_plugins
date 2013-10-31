@@ -8,7 +8,6 @@ import kodkod.ast.Relation;
 import kodkod.instance.TupleSet;
 
 import org.tzi.kodkod.helper.LogMessages;
-import org.tzi.kodkod.model.config.impl.ModelConfigurator;
 import org.tzi.use.uml.sys.MSystem;
 
 /**
@@ -19,14 +18,14 @@ import org.tzi.use.uml.sys.MSystem;
  */
 public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 
-	private int solutionIndex = 0;
-	private List<Map<Relation, TupleSet>> solutions;
+	protected int solutionIndex = 0;
+	protected List<Map<Relation, TupleSet>> solutions;
 
 	public UseScrollingKodkodModelValidator(MSystem mSystem) {
 		super(mSystem);
 		solutions = new ArrayList<Map<Relation, TupleSet>>();
 	}
-
+	
 	@Override
 	protected void handleSolution() {
 		boolean errors = createObjectDiagram(solution.instance().relationTuples());
@@ -34,6 +33,9 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 			solutions.add(solution.instance().relationTuples());
 			LOG.info(LogMessages.pagingNext);
 			previousLog();
+		} else {
+			mSystem.reset();
+			newSolution(solution.instance().relationTuples());
 		}
 	}
 
@@ -59,12 +61,12 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 	 * Scrolls to the next solution.
 	 */
 	public void nextSolution() {
-		if (solutionIndex == solutions.size() - 1) {
-			newSolution();
+		solutionIndex++;
+		if (solutionIndex == solutions.size()) {
+			newSolution(solutions.get(solutionIndex-1));
 		} else {
 			createObjectDiagram(solutions.get(solutionIndex));
 		}
-		solutionIndex++;
 	}
 
 	/**
@@ -78,13 +80,19 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 			LOG.info(LogMessages.pagingFirst);
 		}
 	}
-
-	/**
-	 * Starts a model validation to find a new solution.
-	 */
-	protected void newSolution() {
-		ModelConfigurator modelConfigurator = (ModelConfigurator) model.getConfigurator();
-		modelConfigurator.forbid(solutions.get(solutionIndex));
-		validate(model);
+	
+	public void showSolution(int index){
+		if(index < 1){
+			LOG.info(LogMessages.showSolutionIndexToSmall);
+			return;
+		}else if(index > solutions.size()){
+			LOG.info(LogMessages.showSolutionIndexToBig(solutions.size()));
+			return;
+		}
+		
+		LOG.info(LogMessages.showSolution(index));
+		solutionIndex = index-1;
+		createObjectDiagram(solutions.get(solutionIndex));
 	}
+
 }

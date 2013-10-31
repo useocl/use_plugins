@@ -225,16 +225,19 @@ public class Association extends ModelElement implements IAssociation {
 	 */
 	private Formula zeroOneMultiplicity(List<Variable> variables, int index, Expression linkedObjects) {
 		Formula formula;
+		Expression objects;
 		if (associationClass == null) {
-			formula = linkedObjects.one();
+			objects = linkedObjects;
 		} else {
-			Expression univLinkedObjects = createLinkedObjectsExpression(variables, index, true);
-			if (isBinaryAssociation()) {
-				formula = univLinkedObjects.one();
-			} else {
-				formula = univLinkedObjects.lone();
-			}
+			objects = createLinkedObjectsExpression(variables, index, true);
 		}
+		
+		if (isBinaryAssociation()) {
+			formula = objects.one();
+		} else {
+			formula = objects.lone();
+		}
+		
 		return formula;
 	}
 

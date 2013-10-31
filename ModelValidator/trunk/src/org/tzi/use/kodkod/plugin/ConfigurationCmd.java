@@ -1,7 +1,7 @@
 package org.tzi.use.kodkod.plugin;
 
 import org.apache.log4j.Logger;
-import org.tzi.kodkod.KodkodSolverConfiguration;
+import org.tzi.kodkod.KodkodModelValidatorConfiguration;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
@@ -12,14 +12,14 @@ import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
  * @author Hendrik Reitmann
  * 
  */
-public class SolverConfigurationCmd implements IPluginShellCmdDelegate {
+public class ConfigurationCmd implements IPluginShellCmdDelegate {
 
-	private static final Logger LOG = Logger.getLogger(SolverConfigurationCmd.class);
+	private static final Logger LOG = Logger.getLogger(ConfigurationCmd.class);
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
 
-		KodkodSolverConfiguration configuration = KodkodSolverConfiguration.INSTANCE;
+		KodkodModelValidatorConfiguration configuration = KodkodModelValidatorConfiguration.INSTANCE;
 		String arguments = pluginCommand.getCmdArguments();
 
 		if (arguments != null && arguments.length() > 1) {
@@ -44,6 +44,14 @@ public class SolverConfigurationCmd implements IPluginShellCmdDelegate {
 
 							} catch (NumberFormatException exception) {
 								LOG.error(LogMessages.solverConfigBitwidthError);
+							}
+						} else if (name.equalsIgnoreCase(configuration.DIAGRAMEXTREACTION_KEY) || name.equalsIgnoreCase("ADE")) {
+							if (split[1].equals("on") || split[1].equals("off")) {
+								Boolean value = split[1].equals("on") ? true : false;
+
+								configuration.setAutomaticDiagramExtraction(value);
+							} else {
+								LOG.error(LogMessages.configDiagramExtractionError);
 							}
 						} else {
 							LOG.error(LogMessages.solverConfigWrongArgumentError(name));

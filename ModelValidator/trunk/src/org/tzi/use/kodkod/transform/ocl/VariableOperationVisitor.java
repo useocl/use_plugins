@@ -18,10 +18,13 @@ import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
+import org.tzi.use.uml.ocl.expr.ExpAny;
 import org.tzi.use.uml.ocl.expr.ExpAttrOp;
 import org.tzi.use.uml.ocl.expr.ExpNavigation;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
+import org.tzi.use.uml.ocl.type.ObjectType;
+import org.tzi.use.uml.ocl.type.Type;
 
 /**
  * Extension of DefaultExpressionVisitor to visit the variable operations of an
@@ -35,18 +38,28 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 	private IClass attributeClass;
 
 	public VariableOperationVisitor(IModel model, Map<String, Node> variables, Map<String, IClass> variableClasses,
-			Map<String, List<Variable>> replaceVariables, List<String> collectionVariables) {
+			Map<String, Variable> replaceVariables, List<String> collectionVariables) {
 		super(model, variables, variableClasses, replaceVariables, collectionVariables);
 	}
 
 	@Override
+	public void visitAny(ExpAny exp) {
+		super.visitAny(exp);
+		Type type = exp.getVariableDeclarations().varDecl(0).type();
+		if(type.isObjectType()){
+			attributeClass = model.getClass(((ObjectType)type).cls().name());
+		}
+	}
+	
+	@Override
 	public void visitAttrOp(ExpAttrOp exp) {
 		exp.objExp().processWithVisitor(this);
-
+		
 		IAttribute attribute = attributeClass.getAttribute(exp.attr().name());
-
+		
 		if (attribute != null) {
 			set = attribute.type().isSet();
+			sourceType = exp.type();
 
 			List<Object> arguments = new ArrayList<Object>();
 			arguments.add((Expression) object);
@@ -62,7 +75,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 	@Override
 	public void visitNavigation(ExpNavigation exp) {
 		exp.getObjectExpression().processWithVisitor(this);
-
+		
 		MNavigableElement source = exp.getSource();
 		MNavigableElement destination = exp.getDestination();
 		MAssociation mAssociation = source.association();
@@ -82,6 +95,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 			}
 
 			object_type_nav = !set;
+			sourceType = exp.type();
 
 			if (fromRole == -1 || toRole == -1 || fromRole == toRole) {
 				throw new TransformationException("Cannot find correct associationEnd indexes for navigation from " + source.nameAsRolename()
@@ -183,9 +197,11 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		 * class QueryExpressionVisitor. For this replacement it is necessary to
 		 * use check the replaceVariables before the normal variables.
 		 */
-		if (replaceVariables.containsKey(exp.getVarname()) && replaceVariables.get(exp.getVarname()).size()>0) {
-			object = replaceVariables.get(exp.getVarname()).remove(0);
-			getAttributeClass(exp.getVarname());
+		sourceType = exp.type();
+		
+		if (replaceVariables.containsKey(exp.getVarname())) {
+			object = replaceVariables.get(exp.getVarname());		
+			getAttributeClass(replaceVariables.get(exp.getVarname()).name());
 
 		} else if (variables.containsKey(exp.getVarname())) {
 			object = variables.get(exp.getVarname());

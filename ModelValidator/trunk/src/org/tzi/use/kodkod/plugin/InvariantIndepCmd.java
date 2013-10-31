@@ -17,7 +17,7 @@ public class InvariantIndepCmd extends AbstractPlugin implements IPluginShellCmd
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
 		initialize(pluginCommand.getSession());
-		objDiagramExtraction();
+		enrichModel();
 
 		InvariantIndepChecker indepChecker = new InvariantIndepChecker();
 

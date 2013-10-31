@@ -1,4 +1,4 @@
-package org.tzi.use.kodkod.transform;
+package org.tzi.use.kodkod.transform.enrich;
 
 import java.util.List;
 import java.util.Set;
@@ -11,8 +11,8 @@ import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.ConfigurableType;
 import org.tzi.kodkod.model.type.Type;
-import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.kodkod.model.type.TypeFactory;
+import org.tzi.use.kodkod.transform.ValueConverter;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.ocl.value.CollectionValue;
 import org.tzi.use.uml.ocl.value.Value;
@@ -30,26 +30,22 @@ import org.tzi.use.uml.sys.MSystemState;
  * @author Hendrik Reitmann
  * 
  */
-public class ObjectDiagramExtractor {
+public class ObjectDiagramModelEnricher implements ModelEnricher{
 
-	private static final Logger LOG = Logger.getLogger(ObjectDiagramExtractor.class);
-
-	private MSystem mSystem;
-
-	public ObjectDiagramExtractor(MSystem mSystem) {
-		this.mSystem = mSystem;
-	}
+	private static final Logger LOG = Logger.getLogger(ObjectDiagramModelEnricher.class);
 
 	/**
 	 * Enrich the given model with the information of the object diagram.
 	 * 
 	 * @param model
 	 */
-	public void enrichModel(IModel model) {
+	@Override
+	public void enrichModel(MSystem mSystem,IModel model) {
 		try {
 			MSystemState systemState = mSystem.state();
 			extractObjects(model, systemState);
-			extractLinks(model, systemState);
+			extractLinks(model, systemState);			
+			LOG.info(LogMessages.objDiagramExtractionSuccessful);			
 		} catch (Exception e) {
 			if (LOG.isDebugEnabled()) {
 				LOG.error(LogMessages.objDiagramExtractionError);
@@ -75,7 +71,7 @@ public class ObjectDiagramExtractor {
 				specificValue = new String[linkedObjects.size() + 1];
 
 				MLinkObject mLinkObject = (MLinkObject) link;
-				specificValue[0] = mLinkObject.cls().name() + "_" + mLinkObject.name();
+				specificValue[0] = mLinkObject.name();
 
 				index = 1;
 			} else {
@@ -83,7 +79,7 @@ public class ObjectDiagramExtractor {
 			}
 
 			for (MObject linkedObject : linkedObjects) {
-				specificValue[index] = linkedObject.cls().name() + "_" + linkedObject.name();
+				specificValue[index] = linkedObject.name();
 				index++;
 			}
 
@@ -135,7 +131,7 @@ public class ObjectDiagramExtractor {
 				Type type = getType(typeFactory, value);
 
 				for (String stringValue : values) {
-					setAttributeValue(clazz.name() + "_" + mObject.name(), attribute, type, stringValue);
+					setAttributeValue(mObject.name(), attribute, type, stringValue);
 					addValueToType(type, stringValue);
 				}
 			}
@@ -151,9 +147,7 @@ public class ObjectDiagramExtractor {
 	 * @param value
 	 */
 	private void setAttributeValue(String name, IAttribute attribute, Type type, String value) {
-		if (type != null && type.isString()) {
-			attribute.getConfigurator().addSpecificValue(new String[] { name, TypeConstants.STRING + "_" + value });
-		} else {
+		if (type != null) {
 			attribute.getConfigurator().addSpecificValue(new String[] { name, value });
 		}
 	}

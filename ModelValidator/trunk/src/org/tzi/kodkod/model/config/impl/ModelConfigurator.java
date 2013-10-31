@@ -36,12 +36,14 @@ public class ModelConfigurator extends Configurator<IModel> {
 	private Map<String, IInvariant> invariants;
 	private Formula solutionFormula;
 	private boolean aggregationcyclefree;
+	private boolean forbiddensharing;
 
 	public ModelConfigurator(IModel model, Map<String, IInvariant> invariants) {
 		this.invariants = invariants;
 		this.model = model;
 		solutionFormula = Formula.TRUE;
 		aggregationcyclefree = DefaultConfigurationValues.aggregationcyclefreeness;
+		forbiddensharing = DefaultConfigurationValues.forbiddensharing;
 	}
 
 	@Override
@@ -311,4 +313,11 @@ public class ModelConfigurator extends Configurator<IModel> {
 		return aggregationcyclefree;
 	}
 
+	public void setForbiddensharing(boolean forbiddensharing) {
+		this.forbiddensharing = forbiddensharing;
+	}
+	
+	public boolean isForbiddensharing() {
+		return forbiddensharing;
+	}
 }

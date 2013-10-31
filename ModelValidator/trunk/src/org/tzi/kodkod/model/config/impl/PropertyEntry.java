@@ -53,4 +53,6 @@ public class PropertyEntry {
 	public static final String attributeColSizeMax = "_maxSize";
 	
 	public static final String aggregationcyclefreeness = "aggregationcyclefreeness";
+	
+	public static final String forbiddensharing = "forbiddensharing";
 }

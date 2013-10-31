@@ -27,6 +27,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 
 		operationsReturningSet = new ArrayList<String>();
 		operationsReturningSet.add("asSet");
+		operationsReturningSet.add("closure");
 		operationsReturningSet.add("collect");
 		operationsReturningSet.add("collectNested");
 		operationsReturningSet.add("minus");
@@ -80,6 +81,15 @@ public class SetOperationGroup extends OCLOperationGroup {
 		return src;
 	}
 
+    public Expression closure(Expression src, Expression src_type, Expression body, Variable var) {
+        final Variable y = Variable.unary("y");
+
+        final Expression generalClosure = y.in(body).comprehension(var.oneOf(src_type).and(y.oneOf(src_type))).closure();
+        final Expression expression = src.join(generalClosure);
+        
+        return src.eq(undefined_Set).thenElse(undefined_Set,expression);
+    } 
+	
 	// OCL: srcExpr->collect(var | bodyExpr)
 
 	public final Expression collect(Expression src, Expression body, Variable var) {
@@ -99,7 +109,6 @@ public class SetOperationGroup extends OCLOperationGroup {
 				undefined_Set,
 				src.no().thenElse(Expression.NONE,
 						src.eq(select).thenElse(booleanTrue, select.some().thenElse(booleanTrue.union(booleanFalse), booleanFalse))));
-
 	}
 
 	public final Expression collectNested(Expression src, Expression body, Variable var) {
@@ -283,7 +292,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 	}
 
 	public Expression oclAsType(Expression src, Expression cls) {
-		return src;
+		return src.in(cls).thenElse(src, undefined);
 	}
 
 	public Formula oclAsType(Formula src, Expression cls) {
@@ -330,11 +339,13 @@ public class SetOperationGroup extends OCLOperationGroup {
 	// OCL: srcExpr->select(var | bodyExpr)
 
 	public final Expression select(Expression src, Formula body, Variable var) {
-		return src.eq(undefined_Set).thenElse(undefined_Set, body.comprehension(var.oneOf(src)));
+		//return src.eq(undefined_Set).thenElse(undefined_Set, body.comprehension(var.oneOf(src)));
+		return body.comprehension(var.oneOf(src));
 	}
 
 	public final Expression select(Expression src, Expression body, Variable var) {
-		return src.eq(undefined_Set).thenElse(undefined_Set, body.eq(booleanTrue).comprehension(var.oneOf(src)));
+		//return src.eq(undefined_Set).thenElse(undefined_Set, body.eq(booleanTrue).comprehension(var.oneOf(src)));
+		return body.eq(booleanTrue).comprehension(var.oneOf(src));
 	}
 
 	// OCL: srcExpr->size()

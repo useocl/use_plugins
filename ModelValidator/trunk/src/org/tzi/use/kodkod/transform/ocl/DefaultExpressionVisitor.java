@@ -43,6 +43,7 @@ import org.tzi.use.uml.ocl.expr.ExpSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpStdOp;
 import org.tzi.use.uml.ocl.expr.ExpUndefined;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
+import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 
 /**
@@ -59,14 +60,15 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	protected Map<String, Node> variables;
 	protected List<String> collectionVariables;
 	protected Map<String, IClass> variableClasses;
-	protected Map<String, List<Variable>> replaceVariables;
+	protected Map<String, Variable> replaceVariables;
 
 	protected Object object;
 	protected boolean set;
 	protected boolean object_type_nav;
+	protected Type sourceType;
 
 	public DefaultExpressionVisitor(IModel model, Map<String, Node> variables, Map<String, IClass> variableClasses,
-			Map<String, List<Variable>> replaceVariables, List<String> collectionVariables) {
+			Map<String, Variable> replaceVariables, List<String> collectionVariables) {
 		this.model = model;
 		this.variables = variables;
 		this.variableClasses = variableClasses;
@@ -98,6 +100,10 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		return set;
 	}
 
+	public Type getSourceType() {
+		return sourceType;
+	}
+	
 	/**
 	 * Returns if the result object is a navigation to an object end.
 	 * 
@@ -210,6 +216,11 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 
 		if (varExpression instanceof Node) {
 			variables.put(exp.getVarname(), (Node) varExpression);
+			
+			if(exp.getVarType().isObjectType()){
+				variableClasses.put(exp.getVarname(), model.getClass(((ObjectType)exp.getVarType()).cls().name()));
+			}
+			
 			if (visitor.isSet()) {
 				collectionVariables.add(exp.getVarname());
 			}
@@ -221,6 +232,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 			object_type_nav = visitor.isObject_type_nav();
 
 			variables.remove(exp.getVarname());
+			variableClasses.remove(exp.getVarname());
 		} else {
 			LOG.warn(LogMessages.letNotReachableWarning);
 		}
@@ -352,6 +364,8 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	private void visitCollectionLiteral(ExpCollectionLiteral exp, String literal) {
 		List<Object> arguments = new ArrayList<Object>();
 
+		sourceType = exp.type();
+		
 		DefaultExpressionVisitor visitor;
 		for (org.tzi.use.uml.ocl.expr.Expression expression : exp.getElemExpr()) {
 			visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
@@ -373,6 +387,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		object = visitor.getObject();
 		set = visitor.isSet();
 		object_type_nav = visitor.isObject_type_nav();
+		sourceType = visitor.getSourceType();
 	}
 
 	/**

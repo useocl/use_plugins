@@ -59,18 +59,20 @@ public class InvariantTransformator {
 
 		Map<String, Node> variables = new TreeMap<String, Node>();
 		Map<String, IClass> variableClasses = new TreeMap<String, IClass>();
+		Map<String, Node> contextVariables = new TreeMap<String, Node>();
 
 		String[] singleVars = mClassInvariant.var().split(",");
 		for (String var : singleVars) {
 			variables.put(var.trim(), Variable.unary(var.trim()));
 			variableClasses.put(var.trim(), invariantClass);
+			contextVariables.put(var.trim(), variables.get(var.trim()));
 		}
 
-		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, new HashMap<String, List<Variable>>(),
+		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, new HashMap<String, Variable>(),
 				new ArrayList<String>());
 		mClassInvariant.bodyExpression().processWithVisitor(visitor);
 
-		return createInvariant(mClassInvariant.toString(), invariantClass, variables.values(), visitor.getObject());
+		return createInvariant(mClassInvariant.toString(), invariantClass, contextVariables.values(), visitor.getObject());
 	}
 
 	/**

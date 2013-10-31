@@ -14,7 +14,7 @@ import org.tzi.use.kodkod.UseScrollingKodkodModelValidator;
  */
 public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 
-	private static UseScrollingKodkodModelValidator validator;
+	protected static UseScrollingKodkodModelValidator validator;
 
 	@Override
 	protected void noArguments() {
@@ -32,6 +32,11 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 		} else if (arguments.equals("previous")) {
 			if (checkValidator()) {
 				validator.previousSolution();
+			}
+		} else if (arguments.matches("show\\([1-9]\\d*\\)")) {
+			if (checkValidator()) {
+				int index = Integer.parseInt(arguments.substring(5, arguments.length()-1));
+				validator.showSolution(index);
 			}
 		} else {
 			File file = new File(arguments);

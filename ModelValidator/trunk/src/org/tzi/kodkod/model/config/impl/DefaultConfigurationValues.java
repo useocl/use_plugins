@@ -28,4 +28,6 @@ public class DefaultConfigurationValues {
 	public static final double realStep = 0.5;
 	
 	public static final boolean aggregationcyclefreeness = false;
+	
+	public static final boolean forbiddensharing=true;
 }

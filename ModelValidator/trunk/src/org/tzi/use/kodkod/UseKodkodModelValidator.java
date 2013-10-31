@@ -9,16 +9,20 @@ import kodkod.instance.TupleSet;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.KodkodModelValidator;
+import org.tzi.kodkod.helper.InvariantHelper;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.config.impl.ModelConfigurator;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.use.kodkod.solution.ObjectDiagramCreator;
+import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.ocl.expr.Evaluator;
+import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.sys.MSystem;
 
 /**
- * Class to for a simple model validation with subsequent object diagram
+ * Class for a simple model validation with subsequent object diagram
  * creation.
  * 
  * @author Hendrik Reitmann
@@ -28,7 +32,7 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 
 	protected static final Logger LOG = Logger.getLogger(UseKodkodModelValidator.class);
 
-	private MSystem mSystem;
+	protected MSystem mSystem;
 
 	public UseKodkodModelValidator(MSystem mSystem) {
 		this.mSystem = mSystem;
@@ -38,6 +42,7 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 	protected void satisfiable() {
 		handleSolution();
 	}
+
 	@Override
 	protected void trivially_satisfiable() {
 		handleSolution();
@@ -47,7 +52,12 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 	 * Handles a satisfiable solution.
 	 */
 	protected void handleSolution() {
-		createObjectDiagram(solution.instance().relationTuples());
+		if(createObjectDiagram(solution.instance().relationTuples())){
+			LOG.info("USE found errors in the solution. Try to find a new solution!");
+			
+			mSystem.reset();
+			newSolution(solution.instance().relationTuples());
+		}
 		evaluateInactiveInvariants();
 	}
 
@@ -78,11 +88,13 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 			} else {
 				LOG.error(LogMessages.objDiagramCreationError);
 			}
-			return true;
+			return false;
 		}
 	}
 
 	protected boolean checkForDiagramErrors(Map<Relation, TupleSet> relationTuples) {
+		boolean diagramErrors = false;
+
 		StringWriter buffer = new StringWriter();
 		PrintWriter out = new PrintWriter(buffer);
 		boolean foundErrors = !mSystem.state().checkStructure(out);
@@ -90,22 +102,56 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 			String result = buffer.toString();
 
 			boolean aggregationcyclefreeness = DefaultConfigurationValues.aggregationcyclefreeness;
+			boolean forbiddensharing = DefaultConfigurationValues.forbiddensharing;
 			if (model.getConfigurator() instanceof ModelConfigurator) {
 				aggregationcyclefreeness = ((ModelConfigurator) model.getConfigurator()).isAggregationCycleFree();
+				forbiddensharing = ((ModelConfigurator) model.getConfigurator()).isForbiddensharing();
 			}
 
 			if (aggregationcyclefreeness) {
 				if (result.contains("cycle")) {
-					mSystem.reset();
-					ModelConfigurator modelConfigurator = (ModelConfigurator) model.getConfigurator();
-					modelConfigurator.forbid(relationTuples);
-					validate(model);
-					
+					return true;
+				}
+			}
+			if(forbiddensharing){
+				if (result.contains("shared")) {
 					return true;
 				}
 			}
 		}
+
+		if (!diagramErrors) {
+			MModel mModel = mSystem.model();
+			Evaluator evaluator = new Evaluator();
+			for (IInvariant invariant : InvariantHelper.getAllInvariants(model)) {
+				if (invariant.isActivated()) {
+					BooleanValue result = (BooleanValue) evaluator.eval(mModel.getClassInvariant(invariant.name()).expandedExpression(),
+							mSystem.state());
+					if (invariant.isNegated()) {
+						if (result.isTrue()) {
+							LOG.info(invariant.name());
+							//return true;
+						}
+					} else {
+						if (result.isFalse()) {
+							LOG.info(invariant.name());
+							//return true;
+						}
+					}
+				}
+			}
+		}
+		
 		return false;
+	}
+
+	/**
+	 * Starts a model validation to find a new solution.
+	 */
+	protected void newSolution(Map<Relation, TupleSet> relationTuples) {
+		ModelConfigurator modelConfigurator = (ModelConfigurator) model.getConfigurator();
+		modelConfigurator.forbid(relationTuples);
+		validate(model);
 	}
 
 	/**

@@ -2,14 +2,9 @@
 <?use version="3.0.3"?>
 <plugin name="KodkodPlugin" version="0.1" publisher="Hendrik Reitmann">
 	<actions>
-		<!-- <action label="Kodkod Plugin" icon="resources/kodkod.png"
-			class="org.tzi.use.kodkod.plugin.KodkodValidateAction" tooltip="KodkodValidateAction" menu="Validation"
-			menuitem="KodkodValidateAction" toolbaritem="plugins"
-			id="org.tzi.use.kodkod.plugin.KodkodValidateAction">
-		</action> -->
 		<action label="Kodkod Property Plugin" icon="resources/kodkod.png"
 			class="org.tzi.use.kodkod.plugin.KodkodValidatePropertyAction" tooltip="KodkodValidatePropertyAction"
-			menu="Validation" menuitem="KodkodValidatePropertyAction" toolbaritem="plugins"
+			menu="Validation" menuitem="Kodkod" toolbaritem="plugins"
 			id="org.tzi.use.kodkod.plugin.KodkodValidatePropertyAction">
 		</action>
 	</actions>
@@ -22,9 +17,9 @@
 			class="org.tzi.use.kodkod.plugin.InvariantIndepCmd" help="Checks invariant independence with Kodkod"
 			label="InvariantIndepCmd" shellcmd="kodkod -invIndep">
 		</command>
-		<command id="org.tzi.use.kodkod.plugin.SolverConfigurationCmd"
-			class="org.tzi.use.kodkod.plugin.SolverConfigurationCmd" help="Set the SatSolver and the bitwidth for the KodkodSolver"
-			label="SolverConfigurationCmd" shellcmd="kodkod -solver">
+		<command id="org.tzi.use.kodkod.plugin.ConfigurationCmd"
+			class="org.tzi.use.kodkod.plugin.ConfigurationCmd" help=""
+			label="ConfigurationCmd" shellcmd="kodkod -config">
 		</command>		
 		<command id="org.tzi.use.kodkod.plugin.ModelResetCmd"
 			class="org.tzi.use.kodkod.plugin.ModelResetCmd" help=""
@@ -34,5 +29,13 @@
 			class="org.tzi.use.kodkod.plugin.KodkodScrollingValidateCmd" help="Paging of all solutions for a configured search space"
 			label="KodkodScrollingValidateCmd" shellcmd="kodkod -scrolling">
 		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodScrollingAllValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodScrollingAllValidateCmd" help=""
+			label="KodkodScrollingAllValidateCmd" shellcmd="kodkod -scrollingAll">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodQueryCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodQueryCmd" help=""
+			label="KodkodQueryCmd" shellcmd="kodkod ?">
+		</command>		
 	</commands>
 </plugin>

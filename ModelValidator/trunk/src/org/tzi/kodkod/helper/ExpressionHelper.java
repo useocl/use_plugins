@@ -36,6 +36,6 @@ public class ExpressionHelper {
 	 */
 	public static final Expression boolean_formula2expr(Formula f, TypeFactory typeFactory) {
 		Map<String, Expression> typeLiterals = typeFactory.booleanType().typeLiterals();
-		return f.thenElse(typeLiterals.get(TypeConstants.BOOLEAN_TRUE), typeLiterals.get(TypeConstants.FALSE));
+		return f.thenElse(typeLiterals.get(TypeConstants.BOOLEAN_TRUE), typeLiterals.get(TypeConstants.BOOLEAN_FALSE));
 	}
 }

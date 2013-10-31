@@ -263,6 +263,7 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public void visitClosure(ExpClosure expClosure) {
 		LOG.debug("ExpClosure");
+		visitQuery(expClosure);
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
+import org.tzi.kodkod.KodkodQueryCache;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationClass;
@@ -40,16 +41,22 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
 
 	private org.apache.commons.configuration.Configuration config;
-	private Map<String, List<String[]>> classSpecificValues;
+	private Map<String, List<String>> classSpecificValues;
+	private Map<String, Integer> classMinObjects;
 	private Map<ConfigurableType, List<String[]>> typeSpecificValues;
 	private Map<ConfigurableType, TypeConfigurator> typeConfigurators;
+	private List<String> warnings;
+	private List<String> errors;
 
 	public PropertyConfigurationVisitor(String file) throws ConfigurationException {
 		config = new PropertiesConfiguration(file);
 
-		classSpecificValues = new HashMap<String, List<String[]>>();
+		classSpecificValues = new HashMap<String, List<String>>();
+		classMinObjects = new HashMap<String, Integer>();
 		typeSpecificValues = new HashMap<ConfigurableType, List<String[]>>();
 		typeConfigurators = new HashMap<ConfigurableType, TypeConfigurator>();
+		warnings = new ArrayList<String>();
+		errors = new ArrayList<String>();
 	}
 
 	@Override
@@ -75,18 +82,17 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			name += "_ac";
 		}
 
+		classSpecificValues.put(clazz.name(), new ArrayList<String>());
 		List<String[]> values = new ArrayList<String[]>();
 		for (String element : readSingleElements(name)) {
 			element = element.trim();
 			if (!(element.equals(TypeConstants.UNDEFINED) || element.equals(TypeConstants.UNDEFINED_SET))) {
 				values.add(new String[] { element });
+				classSpecificValues.get(clazz.name()).add(element);
 			}
 		}
 
-		classSpecificValues.put(clazz.name(), values);
-
-		ClassConfigurator configurator = setClassConfigurator(clazz, clazz.name(), values);
-
+		ClassConfigurator configurator = setClassConfigurator(clazz, values);
 		clazz.objectType().setValues(values);
 		clazz.objectType().setValueSize(configurator.getMax());
 	}
@@ -110,7 +116,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	@Override
 	public void visitAssociation(IAssociation association) {
-		setAssociationConfigurator(association, readComplexElements(association.name()));
+		setAssociationConfigurator(association, readComplexElements(association));
 	}
 
 	@Override
@@ -124,6 +130,10 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			} else if (status.equals("inactive")) {
 				invariant.deactivate();
 			} else {
+				if (!status.equals("active")) {
+					warning(invariant.name() + ": " + LogMessages.invariantConfigWarning(status));
+				}
+
 				invariant.activate();
 			}
 		}
@@ -185,7 +195,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			ranges.add(new Range(min, max));
 			configurator.setRanges(ranges);
 		} catch (Exception e) {
-			LOG.error(e.getMessage());
+			error(e.getMessage());
 		}
 
 		type.setConfigurator(configurator);
@@ -201,15 +211,27 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			model.setConfigurator(configurator);
 		}
 
-		String status = config.getString(PropertyEntry.aggregationcyclefreeness, "off");
-		if (status.equals("on")) {
+		String cyclefreenessState = config.getString(PropertyEntry.aggregationcyclefreeness, "off");
+		if (cyclefreenessState.equals("on")) {
 			configurator.setAggregationCycleFreeness(true);
 		} else {
-			if (status.equals("off")) {
+			if (cyclefreenessState.equals("off")) {
 				configurator.setAggregationCycleFreeness(false);
 			} else {
 				LOG.info(LogMessages.aggregationcyclefreenessInfo());
 				configurator.setAggregationCycleFreeness(DefaultConfigurationValues.aggregationcyclefreeness);
+			}
+		}
+		
+		String forbiddensharingState = config.getString(PropertyEntry.forbiddensharing, "on");
+		if (forbiddensharingState.equals("on")) {
+			configurator.setForbiddensharing(true);
+		} else {
+			if (forbiddensharingState.equals("off")) {
+				configurator.setForbiddensharing(false);
+			} else {
+				LOG.info(LogMessages.forbiddensharingInfo());
+				configurator.setForbiddensharing(DefaultConfigurationValues.forbiddensharing);
 			}
 		}
 	}
@@ -222,11 +244,18 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	 * @param values
 	 * @return
 	 */
-	protected ClassConfigurator setClassConfigurator(IClass clazz, String name, List<String[]> values) {
-		ClassConfigurator configurator = new ClassConfigurator();
+	protected ClassConfigurator setClassConfigurator(IClass clazz, List<String[]> values) {
+		ClassConfigurator configurator;
+		if (KodkodQueryCache.INSTANCE.isQueryEnabled()) {
+			configurator = new ClassQueryConfigurator();
+		} else {
+			configurator = new ClassConfigurator();
+		}
+
 		configurator.setSpecificValues(values);
-		int min = readSize(name + PropertyEntry.objMin, 0, false);
-		configurator.setLimits(min, readSize(name + PropertyEntry.objMax, min, false));
+		int min = readSize(clazz.name() + PropertyEntry.objMin, 0, false);
+		classMinObjects.put(clazz.name(), min);
+		configurator.setLimits(min, readSize(clazz.name() + PropertyEntry.objMax, min, false));
 		clazz.setConfigurator(configurator);
 		return configurator;
 	}
@@ -276,11 +305,14 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	private int readSize(String name, int defaultValue, boolean allowNegative) {
 		int limit = 0;
 		try {
-			limit = config.getInt(name, defaultValue);
+			limit = config.getInt(name);
 			if (!allowNegative && limit < -1) {
 				limit = 0;
 			}
 		} catch (ConversionException e) {
+			warning(name + ": " + LogMessages.sizeConfigWarning(name, defaultValue));
+			limit = defaultValue;
+		} catch (Exception e) {
 			limit = defaultValue;
 		}
 		return limit;
@@ -316,6 +348,8 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			}
 		}
 
+		checkSetSyntax(elements[0], elements[elements.length - 1], name, "Set{a,b,c}");
+
 		elements[0] = elements[0].substring(4);
 		elements[elements.length - 1] = elements[elements.length - 1].replaceAll("}", "");
 
@@ -328,29 +362,74 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	 * @param name
 	 * @return
 	 */
-	private List<String[]> readComplexElements(String name) {
+	private List<String[]> readComplexElements(IAssociation association) {
+		String name = association.name();
 		List<String[]> elements = new ArrayList<String[]>();
 
 		Object property = config.getProperty(name);
 		if (property != null) {
 			String input = property.toString();
+			input = input.substring(1, input.length() - 1);
 
-			input = input.substring(5, input.length() - 2);
+			checkSetSyntax(input, input, name, "Set{(a1,b1),(a2,b2)}");
+
+			input = input.substring(4, input.length() - 1);
 			String[] splits = input.split("\\)");
 
 			for (String split : splits) {
 				split = split.substring(split.indexOf("(") + 1);
 				String[] singleElements = split.split(",");
 
+				int j = 0;
 				String[] element = new String[singleElements.length];
 				for (int i = 0; i < singleElements.length; i++) {
 					element[i] = singleElements[i].trim();
+
+					String className;
+					if (i == 0 && association.associationClass() != null) {
+						className = association.associationClass().name();
+					} else {
+						className = association.associationEnds().get(j).associatedClass().name();
+						j++;
+					}
+
+					checkComplexElement(name, split, element[i], className);
 				}
 				elements.add(element);
 			}
 		}
 
 		return elements;
+	}
+
+	private void checkComplexElement(String name, String input, String element, String className) {
+		if (!classSpecificValues.get(className).contains(element)) {
+
+			if (element.startsWith(className.toLowerCase())) {
+				String number = element.substring(className.length());
+				try {
+					int nbr = Integer.parseInt(number);
+					if (!(nbr > classSpecificValues.get(className).size() && nbr <= classMinObjects.get(className))) {
+						complexElementError(name,input, element, className);
+					}
+				} catch (NumberFormatException e) {
+					complexElementError(name,input, element, className);
+				}
+			} else {
+				complexElementError(name,input, element, className);
+			}
+		}
+	}
+
+	private void complexElementError(String name, String input, String element, String className) {
+		String error = name+": ("+input + ") at element " + element + ": " + LogMessages.complexElementConfigError(className);
+		error(error);
+	}
+
+	private void checkSetSyntax(String start, String end, String name, String syntax) {
+		if (!start.startsWith("Set{") || !end.endsWith("}")) {
+			error(name + ": " + LogMessages.setSyntaxConfigError(syntax));
+		}
 	}
 
 	/**
@@ -397,9 +476,9 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	 * @param clazz
 	 * @return
 	 */
-	private Map<IClass, List<String[]>> getClassSpecificValues(IClass clazz) {
-		Map<IClass, List<String[]>> allSpecificValues = new HashMap<IClass, List<String[]>>();
-		List<String[]> values = classSpecificValues.get(clazz.name());
+	private Map<IClass, List<String>> getClassSpecificValues(IClass clazz) {
+		Map<IClass, List<String>> allSpecificValues = new HashMap<IClass, List<String>>();
+		List<String> values = classSpecificValues.get(clazz.name());
 
 		if (values != null) {
 			allSpecificValues.put(clazz, values);
@@ -419,23 +498,23 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	 * @param typeSpecificValues
 	 */
 	private void readSpecificAttributeValues(IAttribute attribute, IClass owner, List<String[]> specificValues, Set<String[]> typeSpecificValues) {
-		Map<IClass, List<String[]>> specificClassValues = getClassSpecificValues(owner);
+		Map<IClass, List<String>> specificClassValues = getClassSpecificValues(owner);
 
 		for (IClass clazz : getClassSpecificValues(owner).keySet()) {
-			for (String[] object : specificClassValues.get(clazz)) {
-				String searchName = object[0] + "_" + attribute.name();
+			for (String object : specificClassValues.get(clazz)) {
+				String searchName = object + "_" + attribute.name();
 
 				if (attribute.type().isSet()) {
 					Set<String> values = readAttributeValues(attribute.type(), searchName, typeSpecificValues);
 
 					for (String value : values) {
-						specificValues.add(new String[] { object[0], value });
+						specificValues.add(new String[] { object, value });
 					}
 				} else {
 					String element = config.getString(searchName, null);
 					if (element != null) {
 						element = adjustElement(attribute.type(), element);
-						specificValues.add(new String[] { object[0], element });
+						specificValues.add(new String[] { object, element });
 
 						if (!(element.equals(TypeConstants.UNDEFINED) || element.equals(TypeConstants.UNDEFINED_SET))) {
 							typeSpecificValues.add(new String[] { element });
@@ -488,5 +567,30 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			element = element.replaceAll("'", "");
 		}
 		return element;
+	}
+	
+	public void printWarnings(){
+		StringBuffer buffer = new StringBuffer();
+		if(!warnings.isEmpty()){
+			buffer.append("Warnings during the configuration:");
+			for(String warning : warnings){
+				buffer.append("\n"+warning);
+			}
+			LOG.warn(buffer.toString());
+		}
+	}
+	
+	public boolean containErrors(){
+		return !errors.isEmpty();
+	}
+	
+	private void warning(String warning){
+		warnings.add(warning);
+		LOG.warn(warning);
+	}
+	
+	private void error(String error){
+		errors.add(error);
+		LOG.error(error);
 	}
 }

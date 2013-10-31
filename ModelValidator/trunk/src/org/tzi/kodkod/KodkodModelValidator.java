@@ -33,7 +33,8 @@ public abstract class KodkodModelValidator {
 	 */
 	public void validate(IModel model) {
 		this.model = model;
-
+		evaluator = null;
+		
 		KodkodSolver kodkodSolver = new KodkodSolver();
 		try {
 			solution = kodkodSolver.solve(model);
@@ -68,6 +69,7 @@ public abstract class KodkodModelValidator {
 		default:
 		}
 
+		KodkodQueryCache.INSTANCE.setEvaluator(evaluator);
 	}
 
 	private void satisfiable(KodkodSolver kodkodSolver) {

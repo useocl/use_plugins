@@ -20,6 +20,8 @@ import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
  */
 public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmdDelegate {
 
+	private PropertyConfigurationVisitor configurationVisitor;
+
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
 		initialize(pluginCommand.getSession());
@@ -38,10 +40,11 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	protected void noArguments() {
 		try {
 			File file = configureModel();
-			objDiagramExtraction();
+			enrichModel();
 			validate(new UseDefaultConfigKodkodModelValidator(mSystem, file));
 		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -66,13 +69,14 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * 
 	 * @param file
 	 */
-	protected void extractConfigureAndValidate(File file) {
+	protected final void extractConfigureAndValidate(File file) {
 		try {
 			configureModel(file);
-			objDiagramExtraction();
+			enrichModel();
 			validate(createValidator());
+			configurationVisitor.printWarnings();
 		} catch (ConfigurationException e) {
-			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + e.getMessage());
+			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
 		}
 	}
 
@@ -92,8 +96,13 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * @throws ConfigurationException
 	 */
 	private void configureModel(File file) throws ConfigurationException {
-		PropertyConfigurationVisitor configurationVisitor = new PropertyConfigurationVisitor(file.getAbsolutePath());
+		model().reset();
+		configurationVisitor = new PropertyConfigurationVisitor(file.getAbsolutePath());
 		model().accept(configurationVisitor);
+
+		if (configurationVisitor.containErrors()) {
+			throw new ConfigurationException();
+		}
 
 		LOG.info(LogMessages.modelConfigurationSuccessful);
 	}
@@ -105,6 +114,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * @throws Exception
 	 */
 	private File configureModel() throws Exception {
+		model().reset();
 		DefaultConfigurationVisitor configurationVisitor = new DefaultConfigurationVisitor(mModel.filename());
 		model().accept(configurationVisitor);
 

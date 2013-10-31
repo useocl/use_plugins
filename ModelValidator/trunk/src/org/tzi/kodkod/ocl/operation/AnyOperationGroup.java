@@ -64,7 +64,7 @@ public class AnyOperationGroup extends OCLOperationGroup {
 	}
 
 	public Expression oclAsType(Expression src, Expression cls) {
-		return src;
+		return src.in(cls).thenElse(src, undefined);
 	}
 
 	public Formula oclAsType(Formula src, Expression cls) {

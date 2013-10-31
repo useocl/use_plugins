@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -107,7 +106,7 @@ public class OCLTest {
 	}
 
 	protected Object toKodkod(org.tzi.use.uml.ocl.expr.Expression expression) {
-		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, new HashMap<String, Node>(), new HashMap<String, IClass>(), new HashMap<String, List<Variable>>(), new ArrayList<String>());
+		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, new HashMap<String, Node>(), new HashMap<String, IClass>(), new HashMap<String, Variable>(), new ArrayList<String>());
 		expression.processWithVisitor(visitor);
 		return visitor.getObject();
 	}

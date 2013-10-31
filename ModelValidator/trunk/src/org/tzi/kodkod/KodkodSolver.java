@@ -36,7 +36,7 @@ public class KodkodSolver {
 		Bounds bounds = createBounds(model);
 		Formula constraint = createConstraint(model);
 
-		KodkodSolverConfiguration configuration = KodkodSolverConfiguration.INSTANCE;
+		KodkodModelValidatorConfiguration configuration = KodkodModelValidatorConfiguration.INSTANCE;
 
 		final Solver solver = new Solver();
 
@@ -105,7 +105,7 @@ public class KodkodSolver {
 		for (IClass clazz : model.classes()) {
 			atoms.addAll(clazz.objectType().atoms());
 		}
-
+		
 		return new Universe(atoms);
 	}
 

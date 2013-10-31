@@ -16,35 +16,42 @@ import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LibraryPathHelper;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.helper.PathHelper;
+import org.tzi.use.kodkod.transform.enrich.ModelEnricher;
+import org.tzi.use.kodkod.transform.enrich.NullModelEnricher;
+import org.tzi.use.kodkod.transform.enrich.ObjectDiagramModelEnricher;
 
 /**
- * Singleton to store the bitwidth and sat factory for kodkod.
+ * Singleton to store the configuration data for the model validator.
  * 
  * @author Hendrik Reitmann
  * 
  */
-public enum KodkodSolverConfiguration {
+public enum KodkodModelValidatorConfiguration {
 
 	INSTANCE;
-	
-	private final Logger LOG = Logger.getLogger(KodkodSolverConfiguration.class);
 
-	private final String FOLDER_NAME="/modelValidatorPlugin";
-	private final String INI_FILENAME = "solver.ini";
-	
+	private final Logger LOG = Logger.getLogger(KodkodModelValidatorConfiguration.class);
+
+	private final String FOLDER_NAME = "/modelValidatorPlugin";
+	private final String INI_FILENAME = "mv.ini";
+
 	public final String SATSOLVER_KEY = "SatSolver";
 	public final String BITWIDTH_KEY = "bitwidth";
+	public final String DIAGRAMEXTREACTION_KEY = "AutomaticDiagramExtraction";
 
 	private final SATFactory DEFAULT_SATFACTORY = SATFactory.DefaultSAT4J;
 	private final int DEFAULT_BITWIDTH = 8;
+	private final boolean DEFAULT_DIAGRAMEXTRACTION = false;
 
 	private SATFactory satFactory = DEFAULT_SATFACTORY;
 	private int bitwidth = DEFAULT_BITWIDTH;
 
+	private boolean automaticDiagramExtraction = DEFAULT_DIAGRAMEXTRACTION;
+
 	private File file;
 	private boolean read = false;
 
-	private KodkodSolverConfiguration() {
+	private KodkodModelValidatorConfiguration() {
 		file = new File(PathHelper.getPluginPath() + FOLDER_NAME, INI_FILENAME);
 
 		extractSolverLibraries();
@@ -59,8 +66,8 @@ public enum KodkodSolverConfiguration {
 	 */
 	private void addSolverFolders() {
 		try {
-			LibraryPathHelper.addDirectory(PathHelper.getPluginPath() + FOLDER_NAME+"/x86");
-			LibraryPathHelper.addDirectory(PathHelper.getPluginPath() + FOLDER_NAME+"/x64");
+			LibraryPathHelper.addDirectory(PathHelper.getPluginPath() + FOLDER_NAME + "/x86");
+			LibraryPathHelper.addDirectory(PathHelper.getPluginPath() + FOLDER_NAME + "/x64");
 		} catch (Exception e) {
 			LOG.warn(LogMessages.libraryPathWarning(DEFAULT_SATFACTORY.toString(), e.getMessage()));
 		}
@@ -93,6 +100,7 @@ public enum KodkodSolverConfiguration {
 					HierarchicalINIConfiguration config = new HierarchicalINIConfiguration(file);
 					setSatFactory(config.getString(SATSOLVER_KEY, DEFAULT_SATFACTORY.toString()));
 					setBitwidth(config.getInt(BITWIDTH_KEY, DEFAULT_BITWIDTH));
+					setAutomaticDiagramExtraction(config.getBoolean(DIAGRAMEXTREACTION_KEY, DEFAULT_DIAGRAMEXTRACTION));
 				} catch (Exception e) {
 					LOG.warn(LogMessages.solverConfigReadWarning(DEFAULT_SATFACTORY.toString(), DEFAULT_BITWIDTH));
 					satFactory = DEFAULT_SATFACTORY;
@@ -101,6 +109,7 @@ public enum KodkodSolverConfiguration {
 			} else {
 				setSatFactory(DEFAULT_SATFACTORY.toString());
 				setBitwidth(DEFAULT_BITWIDTH);
+				setAutomaticDiagramExtraction(DEFAULT_DIAGRAMEXTRACTION);
 			}
 			read = true;
 		}
@@ -170,6 +179,8 @@ public enum KodkodSolverConfiguration {
 			writer.write(SATSOLVER_KEY + " = " + satFactory.toString());
 			writer.newLine();
 			writer.write(BITWIDTH_KEY + " = " + bitwidth);
+			writer.newLine();
+			writer.write(DIAGRAMEXTREACTION_KEY + " = " + automaticDiagramExtraction);
 			writer.close();
 
 			read = true;
@@ -178,5 +189,21 @@ public enum KodkodSolverConfiguration {
 		} catch (Exception e) {
 			LOG.error("Error while saving KodkodSolver configuration");
 		}
+	}
+	
+	public void setAutomaticDiagramExtraction(boolean automaticDiagramExtraction) {
+		this.automaticDiagramExtraction = automaticDiagramExtraction;
+		LOG.info(LogMessages.newAutomaticDiagramExtraction(automaticDiagramExtraction));
+	}
+
+	public boolean isAutomaticDiagramExtraction() {
+		return automaticDiagramExtraction;
+	}
+	
+	public ModelEnricher getModelEnricher() {
+		if(automaticDiagramExtraction){
+			return new ObjectDiagramModelEnricher();
+		}
+		return new NullModelEnricher();
 	}
 }

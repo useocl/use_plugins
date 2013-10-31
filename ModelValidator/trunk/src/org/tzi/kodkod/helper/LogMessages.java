@@ -26,6 +26,8 @@ public final class LogMessages {
 
 	public static String solverConfigBitwidthError = "Bitwidth has to be an int value.";
 
+	public static String configDiagramExtractionError = "Possible values for AutomaticObjectDiagramExtraction are only 'on' or 'off'.";
+
 	public static String objDiagramCreation = "Create object diagram";
 
 	public static String objDiagramCreationError = "Error during object diagram creation";
@@ -52,6 +54,8 @@ public final class LogMessages {
 
 	public static String objDiagramExtractionError = "Error while extracting information from the object diagram.";
 
+	public static String objDiagramExtractionSuccessful = "Object diagram extraction successful.";
+
 	public static String pagingNext = "'next' to search a new solution";
 
 	public static String pagingPrevious = "'previous' to get the last solution";
@@ -60,7 +64,7 @@ public final class LogMessages {
 
 	public static String pagingCmdError = "Set a configuration file or enter next for a new solution respectively previous for the last solution.";
 
-	public static String pagingCmdFileFirst = "Set a configuration file first";
+	public static String pagingCmdFileFirst = "Set a configuration file first!";
 
 	public static String enrichWithLoadedInvariants = "Enrich the model with loaded invariants";
 
@@ -70,8 +74,16 @@ public final class LogMessages {
 
 	public static String noSuchMethodError = "Please read the Readme file";
 
-	public static String solutionForbidError= "Error while creating the formula to forbid the last solution!";
-	
+	public static String solutionForbidError = "Error while creating the formula to forbid the last solution!";
+
+	public static final String showSolutionIndexToSmall = "Please enter an index greater 0.";
+
+	public static final String queryEvaluationError = "The query can not be evaluated. Please check if the query functionality is enabled! After the activation re-run the validation.";
+
+	public static final String closureObjectMessage = "Closure is only available for collections with objects.";
+
+	public static final String closureCollectionMessage = "Source type is not a collection.";
+
 	public static String startModelTransform(String name) {
 		return "Start model transformation for '" + name + "'";
 	}
@@ -126,6 +138,11 @@ public final class LogMessages {
 
 	public static String newSatSolver(String satFactory) {
 		return "Set SatSolver to '" + satFactory + "'.";
+	}
+
+	public static String newAutomaticDiagramExtraction(boolean automaticDiagramExtraction) {
+		String mode = automaticDiagramExtraction ? "Enable" : "Disable";
+		return mode + " automatic extraction of an available object diagram.";
 	}
 
 	public static String noSatSolverLibraryError(String satFactory, String defaultSatFacotry) {
@@ -185,4 +202,36 @@ public final class LogMessages {
 		String status = DefaultConfigurationValues.aggregationcyclefreeness ? "on" : "off";
 		return "Only on and off are possible values of aggregationcyclefreeness! Use default: " + status;
 	}
+
+	public static String forbiddensharingInfo() {
+		String status = DefaultConfigurationValues.forbiddensharing ? "on" : "off";
+		return "Only on and off are possible values of forbiddensharing! Use default: " + status;
+	}
+	
+	public static String invariantConfigWarning(String state) {
+		return state
+				+ " is not possible for an invariant. Possible states for an invariant are 'active', 'inactive' and 'negate'. Use 'active' as default.";
+	}
+
+	public static String showSolution(int index) {
+		return "Show solution " + index;
+	}
+
+	public static String showSolutionIndexToBig(int index) {
+		return "There are only " + index + " solutions.";
+	}
+
+	public static String sizeConfigWarning(String name, int defaultValue) {
+		return "The value for " + name + " is not a number! The default value " + defaultValue + " will be used.";
+	}
+
+	public static String setSyntaxConfigError(String syntax) {
+		return "Not the correct syntax. Use the syntax " + syntax + ".";
+	}
+
+	public static String complexElementConfigError(String className) {
+		return "Only defined objects of class " + className
+				+ " can be used. Use the specific class objects or the objects defined by the minimum object size.";
+	}
+
 }

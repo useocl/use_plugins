@@ -98,8 +98,8 @@ public class ObjectDiagramCreator {
 					if (isAssociation(relationName, relation)) {
 						strategy = new AssociationStrategy(mSystem.state(), mModel, objectStates, relationName);
 
-					} else if (isAttributeOfSimpleObject(nameSplit, relation)) {
-						strategy = new AttributeStrategy(mSystem.state(), mModel, objectStates, nameSplit[1]);
+					} else if (isAttributeOfSimpleObject(relationName, relation)) {
+						strategy = new AttributeStrategy(mSystem.state(), mModel, objectStates, getPartAfterLastSeparator(relationName));
 
 					} else {
 						associationClassesRelations.put(relationName, relation);
@@ -128,8 +128,7 @@ public class ObjectDiagramCreator {
 		}
 
 		for (String relationName : associationClassesRelations.keySet()) {
-			String[] nameSplit = relationName.split("_", 2);
-			String attributeName = nameSplit[1];
+			String attributeName = getPartAfterLastSeparator(relationName);
 			Relation relation = associationClassesRelations.get(relationName);
 			strategy = new AttributeStrategy(mSystem.state(), mModel, objectStates, attributeName);
 
@@ -168,10 +167,27 @@ public class ObjectDiagramCreator {
 		return model.getAssociation(relationName) != null && relation.arity() >= 2;
 	}
 
-	private boolean isAttributeOfSimpleObject(String[] nameSplit, Relation relation) {
-		return !isAssociationClass(nameSplit[0]) && nameSplit.length == 2 && relation.arity() == 2;
+	private boolean isAttributeOfSimpleObject(String relationName, Relation relation) {
+		String className = getPartBeforeLastSeparator(relationName);
+		String attrName = getPartAfterLastSeparator(relationName);
+
+		return !isAssociationClass(className) && model.getClass(className).getAttribute(attrName)!=null;
 	}
 
+	private String getPartBeforeLastSeparator(String relationName){
+		int separatorIndex = relationName.lastIndexOf("_");
+		if(separatorIndex == -1){
+			return relationName;
+		}
+		
+		return relationName.substring(0, separatorIndex);
+	}
+	
+	private String getPartAfterLastSeparator(String relationName){
+		int separatorIndex = relationName.lastIndexOf("_");
+		return relationName.substring(separatorIndex+1);
+	}
+	
 	private boolean isType(String name) {
 		return model.getEnumType(name) != null || model.typeFactory().buildInType(name) != null;
 	}
