@@ -144,8 +144,9 @@ public class ValueCreator {
 		} else {
 			setValue = (SetValue) mObjectState.attributeValue(mAttribute);
 		}
+
 		Value val = createValue(attributeType.elemType(), atom);
-		setValue = setValue.including(val);
+		setValue = setValue.including(attributeType, val);
 
 		return setValue;
 	}
@@ -158,7 +159,7 @@ public class ValueCreator {
 			sequenceValue = (SequenceValue) mObjectState.attributeValue(mAttribute);
 		}
 		Value val = createValue(attributeType.elemType(), atom);
-		sequenceValue = sequenceValue.append(val);
+		sequenceValue = sequenceValue.append(attributeType, val);
 
 		return sequenceValue;
 	}
@@ -171,7 +172,7 @@ public class ValueCreator {
 			orderedSetValue = (OrderedSetValue) mObjectState.attributeValue(mAttribute);
 		}
 		Value val = createValue(attributeType.elemType(), atom);
-		orderedSetValue = orderedSetValue.append(val);
+		orderedSetValue = orderedSetValue.append(attributeType, val);
 
 		return orderedSetValue;
 	}
@@ -184,7 +185,7 @@ public class ValueCreator {
 			bagValue = (BagValue) mObjectState.attributeValue(mAttribute);
 		}
 		Value val = createValue(attributeType.elemType(), atom);
-		bagValue = bagValue.including(val);
+		bagValue = bagValue.including(attributeType, val);
 
 		return bagValue;
 	}

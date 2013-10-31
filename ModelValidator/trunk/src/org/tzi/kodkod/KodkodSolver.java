@@ -39,12 +39,13 @@ public class KodkodSolver {
 		KodkodModelValidatorConfiguration configuration = KodkodModelValidatorConfiguration.INSTANCE;
 
 		final Solver solver = new Solver();
-
+		solver.options().setLogTranslation(1);
+		
 		LOG.info(LogMessages.searchSolution(configuration.satFactory().toString(), configuration.bitwidth()));
 
 		solver.options().setSolver(configuration.satFactory());
 		solver.options().setBitwidth(configuration.bitwidth());
-
+		
 		Solution solution = solver.solve(constraint, bounds);
 		createEvaluator(solver, solution);
 

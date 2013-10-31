@@ -22,6 +22,7 @@ import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MClassifier;
 import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.type.EnumType;
@@ -162,12 +163,14 @@ public class ModelTransformator {
 		}
 	}
 
-	private void transformGeneralization(IModel model, DirectedGraph<MClass, MGeneralization> mGeneralizationGraph) {
+	private void transformGeneralization(IModel model, DirectedGraph<MClassifier, MGeneralization> mGeneralizationGraph) {
 		IClass source, target;
 
 		Iterator<MGeneralization> iterator = mGeneralizationGraph.edgeIterator();
 		while (iterator.hasNext()) {
 			MGeneralization next = iterator.next();
+			if (!(next.source() instanceof MClass))  continue;
+			
 			source = model.getClass(next.source().name());
 			target = model.getClass(next.target().name());
 			source.addParent(target);

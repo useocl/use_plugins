@@ -86,7 +86,7 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 			if (LOG.isDebugEnabled()) {
 				LOG.error(LogMessages.objDiagramCreationError, exception);
 			} else {
-				LOG.error(LogMessages.objDiagramCreationError);
+				LOG.error(LogMessages.objDiagramCreationError + " Reason: " + exception.getMessage());
 			}
 			return false;
 		}

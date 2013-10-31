@@ -61,7 +61,7 @@ public class OCLTest {
 		session.setSystem(mSystem);
 		errorWriter = new PrintWriter(System.out);
 
-		Options.checkWarningsUnrelatedTypes = WarningType.IGNORE;
+		Options.setCheckWarningsUnrelatedTypes(WarningType.IGNORE);
 		Options.doPLUGIN = false;
 		Shell.createInstance(session, null);
 		Shell shell = Shell.getInstance();

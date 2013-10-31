@@ -1,6 +1,6 @@
 <project name="useKodkodPlugin" default="fatjar" basedir=".">
 
-	<property name="compiler" value="1.6" />
+	<property name="compiler" value="1.7" />
 	<property name="use.path" value="../../../use/branches/psm" />
 	<property name="filename_thin" value="ModelValidatorPlugin_thin.jar" />
 	<property name="filename_fat" value="ModelValidator_fat.jar" />
@@ -32,7 +32,7 @@
 
 	<target name="compile" depends="clean">
 		<property name="debug" value="false" />
-		<javac destdir="build" source="${compiler}" target="${compiler}" debug="${debug}" classpathref="classpath" includeantruntime="false">
+		<javac destdir="build" source="${compiler}" target="${compiler}" debug="true" classpathref="classpath" includeantruntime="false">
 			<src path="src" />
 			<src path="test" />
 			<exclude name="org/tzi/use/kodkod/transform/ocl/**" />
@@ -60,4 +60,7 @@
 		</jar>
 	</target>
 
+	<target name="deployDebug" depends="fatjar">
+		<copy file="dist/${filename_fat}" todir="${use.path}/lib/plugins"/>
+	</target>
 </project>

@@ -14,6 +14,7 @@ import org.tzi.use.uml.ocl.expr.ExpConstEnum;
 import org.tzi.use.uml.ocl.expr.ExpConstInteger;
 import org.tzi.use.uml.ocl.expr.ExpConstReal;
 import org.tzi.use.uml.ocl.expr.ExpConstString;
+import org.tzi.use.uml.ocl.expr.ExpConstUnlimitedNatural;
 import org.tzi.use.uml.ocl.expr.ExpEmptyCollection;
 import org.tzi.use.uml.ocl.expr.ExpExists;
 import org.tzi.use.uml.ocl.expr.ExpForAll;
@@ -27,6 +28,7 @@ import org.tzi.use.uml.ocl.expr.ExpNavigation;
 import org.tzi.use.uml.ocl.expr.ExpObjAsSet;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpObjRef;
+import org.tzi.use.uml.ocl.expr.ExpObjectByUseId;
 import org.tzi.use.uml.ocl.expr.ExpOclInState;
 import org.tzi.use.uml.ocl.expr.ExpOne;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
@@ -280,6 +282,19 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitVarDecl(VarDecl varDecl) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void visitObjectByUseId(ExpObjectByUseId expObjectByUseId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void visitConstUnlimitedNatural(
+			ExpConstUnlimitedNatural expressionConstUnlimitedNatural) {
 		// TODO Auto-generated method stub
 		
 	}
