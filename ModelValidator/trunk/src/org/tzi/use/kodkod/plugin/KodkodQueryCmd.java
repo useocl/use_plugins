@@ -33,6 +33,11 @@ public class KodkodQueryCmd extends AbstractPlugin implements IPluginShellCmdDel
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
+		if(!pluginCommand.getSession().hasSystem()){
+			LOG.error("No model loaded.");
+			return;
+		}
+		
 		initialize(pluginCommand.getSession());
 
 		String arguments = pluginCommand.getCmdArguments().trim();
