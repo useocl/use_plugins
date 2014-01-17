@@ -44,7 +44,7 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 		try {
 			MSystemState systemState = mSystem.state();
 			extractObjects(model, systemState);
-			extractLinks(model, systemState);			
+			extractLinks(model, systemState);
 			LOG.info(LogMessages.objDiagramExtractionSuccessful);			
 		} catch (Exception e) {
 			if (LOG.isDebugEnabled()) {

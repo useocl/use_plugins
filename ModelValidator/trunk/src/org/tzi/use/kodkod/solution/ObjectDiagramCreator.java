@@ -50,16 +50,19 @@ public class ObjectDiagramCreator {
 		try {
 			Map<Relation, TupleSet> withoutClasses = createObjects(relations);
 
-			Map<String, Relation> associationClassesRelations = createElements(withoutClasses);
+			createAssociationClasses(relations);
 
-			createAssociationClasses(relations, associationClassesRelations);
+			createElements(withoutClasses);
+
 		} catch (Exception exception) {
 			throw exception;
 		}
 	}
 
-	private Map<Relation, TupleSet> createObjects(Map<Relation, TupleSet> relations) throws MSystemException {
-		Map<Relation, TupleSet> withoutClasses = new HashMap<Relation, TupleSet>(relations);
+	private Map<Relation, TupleSet> createObjects(
+			Map<Relation, TupleSet> relations) throws MSystemException {
+		Map<Relation, TupleSet> withoutClasses = new HashMap<Relation, TupleSet>(
+				relations);
 
 		String relationName;
 		ElementStrategy strategy;
@@ -70,7 +73,8 @@ public class ObjectDiagramCreator {
 
 			if (!isNegateRelation(relationName) && !isType(relationName)) {
 				if (isClass(relation) && !isAssociationClass(relation.name())) {
-					strategy = new ObjectStrategy(mSystem.state(), mModel, objectStates, relationName);
+					strategy = new ObjectStrategy(mSystem.state(), mModel,
+							objectStates, relationName);
 					iterateTuplesAndCreate(strategy, relations.get(relation));
 
 					withoutClasses.remove(relation);
@@ -81,7 +85,8 @@ public class ObjectDiagramCreator {
 		return withoutClasses;
 	}
 
-	private Map<String, Relation> createElements(Map<Relation, TupleSet> relations) throws MSystemException {
+	private Map<String, Relation> createElements(
+			Map<Relation, TupleSet> relations) throws MSystemException {
 		Map<String, Relation> associationClassesRelations = new HashMap<String, Relation>();
 
 		String relationName;
@@ -96,17 +101,21 @@ public class ObjectDiagramCreator {
 
 				if (!isType(nameSplit[0]) && !isToStringMap(nameSplit[0])) {
 					if (isAssociation(relationName, relation)) {
-						strategy = new AssociationStrategy(mSystem.state(), mModel, objectStates, relationName);
+						strategy = new AssociationStrategy(mSystem.state(),
+								mModel, objectStates, relationName);
 
 					} else if (isAttributeOfSimpleObject(relationName, relation)) {
-						strategy = new AttributeStrategy(mSystem.state(), mModel, objectStates, getPartAfterLastSeparator(relationName));
+						strategy = new AttributeStrategy(mSystem.state(),
+								mModel, objectStates,
+								getPartAfterLastSeparator(relationName));
 
 					} else {
 						associationClassesRelations.put(relationName, relation);
 					}
 
 					if (strategy != null) {
-						iterateTuplesAndCreate(strategy, relations.get(relation));
+						iterateTuplesAndCreate(strategy,
+								relations.get(relation));
 					}
 				}
 			}
@@ -115,14 +124,37 @@ public class ObjectDiagramCreator {
 		return associationClassesRelations;
 	}
 
-	private void createAssociationClasses(Map<Relation, TupleSet> relations, Map<String, Relation> associationClassesRelations)
+	private void createAssociationClasses(Map<Relation, TupleSet> relations)
 			throws MSystemException {
+
+		Map<String, Relation> associationClassesRelations = new HashMap<String, Relation>();
 		ElementStrategy strategy;
-		for (MAssociationClass mAssociationClass : mModel.getAssociationClassesOnly()) {
+
+		for (Relation relation : relations.keySet()) {
+			strategy = null;
+			String relationName = relation.name();
+
+			if (!isNegateRelation(relationName) && !isType(relationName)) {
+				String[] nameSplit = relationName.split("_", 2);
+
+				if (!isType(nameSplit[0]) && !isToStringMap(nameSplit[0])) {
+					if (!isAssociation(relationName, relation)
+							&& !isAttributeOfSimpleObject(relationName,
+									relation)) {
+						associationClassesRelations.put(relationName, relation);
+					}
+				}
+			}
+		}
+
+		for (MAssociationClass mAssociationClass : mModel
+				.getAssociationClassesOnly()) {
 			String associationClassName = mAssociationClass.name() + "_assoc";
 			associationClassesRelations.remove(mAssociationClass.name());
-			Relation relation = associationClassesRelations.remove(associationClassName);
-			strategy = new AssociationClassStrategy(mSystem.state(), mModel, objectStates, mAssociationClass);
+			Relation relation = associationClassesRelations
+					.remove(associationClassName);
+			strategy = new AssociationClassStrategy(mSystem.state(), mModel,
+					objectStates, mAssociationClass);
 
 			iterateTuplesAndCreate(strategy, relations.get(relation));
 		}
@@ -130,7 +162,8 @@ public class ObjectDiagramCreator {
 		for (String relationName : associationClassesRelations.keySet()) {
 			String attributeName = getPartAfterLastSeparator(relationName);
 			Relation relation = associationClassesRelations.get(relationName);
-			strategy = new AttributeStrategy(mSystem.state(), mModel, objectStates, attributeName);
+			strategy = new AttributeStrategy(mSystem.state(), mModel,
+					objectStates, attributeName);
 
 			iterateTuplesAndCreate(strategy, relations.get(relation));
 		}
@@ -143,7 +176,8 @@ public class ObjectDiagramCreator {
 	 * @param tupleSet
 	 * @throws MSystemException
 	 */
-	private void iterateTuplesAndCreate(ElementStrategy strategy, TupleSet tupleSet) throws MSystemException {
+	private void iterateTuplesAndCreate(ElementStrategy strategy,
+			TupleSet tupleSet) throws MSystemException {
 		if (strategy.canDo()) {
 			Iterator<Tuple> iterator = tupleSet.iterator();
 			Tuple currentTuple;
@@ -164,32 +198,36 @@ public class ObjectDiagramCreator {
 	}
 
 	private boolean isAssociation(String relationName, Relation relation) {
-		return model.getAssociation(relationName) != null && relation.arity() >= 2;
+		return model.getAssociation(relationName) != null
+				&& relation.arity() >= 2;
 	}
 
-	private boolean isAttributeOfSimpleObject(String relationName, Relation relation) {
+	private boolean isAttributeOfSimpleObject(String relationName,
+			Relation relation) {
 		String className = getPartBeforeLastSeparator(relationName);
 		String attrName = getPartAfterLastSeparator(relationName);
 
-		return !isAssociationClass(className) && model.getClass(className).getAttribute(attrName)!=null;
+		return !isAssociationClass(className)
+				&& model.getClass(className).getAttribute(attrName) != null;
 	}
 
-	private String getPartBeforeLastSeparator(String relationName){
+	private String getPartBeforeLastSeparator(String relationName) {
 		int separatorIndex = relationName.lastIndexOf("_");
-		if(separatorIndex == -1){
+		if (separatorIndex == -1) {
 			return relationName;
 		}
-		
+
 		return relationName.substring(0, separatorIndex);
 	}
-	
-	private String getPartAfterLastSeparator(String relationName){
+
+	private String getPartAfterLastSeparator(String relationName) {
 		int separatorIndex = relationName.lastIndexOf("_");
-		return relationName.substring(separatorIndex+1);
+		return relationName.substring(separatorIndex + 1);
 	}
-	
+
 	private boolean isType(String name) {
-		return model.getEnumType(name) != null || model.typeFactory().buildInType(name) != null;
+		return model.getEnumType(name) != null
+				|| model.typeFactory().buildInType(name) != null;
 	}
 
 	private boolean isToStringMap(String name) {

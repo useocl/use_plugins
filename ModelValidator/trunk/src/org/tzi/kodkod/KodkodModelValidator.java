@@ -2,6 +2,7 @@ package org.tzi.kodkod;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import kodkod.ast.Relation;
 import kodkod.engine.Evaluator;
@@ -42,7 +43,7 @@ public abstract class KodkodModelValidator {
 		try {
 			solution = kodkodSolver.solve(model);
 		} catch (Exception e) {
-			LOG.error(LogMessages.validationException);
+			LOG.error(LogMessages.validationException + " (" + e.getMessage() + ")");
 			if (LOG.isDebugEnabled()) {
 				e.printStackTrace();
 			}
@@ -56,7 +57,11 @@ public abstract class KodkodModelValidator {
 
 		if (solution.proof() != null) {
 			
-			solution.proof().minimize(new DynamicRCEStrategy(solution.proof().log()));
+			try {
+				solution.proof().minimize(new DynamicRCEStrategy(solution.proof().log()));
+			} catch (Exception e) {
+				LOG.info("Proof reduction failed. (" + e.getMessage() + ")");
+			}
 			
 			LOG.info("Unsatisfiable proof:");
 			
