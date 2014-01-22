@@ -57,7 +57,7 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 		Type type = attribute.type();
 		String object;
 		for (String[] specific : specificValues) {
-			object = attribute.owner().name() + "_" + specific[0];
+			object = specific[0];
 			for (int i = 1; i < specific.length; i++) {
 				if ((type.isInteger() || type.isIntegerCollection())
 						&& !(specific[i].equals(TypeConstants.UNDEFINED) || specific[i].equals(TypeConstants.UNDEFINED_SET))) {

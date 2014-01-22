@@ -71,7 +71,7 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 				specificValue = new String[linkedObjects.size() + 1];
 
 				MLinkObject mLinkObject = (MLinkObject) link;
-				specificValue[0] = mLinkObject.name();
+				specificValue[0] = mLinkObject.cls().name() + "_" + mLinkObject.name();
 
 				index = 1;
 			} else {
@@ -79,7 +79,7 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 			}
 
 			for (MObject linkedObject : linkedObjects) {
-				specificValue[index] = linkedObject.name();
+				specificValue[index] = linkedObject.cls().name() + "_" + linkedObject.name();
 				index++;
 			}
 
@@ -131,7 +131,7 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 				Type type = getType(typeFactory, value);
 
 				for (String stringValue : values) {
-					setAttributeValue(mObject.name(), attribute, type, stringValue);
+					setAttributeValue(mObject.cls().name() + "_" + mObject.name(), attribute, type, stringValue);
 					addValueToType(type, stringValue);
 				}
 			}

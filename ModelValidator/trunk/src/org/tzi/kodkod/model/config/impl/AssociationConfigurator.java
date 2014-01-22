@@ -44,12 +44,11 @@ public class AssociationConfigurator extends Configurator<IAssociation> {
 		}
 
 		List<String> atoms;
-		IClass associatedClass;
+
 		for (String[] specific : specificValues) {
 			atoms = new ArrayList<String>();
 			for (int i = 0; i < arity; i++) {
-				associatedClass = allAssociationEnds.get(i).associatedClass();
-				atoms.add(associatedClass.name() + "_" + specific[i]);
+				atoms.add(specific[i]);
 			}
 			lower.add(tupleFactory.tuple(atoms));
 		}

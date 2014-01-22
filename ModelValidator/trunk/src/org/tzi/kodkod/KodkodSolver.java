@@ -37,7 +37,7 @@ public class KodkodSolver {
 	public Solution solve(IModel model) throws Exception {
 		Bounds bounds = createBounds(model);
 		Formula constraint = createConstraint(model);
-
+				
 		KodkodModelValidatorConfiguration configuration = KodkodModelValidatorConfiguration.INSTANCE;
 
 		final Solver solver = new Solver();
@@ -49,10 +49,14 @@ public class KodkodSolver {
 		solver.options().setBitwidth(configuration.bitwidth());
 		
 		Solution solution = solver.solve(constraint, bounds);
+		
+		
 		createEvaluator(solver, solution);
 
-		LOG.debug("\n" + solution);
-
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("\n" + solution);
+		}
+		
 		return solution;
 	}
 

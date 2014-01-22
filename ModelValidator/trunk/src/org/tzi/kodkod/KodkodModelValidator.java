@@ -2,7 +2,6 @@ package org.tzi.kodkod;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import kodkod.ast.Relation;
 import kodkod.engine.Evaluator;
