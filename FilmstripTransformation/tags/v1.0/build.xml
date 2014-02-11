@@ -1,0 +1,53 @@
+<project name="filmstrip" default="build" basedir=".">
+	<description>Filmstrip plugin for USE</description>
+
+	<property name="release.version" value="1.0" />
+	<property name="src.dir" value="${basedir}/src"/>
+	<property name="use.dir" value="${basedir}/../use" />
+	<property name="use.antfile" value="${use.dir}/build.xml" />
+	<property name="use.main.jar" value="${use.dir}/build/lib/use.jar" />
+	<property name="use.runtime.jar" value="${use.dir}/build/lib/use-runtime.jar" />
+	<property name="use.gui.jar" value="${use.dir}/build/lib/use-gui.jar" />
+	<property name="manifest" value="${basedir}/META-INF/MANIFEST.MF"/>
+
+	<property name="lib.antlr.jar" value="${use.dir}/lib/antlr-3.4-complete.jar"/>
+	<property name="lib.guava.jar" value="${use.dir}/lib/guava-14.0-rc2.jar"/>
+
+	<property name="libs" value="${lib.antlr.jar}:${lib.guava.jar}" />
+
+	<property name="build.dir" value="${basedir}/build" />
+	<property name="build.classes.dir" value="${build.dir}/classes" />
+	<property name="build.jarfiledest" value="${build.dir}/use-filmstrip.jar"/>
+	<property name="resources.dir" value="${basedir}/resources"/>
+
+	<condition property="use-unavailable">
+		<not>
+			<and>
+				<available file="${use.main.jar}" />
+				<available file="${use.runtime.jar}" />
+				<available file="${use.gui.jar}" />
+			</and>
+		</not>
+	</condition>
+
+	<target name="build-use" description="Build the components of USE that are required for the plugin"
+			if="use-unavailable">
+		<ant dir="${use.dir}" antfile="build.xml" target="jar-use" inheritall="false">
+		</ant>
+	</target>
+
+	<target name="build" depends="build-use" description="Build the plugin jar-file">
+		<mkdir dir="${build.classes.dir}" />
+		<javac srcdir="${src.dir}" destdir="${build.classes.dir}"
+			classpath="${use.main.jar}:${use.runtime.jar}:${use.gui.jar}:${libs}" debug="on"
+			includeantruntime="no" />
+		<jar destfile="${build.jarfiledest}" manifest="${manifest}">
+			<fileset dir="${build.classes.dir}" />
+			<fileset dir="${basedir}" includes="resources/**" />
+			<fileset dir="${basedir}" includes="useplugin.xml" />
+			<fileset dir="${basedir}" includes="README" />
+			<fileset dir="${basedir}" includes="AUTHORS" />
+		</jar>
+	</target>
+
+</project>

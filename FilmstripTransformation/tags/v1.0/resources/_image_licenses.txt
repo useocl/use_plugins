@@ -1,0 +1,5 @@
+Image sources and licenses:
+
+Image name                  | Author             | License            | Source
+-------------------------------------------------------------------------------------------------------------------------
+filmstrip.png               | Mark James         | CC Attribution 3.0 | http://famfamfam.com/lab/icons/silk/

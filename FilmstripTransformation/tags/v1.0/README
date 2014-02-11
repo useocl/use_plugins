@@ -1,0 +1,14 @@
+1. Requirements
+===============
+- USE version 3.1.0 or greater is required for this plugin
+
+2. Installation
+===============
+Please, copy the use-filmstrip.jar into the lib/plugins directory of USE.
+
+3. Usage
+===============
+- Open USE specification.
+- In the main menu select "Plugins" -> "Filmstrip" -> "Transform Model into
+  Filmstrip Model" to begin the transformation.
+- Select the options you want and click OK. The transformation process begins.
