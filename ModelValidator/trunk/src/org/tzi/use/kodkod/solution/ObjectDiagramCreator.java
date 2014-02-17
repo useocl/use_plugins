@@ -208,6 +208,7 @@ public class ObjectDiagramCreator {
 		String attrName = getPartAfterLastSeparator(relationName);
 
 		return !isAssociationClass(className)
+				&& model.getClass(className) != null
 				&& model.getClass(className).getAttribute(attrName) != null;
 	}
 
