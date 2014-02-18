@@ -67,6 +67,15 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 			arguments.add(set);
 
 			invokeMethod("access", arguments, false);
+			
+			// update current type
+			if(attribute.type().isObjectType()){
+				org.tzi.kodkod.model.type.ObjectType t = (org.tzi.kodkod.model.type.ObjectType) attribute.type();
+				attributeClass = t.clazz();
+			}
+			else {
+				attributeClass = null;
+			}
 		} else {
 			throw new TransformationException("Cannot find attribute " + exp.attr().name() + ".");
 		}
