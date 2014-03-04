@@ -105,7 +105,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	}
 	
 	/**
-	 * Returns if the result object is a navigation to an object end.
+	 * Returns <code>true</code>, if the result object is a navigation to an object end.
 	 * 
 	 * @return
 	 */

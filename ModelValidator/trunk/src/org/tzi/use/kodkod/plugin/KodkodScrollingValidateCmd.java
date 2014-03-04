@@ -1,10 +1,13 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.use.kodkod.UseScrollingKodkodModelValidator;
+import org.tzi.use.main.shell.Shell;
 
 /**
  * Cmd-Class for the scrolling in the solutions.
@@ -24,32 +27,37 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 	@Override
 	protected void handleArguments(String arguments) {
 		arguments = arguments.trim();
-
+		
 		if (arguments.equals("next")) {
-			if (checkValidator()) {
+			if (checkValidatorPresent()) {
 				validator.nextSolution();
 			}
 		} else if (arguments.equals("previous")) {
-			if (checkValidator()) {
+			if (checkValidatorPresent()) {
 				validator.previousSolution();
 			}
-		} else if (arguments.matches("show\\([1-9]\\d*\\)")) {
-			if (checkValidator()) {
-				int index = Integer.parseInt(arguments.substring(5, arguments.length()-1));
-				validator.showSolution(index);
-			}
 		} else {
-			File file = new File(arguments);
-
-			if (file.exists() && file.canRead() && !file.isDirectory()) {
-				extractConfigureAndValidate(file);
+			Pattern showPattern = Pattern.compile("show\\s*\\(\\s*(\\d+)\\s*\\)");
+			Matcher m = showPattern.matcher(arguments);
+			
+			if (m.matches()) {
+				if (checkValidatorPresent()) {
+					int index = Integer.parseInt(m.group(1));
+					validator.showSolution(index);
+				}
 			} else {
-				LOG.error(LogMessages.pagingCmdError);
+				File file = new File(Shell.getInstance().getFilenameToOpen(arguments, false));
+	
+				if (file.exists() && file.canRead() && !file.isDirectory()) {
+					extractConfigureAndValidate(file);
+				} else {
+					LOG.error(LogMessages.pagingCmdError);
+				}
 			}
 		}
 	}
 
-	private boolean checkValidator() {
+	private boolean checkValidatorPresent() {
 		if (validator == null) {
 			LOG.error(LogMessages.pagingCmdFileFirst);
 			return false;

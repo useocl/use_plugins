@@ -29,8 +29,8 @@ public class InvariantIndepCmd extends AbstractPlugin implements IPluginShellCmd
 		String argument = pluginCommand.getCmdArguments();
 
 		if (argument != null && argument.length() > 1) {
-			argument = argument.substring(1).trim();
-			String[] split = argument.split("-");
+			argument = argument.trim();
+			String[] split = argument.split("-|:{2}");
 
 			if (split.length != 2) {
 				Log.error(LogMessages.invIndepSyntaxError(argument));

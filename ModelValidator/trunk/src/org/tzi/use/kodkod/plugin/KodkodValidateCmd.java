@@ -9,6 +9,7 @@ import org.tzi.kodkod.model.config.impl.DefaultConfigurationVisitor;
 import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
 import org.tzi.use.kodkod.UseDefaultConfigKodkodModelValidator;
 import org.tzi.use.kodkod.UseKodkodModelValidator;
+import org.tzi.use.main.shell.Shell;
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
 
@@ -59,7 +60,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * @param arguments
 	 */
 	protected void handleArguments(String arguments) {
-		File file = new File(arguments.substring(1));
+		File file = new File(Shell.getInstance().getFilenameToOpen(arguments.trim(), false) );
 
 		if (file.exists() && file.canRead() && !file.isDirectory()) {
 			extractConfigureAndValidate(file);

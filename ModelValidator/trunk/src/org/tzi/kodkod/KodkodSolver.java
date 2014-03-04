@@ -21,6 +21,8 @@ import org.tzi.kodkod.model.type.IntegerType;
 import org.tzi.kodkod.model.type.TypeAtoms;
 import org.tzi.kodkod.model.visitor.BoundsVisitor;
 import org.tzi.kodkod.model.visitor.ConstraintVisitor;
+import org.tzi.use.config.Options;
+import org.tzi.use.util.Log;
 
 /**
  * Encapsulation of the base algorithm for the model validiation with kodkod.
@@ -53,8 +55,9 @@ public class KodkodSolver {
 		
 		createEvaluator(solver, solution);
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("\n" + solution);
+		if (Options.getDebug()) {
+			Log.println();
+			Log.println(solution.toString());
 		}
 		
 		return solution;

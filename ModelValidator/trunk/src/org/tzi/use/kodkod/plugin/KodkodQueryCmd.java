@@ -42,7 +42,9 @@ public class KodkodQueryCmd extends AbstractPlugin implements IPluginShellCmdDel
 
 		String arguments = pluginCommand.getCmdArguments().trim();
 
-		if (arguments.toLowerCase().equals("enable")) {
+		if (arguments.isEmpty()) {
+			LOG.error("Usage: kodkod ? [enable|disable|ocl-expression]");
+		} else if (arguments.toLowerCase().equals("enable")) {
 			KodkodQueryCache.INSTANCE.setQueryEnabled(true);
 		} else if (arguments.toLowerCase().equals("disable")) {
 			KodkodQueryCache.INSTANCE.setQueryEnabled(false);
