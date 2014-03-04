@@ -26,9 +26,9 @@ import org.tzi.kodkod.model.type.TypeLiterals;
  */
 public class SimpleVisitor implements Visitor {
 
-	protected void iterate(Iterator<?> iter) {
+	protected void iterate(Iterator<? extends IElement> iter) {
 		while (iter.hasNext()) {
-			((IElement) iter.next()).accept(this);
+			(iter.next()).accept(this);
 		}
 	}
 
