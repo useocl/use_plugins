@@ -33,6 +33,7 @@ import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.MPrePostCondition;
 import org.tzi.use.uml.mm.ModelFactory;
+import org.tzi.use.uml.mm.commonbehavior.communications.MSignal;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
@@ -40,6 +41,8 @@ import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.uml.sys.soil.MStatement;
 import org.tzi.use.util.StringUtil;
 
+//TODO remove visitor pattern
+//TODO add position in model for all model elements
 public class FilmstripMMVisitor implements MMVisitor {
 	
 	private UseModelApi model;
@@ -644,6 +647,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		}
 
 		// all classes are defined
+		// process attributes
 		for(MClass ca : m.classes()){
 			for(MAttribute a : ca.attributes()){
 				a.processWithVisitor(this);
@@ -904,6 +908,11 @@ public class FilmstripMMVisitor implements MMVisitor {
 		}
 		
 		copyAnnotations(e, inv);
+	}
+	
+	@Override
+	public void visitSignal(MSignal mSignalImpl) {
+		// trimmed from the model
 	}
 	
 }

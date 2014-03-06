@@ -17,6 +17,7 @@ import org.tzi.use.uml.mm.MMVisitor;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.MPrePostCondition;
+import org.tzi.use.uml.mm.commonbehavior.communications.MSignal;
 
 import com.google.common.collect.Sets;
 
@@ -185,6 +186,10 @@ public class ModelValidator implements MMVisitor {
 
 	@Override
 	public void visitPrePostCondition(MPrePostCondition e) {
+	}
+
+	@Override
+	public void visitSignal(MSignal mSignalImpl) {
 	}
 	
 }
