@@ -25,6 +25,8 @@ public final class FilmstripModelConstants {
 	public static final String OPC_SELF_VARNAME = "aSelf";
 	public static final String OPC_RETURNVALUE_VARNAME = "retVal";
 	
+	public static final String SNAPSHOT_ROLENAME = FilmstripModelConstants.makeRoleName(SNAPSHOT_CLASSNAME);
+	
 	public static final String SNAPSHOT_PRED_OP = "if self." + PRED_ROLENAME
 			+ "->size() = 1 then self." + PRED_ROLENAME
 			+ "->any( true ) else oclUndefined(" + SNAPSHOT_CLASSNAME
@@ -60,14 +62,14 @@ public final class FilmstripModelConstants {
 	
 	public static final String OPC_INV_SELFINPRED_NAME = "aSelfInPred";
 	public static final String OPC_INV_SELFINPRED = "self." + OPC_SELF_VARNAME
-			+ "." + makeRoleName(SNAPSHOT_CLASSNAME) + " = self."
+			+ "." + SNAPSHOT_ROLENAME + " = self."
 			+ PRED_ROLENAME + "()";
 	
 	public static final String CLASS_INV_VALIDLINKING_NAME = "validSnapshotLinking";
 	public static final String CLASS_INV_VALIDLINKING = "self." + SUCC_ROLENAME
 			+ ".isDefined implies " + "self." + SUCC_ROLENAME + "."
-			+ makeRoleName(SNAPSHOT_CLASSNAME) + " = self."
-			+ makeRoleName(SNAPSHOT_CLASSNAME) + "." + SUCC_ROLENAME + "()";
+			+ SNAPSHOT_ROLENAME + " = self."
+			+ SNAPSHOT_ROLENAME + "." + SUCC_ROLENAME + "()";
 	
 	private FilmstripModelConstants(){
 	}
@@ -98,7 +100,7 @@ public final class FilmstripModelConstants {
 	}
 	
 	public static String makeSnapshotClsRoleName(String cls){
-		return String.format("%s%s", makeRoleName(SNAPSHOT_CLASSNAME), cls);
+		return String.format("%s%s", SNAPSHOT_ROLENAME, cls);
 	}
 
 	public static String makeClsOrdableAssocName(String cls) {
@@ -110,7 +112,7 @@ public final class FilmstripModelConstants {
 	}
 	
 	public static String makeClsSuccRolename(String cls) {
-		return String.format("%s%s", FilmstripModelConstants.SUCC_ROLENAME, cls);
+		return String.format("%s%s", SUCC_ROLENAME, cls);
 	}
 	
 	public static String makeParamDefinedInvName(MAttribute param, boolean inPred){
@@ -125,7 +127,7 @@ public final class FilmstripModelConstants {
 	public static String makeParamDefinedInv(String varName, Type t, boolean inPred){
 		if(t.isTrueObjectType()){
 			return "((not " + varName + ".oclIsUndefined()) implies " + varName
-					+ "." + makeRoleName(SNAPSHOT_CLASSNAME) + " = self."
+					+ "." + SNAPSHOT_ROLENAME + " = self."
 					+ (inPred ? PRED_ROLENAME : SUCC_ROLENAME) + "())";
 		}
 		else if(t.isCollection(true)){
@@ -155,6 +157,19 @@ public final class FilmstripModelConstants {
 	
 	public static String makeValidLinkingInvName(String assoc){
 		return String.format("validLinking%s", assoc);
+	}
+	
+	public static String makeValidLinkingInvPart(String endName, boolean isCollection){
+		if(isCollection){
+			return String.format("self.%s->forAll( c | c.%s = self.%s )", endName,
+					SNAPSHOT_ROLENAME,
+					SNAPSHOT_ROLENAME);
+		}
+		else {
+			return String.format("(self.%s.isDefined implies self.%s = self.%s.%s)", endName,
+					SNAPSHOT_ROLENAME, endName,
+					SNAPSHOT_ROLENAME);
+		}
 	}
 	
 }

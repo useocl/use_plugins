@@ -41,8 +41,7 @@ import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.uml.sys.soil.MStatement;
 import org.tzi.use.util.StringUtil;
 
-//TODO remove visitor pattern
-//TODO add position in model for all model elements
+//TODO add position in model for new model elements
 public class FilmstripMMVisitor implements MMVisitor {
 	
 	private UseModelApi model;
@@ -221,6 +220,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 	 */
 	private void createClassInv(MClass cls) {
 		try {
+			// valid pred succ linking
 			model.createInvariant(
 					FilmstripModelConstants.CLASS_INV_VALIDLINKING_NAME,
 					cls.name(),
@@ -252,31 +252,8 @@ public class FilmstripMMVisitor implements MMVisitor {
 				continue;
 			}
 			
-			if(end.multiplicity().isCollection()){
-				ends[i] = "self."
-						+ end.name()
-						+ "->forAll( c | c."
-						+ FilmstripModelConstants
-								.makeRoleName(FilmstripModelConstants.SNAPSHOT_CLASSNAME)
-						+ " = self."
-						+ FilmstripModelConstants
-								.makeRoleName(FilmstripModelConstants.SNAPSHOT_CLASSNAME)
-						+ " )";
-			}
-			else {
-				ends[i] = "(self."
-						+ end.name()
-						+ ".isDefined implies self."
-						+ FilmstripModelConstants
-								.makeRoleName(FilmstripModelConstants.SNAPSHOT_CLASSNAME)
-						+ " = self."
-						+ end.name()
-						+ "."
-						+ FilmstripModelConstants
-								.makeRoleName(FilmstripModelConstants.SNAPSHOT_CLASSNAME)
-						+ ")";
-			}
-			i++;
+			ends[i++] = FilmstripModelConstants.makeValidLinkingInvPart(end.name(),
+					end.multiplicity().isCollection());
 		}
 		
 		String inv = StringUtil.fmtSeq(ends, " and ");
@@ -392,6 +369,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		int[] aggregationKinds = new int[numEntries];
 		boolean[] orderedInfo = new boolean[numEntries];
 		String[][][] qualifier = (e.hasQualifiedEnds())?new String[numEntries][][]:new String[0][][];
+		
 		int idx = 0;
 		for(MAssociationEnd assocEnd : e.associationEnds()){
 			assEnds[idx] = assocEnd.cls().name();
@@ -427,9 +405,10 @@ public class FilmstripMMVisitor implements MMVisitor {
 		}
 
 		// redefines, subsets, union marks
+		newAssoc.setPositionInModel(e.getPositionInModel());
 		copyAssociationDetails(e, newAssoc);
-		
 		copyAnnotations(e, newAssoc);
+		
 		createAssocInv(newAssoc);
 	}
 	
@@ -439,6 +418,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		String[] roleNames = new String[e.getAllOtherAssociationEnds().size()];
 		String[] multiplicities = new String[e.getAllOtherAssociationEnds().size()];
 		int[] aggregationKinds = new int[e.getAllOtherAssociationEnds().size()];
+		
 		int idx = 0;
 		for(MAssociationEnd assocEnd : e.getAllOtherAssociationEnds()){
 			assocEnds[idx] = assocEnd.cls().name();
@@ -458,8 +438,10 @@ public class FilmstripMMVisitor implements MMVisitor {
 					+ StringUtil.inQuotes(e.name()), ex);
 		}
 		
+		newAssocClass.setPositionInModel(e.getPositionInModel());
 		copyAssociationDetails(e, newAssocClass);
 		copyAnnotations(e, newAssocClass);
+		
 		createOpCClass(e);
 		createClassInv(newAssocClass);
 		createAssocInv(newAssocClass);
@@ -467,6 +449,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 
 	@Override
 	public void visitAssociationEnd(MAssociationEnd e) {
+		// handled by visitAssociation
 	}
 
 	@Override
@@ -480,6 +463,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 					+ StringUtil.inQuotes(e.owner().name()), ex);
 		}
 		
+		attribute.setPositionInModel(e.getPositionInModel());
 		copyAnnotations(e, attribute);
 	}
 
@@ -508,7 +492,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			
 			MAssociationEnd snapshotBaseEnd = snapshotBaseAssoc.getAssociationEnd(
 					model.getClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME),
-					FilmstripModelConstants.makeRoleName(FilmstripModelConstants.SNAPSHOT_CLASSNAME));
+					FilmstripModelConstants.SNAPSHOT_ROLENAME);
 			for(MAssociationEnd snapshotEnd : snapshotAssoc.associationEnds()){
 				if(snapshotEnd.name().startsWith(snapshotBaseEnd.name())){
 					snapshotEnd.addRedefinedEnd(snapshotBaseEnd);
@@ -548,6 +532,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 					+ StringUtil.inQuotes(e.name()), ex);
 		}
 
+		newClass.setPositionInModel(e.getPositionInModel());
 		copyAnnotations(e, newClass);
 		createOpCClass(e);
 		createClassInv(newClass);
@@ -556,6 +541,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		 * attributes are processed when all types (classes) are known
 		 * invariants and operations are processed when all classes and
 		 * associations are computed
+		 * Statemachines are trimmed from the model
 		 */
 	}
 	
@@ -574,9 +560,9 @@ public class FilmstripMMVisitor implements MMVisitor {
 			}
 		}
 		
-		MClassInvariant inv;
+		MClassInvariant newInv;
 		try {
-			inv = mFactory.createClassInvariant(
+			newInv = mFactory.createClassInvariant(
 					e.name(),
 					vars,
 					mc.processClass(e.cls()),
@@ -585,28 +571,30 @@ public class FilmstripMMVisitor implements MMVisitor {
 							newOwningClass, varDefs),
 					e.isExistential());
 			
-			model.getModel().addClassInvariant(inv);
+			model.getModel().addClassInvariant(newInv);
 		}
 		catch (Exception ex) {
 			throw new TransformationException(
-					"Error transforming classinvariant "
+					"Error transforming class invariant "
 							+ StringUtil.inQuotes(e.name()) + " of class "
 							+ StringUtil.inQuotes(e.cls().name()), ex);
 		}
 		
-		copyAnnotations(e, inv);
+		newInv.setPositionInModel(e.getPositionInModel());
+		copyAnnotations(e, newInv);
 	}
 
 	public void visitEnumeration(EnumType e){
-		EnumType enumeration;
+		EnumType newEnumeration;
 		try {
-			enumeration = model.createEnumeration(e.name(), new ArrayList<String>(e.getLiterals()));
+			newEnumeration = model.createEnumeration(e.name(), new ArrayList<String>(e.getLiterals()));
 		} catch (Exception ex) {
 			throw new TransformationException("Error transforming enumeration "
 					+ StringUtil.inQuotes(e.name()), ex);
 		}
 		
-		copyAnnotations(e, enumeration);
+		newEnumeration.setPositionInModel(e.getPositionInModel());
+		copyAnnotations(e, newEnumeration);
 	}
 	
 	@Override
@@ -804,6 +792,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 					+ StringUtil.inQuotes(op.name()), ex);
 		}
 		
+		newOp.setPositionInModel(op.getPositionInModel());
 		copyAnnotations(op, newOp);
 		
 		if(!op.preConditions().isEmpty() || !op.postConditions().isEmpty()) {

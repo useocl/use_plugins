@@ -16,6 +16,7 @@ import org.tzi.use.uml.ocl.type.Type;
  */
 public interface MModelConnector {
 	
+	//TODO rename to mapX()
 	public MClass processClass(MClass cls);
 	public MAttribute processAttribute(MAttribute attr);
 	public MOperation processOperation(MOperation operation);
