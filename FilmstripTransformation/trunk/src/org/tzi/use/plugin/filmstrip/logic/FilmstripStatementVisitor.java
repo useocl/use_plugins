@@ -130,7 +130,7 @@ public class FilmstripStatementVisitor implements MStatementVisitor {
 	private List<VarDecl> processVarDeclList(List<VarDecl> variableDeclarations) {
 		List<VarDecl> ret = new ArrayList<VarDecl>();
 		for(VarDecl var : variableDeclarations){
-			ret.add(new VarDecl(var.name(), mc.processType(var.type())));
+			ret.add(new VarDecl(var.name(), mc.mapType(var.type())));
 		}
 		return ret;
 	}
@@ -138,7 +138,7 @@ public class FilmstripStatementVisitor implements MStatementVisitor {
 	@Override
 	public void visit(MAttributeAssignmentStatement s) throws Exception {
 		Expression expr = processExpression(s.getObject());
-		MAttribute attr = mc.processAttribute(s.getAttribute());
+		MAttribute attr = mc.mapAttribute(s.getAttribute());
 		MRValue val = processMRValue(s.getRValue());
 		
 		elements.push(new MAttributeAssignmentStatement(expr, attr, val));
@@ -169,7 +169,7 @@ public class FilmstripStatementVisitor implements MStatementVisitor {
 	@Override
 	public void visit(MEnterOperationStatement s) throws Exception {
 		Expression object = processExpression(s.getObject());
-		MOperation operation = mc.processOperation(s.getOperation());
+		MOperation operation = mc.mapOperation(s.getOperation());
 		Expression[] arguments = processExpressionArray(s.getArguments());
 		PPCHandler handler = s.getCustomPPCHandler();
 		
@@ -194,7 +194,7 @@ public class FilmstripStatementVisitor implements MStatementVisitor {
 
 	@Override
 	public void visit(MLinkDeletionStatement s) throws Exception {
-		MAssociation association = mc.processAssociation(s.getAssociation());
+		MAssociation association = mc.mapAssociation(s.getAssociation());
 		List<MRValue> participants = processMRValueList(s.getParticipants());
 		List<List<MRValue>> qualifiers = new ArrayList<List<MRValue>>();
 		for(List<MRValue> val : s.getQualifiers()){
@@ -206,7 +206,7 @@ public class FilmstripStatementVisitor implements MStatementVisitor {
 
 	@Override
 	public void visit(MLinkInsertionStatement s) throws Exception {
-		MAssociation association = mc.processAssociation(s.getAssociation());
+		MAssociation association = mc.mapAssociation(s.getAssociation());
 		List<MRValue> participants = processMRValueList(s.getParticipants());
 		List<List<MRValue>> qualifiers = new ArrayList<List<MRValue>>();
 		for(List<MRValue> val : s.getQualifiers()){
@@ -218,7 +218,7 @@ public class FilmstripStatementVisitor implements MStatementVisitor {
 
 	@Override
 	public void visit(MNewLinkObjectStatement s) throws Exception {
-		MAssociationClass associationClass = mc.processAssociationClass(s.getAssociationClass());
+		MAssociationClass associationClass = mc.mapAssociationClass(s.getAssociationClass());
 		List<MRValue> participants = processMRValueList(s.getParticipants());
 		List<List<MRValue>> qualifiers = new ArrayList<List<MRValue>>();
 		for(List<MRValue> val : s.getQualifiers()){
@@ -231,7 +231,7 @@ public class FilmstripStatementVisitor implements MStatementVisitor {
 
 	@Override
 	public void visit(MNewObjectStatement s) throws Exception {
-		MClass objectClass = mc.processClass(s.getObjectClass());
+		MClass objectClass = mc.mapClass(s.getObjectClass());
 		Expression objectName = processExpression(s.getObjectName());
 		
 		elements.push(new MNewObjectStatement(objectClass, objectName));
@@ -265,7 +265,7 @@ public class FilmstripStatementVisitor implements MStatementVisitor {
 	@Override
 	public void visit(MObjectOperationCallStatement s) throws Exception {
 		Expression object = processExpression(s.getObject());
-		MOperation operation = mc.processOperation(s.getOperation());
+		MOperation operation = mc.mapOperation(s.getOperation());
 		Expression[] arguments = processExpressionArray(s.getArguments());
 		
 		elements.push(new MObjectOperationCallStatement(object, operation, arguments));

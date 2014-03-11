@@ -305,17 +305,17 @@ public class FilmstripMMVisitor implements MMVisitor {
 	 */
 	private void copyAssociationDetails(MAssociation from, MAssociation to){
 		for(MAssociationEnd end : from.associationEnds()){
-			MAssociationEnd newEnd = to.getAssociationEnd(mc.processClass(end.cls()), end.name());
+			MAssociationEnd newEnd = to.getAssociationEnd(mc.mapClass(end.cls()), end.name());
 
 			copyAnnotations(end, newEnd);
 			
 			for(MAssociationEnd sEnd : end.getSubsettedEnds()){
-				MAssociationEnd tmp = mc.processAssociationEnd(sEnd);
+				MAssociationEnd tmp = mc.mapAssociationEnd(sEnd);
 				newEnd.addSubsettedEnd(tmp);
 				tmp.addSubsettingEnd(newEnd);
 			}
 			for(MAssociationEnd rEnd : end.getRedefinedEnds()){
-				MAssociationEnd tmp = mc.processAssociationEnd(rEnd);
+				MAssociationEnd tmp = mc.mapAssociationEnd(rEnd);
 				newEnd.addRedefinedEnd(tmp);
 				tmp.addRedefiningEnd(newEnd);
 			}
@@ -326,7 +326,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			if(end.isDerived()){
 				VarDeclList l = new VarDeclList(end.getDeriveParamter().allHaveSameType());
 				for(VarDecl vd : end.getDeriveParamter()){
-					l.add(new VarDecl(vd.name(), mc.processType(vd.type())));
+					l.add(new VarDecl(vd.name(), mc.mapType(vd.type())));
 				}
 				newEnd.setDeriveExpression(l,
 						visitExpression(end.getDeriveExpression(),
@@ -547,7 +547,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 	
 	@Override
 	public void visitClassInvariant(MClassInvariant e) {
-		MClass newOwningClass = mc.processClass(e.cls());
+		MClass newOwningClass = mc.mapClass(e.cls());
 		
 		VarDeclList varDefs = null;
 		List<String> vars = null;
@@ -565,7 +565,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			newInv = mFactory.createClassInvariant(
 					e.name(),
 					vars,
-					mc.processClass(e.cls()),
+					mc.mapClass(e.cls()),
 					visitExpression(e.bodyExpression(),
 							ExpressionType.CLASSINVARIANT,
 							newOwningClass, varDefs),
@@ -822,21 +822,21 @@ public class FilmstripMMVisitor implements MMVisitor {
 	}
 
 	private void visitOperationBody(MOperation op){
-		MOperation newOp = mc.processOperation(op);
+		MOperation newOp = mc.mapOperation(op);
 		
 		if(op.hasBody()){
 			if(op.hasExpression()){
 				VarDeclList varDefs = new VarDeclList(false);
 				for(VarDecl var : op.paramList()){
-					varDefs.add(new VarDecl(var.name(), mc.processType(var.type())));
+					varDefs.add(new VarDecl(var.name(), mc.mapType(var.type())));
 				}
 				if(op.resultType() != null){
-					varDefs.add(new VarDecl("result", mc.processType(op.resultType())));
+					varDefs.add(new VarDecl("result", mc.mapType(op.resultType())));
 				}
 				
 				try {
 					newOp.setExpression(visitExpression(op.expression(),
-							ExpressionType.OPERATION, mc.processClass(op.cls()), varDefs));
+							ExpressionType.OPERATION, mc.mapClass(op.cls()), varDefs));
 				}
 				catch (Exception ex) {
 					throw new TransformationException(
@@ -849,7 +849,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			else if(op.hasStatement()){
 				MStatement newOpStmt;
 				try {
-					FilmstripStatementVisitor fsv = new FilmstripStatementVisitor(model.getModel(), mc.processClass(op.cls()), mc);
+					FilmstripStatementVisitor fsv = new FilmstripStatementVisitor(model.getModel(), mc.mapClass(op.cls()), mc);
 					op.getStatement().processWithVisitor(fsv);
 					newOpStmt = fsv.getResultStatement();
 				} catch (Exception ex) {

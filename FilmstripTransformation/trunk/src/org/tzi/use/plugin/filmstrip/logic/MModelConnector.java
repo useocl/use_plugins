@@ -16,14 +16,13 @@ import org.tzi.use.uml.ocl.type.Type;
  */
 public interface MModelConnector {
 	
-	//TODO rename to mapX()
-	public MClass processClass(MClass cls);
-	public MAttribute processAttribute(MAttribute attr);
-	public MOperation processOperation(MOperation operation);
-	public MAssociation processAssociation(MAssociation assoc);
-	public MAssociationClass processAssociationClass(MAssociationClass cls);
-	public MNavigableElement processNavigableElement(MNavigableElement source);
-	public MAssociationEnd processAssociationEnd(MAssociationEnd end);
-	public Type processType(Type t);
+	public MClass mapClass(MClass cls);
+	public MAttribute mapAttribute(MAttribute attr);
+	public MOperation mapOperation(MOperation operation);
+	public MAssociation mapAssociation(MAssociation assoc);
+	public MAssociationClass mapAssociationClass(MAssociationClass cls);
+	public MNavigableElement mapNavigableElement(MNavigableElement source);
+	public MAssociationEnd mapAssociationEnd(MAssociationEnd end);
+	public Type mapType(Type t);
 	
 }

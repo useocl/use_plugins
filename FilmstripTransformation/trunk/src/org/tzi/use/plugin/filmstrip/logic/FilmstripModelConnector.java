@@ -38,7 +38,7 @@ public class FilmstripModelConnector implements MModelConnector {
 	 * @return counterpart of given class
 	 */
 	@Override
-	public MClass processClass(MClass cls){
+	public MClass mapClass(MClass cls){
 		MClass c = model.getClass(cls.name());
 		
 		if(c == null){
@@ -51,7 +51,7 @@ public class FilmstripModelConnector implements MModelConnector {
 	}
 	
 	@Override
-	public MAssociationClass processAssociationClass(MAssociationClass cls) {
+	public MAssociationClass mapAssociationClass(MAssociationClass cls) {
 		MAssociationClass c = model.getAssociationClass(cls.name());
 		
 		if(c == null){
@@ -64,8 +64,8 @@ public class FilmstripModelConnector implements MModelConnector {
 	}
 	
 	@Override
-	public MAttribute processAttribute(MAttribute attr) {
-		MAttribute a = processClass(attr.owner()).attribute(attr.name(), false);
+	public MAttribute mapAttribute(MAttribute attr) {
+		MAttribute a = mapClass(attr.owner()).attribute(attr.name(), false);
 		
 		if(a == null){
 			throw new TransformationException(
@@ -79,8 +79,8 @@ public class FilmstripModelConnector implements MModelConnector {
 	}
 	
 	@Override
-	public MOperation processOperation(MOperation operation) {
-		MOperation op = processClass(operation.cls()).operation(operation.name(), false);
+	public MOperation mapOperation(MOperation operation) {
+		MOperation op = mapClass(operation.cls()).operation(operation.name(), false);
 		
 		if(op == null){
 			throw new TransformationException(
@@ -95,7 +95,7 @@ public class FilmstripModelConnector implements MModelConnector {
 	}
 	
 	@Override
-	public MAssociation processAssociation(MAssociation assoc) {
+	public MAssociation mapAssociation(MAssociation assoc) {
 		MAssociation a = model.getAssociation(assoc.name());
 		
 		if(a == null){
@@ -106,9 +106,9 @@ public class FilmstripModelConnector implements MModelConnector {
 	}
 	
 	@Override
-	public MNavigableElement processNavigableElement(MNavigableElement source) {
+	public MNavigableElement mapNavigableElement(MNavigableElement source) {
 		if(source instanceof MAssociationClass){
-			return (MAssociationClass) processClass(source.cls());
+			return (MAssociationClass) mapClass(source.cls());
 		}
 		else if(source instanceof MAssociationEnd){
 			MAssociationEnd assocEnd = (MAssociationEnd) source;
@@ -118,7 +118,7 @@ public class FilmstripModelConnector implements MModelConnector {
 						+ StringUtil.inQuotes(assocEnd.association().name())
 						+ " not found in new model.");
 			}
-			MAssociationEnd res = assoc.getAssociationEnd(processClass(source.cls()), assocEnd.name());
+			MAssociationEnd res = assoc.getAssociationEnd(mapClass(source.cls()), assocEnd.name());
 			if(res != null){
 				return res;
 			}
@@ -132,7 +132,7 @@ public class FilmstripModelConnector implements MModelConnector {
 	}
 	
 	@Override
-	public MAssociationEnd processAssociationEnd(MAssociationEnd end) {
+	public MAssociationEnd mapAssociationEnd(MAssociationEnd end) {
 		MAssociation assoc = model.getAssociation(end.association().name());
 		if(assoc != null){
 			for(MAssociationEnd newEnd : assoc.associationEnds()){
@@ -149,7 +149,7 @@ public class FilmstripModelConnector implements MModelConnector {
 	}
 	
 	@Override
-	public Type processType(Type t){
+	public Type mapType(Type t){
 		if(t.isVoidType()){
 			return TypeFactory.mkVoidType();
 		}
@@ -165,19 +165,19 @@ public class FilmstripModelConnector implements MModelConnector {
 			return TypeFactory.mkEnum(et.name(), et.getLiterals());
 		}
 		else if(t.isTrueObjectType()){
-			return TypeFactory.mkObjectType(processClass(((ObjectType) t).cls()));
+			return TypeFactory.mkObjectType(mapClass(((ObjectType) t).cls()));
 		}
 		else if(t.isTrueBag()){
-			return TypeFactory.mkBag(processType(((BagType) t).elemType()));
+			return TypeFactory.mkBag(mapType(((BagType) t).elemType()));
 		}
 		else if(t.isTrueSequence()){
-			return TypeFactory.mkSequence(processType(((SequenceType) t).elemType()));
+			return TypeFactory.mkSequence(mapType(((SequenceType) t).elemType()));
 		}
 		else if(t.isTrueSet()){
-			return TypeFactory.mkSet(processType(((SetType) t).elemType()));
+			return TypeFactory.mkSet(mapType(((SetType) t).elemType()));
 		}
 		else if(t.isTrueOrderedSet()){
-			return TypeFactory.mkOrderedSet(processType(((OrderedSetType) t).elemType()));
+			return TypeFactory.mkOrderedSet(mapType(((OrderedSetType) t).elemType()));
 		}
 		else if(t.isTupleType(true)){
 			TupleType tt = (TupleType) t;
@@ -185,7 +185,7 @@ public class FilmstripModelConnector implements MModelConnector {
 			TupleType.Part[] parts = new TupleType.Part[tt.getParts().size()];
 			int i = 0;
 			for (Map.Entry<String, TupleType.Part> entry : tt.getParts().entrySet()) {
-				parts[i] = new TupleType.Part(entry.getValue().getPosition(), entry.getValue().name(), processType(entry.getValue().type()));
+				parts[i] = new TupleType.Part(entry.getValue().getPosition(), entry.getValue().name(), mapType(entry.getValue().type()));
 				i++;
 			}
 			

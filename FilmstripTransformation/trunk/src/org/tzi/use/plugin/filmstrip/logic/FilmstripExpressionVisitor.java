@@ -159,7 +159,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	private VarDecl processVarDecl(ExpQuery exp){
 		if(exp.getVariableDeclarations().size() > 0){
 			VarDecl toCopy = exp.getVariableDeclarations().varDecl(0);
-			return new VarDecl(toCopy.name(), mc.processType(toCopy.type()));
+			return new VarDecl(toCopy.name(), mc.mapType(toCopy.type()));
 		}
 		else {
 			return null;
@@ -167,7 +167,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	}
 	
 	private VarDecl processVarDecl(VarDecl vd){
-		return new VarDecl(vd.name(), mc.processType(vd.type()));
+		return new VarDecl(vd.name(), mc.mapType(vd.type()));
 	}
 	
 	private VarDeclList processVarDeclList(VarDeclList varList){
@@ -182,7 +182,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 			VarInitializer accuInitializer, Expression exp) {
 		try {
 			return new VarInitializer(accuInitializer.name(),
-					mc.processType(accuInitializer.type()),
+					mc.mapType(accuInitializer.type()),
 					exp);
 		} catch (Exception ex) {
 			throw new TransformationException("VarInitializer", ex);
@@ -244,7 +244,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	
 	@Override
 	public void visitAllInstances(ExpAllInstances exp) {
-		ObjectType expType = (ObjectType) mc.processType(exp.getSourceType());
+		ObjectType expType = (ObjectType) mc.mapType(exp.getSourceType());
 		Expression self;
 		switch (type) {
 		case CLASSINVARIANT:
@@ -322,7 +322,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitConstEnum(ExpConstEnum exp) {
-		ExpConstEnum constEnumExp = new ExpConstEnum((EnumType) mc.processType(exp.type()), exp.value());
+		ExpConstEnum constEnumExp = new ExpConstEnum((EnumType) mc.mapType(exp.type()), exp.value());
 		
 		copyExpressionDetails(exp, constEnumExp);
 		
@@ -370,7 +370,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	public void visitEmptyCollection(ExpEmptyCollection exp) {
 		ExpEmptyCollection emptyCollectionExp;
 		try {
-			emptyCollectionExp = new ExpEmptyCollection(mc.processType(exp.type()));
+			emptyCollectionExp = new ExpEmptyCollection(mc.mapType(exp.type()));
 		} catch (Exception ex) {
 			throw new TransformationException("ExpEmptyCollection", ex);
 		}
@@ -401,7 +401,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public void visitLet(ExpLet exp) {
 		Expression varExp = processSubExpression(exp.getVarExpression());
-		Type newType = mc.processType(exp.getVarType());
+		Type newType = mc.mapType(exp.getVarType());
 		Expression inExp = processSubExpression(exp.getInExpression(),
 				new VarDecl(exp.getVarname(), newType));
 		
@@ -425,7 +425,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public void visitObjOp(ExpObjOp exp) {
 		Expression[] exps = processSubExpressionArray(exp.getArguments());
-		MOperation op = mc.processClass(exp.getOperation().cls()).operation(exp.getOperation().name(), true);
+		MOperation op = mc.mapClass(exp.getOperation().cls()).operation(exp.getOperation().name(), true);
 		if(op == null){
 			throw new TransformationException("Could not find operation "
 					+ StringUtil.inQuotes(exp.getOperation().name())
@@ -503,7 +503,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		for(ExpTupleLiteral.Part p : exp.getParts()){
 			p = new ExpTupleLiteral.Part(p.getName(),
 					processSubExpression(p.getExpression()),
-					mc.processType(p.getType()));
+					mc.mapType(p.getType()));
 		}
 		
 		ExpTupleLiteral tupleLiteralExp = new ExpTupleLiteral(parts);
@@ -515,7 +515,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	
 	@Override
 	public void visitUndefined(ExpUndefined exp) {
-		ExpUndefined undefinedExp = new ExpUndefined(mc.processType(exp.type()));
+		ExpUndefined undefinedExp = new ExpUndefined(mc.mapType(exp.type()));
 		
 		copyExpressionDetails(exp, undefinedExp);
 		
@@ -539,7 +539,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 			variableExp = new ExpVariable(def.name(), def.type());
 			break;
 		case SOIL:
-			variableExp = new ExpVariable(exp.getVarname(), mc.processType(exp.type()));
+			variableExp = new ExpVariable(exp.getVarname(), mc.mapType(exp.type()));
 			break;
 		case PRECONDITION:
 		case POSTCONDITION:
@@ -616,7 +616,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		
 		ExpObjectByUseId objectByUseIdExp;
 		try {
-			objectByUseIdExp = new ExpObjectByUseId(mc.processType(expObjectByUseId.getSourceType()), idExp);
+			objectByUseIdExp = new ExpObjectByUseId(mc.mapType(expObjectByUseId.getSourceType()), idExp);
 		} catch (Exception ex) {
 			throw new TransformationException("ExpObjectByUseId", ex);
 		}
@@ -655,7 +655,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		Expression expr = processSubExpression(exp.getSourceExpr());
 		ExpAsType asTypeExp;
 		try {
-			asTypeExp = new ExpAsType(expr, mc.processType(exp.getTargetType()));
+			asTypeExp = new ExpAsType(expr, mc.mapType(exp.getTargetType()));
 		} catch (Exception ex) {
 			throw new TransformationException("ExpAsType", ex);
 		}
@@ -667,7 +667,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitAttrOp(ExpAttrOp exp) {
-		MAttribute attr = mc.processAttribute(exp.attr());
+		MAttribute attr = mc.mapAttribute(exp.attr());
 		Expression expr = processSubExpression(exp.objExp());
 		if(exp.isPre()){
 			expr = FilmstripUtil.handlePredSucc(expr, true, knownVariables);
@@ -762,7 +762,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		
 		ExpIsKindOf isKindOfExp;
 		try {
-			isKindOfExp = new ExpIsKindOf(expr, mc.processType(exp.getTargetType()));
+			isKindOfExp = new ExpIsKindOf(expr, mc.mapType(exp.getTargetType()));
 		} catch (Exception ex) {
 			throw new TransformationException("ExpIsKindOf", ex);
 		}
@@ -778,7 +778,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		
 		ExpIsTypeOf isTypeOfExp;
 		try {
-			isTypeOfExp = new ExpIsTypeOf(expr, mc.processType(exp.getTargetType()));
+			isTypeOfExp = new ExpIsTypeOf(expr, mc.mapType(exp.getTargetType()));
 		} catch (Exception ex) {
 			throw new TransformationException("ExpIsTypeOf", ex);
 		}
@@ -830,8 +830,8 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitNavigation(ExpNavigation exp) {
-		MNavigableElement srcElem = mc.processNavigableElement(exp.getSource());
-		MNavigableElement destElem = mc.processNavigableElement(exp.getDestination());
+		MNavigableElement srcElem = mc.mapNavigableElement(exp.getSource());
+		MNavigableElement destElem = mc.mapNavigableElement(exp.getDestination());
 		Expression objExpr = processSubExpression(exp.getObjectExpression());
 		Expression[] qualifiers = processSubExpressionArray(exp.getQualifierExpression());
 		if(exp.isPre()){
@@ -982,7 +982,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public void visitTupleSelectOp(ExpTupleSelectOp exp) {
 		TupleType.Part part = new TupleType.Part(exp.getPart().getPosition(),
-				exp.getPart().name(), mc.processType(exp.getPart().type()));
+				exp.getPart().name(), mc.mapType(exp.getPart().type()));
 		Expression tupleExp = processSubExpression(exp.getTupleExp());
 		
 		ExpTupleSelectOp tupleSelectOpExp = new ExpTupleSelectOp(part, tupleExp);
