@@ -1,0 +1,66 @@
+<project name="useKodkodPlugin" default="fatjar" basedir=".">
+
+	<property name="compiler" value="1.7" />
+	<property name="use.path" value="../../../use/branches/psm" />
+	<property name="filename_thin" value="ModelValidatorPlugin_thin.jar" />
+	<property name="filename_fat" value="ModelValidator_fat.jar" />
+
+	<path id="classpath">
+		<fileset dir="lib" includes="*.jar" />
+		<fileset dir="${use.path}/build/lib" includes="*.jar" />
+	</path>
+
+	<target name="use-jar">
+		<subant target="jar-use">
+			<fileset dir="${use.path}" includes="build.xml" />
+		</subant>
+	</target>
+
+	<target name="clean">
+		<delete dir="build" />
+		<mkdir dir="build" />
+		<copy todir="build/resources">
+			<fileset dir="resources" />
+		</copy>
+		<copy todir="build/log4j">
+			<fileset dir="log4j" />
+		</copy>
+		<copy todir="build/solver">
+			<fileset dir="solver" />
+		</copy>
+	</target>
+
+	<target name="compile" depends="clean">
+		<property name="debug" value="false" />
+		<javac destdir="build" source="${compiler}" target="${compiler}" debug="true" classpathref="classpath" includeantruntime="false">
+			<src path="src" />
+			<src path="test" />
+			<exclude name="org/tzi/use/kodkod/transform/ocl/**" />
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="dist/${filename_thin}" basedir="build" manifest="META-INF/MANIFEST.MF">
+			<fileset dir="." includes="useplugin.xml" />
+		</jar>
+	</target>
+
+	<target name="fatjar" depends="compile">
+		<jar destfile="dist/${filename_fat}" basedir="build" manifest="META-INF/MANIFEST.MF">
+			<fileset dir="." includes="useplugin.xml" />
+			<zipfileset src="lib/commons-collections-3.2.1.jar" />
+			<zipfileset src="lib/commons-configuration-1.6.jar" />
+			<zipfileset src="lib/commons-lang-2.6.jar" />
+			<zipfileset src="lib/commons-logging-1.1.1.jar" />
+			<zipfileset src="lib/commons-vfs2-2.0.jar" />
+			<zipfileset src="lib/datedFileAppender-1.0.2.jar" />
+			<zipfileset src="lib/kodkod.jar" />
+			<zipfileset src="lib/log4j-1.2.17.jar" />
+			<zipfileset src="lib/org.sat4j.core.jar" />
+		</jar>
+	</target>
+
+	<target name="deployDebug" depends="fatjar">
+		<copy file="dist/${filename_fat}" todir="${use.path}/lib/plugins"/>
+	</target>
+</project>
