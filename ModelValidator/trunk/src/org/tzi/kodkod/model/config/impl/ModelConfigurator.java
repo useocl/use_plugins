@@ -21,6 +21,7 @@ import org.tzi.kodkod.model.type.SetType;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.kodkod.model.type.TypeLiterals;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Configurator for the model.
@@ -138,6 +139,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 			solutionFormula = solutionFormula.and(formula.not());
 		} catch (Exception e) {
 			LOG.error(LogMessages.solutionForbidError);
+			LOG.error(e.getMessage());
 			if(LOG.isDebugEnabled()){
 				e.printStackTrace();
 			}
@@ -247,16 +249,37 @@ public class ModelConfigurator extends Configurator<IModel> {
 		}
 		
 		String[] split = objectAtom.toString().split("_");
+		
+		String className;
+		String object;
+		if(split.length == 2){
+			className = split[0];
+			object = split[1];
+		}
+		else {
+			int middle = split.length/2;
+			StringBuilder left = new StringBuilder(split[0]);
+			StringBuilder right = new StringBuilder(split[middle]);
+			for(int i = 1; i < middle; i++){
+				left.append("_");
+				left.append(split[i]);
+				right.append("_");
+				right.append(split[(middle)+i]);
+			}
+			
+			className = left.toString();
+			object = right.toString();
+		}
 
-		String className = split[0];
-		String object = split[1];
 
 		IClass clazz = model.getClass(className);
 		if (clazz != null) {
 			clazz.objectType().addTypeLiteral(object);
 			return clazz.objectType().getTypeLiteral(object);
 		} else {
-			throw new Exception();
+			throw new Exception("Could not map object atom "
+					+ StringUtil.inQuotes(objectAtom.toString())
+					+ " to a class from the model.");
 		}
 	}
 
