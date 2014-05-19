@@ -31,6 +31,7 @@ public class FilmstripPlugin extends Plugin implements IPlugin {
 		if(args.length < 2){
 			System.err.println("Usage: java inputModel.use outputPath.use");
 			System.exit(1);
+			return;
 		}
 		String inputFileName = args[0];
 		String outputFileName = args[1];
@@ -44,16 +45,15 @@ public class FilmstripPlugin extends Plugin implements IPlugin {
 			model = USECompiler.compileSpecification(inStream, inputFile.getName(),
 					new PrintWriter(System.err), new ModelFactory());
 			inStream.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("Could not open inputfile. " + e.getMessage());
-			return;
 		} catch (IOException e) {
 			System.err.println("Could not open inputfile. " + e.getMessage());
+			System.exit(1);
 			return;
 		}
 		
 		if(model == null){
 			System.err.println("Could not read input model.");
+			System.exit(1);
 			return;
 		}
 		
@@ -63,6 +63,7 @@ public class FilmstripPlugin extends Plugin implements IPlugin {
 			ft.transformAndSave();
 		} catch (TransformationException e) {
 			System.err.println("An error occured while transforming the model.\n" + e.getMessage());
+			System.exit(1);
 			return;
 		} catch (TransformationInputException e) {
 			System.err.println("The input model contains elements with reserved names.");
@@ -71,12 +72,15 @@ public class FilmstripPlugin extends Plugin implements IPlugin {
 			ModelElements elems = e.getErrors();
 			System.err.println(ErrorFormatter.formatInputElementErrors(elems));
 			
+			System.exit(1);
 			return;
 		} catch (FileNotFoundException e) {
 			System.err.println("Could not open outputfile.\n" + e.getMessage());
+			System.exit(1);
 			return;
 		} catch (IOException e) {
 			System.err.println("Could not write outputfile.\n" + e.getMessage());
+			System.exit(1);
 			return;
 		}
 		
