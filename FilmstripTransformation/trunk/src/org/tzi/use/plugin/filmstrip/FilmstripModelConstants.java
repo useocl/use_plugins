@@ -21,7 +21,7 @@ public final class FilmstripModelConstants {
 	public static final String SUCC_ROLENAME = "succ";
 	public static final String PRED_ROLENAME = "pred";
 	
-	public static final String OPC_CLASSNAME = "OpC";
+	public static final String OPC_CLASSNAME = "OperationCall";
 	public static final String OPC_SELF_VARNAME = "aSelf";
 	public static final String OPC_RETURNVALUE_VARNAME = "retVal";
 	
@@ -47,7 +47,7 @@ public final class FilmstripModelConstants {
 			+ "self = op)";
 	
 	public static final String SNAPSHOT_INV_CYCLEFREE_NAME = "cycleFree";
-	public static final String SNAPSHOT_INV_CYCLEFREE = "Set{ self }->closure( s | s."
+	public static final String SNAPSHOT_INV_CYCLEFREE = "Set{ self. " + SUCC_ROLENAME + "() }->closure( s | s."
 			+ SUCC_ROLENAME + "() )->excludes( self )";
 	
 	public static final String SNAPSHOT_INV_ONEFILMSTRIP_NAME = "oneFilmstrip";
