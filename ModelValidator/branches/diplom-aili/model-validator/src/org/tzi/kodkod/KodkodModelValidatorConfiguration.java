@@ -60,16 +60,39 @@ public enum KodkodModelValidatorConfiguration {
 		readFile();
 	}
 
+	private enum Architecture {
+		X86, X64
+	}
+	
 	/**
 	 * Adds the folders with the extracted solver libraries to the
 	 * 'java.library.path'.
 	 */
 	private void addSolverFolders() {
 		try {
-			LibraryPathHelper.addDirectory(PathHelper.getPluginPath() + FOLDER_NAME + "/x86");
-			LibraryPathHelper.addDirectory(PathHelper.getPluginPath() + FOLDER_NAME + "/x64");
+			Architecture arch = getArchitecture();
+			switch (arch) {
+			case X64:
+				LibraryPathHelper.addDirectory(PathHelper.getPluginPath() + FOLDER_NAME + "/x64");
+				break;
+			case X86:
+				LibraryPathHelper.addDirectory(PathHelper.getPluginPath() + FOLDER_NAME + "/x86");
+				break;
+			default:
+				throw new Exception("Unknown jvm architecture.");
+			}
 		} catch (Exception e) {
 			LOG.warn(LogMessages.libraryPathWarning(DEFAULT_SATFACTORY.toString(), e.getMessage()));
+		}
+	}
+
+	private Architecture getArchitecture() {
+		String arch = System.getProperty("os.arch");
+		if(arch != null && arch.contains("64")){
+			return Architecture.X64;
+		}
+		else {
+			return Architecture.X86;
 		}
 	}
 

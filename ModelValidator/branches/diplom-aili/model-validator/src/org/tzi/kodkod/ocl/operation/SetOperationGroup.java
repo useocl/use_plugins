@@ -81,15 +81,19 @@ public class SetOperationGroup extends OCLOperationGroup {
 		return src;
 	}
 
-    public Expression closure(Expression src, Expression src_type, Expression body, Variable var) {
-        final Variable y = Variable.unary("y");
+	public Expression closure(Expression src, Expression src_type, Expression body, Variable var) {
+		final Variable y = Variable.unary("y");
 
-        final Expression generalClosure = y.in(body).comprehension(var.oneOf(src_type).and(y.oneOf(src_type))).closure();
-        final Expression expression = src.join(generalClosure);
-        
-        return src.eq(undefined_Set).thenElse(undefined_Set,expression);
-    } 
-	
+		final Expression generalClosure = y.in(body)
+				.comprehension(var.oneOf(src_type).and(y.oneOf(src_type)))
+				.closure();
+		// closure in OCL 2.4 is defined as the reflexive transitive closure,
+		// therefore we add the src manually
+		final Expression expression = src.join(generalClosure).union(src);
+
+		return src.eq(undefined_Set).thenElse(undefined_Set, expression);
+	}
+
 	// OCL: srcExpr->collect(var | bodyExpr)
 
 	public final Expression collect(Expression src, Expression body, Variable var) {

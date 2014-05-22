@@ -18,7 +18,7 @@
 			label="InvariantIndepCmd" shellcmd="kodkod -invIndep">
 		</command>
 		<command id="org.tzi.use.kodkod.plugin.ConfigurationCmd"
-			class="org.tzi.use.kodkod.plugin.ConfigurationCmd" help="Configures basic Kodkod properties. Possible parameters: 'satsolver:=[DefaultSAT4J|LightSAT4J|MiniSat|MiniSatProver|ZChaffMincost|CryptoMiniSat|Lingeling]' selects the sat solver to be used; 'bitwidth:=i' sets the solver bitwidth; 'automaticDiagramExtraction:=[on|off]' determines if the current object diagram should be used as partial solution; 'save' saves the configuration"
+			class="org.tzi.use.kodkod.plugin.ConfigurationCmd" help="Configures basic Kodkod properties. Possible parameters (case sensitive): 'satsolver:=[DefaultSAT4J|LightSAT4J|MiniSat|MiniSatProver|ZChaffMincost|CryptoMiniSat|Lingeling]' selects the sat solver to be used; 'bitwidth:=i' sets the solver bitwidth; 'automaticDiagramExtraction:=[on|off]' determines if the current object diagram should be used as partial solution; 'save' saves the configuration"
 			label="ConfigurationCmd" shellcmd="kodkod -config">
 		</command>		
 		<command id="org.tzi.use.kodkod.plugin.ModelResetCmd"
