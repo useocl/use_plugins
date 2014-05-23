@@ -35,6 +35,8 @@ import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
 import org.tzi.use.uml.ocl.expr.ExpReject;
 import org.tzi.use.uml.ocl.expr.ExpSelect;
+import org.tzi.use.uml.ocl.expr.ExpSelectByKind;
+import org.tzi.use.uml.ocl.expr.ExpSelectByType;
 import org.tzi.use.uml.ocl.expr.ExpSequenceLiteral;
 import org.tzi.use.uml.ocl.expr.ExpSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpSortedBy;
@@ -270,32 +272,37 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitOclInState(ExpOclInState expOclInState) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 
 	@Override
 	public void visitVarDeclList(VarDeclList varDeclList) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 
 	@Override
 	public void visitVarDecl(VarDecl varDecl) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 
 	@Override
 	public void visitObjectByUseId(ExpObjectByUseId expObjectByUseId) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 
 	@Override
 	public void visitConstUnlimitedNatural(
 			ExpConstUnlimitedNatural expressionConstUnlimitedNatural) {
-		// TODO Auto-generated method stub
+				
+	}
+
+	@Override
+	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
+		
+	}
+
+	@Override
+	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
 		
 	}
 
