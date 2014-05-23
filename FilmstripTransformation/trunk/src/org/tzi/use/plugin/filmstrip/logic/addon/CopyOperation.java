@@ -263,6 +263,10 @@ public class CopyOperation {
 	}
 
 	private MStatement copyClass(MModel model, MClass c, ObjectCreator oc){
+		if(c.isAbstract()){
+			return MEmptyStatement.getInstance();
+		}
+		
 		MSequenceStatement seq = new MSequenceStatement();
 		
 		// x := new <class>

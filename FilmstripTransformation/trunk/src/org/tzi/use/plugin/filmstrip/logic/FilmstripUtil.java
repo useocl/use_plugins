@@ -153,7 +153,7 @@ public class FilmstripUtil {
 	public static boolean isFilmstripClass(MClass c){
 		return c.name().equals(FilmstripModelConstants.SNAPSHOT_CLASSNAME)
 				|| c.name().equals(FilmstripModelConstants.ORDERABLE_CLASSNAME)
-				|| c.name().endsWith(FilmstripModelConstants.OPC_CLASSNAME);
+				|| c.name().endsWith(FilmstripModelConstants.OPC_ABBREVIATION);
 	}
 	
 	/**

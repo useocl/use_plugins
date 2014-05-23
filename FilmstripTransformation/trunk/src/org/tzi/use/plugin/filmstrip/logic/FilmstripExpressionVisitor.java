@@ -51,6 +51,8 @@ import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
 import org.tzi.use.uml.ocl.expr.ExpReject;
 import org.tzi.use.uml.ocl.expr.ExpSelect;
+import org.tzi.use.uml.ocl.expr.ExpSelectByKind;
+import org.tzi.use.uml.ocl.expr.ExpSelectByType;
 import org.tzi.use.uml.ocl.expr.ExpSequenceLiteral;
 import org.tzi.use.uml.ocl.expr.ExpSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpSortedBy;
@@ -1030,6 +1032,18 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public void visitVarDecl(VarDecl varDecl) {
 		throw new TransformationException("Cannot visit VarDecl directly");
+	}
+
+	@Override
+	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -22,6 +22,7 @@ public final class FilmstripModelConstants {
 	public static final String PRED_ROLENAME = "pred";
 	
 	public static final String OPC_CLASSNAME = "OperationCall";
+	public static final String OPC_ABBREVIATION = "OpC";
 	public static final String OPC_SELF_VARNAME = "aSelf";
 	public static final String OPC_RETURNVALUE_VARNAME = "retVal";
 	
@@ -75,11 +76,11 @@ public final class FilmstripModelConstants {
 	}
 	
 	public static String makeOpCName(String className){
-		return String.format("%sOpC", className);
+		return String.format("%s%s", className, FilmstripModelConstants.OPC_ABBREVIATION);
 	}
 	
 	public static String makeOpCName(String className, String opName){
-		return String.format("%s_%sOpC", opName, className);
+		return String.format("%s_%s%s", opName, className, FilmstripModelConstants.OPC_ABBREVIATION);
 	}
 	
 	public static String makeRoleName(String className){
