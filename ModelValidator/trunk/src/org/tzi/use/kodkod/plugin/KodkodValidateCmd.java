@@ -7,6 +7,9 @@ import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationVisitor;
 import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
+import org.tzi.kodkod.model.iface.IInvariant;
+import org.tzi.use.gen.model.GFlaggedInvariant;
+import org.tzi.use.gen.model.GModel;
 import org.tzi.use.kodkod.UseDefaultConfigKodkodModelValidator;
 import org.tzi.use.kodkod.UseKodkodModelValidator;
 import org.tzi.use.main.shell.Shell;
@@ -130,7 +133,26 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	}
 
 	private void validate(KodkodModelValidator modelValidator) {
+		configureInvariantSettingsFromGenerator();
 		enrichModelWithLoadedInvariants();
 		modelValidator.validate(model());
+	}
+
+	private void configureInvariantSettingsFromGenerator() {
+		GModel gModel = mSystem.generator().gModel();
+		for(IInvariant inv : model().classInvariants()){
+			GFlaggedInvariant srcInv = gModel.getFlaggedInvariant(inv.name());
+			if(srcInv.disabled() && inv.isActivated()){
+				inv.deactivate();
+				LOG.info(LogMessages.flagChangeInfo(inv, true));
+				continue;
+			}
+			
+			if(srcInv.negated() && !inv.isNegated()){
+				inv.negate();
+				LOG.info(LogMessages.flagChangeInfo(inv, false));
+				continue;
+			}
+		}
 	}
 }

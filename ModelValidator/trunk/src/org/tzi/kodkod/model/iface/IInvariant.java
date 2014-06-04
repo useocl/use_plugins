@@ -54,6 +54,11 @@ public interface IInvariant extends IElement {
 	public void negate();
 
 	/**
+	 * Reverses a possible negation of the invariant.
+	 */
+	void denegate();
+	
+	/**
 	 * Returns true if the invariant is activated.
 	 * 
 	 * @return
@@ -72,4 +77,5 @@ public interface IInvariant extends IElement {
 	 * activated and not negated.
 	 */
 	public void reset();
+
 }

@@ -9,8 +9,8 @@ import kodkod.instance.TupleSet;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.KodkodModelValidator;
-import org.tzi.kodkod.helper.InvariantHelper;
 import org.tzi.kodkod.helper.LogMessages;
+import org.tzi.kodkod.helper.ProofHelper;
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.config.impl.ModelConfigurator;
 import org.tzi.kodkod.model.iface.IClass;
@@ -20,6 +20,7 @@ import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.expr.Evaluator;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.uml.sys.MSystemException;
 
 /**
  * Class for a simple model validation with subsequent object diagram
@@ -63,12 +64,18 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 
 	@Override
 	protected void trivially_unsatisfiable() {
+		handleFailure();
 	}
 
 	@Override
 	protected void unsatisfiable() {
+		handleFailure();
 	}
 
+	private void handleFailure() {
+		LOG.info(ProofHelper.buildProofString(solution.proof(), true));
+	}
+	
 	/**
 	 * Starts the object diagram creation.
 	 * 
@@ -82,19 +89,17 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 		try {
 			diagramCreator.create(relationTuples);
 			return checkForDiagramErrors(relationTuples);
-		} catch (Exception exception) {
+		} catch (MSystemException ex) {
 			if (LOG.isDebugEnabled()) {
-				LOG.error(LogMessages.objDiagramCreationError, exception);
+				LOG.error(LogMessages.objDiagramCreationError, ex);
 			} else {
-				LOG.error(LogMessages.objDiagramCreationError + " Reason: " + exception.getMessage());
+				LOG.error(LogMessages.objDiagramCreationError + " Reason: " + ex.getMessage());
 			}
 			return false;
 		}
 	}
 
 	protected boolean checkForDiagramErrors(Map<Relation, TupleSet> relationTuples) {
-		boolean diagramErrors = false;
-
 		StringWriter buffer = new StringWriter();
 		PrintWriter out = new PrintWriter(buffer);
 		boolean foundErrors = !mSystem.state().checkStructure(out);
@@ -120,24 +125,16 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 			}
 		}
 
-		if (!diagramErrors) {
-			MModel mModel = mSystem.model();
-			Evaluator evaluator = new Evaluator();
-			for (IInvariant invariant : InvariantHelper.getAllInvariants(model)) {
-				if (invariant.isActivated()) {
-					BooleanValue result = (BooleanValue) evaluator.eval(mModel.getClassInvariant(invariant.name()).expandedExpression(),
-							mSystem.state());
-					if (invariant.isNegated()) {
-						if (result.isTrue()) {
-							LOG.info(invariant.name());
-							//return true;
-						}
-					} else {
-						if (result.isFalse()) {
-							LOG.info(invariant.name());
-							//return true;
-						}
-					}
+		// check invariants for correctness
+		MModel gModel = mSystem.generator().gModel();
+		Evaluator evaluator = new Evaluator();
+		for (IInvariant invariant : model.classInvariants()) {
+			if (invariant.isActivated()) {
+				BooleanValue result = (BooleanValue) evaluator.eval(gModel.getClassInvariant(invariant.name()).expandedExpression(),
+						mSystem.state());
+				if ((invariant.isNegated() && result.isTrue()) || (!invariant.isNegated() && result.isFalse())) {
+					LOG.info(LogMessages.unexpectedInvariantResult(invariant));
+					//return true;
 				}
 			}
 		}

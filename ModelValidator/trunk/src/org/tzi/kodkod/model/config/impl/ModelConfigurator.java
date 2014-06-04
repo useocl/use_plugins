@@ -52,7 +52,10 @@ public class ModelConfigurator extends Configurator<IModel> {
 		Formula formula = super.constraints(model);
 
 		for (IInvariant invariant : invariants.values()) {
-			formula = formula.and(invariant.formula());
+			//TODO double check if next condition is necessary
+			if(invariant.isActivated()){
+				formula = formula.and(invariant.formula());
+			}
 		}
 		return formula.and(solutionFormula);
 	}
@@ -64,7 +67,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 	 * @return
 	 */
 	public boolean addInvariant(IInvariant invariant) {
-		if (invariants.containsKey(invariant.toString())) {
+		if (invariants.containsKey(invariant.name())) {
 			return false;
 		}
 		invariants.put(invariant.name(), invariant);

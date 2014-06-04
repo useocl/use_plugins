@@ -1,13 +1,13 @@
 package org.tzi.kodkod;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.tzi.kodkod.helper.InvariantHelper;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
@@ -38,7 +38,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 	public void validate(IModel model, String className, String invariantName) {
 		changeLogLevels();
 
-		List<IInvariant> invariants = InvariantHelper.getAllInvariants(model);
+		Collection<IInvariant> invariants = model.classInvariants();
 		activateAllInvariants(invariants);
 
 		IClass clazz = model.getClass(className);
@@ -64,7 +64,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 		Logger.getLogger(KodkodSolver.class).setLevel(Level.WARN);
 		LOG.setLevel(Level.INFO);
 
-		List<IInvariant> invariants = InvariantHelper.getAllInvariants(model);
+		Collection<IInvariant> invariants = model.classInvariants();
 		activateAllInvariants(invariants);
 
 		for (IInvariant invariant : invariants) {
@@ -82,7 +82,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 		currentInvariant.reset();
 	}
 
-	private void activateAllInvariants(List<IInvariant> invariants) {
+	private void activateAllInvariants(Collection<IInvariant> invariants) {
 		inactiveInvariants = new ArrayList<IInvariant>();
 		negatedInvariants = new ArrayList<IInvariant>();
 
@@ -97,7 +97,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 		}
 	}
 
-	private void resetInvariantStates(List<IInvariant> invariants) {
+	private void resetInvariantStates(Collection<IInvariant> invariants) {
 		for (IInvariant inv : negatedInvariants) {
 			inv.negate();
 		}

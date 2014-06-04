@@ -1,14 +1,11 @@
 package org.tzi.kodkod;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import kodkod.ast.Relation;
 import kodkod.engine.Evaluator;
 import kodkod.engine.Solution;
 import kodkod.engine.Statistics;
-import kodkod.engine.fol2sat.TranslationRecord;
-import kodkod.engine.ucore.DynamicRCEStrategy;
 import kodkod.instance.TupleSet;
 
 import org.apache.log4j.Logger;
@@ -54,23 +51,6 @@ public abstract class KodkodModelValidator {
 		Statistics statistics = solution.stats();
 		LOG.info(LogMessages.kodkodStatistics(statistics));
 
-		if (solution.proof() != null) {
-			
-			try {
-				solution.proof().minimize(new DynamicRCEStrategy(solution.proof().log()));
-			} catch (Exception e) {
-				LOG.info("Proof reduction failed. (" + e.getMessage() + ")");
-			}
-			
-			LOG.info("Unsatisfiable proof:");
-			
-			Iterator<TranslationRecord> iter = solution.proof().core(); 
-			while (iter.hasNext()) {
-				TranslationRecord rec = iter.next();
-				LOG.info(rec.toString()); 
-			}
-		}
-		
 		switch (solution.outcome()) {
 		case SATISFIABLE:
 			satisfiable(kodkodSolver);
