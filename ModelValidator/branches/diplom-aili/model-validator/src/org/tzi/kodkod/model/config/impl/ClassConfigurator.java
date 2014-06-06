@@ -16,32 +16,31 @@ import org.tzi.kodkod.model.iface.IClass;
 public class ClassConfigurator extends Configurator<IClass> {
 
 	protected int min, max;
+	
+	private TupleSet generateObjectsTuple(TupleFactory tupleFactory, IClass clazz, int bound) {
+		TupleSet boundTupleSet = tupleFactory.noneOf(1);
+		int objectsCounter = 0;
+		if (!clazz.isAbstract()) {
+			for (String[] specific : specificValues) {
+				if (objectsCounter >= bound) break;
+				boundTupleSet.add(tupleFactory.tuple(clazz.name() + "_" + specific[0]));
+				objectsCounter += 1;
+			}
+			for (int i = specificValues.size(); i < bound; i++) {
+				boundTupleSet.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i + 1)));
+			}
+		}
+		return boundTupleSet;
+	}
 
 	@Override
 	public TupleSet lowerBound(IClass clazz, int arity, TupleFactory tupleFactory) {
-		TupleSet lower = tupleFactory.noneOf(1);
-		if (!clazz.isAbstract()) {
-			for (String[] specific : specificValues) {
-				lower.add(tupleFactory.tuple(clazz.name() + "_" + specific[0]));
-			}
-			for (int i = specificValues.size(); i < min; i++) {
-				lower.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i + 1)));
-			}
-		}
-
-		return lower;
+		return generateObjectsTuple(tupleFactory, clazz, min);
 	}
 
 	@Override
 	public TupleSet upperBound(IClass clazz, int arity, TupleFactory tupleFactory) {
-		TupleSet upper = tupleFactory.noneOf(1);
-		if (!clazz.isAbstract()) {
-			upper.addAll(lowerBound(clazz, arity, tupleFactory));
-			for (int i = specificValues.size(); i < max; i++) {
-				upper.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i + 1)));
-			}
-		}
-		return upper;
+		return generateObjectsTuple(tupleFactory, clazz, max);
 	}
 
 	@Override
@@ -52,20 +51,21 @@ public class ClassConfigurator extends Configurator<IClass> {
 
 	/**
 	 * Sets the minimum and maximum number of objects for a class.
+	 * If the minimum is bigger than the maximum, then both will be
+	 * set to the minimum value.
 	 * 
 	 * @param min
 	 * @param max
 	 */
 	public void setLimits(int min, int max) {
-		if (min >= specificValues.size()) {
+		if (min > max) {
 			this.min = min;
-		}
-
-		if (max >= specificValues.size() && max >= min) {
-			this.max = max;
-		} else if (max <= min) {
 			this.max = min;
+		} else {
+			this.min = min;
+			this.max = max;
 		}
+			
 	}
 
 	public int getMax() {
