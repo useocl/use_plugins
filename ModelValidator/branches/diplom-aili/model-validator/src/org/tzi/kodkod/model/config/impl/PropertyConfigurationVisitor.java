@@ -133,7 +133,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 				if (!status.equals("active")) {
 					warning(invariant.name() + ": " + LogMessages.invariantConfigWarning(status));
 				}
-
 				invariant.activate();
 			}
 		}

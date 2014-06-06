@@ -2,6 +2,7 @@ package org.tzi.kodkod.model.impl;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -100,6 +101,15 @@ public final class Model implements IModel{
 	}
 
 	@Override
+	public Collection<IInvariant> classInvariants() {
+		LinkedList<IInvariant> invariants = new LinkedList<IInvariant>();
+		for(IClass cls : classes()){
+			invariants.addAll(cls.invariants());
+		}
+		return invariants;
+	}
+	
+	@Override
 	public TypeFactory typeFactory() {
 		return typeFactory;
 	}
@@ -134,7 +144,7 @@ public final class Model implements IModel{
 	public void resetConfigurator() {
 		Map<String, IInvariant> temporaryInvariants = new HashMap<String, IInvariant>();
 		if(configurator instanceof ModelConfigurator){
-			temporaryInvariants = ((ModelConfigurator) configurator).getInvariants(); 
+			temporaryInvariants = ((ModelConfigurator) configurator).getInvariants();
 		}
 		configurator = new ModelConfigurator(this,temporaryInvariants);
 	}

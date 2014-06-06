@@ -35,7 +35,7 @@ public class InvariantIndepCmd extends AbstractPlugin implements IPluginShellCmd
 			if (split.length != 2) {
 				Log.error(LogMessages.invIndepSyntaxError(argument));
 			} else {
-				indepChecker.validate(model(), split[0], split[1]);
+				indepChecker.validate(model(), split[0], argument);
 			}
 		} else {
 			indepChecker.validate(model());

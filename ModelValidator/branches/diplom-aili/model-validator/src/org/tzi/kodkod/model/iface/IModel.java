@@ -90,6 +90,11 @@ public interface IModel extends IConfigurableElement {
 	public Collection<IAssociation> associations();
 
 	/**
+	 * @return a collection with all class invariants.
+	 */
+	public Collection<IInvariant> classInvariants();
+	
+	/**
 	 * Returns the model factory to create the elements of this model.
 	 * 
 	 * @return

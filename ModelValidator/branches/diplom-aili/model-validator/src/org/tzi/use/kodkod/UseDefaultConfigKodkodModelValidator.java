@@ -4,9 +4,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
-import org.tzi.kodkod.helper.InvariantHelper;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.use.uml.sys.MSystem;
@@ -21,7 +20,7 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 
 	private File configFile;
 	private boolean allInactive = false;
-	private List<IInvariant> allInvariants;
+	private Collection<IInvariant> allInvariants;
 
 	public UseDefaultConfigKodkodModelValidator(MSystem mSystem, File configFile) {
 		super(mSystem);
@@ -64,10 +63,7 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 	 * Reactivates the invariants which are true for the solution.
 	 */
 	protected void reactivateSuccessfulInvariants() {
-		BufferedWriter writer = null;
-		try {
-			writer = new BufferedWriter(new FileWriter(configFile, true));
-
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile, true))) {
 			for (IInvariant invariant : allInvariants) {
 				if (evaluator.evaluate(invariant.formula())) {
 					invariant.activate();
@@ -78,16 +74,8 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 					writer.newLine();
 				}
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			LOG.error(LogMessages.propertiesConfigurationWriteError);
-		} finally {
-			if (writer != null) {
-				try {
-					writer.close();
-				} catch (IOException e) {
-					LOG.error(LogMessages.propertiesConfigurationCloseError + ". " + e.getMessage());
-				}
-			}
 		}
 	}
 
@@ -96,7 +84,7 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 	 */
 	private void deactivateAllInvariants() {
 		if (!allInactive) {
-			allInvariants = InvariantHelper.getAllInvariants(model);
+			allInvariants = model.classInvariants();
 			for (IInvariant invariant : allInvariants) {
 				invariant.deactivate();
 			}

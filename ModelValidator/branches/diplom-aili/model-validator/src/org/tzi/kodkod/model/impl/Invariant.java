@@ -66,8 +66,17 @@ public class Invariant implements IInvariant {
 
 	@Override
 	public void negate() {
+		if(negated){
+			return;
+		}
 		formula = formula.not();
 		negated = true;
+	}
+	
+	@Override
+	public void denegate() {
+		formula = original;
+		negated = false;
 	}
 
 	public boolean isActivated() {

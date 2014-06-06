@@ -42,21 +42,17 @@ public class ObjectDiagramCreator {
 	 * Creates the object diagram.
 	 * 
 	 * @param relations
+	 * @throws MSystemException 
 	 * @throws Exception
 	 */
-	public void create(Map<Relation, TupleSet> relations) throws Exception {
+	public void create(Map<Relation, TupleSet> relations) throws MSystemException {
 		objectStates = new HashMap<String, MObjectState>();
 
-		try {
-			Map<Relation, TupleSet> withoutClasses = createObjects(relations);
+		Map<Relation, TupleSet> withoutClasses = createObjects(relations);
 
-			createAssociationClasses(relations);
+		createAssociationClasses(relations);
 
-			createElements(withoutClasses);
-
-		} catch (Exception exception) {
-			throw exception;
-		}
+		createElements(withoutClasses);
 	}
 
 	private Map<Relation, TupleSet> createObjects(

@@ -188,7 +188,7 @@ public enum KodkodModelValidatorConfiguration {
 			this.bitwidth = bitwidth;
 			LOG.info(LogMessages.newBitwidth(bitwidth));
 		} else {
-			LOG.warn(LogMessages.wrongBitwidthWarning(DEFAULT_BITWIDTH, bitwidth));
+			LOG.warn(LogMessages.wrongBitwidthWarning(DEFAULT_BITWIDTH));
 			this.bitwidth = DEFAULT_BITWIDTH;
 		}
 	}
