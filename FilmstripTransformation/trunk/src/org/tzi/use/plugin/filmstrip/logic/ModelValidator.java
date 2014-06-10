@@ -25,10 +25,11 @@ public class ModelValidator implements MMVisitor {
 	
 	private static final HashSet<String> reservedClassNames = Sets.newHashSet(
 			FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-			FilmstripModelConstants.ORDERABLE_CLASSNAME );
+			FilmstripModelConstants.ORDERABLE_CLASSNAME,
+			FilmstripModelConstants.OPC_CLASSNAME );
 	private static final HashSet<String> reservedClassPrefixes = Sets.newHashSet();
 	private static final HashSet<String> reservedClassSuffixes = Sets.newHashSet(
-			FilmstripModelConstants.OPC_CLASSNAME );
+			FilmstripModelConstants.OPC_ABBREVIATION );
 	
 	private static final HashSet<String> reservedAssociationNames = Sets.newHashSet(
 			FilmstripModelConstants.FILMSTRIP_ASSOCNAME,
