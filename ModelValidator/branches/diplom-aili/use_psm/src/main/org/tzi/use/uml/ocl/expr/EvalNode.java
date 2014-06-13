@@ -1,0 +1,358 @@
+/*
+ * USE - UML based specification environment
+ * Copyright (C) 1999-2004 Mark Richters, University of Bremen
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+// $Id$
+
+package org.tzi.use.uml.ocl.expr;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.tzi.use.uml.ocl.value.Value;
+import org.tzi.use.uml.ocl.value.VarBindings;
+import org.tzi.use.uml.ocl.value.VarBindings.Entry;
+
+/**
+ * Context information used during evaluation.
+ * 
+ * @version $ProjectVersion: 0.393 $
+ * @author Mark Richters
+ */
+public class EvalNode {
+    private List<EvalNode> fChildren;
+
+    private Expression fExpr;
+
+    private Value fResult;
+
+    /**
+     * for the var bindings window in the
+     * ExprEvalBrowser
+     */
+    private Vector<Entry> fVarBindings;
+    
+    private String fTabWidth = "<table>";
+
+    private String fTabEnd = "</table>";
+
+    private boolean fIsVisible = false;
+
+    /**
+     * highlighting informations for the node
+     */
+    private char[] fHighlighting;
+
+    /**
+     * the ocl-term with substituted variables
+     */
+    private String fVarSubstituteView;
+
+    /**
+     * Variable-Assignments - Attribute for the Var-Assignment-EvalNodes
+     */
+    private String fVarAss;
+
+    /**
+     * Constructor for the Variable-Assignment-EvalNodes invoked from the
+     * ExprEvalBrowser. The Variable-Assignment-EvalNodes are needed by the
+     * early Var-Assignment-Treeviews
+     * 
+     * @param vars
+     *            the var-bindings
+     */
+    public EvalNode(Vector<Entry> vars) {
+        fVarBindings = vars;
+    }
+
+    /**
+     * Constructor for the normal EvalNodes invoked from the EvalContext
+     * 
+     * @param fVarBindings
+     */
+    public EvalNode(VarBindings fVarBindings) {
+        this.fVarBindings = new Vector<Entry>();
+        Iterator<Entry> it = fVarBindings.iterator();
+        
+        while (it.hasNext()) {
+            Entry entry = it.next();
+            this.fVarBindings.add(entry);
+        }
+    }
+
+    void addChild(EvalNode n) {
+        if (fChildren == null)
+            fChildren = new ArrayList<EvalNode>();
+        fChildren.add(n);
+    }
+
+    public List<EvalNode> children() {
+        if (fChildren == null)
+            return new ArrayList<EvalNode>();
+        else
+            return fChildren;
+    }
+
+    public void setExpression(Expression expr) {
+        fExpr = expr;
+    }
+
+    public Expression getExpr() {
+        return fExpr;
+    }
+
+    public void setResult(Value result) {
+        fResult = result;
+    }
+
+    public Value getResult() {
+        return fResult;
+    }
+
+    /**
+     * if HTML-Code is needed for the node true is returned
+     */
+    public boolean htmlUsed() {
+        if (fTabWidth == "<table>")
+            return false;
+        return true;
+    }
+
+    /**
+     * returns the string for the node in the eval-tree of the ExprEvalBrowser
+     * if this is a Variable-Assignment-node (used in the Early-Eval-Treeviews)
+     * fVarAss is returned if substitute views are activated the the variables
+     * are substituted before the width spec is added if it is needed
+     */
+    public String toString() {
+
+        if (fVarAss != null) {
+            
+        	if ("<table>".equals(fTabWidth))
+                return fVarAss;
+            
+            return "<html>" + fTabWidth + other(fVarAss) + fTabEnd + "</html>";
+        }
+
+        if (fVarSubstituteView != null)
+            if ("<table>".equals(fTabWidth))
+                return fVarSubstituteView;
+            else
+                return "<html>" + fTabWidth + other(fVarSubstituteView)
+                        + fTabEnd + "</html>";
+        else if ("<table>".equals(fTabWidth))
+            return fExpr + " = " + fResult;
+        else
+            return "<html>" + fTabWidth + other(fExpr + " = " + fResult)
+                    + fTabEnd + "</html>";
+    }
+
+    /**
+     * returns the String of the node that is displayed in the tree without the
+     * HTML-informations
+     */
+    public String toNormString() {
+        if (fVarAss != null)
+            return fVarAss;
+        else if (fVarSubstituteView != null)
+            return fVarSubstituteView;
+        else
+            return fExpr + " = " + fResult;
+    }
+
+    /**
+     * returns the original expression without substitutions and the associated
+     * value
+     */
+    public String getExprAndValue() {
+        if (fVarAss == null)
+            return fExpr.toString() + " = " + fResult.toString();
+        else
+            return fVarAss;
+    }
+
+    public String getHtmlExpr() {
+        return other2(getExpr().toString());
+    }
+
+    /**
+     * sets the width spec for the node
+     */
+    public void setTabWidth(double d) {
+        fTabWidth = "<table width=\"" + d + "\">";
+        fTabEnd = "</table>";
+    }
+
+    /**
+     * resets the spec width
+     */
+    public void resetTabWidth() {
+        fTabWidth = "<table>";
+        fTabEnd = "</table>";
+    }
+
+    /**
+     * sets if this EvalNode is visible in the tree in the ExprEvalBrowser
+     */
+    public void setVisibleAttr(boolean b) {
+        fIsVisible = b;
+    }
+
+    public boolean isVisible() {
+        return fIsVisible;
+    }
+
+    public boolean isEarlyVarNode() {
+        return fVarAss != null;
+    }
+
+    public Vector<Entry> getVarBindings() {
+        return fVarBindings;
+    }
+
+    /**
+     * EvalNode true/false-highlighting informations 
+     * 1. field: subtree-highlighting
+     * 2. field: complete-highlighting
+     */
+    public void setHighlighting(char[] c) {
+        fHighlighting = c;
+    }
+
+    public char[] getHighlighting() {
+        return fHighlighting;
+    }
+
+    /**
+     * adds the next Variable-assignment for Variable-Assignment-EvalNodes
+     */
+    public void setVarAssignment(String nextVar) {
+        if (fVarAss == null)
+            fVarAss = nextVar;
+        else
+            fVarAss += ", " + nextVar;
+    }
+
+    /**
+     * sets or resets the variable-substitution attribute
+     */
+    public void setVarSubstituteView(boolean b) {
+        if (b)
+            fVarSubstituteView = substituteVariables();
+        else
+            fVarSubstituteView = null;
+    }
+
+    /**
+     * Replaces the variable names contained in the expression
+     * string with the current variable assignments.
+     *  
+     * @return string with the substituted values
+     */
+    public String substituteVariables() {
+        // if the ocl-expression represents a variable
+        if (fExpr instanceof ExpVariable) {
+            // if the this is a normal var-node
+            if (fVarAss == null)
+                return fExpr + " = " + fResult;
+            // if this variable-expr-node is created in
+            // ExprEvalBrowser::createNodes
+            // for the early-var-assignment-view
+            else
+                return fVarAss;
+        }
+        
+        return substituteVariables(getExprAndValue());
+    }
+
+    /**
+     * substitutes the variables with its values needed by the
+     * VarSubstituetWindow in the EvalBrowser
+     * 
+     * @return the term with substituted variables
+     */
+    public String substituteVariables(String term) {
+    	
+    	String varStartEndChars = "[\\s<>\\(\\)\\.:-]";
+        String varStartPattern = "(^|" + varStartEndChars + ")";
+        String varEndPattern = "(" + varStartEndChars + "|$)";
+                
+        for (int i = fVarBindings.size() - 1; i >= 0; --i) {
+            Entry entry = fVarBindings.get(i);
+            String varname = entry.getVarName();
+            String varval = entry.valToString();
+                    
+			term = term.replaceAll(varStartPattern + Pattern.quote(varname)
+					+ varEndPattern, "$1" + Matcher.quoteReplacement(varval)
+					+ "$2");
+        }
+        
+        return term;
+    }
+
+    /**
+     * substitutes the "<" and ">" and "," char to html-conform chars returns
+     * the html-conform string
+     */
+    protected String other(String s) {
+        StringBuffer b = new StringBuffer();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+            case '<':
+                b.append("&lt;");
+                break;
+            case '>':
+                b.append("&gt;");
+                break;
+            case ',':
+                b.append("&#130;");
+                break;
+            default:
+                b.append(c);
+            }
+        }
+        return b.toString();
+    }
+
+    /**
+     * substitutes the "<" and ">" char to html-conform chars returns the
+     * html-conform string
+     */
+    protected String other2(String s) {
+        StringBuffer b = new StringBuffer();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+            case '<':
+                b.append("&lt;");
+                break;
+            case '>':
+                b.append("&gt;");
+                break;
+            default:
+                b.append(c);
+            }
+        }
+        return b.toString();
+    }
+}
