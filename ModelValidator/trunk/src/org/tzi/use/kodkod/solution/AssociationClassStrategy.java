@@ -1,18 +1,15 @@
 package org.tzi.use.kodkod.solution;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
+import kodkod.instance.Tuple;
+
+import org.tzi.use.api.UseApiException;
+import org.tzi.use.api.UseSystemApi;
 import org.tzi.use.uml.mm.MAssociationClass;
-import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.sys.MLinkObject;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MObjectState;
-import org.tzi.use.uml.sys.MSystemException;
-import org.tzi.use.uml.sys.MSystemState;
-
-import kodkod.instance.Tuple;
 
 /**
  * Strategy for the creation of links of an association class.
@@ -24,30 +21,31 @@ public class AssociationClassStrategy extends ElementStrategy {
 
 	private MAssociationClass mAssociationClass;
 
-	public AssociationClassStrategy(MSystemState mSystemState, MModel mModel, Map<String, MObjectState> objectStates,
+	public AssociationClassStrategy(UseSystemApi sApi, Map<String, MObjectState> objectStates,
 			MAssociationClass mAssociationClass) {
-		super(mSystemState, mModel, objectStates);
+		super(sApi, objectStates);
 		this.mAssociationClass = mAssociationClass;
 	}
 
 	@Override
-	public void createElement(Tuple currentTuple) throws MSystemException {
+	public void createElement(Tuple currentTuple) throws UseApiException {
 		String objectNameAtom = (String) currentTuple.atom(0);
 		String objectName = objectNameAtom.replaceFirst(mAssociationClass.name() + "_", "");
 
-		List<MObject> tupleObjects = new ArrayList<MObject>();
+		MObject[] tupleObjects = new MObject[currentTuple.arity()];
 		for (int i = 1; i < currentTuple.arity(); i++) {
-			tupleObjects.add(objectStates.get(currentTuple.atom(i)).object());
+			tupleObjects[i] = objectStates.get(currentTuple.atom(i)).object();
 		}
 
 		MLinkObject mLinkObject = null;
-		if (!mSystemState.hasObjectWithName(objectName)) {
-			mLinkObject = mSystemState.createLinkObject(mAssociationClass, objectName, tupleObjects, null);
-		} else {
-			mLinkObject = (MLinkObject) mSystemState.objectByName(objectName);
+		try {
+			mLinkObject = (MLinkObject) systemApi.getObjectSafe(objectName);
+		}
+		catch(UseApiException ex){
+			mLinkObject = systemApi.createLinkObjectEx(mAssociationClass, objectName, tupleObjects);
 		}
 
-		objectStates.put(objectNameAtom, mLinkObject.state(mSystemState));
+		objectStates.put(objectNameAtom, mLinkObject.state(systemApi.getSystem().state()));
 	}
 
 }

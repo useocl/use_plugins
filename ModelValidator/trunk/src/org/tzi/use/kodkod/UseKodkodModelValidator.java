@@ -15,12 +15,12 @@ import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.config.impl.ModelConfigurator;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
+import org.tzi.use.api.UseApiException;
 import org.tzi.use.kodkod.solution.ObjectDiagramCreator;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.expr.Evaluator;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.MSystemException;
 
 /**
  * Class for a simple model validation with subsequent object diagram
@@ -89,7 +89,7 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 		try {
 			diagramCreator.create(relationTuples);
 			return checkForDiagramErrors(relationTuples);
-		} catch (MSystemException ex) {
+		} catch (UseApiException ex) {
 			if (LOG.isDebugEnabled()) {
 				LOG.error(LogMessages.objDiagramCreationError, ex);
 			} else {

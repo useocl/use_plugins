@@ -2,14 +2,13 @@ package org.tzi.use.kodkod.solution;
 
 import java.util.Map;
 
+import kodkod.instance.Tuple;
+
+import org.tzi.use.api.UseApiException;
+import org.tzi.use.api.UseSystemApi;
 import org.tzi.use.uml.mm.MClass;
-import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MObjectState;
-import org.tzi.use.uml.sys.MSystemException;
-import org.tzi.use.uml.sys.MSystemState;
-
-import kodkod.instance.Tuple;
 
 /**
  * Strategy for the creation of objects.
@@ -22,8 +21,8 @@ public class ObjectStrategy extends ElementStrategy {
 	private String className;
 	private MClass mClass;
 
-	public ObjectStrategy(MSystemState mSystemState, MModel mModel, Map<String, MObjectState> objectStates, String className) {
-		super(mSystemState, mModel, objectStates);
+	public ObjectStrategy(UseSystemApi systemApi, Map<String, MObjectState> objectStates, String className) {
+		super(systemApi, objectStates);
 		this.className = className;
 	}
 
@@ -43,20 +42,20 @@ public class ObjectStrategy extends ElementStrategy {
 	}
 
 	@Override
-	public void createElement(Tuple currentTuple) throws MSystemException {
+	public void createElement(Tuple currentTuple) throws UseApiException {
 		String className = mClass.name();
 		String atom = (String) currentTuple.atom(0);
 		String objectName = atom.replaceFirst(className + "_", "");
 
 		MObject mObject;
-		if (!mSystemState.hasObjectWithName(objectName)) {
-			mObject = mSystemState.createObject(mClass, objectName);
-		} else {
-			mObject = mSystemState.objectByName(objectName);
+		try {
+			mObject = systemApi.getObjectSafe(objectName);
+		}
+		catch(UseApiException ex){
+			mObject = systemApi.createObject(className, objectName);
 		}
 
-		MObjectState mObjectState = mObject.state(mSystemState);
+		MObjectState mObjectState = mObject.state(systemApi.getSystem().state());
 		objectStates.put(atom, mObjectState);
-
 	}
 }

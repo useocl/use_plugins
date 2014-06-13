@@ -11,8 +11,9 @@ import kodkod.instance.TupleSet;
 import org.tzi.kodkod.model.iface.IAssociationClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.TypeConstants;
+import org.tzi.use.api.UseApiException;
+import org.tzi.use.api.UseSystemApi;
 import org.tzi.use.uml.mm.MAssociationClass;
-import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.sys.MObjectState;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
@@ -26,16 +27,13 @@ import org.tzi.use.uml.sys.MSystemException;
 public class ObjectDiagramCreator {
 
 	private IModel model;
-	private MSystem mSystem;
-	private MModel mModel;
+	private UseSystemApi systemApi;
 
 	private Map<String, MObjectState> objectStates;
 
 	public ObjectDiagramCreator(IModel model, MSystem mSystem) {
 		this.model = model;
-		this.mSystem = mSystem;
-		// mSystem.reset();
-		mModel = mSystem.model();
+		systemApi = UseSystemApi.create(mSystem, true);
 	}
 
 	/**
@@ -45,7 +43,7 @@ public class ObjectDiagramCreator {
 	 * @throws MSystemException 
 	 * @throws Exception
 	 */
-	public void create(Map<Relation, TupleSet> relations) throws MSystemException {
+	public void create(Map<Relation, TupleSet> relations) throws UseApiException {
 		objectStates = new HashMap<String, MObjectState>();
 
 		Map<Relation, TupleSet> withoutClasses = createObjects(relations);
@@ -56,7 +54,7 @@ public class ObjectDiagramCreator {
 	}
 
 	private Map<Relation, TupleSet> createObjects(
-			Map<Relation, TupleSet> relations) throws MSystemException {
+			Map<Relation, TupleSet> relations) throws UseApiException {
 		Map<Relation, TupleSet> withoutClasses = new HashMap<Relation, TupleSet>(
 				relations);
 
@@ -69,8 +67,7 @@ public class ObjectDiagramCreator {
 
 			if (!isNegateRelation(relationName) && !isType(relationName)) {
 				if (isClass(relation) && !isAssociationClass(relation.name())) {
-					strategy = new ObjectStrategy(mSystem.state(), mModel,
-							objectStates, relationName);
+					strategy = new ObjectStrategy(systemApi, objectStates, relationName);
 					iterateTuplesAndCreate(strategy, relations.get(relation));
 
 					withoutClasses.remove(relation);
@@ -82,7 +79,7 @@ public class ObjectDiagramCreator {
 	}
 
 	private Map<String, Relation> createElements(
-			Map<Relation, TupleSet> relations) throws MSystemException {
+			Map<Relation, TupleSet> relations) throws UseApiException {
 		Map<String, Relation> associationClassesRelations = new HashMap<String, Relation>();
 
 		String relationName;
@@ -97,12 +94,10 @@ public class ObjectDiagramCreator {
 
 				if (!isType(nameSplit[0]) && !isToStringMap(nameSplit[0])) {
 					if (isAssociation(relationName, relation)) {
-						strategy = new AssociationStrategy(mSystem.state(),
-								mModel, objectStates, relationName);
+						strategy = new AssociationStrategy(systemApi, objectStates, relationName);
 
 					} else if (isAttributeOfSimpleObject(relationName, relation)) {
-						strategy = new AttributeStrategy(mSystem.state(),
-								mModel, objectStates,
+						strategy = new AttributeStrategy(systemApi, objectStates,
 								getPartAfterLastSeparator(relationName));
 
 					} else {
@@ -121,7 +116,7 @@ public class ObjectDiagramCreator {
 	}
 
 	private void createAssociationClasses(Map<Relation, TupleSet> relations)
-			throws MSystemException {
+			throws UseApiException {
 
 		Map<String, Relation> associationClassesRelations = new HashMap<String, Relation>();
 		ElementStrategy strategy;
@@ -143,14 +138,13 @@ public class ObjectDiagramCreator {
 			}
 		}
 
-		for (MAssociationClass mAssociationClass : mModel
+		for (MAssociationClass mAssociationClass : systemApi.getSystem().model()
 				.getAssociationClassesOnly()) {
 			String associationClassName = mAssociationClass.name() + "_assoc";
 			associationClassesRelations.remove(mAssociationClass.name());
 			Relation relation = associationClassesRelations
 					.remove(associationClassName);
-			strategy = new AssociationClassStrategy(mSystem.state(), mModel,
-					objectStates, mAssociationClass);
+			strategy = new AssociationClassStrategy(systemApi, objectStates, mAssociationClass);
 
 			iterateTuplesAndCreate(strategy, relations.get(relation));
 		}
@@ -158,8 +152,7 @@ public class ObjectDiagramCreator {
 		for (String relationName : associationClassesRelations.keySet()) {
 			String attributeName = getPartAfterLastSeparator(relationName);
 			Relation relation = associationClassesRelations.get(relationName);
-			strategy = new AttributeStrategy(mSystem.state(), mModel,
-					objectStates, attributeName);
+			strategy = new AttributeStrategy(systemApi, objectStates, attributeName);
 
 			iterateTuplesAndCreate(strategy, relations.get(relation));
 		}
@@ -173,7 +166,7 @@ public class ObjectDiagramCreator {
 	 * @throws MSystemException
 	 */
 	private void iterateTuplesAndCreate(ElementStrategy strategy,
-			TupleSet tupleSet) throws MSystemException {
+			TupleSet tupleSet) throws UseApiException {
 		if (strategy.canDo()) {
 			Iterator<Tuple> iterator = tupleSet.iterator();
 			Tuple currentTuple;
