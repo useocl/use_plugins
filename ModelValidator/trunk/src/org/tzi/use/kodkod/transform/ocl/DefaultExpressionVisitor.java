@@ -38,6 +38,7 @@ import org.tzi.use.uml.ocl.expr.ExpObjAsSet;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
+import org.tzi.use.uml.ocl.expr.ExpRange;
 import org.tzi.use.uml.ocl.expr.ExpSequenceLiteral;
 import org.tzi.use.uml.ocl.expr.ExpSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpStdOp;
@@ -146,6 +147,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitBagLiteral(ExpBagLiteral exp) {
 		super.visitBagLiteral(exp);
+		LOG.warn(LogMessages.unsupportedCollectionWarning("bags"));
 		visitCollectionLiteral(exp, "bagLiteral");
 	}
 
@@ -293,6 +295,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitOrderedSetLiteral(ExpOrderedSetLiteral exp) {
 		super.visitOrderedSetLiteral(exp);
+		LOG.warn(LogMessages.unsupportedCollectionWarning("orderedSets"));
 		visitCollectionLiteral(exp, "orderedSetLiteral");
 	}
 
@@ -309,6 +312,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitSequenceLiteral(ExpSequenceLiteral exp) {
 		super.visitSequenceLiteral(exp);
+		LOG.warn(LogMessages.unsupportedCollectionWarning("sequences"));
 		visitCollectionLiteral(exp, "sequenceLiteral");
 	}
 
@@ -344,6 +348,26 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		visitVariableOperation(exp);
 	}
 
+	@Override
+	public void visitRange(ExpRange exp) {
+		super.visitRange(exp);
+		
+		org.tzi.use.uml.ocl.expr.Expression[] expToVisit = new org.tzi.use.uml.ocl.expr.Expression[]{
+				exp.getStart(),
+				exp.getEnd()
+		};
+		List<Object> args = new ArrayList<Object>(2);
+		
+		DefaultExpressionVisitor visitor;
+		for(org.tzi.use.uml.ocl.expr.Expression e : expToVisit){
+			visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
+			e.processWithVisitor(visitor);
+			args.add(visitor.getObject());
+		}
+		
+		invokeMethod("mkSetRange", args, false);
+	}
+	
 	/**
 	 * Handle a constant int value.
 	 * 

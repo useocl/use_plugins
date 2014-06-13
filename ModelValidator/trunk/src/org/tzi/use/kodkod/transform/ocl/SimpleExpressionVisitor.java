@@ -309,8 +309,7 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitRange(ExpRange exp) {
-		// TODO Auto-generated method stub
-		
+		LOG.debug("ExpRange");
 	}
 
 }

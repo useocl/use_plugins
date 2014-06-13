@@ -47,10 +47,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 
 	@Override
 	public void visitModel(IModel model) {
-		for (IClass clazz : model.classes()) {
-			clazz.accept(this);
-			iterate(clazz.attributes().iterator());
-		}
+		iterate(model.classes().iterator());
 		iterate(model.associations().iterator());
 		iterate(model.typeFactory().configurableTypes().iterator());
 
@@ -71,6 +68,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 			write(clazz.name() + PropertyEntry.objMin, DefaultConfigurationValues.objectsPerClassMin);
 			write(clazz.name() + PropertyEntry.objMax, DefaultConfigurationValues.objectsPerClassMax);
 		}
+		iterate(clazz.attributes().iterator());
 	}
 
 	@Override

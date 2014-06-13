@@ -52,7 +52,6 @@ public class KodkodSolver {
 		
 		Solution solution = solver.solve(constraint, bounds);
 		
-		
 		createEvaluator(solver, solution);
 
 		if (Options.getDebug()) {
