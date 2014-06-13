@@ -6,6 +6,7 @@ import java.util.EmptyStackException;
 import java.util.ListIterator;
 import java.util.Stack;
 
+import org.tzi.use.parser.SemanticException;
 import org.tzi.use.plugin.filmstrip.FilmstripModelConstants;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;
@@ -49,6 +50,7 @@ import org.tzi.use.uml.ocl.expr.ExpOclInState;
 import org.tzi.use.uml.ocl.expr.ExpOne;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
+import org.tzi.use.uml.ocl.expr.ExpRange;
 import org.tzi.use.uml.ocl.expr.ExpReject;
 import org.tzi.use.uml.ocl.expr.ExpSelect;
 import org.tzi.use.uml.ocl.expr.ExpSelectByKind;
@@ -186,7 +188,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 			return new VarInitializer(accuInitializer.name(),
 					mc.mapType(accuInitializer.type()),
 					exp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("VarInitializer", ex);
 		}
 	}
@@ -287,7 +289,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 					Collections.<Expression> emptyList());
 			fromSnapshotNav = new ExpNavigation(toSnapshotNav, snapshotEndFrom,
 					finalEnd, Collections.<Expression> emptyList());
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpAllInstances", ex);
 		}
 		
@@ -304,7 +306,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpBagLiteral bagLiteralExp;
 		try {
 			bagLiteralExp = new ExpBagLiteral(exps);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpBagLiteral", ex);
 		}
 		
@@ -373,7 +375,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpEmptyCollection emptyCollectionExp;
 		try {
 			emptyCollectionExp = new ExpEmptyCollection(mc.mapType(exp.type()));
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpEmptyCollection", ex);
 		}
 		
@@ -391,7 +393,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpIf ifExp;
 		try {
 			ifExp = new ExpIf(condition, thenExp, elseExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpIf", ex);
 		}
 		
@@ -410,7 +412,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpLet letExp;
 		try {
 			letExp = new ExpLet(exp.getVarname(), newType, varExp, inExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpLet", ex);
 		}
 		
@@ -438,7 +440,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpObjOp objOpExp;
 		try {
 			objOpExp = new ExpObjOp(op, exps);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpObjOp", ex);
 		}
 		
@@ -454,7 +456,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpOrderedSetLiteral orderedSetLiteralExp;
 		try {
 			orderedSetLiteralExp = new ExpOrderedSetLiteral(exps);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpOrderedSetLiteral", ex);
 		}
 		
@@ -474,7 +476,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpSequenceLiteral sequenceLiteralExp;
 		try {
 			sequenceLiteralExp = new ExpSequenceLiteral(exps);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpSequenceLiteral", ex);
 		}
 		
@@ -490,7 +492,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpSetLiteral setLiteralExp;
 		try {
 			setLiteralExp = new ExpSetLiteral(exps);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpSetLiteral", ex);
 		}
 		
@@ -619,7 +621,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpObjectByUseId objectByUseIdExp;
 		try {
 			objectByUseIdExp = new ExpObjectByUseId(mc.mapType(expObjectByUseId.getSourceType()), idExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpObjectByUseId", ex);
 		}
 		
@@ -643,7 +645,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		try {
 			anyExp = new ExpAny(var, expr, qryExpr);
 		}
-		catch(Exception ex){
+		catch(ExpInvalidException ex){
 			throw new TransformationException("ExpAny", ex);
 		}
 		
@@ -658,7 +660,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpAsType asTypeExp;
 		try {
 			asTypeExp = new ExpAsType(expr, mc.mapType(exp.getTargetType()));
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpAsType", ex);
 		}
 		
@@ -694,7 +696,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpCollect collectExp;
 		try {
 			collectExp = new ExpCollect(var, expr, qryExpr);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpCollect", ex);
 		}
 		
@@ -712,7 +714,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpCollectNested collectNestedExp;
 		try {
 			collectNestedExp = new ExpCollectNested(var, expr, qryExpr);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpCollectNested", ex);
 		}
 		
@@ -731,7 +733,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpExists existsExp;
 		try {
 			existsExp = new ExpExists(vars, expr, qryExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpExists", ex);
 		}
 		
@@ -749,7 +751,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpForAll forAllExp;
 		try {
 			forAllExp = new ExpForAll(vars, expr, qryExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpForAll", ex);
 		}
 		
@@ -765,7 +767,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpIsKindOf isKindOfExp;
 		try {
 			isKindOfExp = new ExpIsKindOf(expr, mc.mapType(exp.getTargetType()));
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpIsKindOf", ex);
 		}
 		
@@ -781,7 +783,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpIsTypeOf isTypeOfExp;
 		try {
 			isTypeOfExp = new ExpIsTypeOf(expr, mc.mapType(exp.getTargetType()));
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpIsTypeOf", ex);
 		}
 		
@@ -799,7 +801,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpIsUnique isUniqueExp;
 		try {
 			isUniqueExp = new ExpIsUnique(var, rangeExpr, qryExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpIsUnique", ex);
 		}
 		
@@ -821,7 +823,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpIterate iterateExp;
 		try {
 			iterateExp = new ExpIterate(vars, initializer, rangeExpr, qryExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpIterate", ex);
 		}
 		
@@ -846,7 +848,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 			if(exp.isPre()){
 				navigationExp = FilmstripUtil.handlePredSucc(navigationExp, false, knownVariables);
 			}
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpNavigation", ex);
 		}
 		
@@ -875,7 +877,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpOne oneExp;
 		try {
 			oneExp = new ExpOne(var, rangeExpr, qryExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpOne", ex);
 		}
 		
@@ -898,7 +900,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpReject rejectExp;
 		try {
 			rejectExp = new ExpReject(vars, rangeExpr, qryExpression);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpReject", ex);
 		}
 		
@@ -916,7 +918,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpSelect selectExp;
 		try {
 			selectExp = new ExpSelect(vars, rangeExpr, qryExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpSelect", ex);
 		}
 		
@@ -934,7 +936,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpSortedBy sortedByExp;
 		try {
 			sortedByExp = new ExpSortedBy(var, rangeExpr, qryExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpSortedBy", ex);
 		}
 		
@@ -955,7 +957,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpStdOp stdOpExp;
 		try {
 			stdOpExp = ExpStdOp.create(exp.opname(), exps);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpStdOp", ex);
 		}
 		
@@ -1003,7 +1005,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpClosure closureExp;
 		try {
 			closureExp = new ExpClosure(var, rangeExpr, qryExp);
-		} catch (Exception ex) {
+		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpClosure", ex);
 		}
 		
@@ -1036,14 +1038,36 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
-		// TODO Auto-generated method stub
+		ExpSelectByKind selectByKind;
+		try {
+			selectByKind = new ExpSelectByKind(
+					processSubExpression(expSelectByKind.getSourceExpression()),
+					mc.mapType(expSelectByKind.type()));
+		} catch (SemanticException e) {
+			throw new TransformationException("ExpSelectByKind", e);
+		}
 		
+		elements.push(selectByKind);
 	}
 
 	@Override
 	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
-		// TODO Auto-generated method stub
+		ExpSelectByKind selectByType;
+		try {
+			selectByType = new ExpSelectByType(
+					processSubExpression(expSelectByType.getSourceExpression()),
+					mc.mapType(expSelectByType.type()));
+		} catch (SemanticException e) {
+			throw new TransformationException("ExpSelectByType", e);
+		}
 		
+		elements.push(selectByType);
 	}
 
+	@Override
+	public void visitRange(ExpRange exp) {
+		elements.push(new ExpRange(processSubExpression(exp.getStart()),
+				processSubExpression(exp.getEnd())));
+	}
+	
 }
