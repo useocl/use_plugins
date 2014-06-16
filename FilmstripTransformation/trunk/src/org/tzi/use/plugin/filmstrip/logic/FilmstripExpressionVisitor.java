@@ -1,5 +1,6 @@
 package org.tzi.use.plugin.filmstrip.logic;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EmptyStackException;
@@ -15,7 +16,6 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
-import org.tzi.use.uml.mm.statemachines.MFinalState;
 import org.tzi.use.uml.mm.statemachines.MState;
 import org.tzi.use.uml.ocl.expr.ExpAllInstances;
 import org.tzi.use.uml.ocl.expr.ExpAny;
@@ -160,16 +160,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		return newExps;
 	}
 	
-	private VarDecl processVarDecl(ExpQuery exp){
-		if(exp.getVariableDeclarations().size() > 0){
-			VarDecl toCopy = exp.getVariableDeclarations().varDecl(0);
-			return new VarDecl(toCopy.name(), mc.mapType(toCopy.type()));
-		}
-		else {
-			return null;
-		}
-	}
-	
 	private VarDecl processVarDecl(VarDecl vd){
 		return new VarDecl(vd.name(), mc.mapType(vd.type()));
 	}
@@ -194,12 +184,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 	}
 	
 	private MState processState(MState state) {
-		if(state instanceof MFinalState){
-			return new MFinalState(state.name());
-		}
-		else {
-			return new MState(state.name());
-		}
+		return state;
 	}
 	
 	private void copyExpressionDetails(Expression from, Expression to){
@@ -240,14 +225,12 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		return null;
 	}
 	
-	/*
-	 * Root expressions.
-	 * Expressions that do not require source expressions. These Expression
-	 * need special treatment for the scope.
-	 */
-	
 	@Override
 	public void visitAllInstances(ExpAllInstances exp) {
+		/*
+		 * Transform <Class>.allInstances() into
+		 * self.snapshot.<Class.asRolename()>
+		 */
 		ObjectType expType = (ObjectType) mc.mapType(exp.getSourceType());
 		Expression self;
 		switch (type) {
@@ -271,7 +254,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 			throw new TransformationException("Unkown expression type " + StringUtil.inQuotes(type));
 		}
 		
-		// move to snapshot and back to the class
+		// navigate to snapshot and back to the class
 		MClass snapshot = model.getClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME);
 		MClass snapElement = model.getClass(FilmstripModelConstants.ORDERABLE_CLASSNAME);
 		MAssociation genAssoc = model.getAssociation(FilmstripModelConstants.SNAPSHOTELEMENT_ASSOCNAME);
@@ -295,7 +278,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		
 		copyExpressionDetails(exp, toSnapshotNav);
 		copyExpressionDetails(exp, fromSnapshotNav);
-		
 		elements.push(fromSnapshotNav);
 	}
 
@@ -311,7 +293,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, bagLiteralExp);
-		
 		elements.push(bagLiteralExp);
 	}
 	
@@ -320,7 +301,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpConstBoolean constBooleanExp = new ExpConstBoolean(exp.value());
 		
 		copyExpressionDetails(exp, constBooleanExp);
-		
 		elements.push(constBooleanExp);
 	}
 
@@ -329,7 +309,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpConstEnum constEnumExp = new ExpConstEnum((EnumType) mc.mapType(exp.type()), exp.value());
 		
 		copyExpressionDetails(exp, constEnumExp);
-		
 		elements.push(constEnumExp);
 	}
 
@@ -338,7 +317,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpConstInteger constIntegerExp = new ExpConstInteger(exp.value());
 		
 		copyExpressionDetails(exp, constIntegerExp);
-		
 		elements.push(constIntegerExp);
 	}
 
@@ -347,7 +325,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpConstReal constRealExp = new ExpConstReal(exp.value());
 		
 		copyExpressionDetails(exp, constRealExp);
-		
 		elements.push(constRealExp);
 	}
 
@@ -356,7 +333,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpConstString constStringExp = new ExpConstString(exp.value());
 		
 		copyExpressionDetails(exp, constStringExp);
-		
 		elements.push(constStringExp);
 	}
 
@@ -366,7 +342,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpConstUnlimitedNatural constUnlimitedNaturalExp = new ExpConstUnlimitedNatural();
 		
 		copyExpressionDetails(expressionConstUnlimitedNatural, constUnlimitedNaturalExp);
-		
 		elements.push(constUnlimitedNaturalExp);
 	}
 	
@@ -380,7 +355,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, emptyCollectionExp);
-		
 		elements.push(emptyCollectionExp);
 	}
 	
@@ -398,7 +372,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, ifExp);
-		
 		elements.push(ifExp);
 	}
 	
@@ -417,7 +390,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, letExp);
-		
 		elements.push(letExp);
 	}
 	
@@ -445,7 +417,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, objOpExp);
-		
 		elements.push(objOpExp);
 	}
 	
@@ -461,12 +432,12 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, orderedSetLiteralExp);
-		
 		elements.push(orderedSetLiteralExp);
 	}
 	
 	@Override
 	public void visitWithValue(ExpressionWithValue exp) {
+		// cannot occur
 	}
 	
 	@Override
@@ -481,7 +452,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, sequenceLiteralExp);
-		
 		elements.push(sequenceLiteralExp);
 	}
 
@@ -497,7 +467,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, setLiteralExp);
-		
 		elements.push(setLiteralExp);
 	}
 	
@@ -513,7 +482,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpTupleLiteral tupleLiteralExp = new ExpTupleLiteral(parts);
 
 		copyExpressionDetails(exp, tupleLiteralExp);
-		
 		elements.push(tupleLiteralExp);
 	}
 	
@@ -522,7 +490,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpUndefined undefinedExp = new ExpUndefined(mc.mapType(exp.type()));
 		
 		copyExpressionDetails(exp, undefinedExp);
-		
 		elements.push(undefinedExp);
 	}
 
@@ -547,13 +514,12 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 			break;
 		case PRECONDITION:
 		case POSTCONDITION:
-			if(getVarDef(exp.getVarname()) != null){
-				VarDecl d = getVarDef(exp.getVarname());
-				variableExp = new ExpVariable(d.name(), d.type());
+			VarDecl var = getVarDef(exp.getVarname());
+			if(var != null){
+				variableExp = new ExpVariable(var.name(), var.type());
 			}
-			else if(selfVariables.containsName(exp.getVarname())){
-				VarDecl selfDecl = getSelfDef(exp.getVarname());
-				ObjectType t = (ObjectType) selfDecl.type();
+			else if((var = getSelfDef(exp.getVarname())) != null){
+				ObjectType t = (ObjectType) var.type();
 				MAttribute a = t.cls().attribute(FilmstripModelConstants.OPC_SELF_VARNAME, true);
 				variableExp = new ExpVariable(FilmstripModelConstants.OPC_SELF_VARNAME, a.type());
 				
@@ -576,7 +542,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 				else {
 					// operation parameters
 					attr = src.attribute(exp.getVarname(), false);
-					aSelfVar = false;
 					
 					if(attr == null){
 						// properties of "self" (aSelf)
@@ -610,7 +575,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, variableExp);
-		
 		elements.push(variableExp);
 	}
 	
@@ -626,32 +590,12 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(expObjectByUseId, objectByUseIdExp);
-		
 		elements.push(objectByUseIdExp);
 	}
 	
-	/*
-	 * Query expressions.
-	 * Expressions that require source expressions.
-	 */
-	
 	@Override
 	public void visitAny(ExpAny exp) {
-		VarDecl var = processVarDecl(exp);
-		Expression qryExpr = processSubExpression(exp.getQueryExpression(), var);
-		Expression expr = processSubExpression(exp.getRangeExpression());
-		
-		ExpAny anyExp;
-		try {
-			anyExp = new ExpAny(var, expr, qryExpr);
-		}
-		catch(ExpInvalidException ex){
-			throw new TransformationException("ExpAny", ex);
-		}
-		
-		copyExpressionDetails(exp, anyExp);
-		
-		elements.push(anyExp);
+		visitQuery(exp);
 	}
 
 	@Override
@@ -665,7 +609,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, asTypeExp);
-		
 		elements.push(asTypeExp);
 	}
 
@@ -683,81 +626,27 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, attrOpExp);
-		
 		elements.push(attrOpExp);
 	}
 
 	@Override
 	public void visitCollect(ExpCollect exp) {
-		VarDecl var = processVarDecl(exp);
-		Expression qryExpr = processSubExpression(exp.getQueryExpression(), var);
-		Expression expr = processSubExpression(exp.getRangeExpression());
-		
-		ExpCollect collectExp;
-		try {
-			collectExp = new ExpCollect(var, expr, qryExpr);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpCollect", ex);
-		}
-		
-		copyExpressionDetails(exp, collectExp);
-		
-		elements.push(collectExp);
+		visitQuery(exp);
 	}
 
 	@Override
 	public void visitCollectNested(ExpCollectNested exp) {
-		VarDecl var = processVarDecl(exp);
-		Expression qryExpr = processSubExpression(exp.getQueryExpression(), var);
-		Expression expr = processSubExpression(exp.getRangeExpression());
-		
-		ExpCollectNested collectNestedExp;
-		try {
-			collectNestedExp = new ExpCollectNested(var, expr, qryExpr);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpCollectNested", ex);
-		}
-		
-		copyExpressionDetails(exp, collectNestedExp);
-		
-		elements.push(collectNestedExp);
+		visitQuery(exp);
 	}
 
-	
 	@Override
 	public void visitExists(ExpExists exp) {
-		VarDeclList vars = processVarDeclList(exp.getVariableDeclarations());
-		Expression qryExp = processSubExpression(exp.getQueryExpression(), vars);
-		Expression expr = processSubExpression(exp.getRangeExpression());
-		
-		ExpExists existsExp;
-		try {
-			existsExp = new ExpExists(vars, expr, qryExp);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpExists", ex);
-		}
-		
-		copyExpressionDetails(exp, existsExp);
-		
-		elements.push(existsExp);
+		visitQuery(exp);
 	}
 
 	@Override
 	public void visitForAll(ExpForAll exp) {
-		VarDeclList vars = processVarDeclList(exp.getVariableDeclarations());
-		Expression qryExp = processSubExpression(exp.getQueryExpression(), vars);
-		Expression expr = processSubExpression(exp.getRangeExpression());
-		
-		ExpForAll forAllExp;
-		try {
-			forAllExp = new ExpForAll(vars, expr, qryExp);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpForAll", ex);
-		}
-		
-		copyExpressionDetails(exp, forAllExp);
-		
-		elements.push(forAllExp);
+		visitQuery(exp);
 	}
 
 	@Override
@@ -772,7 +661,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, isKindOfExp);
-		
 		elements.push(isKindOfExp);
 	}
 
@@ -788,36 +676,22 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, isTypeOfExp);
-		
 		elements.push(isTypeOfExp);
 	}
 
 	@Override
 	public void visitIsUnique(ExpIsUnique exp) {
-		VarDecl var = processVarDecl(exp);
-		Expression qryExp = processSubExpression(exp.getQueryExpression(), var);
-		Expression rangeExpr = processSubExpression(exp.getRangeExpression());
-		
-		ExpIsUnique isUniqueExp;
-		try {
-			isUniqueExp = new ExpIsUnique(var, rangeExpr, qryExp);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpIsUnique", ex);
-		}
-		
-		copyExpressionDetails(exp, isUniqueExp);
-		
-		elements.push(isUniqueExp);
+		visitQuery(exp);
 	}
 
 	@Override
 	public void visitIterate(ExpIterate exp) {
 		VarDeclList vars = processVarDeclList(exp.getVariableDeclarations());
-		VarDeclList varsCopy = processVarDeclList(exp.getVariableDeclarations());
+		VarDeclList varsWithResultVar = processVarDeclList(exp.getVariableDeclarations());
 		VarInitializer initializer = processVarInitializer(exp.getAccuInitializer(),
 				processSubExpression(exp.getAccuInitializer().initExpr()));
-		varsCopy.add(new VarDecl(initializer.name(), initializer.type()));
-		Expression qryExp = processSubExpression(exp.getQueryExpression(), varsCopy);
+		varsWithResultVar.add(new VarDecl(initializer.name(), initializer.type()));
+		Expression qryExp = processSubExpression(exp.getQueryExpression(), varsWithResultVar);
 		Expression rangeExpr = processSubExpression(exp.getRangeExpression());
 		
 		ExpIterate iterateExp;
@@ -828,7 +702,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, iterateExp);
-		
 		elements.push(iterateExp);
 	}
 
@@ -853,7 +726,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, navigationExp);
-		
 		elements.push(navigationExp);
 	}
 
@@ -864,85 +736,64 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpObjAsSet objAsSetExp = new ExpObjAsSet(objExpr);
 		
 		copyExpressionDetails(exp, objAsSetExp);
-		
 		elements.push(objAsSetExp);
 	}
 
 	@Override
 	public void visitOne(ExpOne exp) {
-		VarDecl var = processVarDecl(exp);
-		Expression qryExp = processSubExpression(exp.getQueryExpression(), var);
-		Expression rangeExpr = processSubExpression(exp.getRangeExpression());
-		
-		ExpOne oneExp;
-		try {
-			oneExp = new ExpOne(var, rangeExpr, qryExp);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpOne", ex);
-		}
-		
-		copyExpressionDetails(exp, oneExp);
-		
-		elements.push(oneExp);
+		visitQuery(exp);
 	}
 
 	@Override
 	public void visitQuery(ExpQuery exp) {
-		throw new TransformationException("Cannot visit ExpQuery directly");
+		visitQuery(exp, exp.getClass());
+	}
+
+	private void visitQuery(ExpQuery exp, Class<? extends ExpQuery> cls) {
+		ExpQuery queryExp;
+		try {
+			Expression qryExpression;
+			Expression rangeExpr = processSubExpression(exp.getRangeExpression());
+			if(exp.getVariableDeclarations().size() > 1){
+				VarDeclList vars = processVarDeclList(exp.getVariableDeclarations());
+				qryExpression = processSubExpression(exp.getQueryExpression(), vars);
+				
+				// create class instance with multiple var declarations
+				queryExp = cls.getConstructor(VarDeclList.class, Expression.class, Expression.class)
+						.newInstance(vars, rangeExpr, qryExpression);
+			}
+			else {
+				VarDecl var = processVarDecl(exp.getVariableDeclarations().varDecl(0));
+				qryExpression = processSubExpression(exp.getQueryExpression(), new VarDeclList(var));
+				
+				// create class instance with one var declaration
+				queryExp = cls.getConstructor(VarDecl.class, Expression.class, Expression.class)
+						.newInstance(var, rangeExpr, qryExpression);
+			}
+
+		} catch (InstantiationException | IllegalAccessException
+				| IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
+			throw new TransformationException("Could not visit query expression " + StringUtil.inQuotes(cls.getSimpleName()), e);
+		}
+		
+		copyExpressionDetails(exp, queryExp);
+		elements.push(queryExp);
 	}
 
 	@Override
 	public void visitReject(ExpReject exp) {
-		VarDeclList vars = processVarDeclList(exp.getVariableDeclarations());
-		Expression qryExpression = processSubExpression(exp.getQueryExpression(), vars);
-		Expression rangeExpr = processSubExpression(exp.getRangeExpression());
-		
-		ExpReject rejectExp;
-		try {
-			rejectExp = new ExpReject(vars, rangeExpr, qryExpression);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpReject", ex);
-		}
-		
-		copyExpressionDetails(exp, rejectExp);
-		
-		elements.push(rejectExp);
+		visitQuery(exp);
 	}
 
 	@Override
 	public void visitSelect(ExpSelect exp) {
-		VarDeclList vars = processVarDeclList(exp.getVariableDeclarations());
-		Expression qryExp = processSubExpression(exp.getQueryExpression(), vars);
-		Expression rangeExpr = processSubExpression(exp.getRangeExpression());
-		
-		ExpSelect selectExp;
-		try {
-			selectExp = new ExpSelect(vars, rangeExpr, qryExp);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpSelect", ex);
-		}
-		
-		copyExpressionDetails(exp, selectExp);
-		
-		elements.push(selectExp);
+		visitQuery(exp);
 	}
 
 	@Override
 	public void visitSortedBy(ExpSortedBy exp) {
-		VarDecl var = processVarDecl(exp);
-		Expression qryExp = processSubExpression(exp.getQueryExpression(), var);
-		Expression rangeExpr = processSubExpression(exp.getRangeExpression());
-		
-		ExpSortedBy sortedByExp;
-		try {
-			sortedByExp = new ExpSortedBy(var, rangeExpr, qryExp);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpSortedBy", ex);
-		}
-		
-		copyExpressionDetails(exp, sortedByExp);
-		
-		elements.push(sortedByExp);
+		visitQuery(exp);
 	}
 	
 	@Override
@@ -962,7 +813,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, stdOpExp);
-		
 		elements.push(stdOpExp);
 	}
 
@@ -979,7 +829,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, stdOpExp);
-		
 		elements.push(stdOpExp);
 	}
 
@@ -992,26 +841,12 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpTupleSelectOp tupleSelectOpExp = new ExpTupleSelectOp(part, tupleExp);
 		
 		copyExpressionDetails(exp, tupleSelectOpExp);
-		
 		elements.push(tupleSelectOpExp);
 	}
 
 	@Override
-	public void visitClosure(ExpClosure expClosure) {
-		VarDecl var = processVarDecl(expClosure);
-		Expression qryExp = processSubExpression(expClosure.getQueryExpression(), var);
-		Expression rangeExpr = processSubExpression(expClosure.getRangeExpression());
-		
-		ExpClosure closureExp;
-		try {
-			closureExp = new ExpClosure(var, rangeExpr, qryExp);
-		} catch (ExpInvalidException ex) {
-			throw new TransformationException("ExpClosure", ex);
-		}
-		
-		copyExpressionDetails(expClosure, closureExp);
-		
-		elements.push(closureExp);
+	public void visitClosure(ExpClosure exp) {
+		visitQuery(exp);
 	}
 
 	@Override
@@ -1022,7 +857,6 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		ExpOclInState oclInStateExp = new ExpOclInState(rangeExpr, state);
 		
 		copyExpressionDetails(expOclInState, oclInStateExp);
-		
 		elements.push(oclInStateExp);
 	}
 
@@ -1047,6 +881,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 			throw new TransformationException("ExpSelectByKind", e);
 		}
 		
+		copyExpressionDetails(expSelectByKind, selectByKind);
 		elements.push(selectByKind);
 	}
 
@@ -1061,13 +896,17 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 			throw new TransformationException("ExpSelectByType", e);
 		}
 		
+		copyExpressionDetails(expSelectByType, selectByType);
 		elements.push(selectByType);
 	}
 
 	@Override
 	public void visitRange(ExpRange exp) {
-		elements.push(new ExpRange(processSubExpression(exp.getStart()),
-				processSubExpression(exp.getEnd())));
+		ExpRange rangeExp = new ExpRange(processSubExpression(exp.getStart()),
+				processSubExpression(exp.getEnd()));
+		
+		copyExpressionDetails(exp, rangeExp);
+		elements.push(rangeExp);
 	}
 	
 }

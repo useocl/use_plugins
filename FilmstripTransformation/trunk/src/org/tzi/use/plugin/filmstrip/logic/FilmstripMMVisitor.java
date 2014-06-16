@@ -363,7 +363,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 	@Override
 	public void visitAssociation(MAssociation e) {
 		int numEntries = e.associationEnds().size();
-		String[] assEnds = new String[numEntries];
+		String[] assocEnds = new String[numEntries];
 		String[] roleNames = new String[numEntries];
 		String[] multiplicities = new String[numEntries];
 		int[] aggregationKinds = new int[numEntries];
@@ -372,7 +372,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		
 		int idx = 0;
 		for(MAssociationEnd assocEnd : e.associationEnds()){
-			assEnds[idx] = assocEnd.cls().name();
+			assocEnds[idx] = assocEnd.cls().name();
 			roleNames[idx] = assocEnd.name();
 			multiplicities[idx] = assocEnd.multiplicity().toString();
 			aggregationKinds[idx] = assocEnd.aggregationKind();
@@ -397,7 +397,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		
 		MAssociation newAssoc;
 		try {
-			newAssoc = model.createAssociation(e.name(), assEnds, roleNames, multiplicities,
+			newAssoc = model.createAssociation(e.name(), assocEnds, roleNames, multiplicities,
 					aggregationKinds, orderedInfo, qualifier);
 		} catch (Exception ex) {
 			throw new TransformationException("Error adding association "
