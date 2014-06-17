@@ -34,6 +34,7 @@ public abstract class AbstractPlugin {
 	protected void initialize(Session session) {
 		mSystem = session.system();
 		mModel = mSystem.model();
+		PluginModelFactory.INSTANCE.registerForSession(session);
 	}
 
 	protected void initialize(Session session, MainWindow mainWindow) {
