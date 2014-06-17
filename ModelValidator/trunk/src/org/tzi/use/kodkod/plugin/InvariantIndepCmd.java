@@ -24,7 +24,7 @@ public class InvariantIndepCmd extends AbstractPlugin implements IPluginShellCmd
 		initialize(pluginCommand.getSession());
 		enrichModel();
 
-		InvariantIndepChecker indepChecker = new InvariantIndepChecker();
+		InvariantIndepChecker indepChecker = new InvariantIndepChecker(mSystem);
 
 		String argument = pluginCommand.getCmdArguments();
 

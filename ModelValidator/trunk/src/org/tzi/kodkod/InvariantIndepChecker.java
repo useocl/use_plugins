@@ -6,12 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import kodkod.ast.Relation;
+import kodkod.instance.TupleSet;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.kodkod.model.iface.IModel;
+import org.tzi.use.api.UseApiException;
+import org.tzi.use.kodkod.solution.ObjectDiagramCreator;
+import org.tzi.use.uml.sys.MSystem;
 
 /**
  * Checks the invariant independence.
@@ -23,11 +29,19 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 
 	private static final Logger LOG = Logger.getLogger(InvariantIndepChecker.class);
 
+	private MSystem system;
+	
 	private Map<Logger, Level> logLevels;
 	private List<IInvariant> inactiveInvariants;
 	private List<IInvariant> negatedInvariants;
 	private IInvariant currentInvariant;
 
+	private boolean validateSingleInvariant = false;
+	
+	public InvariantIndepChecker(MSystem system) {
+		this.system = system;
+	}
+	
 	/**
 	 * Validation to check the independence of a single invariant.
 	 * 
@@ -36,6 +50,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 	 * @param invariantName
 	 */
 	public void validate(IModel model, String className, String invariantName) {
+		validateSingleInvariant = true;
 		changeLogLevels();
 
 		Collection<IInvariant> invariants = model.classInvariants();
@@ -60,6 +75,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 
 	@Override
 	public void validate(IModel model) {
+		validateSingleInvariant = false;
 		Logger.getLogger(KodkodModelValidator.class).setLevel(Level.WARN);
 		Logger.getLogger(KodkodSolver.class).setLevel(Level.WARN);
 		LOG.setLevel(Level.INFO);
@@ -124,14 +140,37 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 		}
 	}
 
+	private void createObjectDiagram(Map<Relation, TupleSet> relationTuples){
+		LOG.info(LogMessages.objDiagramCreation);
+
+		system.reset();
+		ObjectDiagramCreator diagramCreator = new ObjectDiagramCreator(model, system);
+		try {
+			diagramCreator.create(relationTuples);
+			diagramCreator.hasDiagramErrors();
+		} catch (UseApiException ex) {
+			if (LOG.isDebugEnabled()) {
+				LOG.error(LogMessages.objDiagramCreationError, ex);
+			} else {
+				LOG.error(LogMessages.objDiagramCreationError + " Reason: " + ex.getMessage());
+			}
+		}
+	}
+	
 	@Override
 	protected void satisfiable() {
 		LOG.info(currentInvariant.name() + ": " + solution.outcome());
+		if(validateSingleInvariant){
+			createObjectDiagram(solution.instance().relationTuples());
+		}
 	}
 
 	@Override
 	protected void trivially_satisfiable() {
 		LOG.info(currentInvariant.name() + ": " + solution.outcome());
+		if(validateSingleInvariant){
+			createObjectDiagram(solution.instance().relationTuples());
+		}
 	}
 
 	@Override

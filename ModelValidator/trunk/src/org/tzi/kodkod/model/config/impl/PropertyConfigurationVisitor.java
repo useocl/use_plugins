@@ -12,6 +12,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
+import org.tzi.kodkod.KodkodModelValidatorConfiguration;
 import org.tzi.kodkod.KodkodQueryCache;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IAssociation;
@@ -177,6 +178,17 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		if (type.isInteger()) {
 			min = readSize(type.name() + PropertyEntry.integerValueMin, 0, true);
 			max = readSize(type.name() + PropertyEntry.integerValueMax, 1, true);
+			
+			int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
+			int requiredBitwidthMin = (int) Math.ceil(Math.log(min)/Math.log(2));
+			int requiredBitwidthMax = (int) Math.ceil(Math.log(max)/Math.log(2));
+			
+			if(requiredBitwidthMin > bitwidth){
+				warning("The configured bitwidth is too small for the properties min-value.");
+			}
+			if(requiredBitwidthMax > bitwidth){
+				warning("The configured bitwidth is too small for the properties max-value.");
+			}
 		} else {
 			if (type.isString()) {
 				min = readSize(type.name() + PropertyEntry.stringValuesMin, 0, false);
