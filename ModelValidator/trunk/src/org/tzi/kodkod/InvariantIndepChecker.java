@@ -159,7 +159,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 	
 	@Override
 	protected void satisfiable() {
-		LOG.info(currentInvariant.name() + ": " + solution.outcome());
+		LOG.info(currentInvariant.name() + ": Independent");
 		if(validateSingleInvariant){
 			createObjectDiagram(solution.instance().relationTuples());
 		}
@@ -167,7 +167,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 
 	@Override
 	protected void trivially_satisfiable() {
-		LOG.info(currentInvariant.name() + ": " + solution.outcome());
+		LOG.info(currentInvariant.name() + ": Independent");
 		if(validateSingleInvariant){
 			createObjectDiagram(solution.instance().relationTuples());
 		}
@@ -175,11 +175,11 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 
 	@Override
 	protected void trivially_unsatisfiable() {
-		LOG.info(currentInvariant.name() + ": " + solution.outcome());
+		LOG.info(currentInvariant.name() + ": Dependent");
 	}
 
 	@Override
 	protected void unsatisfiable() {
-		LOG.info(currentInvariant.name() + ": " + solution.outcome());
+		LOG.info(currentInvariant.name() + ": Not independent for given properties");
 	}
 }
