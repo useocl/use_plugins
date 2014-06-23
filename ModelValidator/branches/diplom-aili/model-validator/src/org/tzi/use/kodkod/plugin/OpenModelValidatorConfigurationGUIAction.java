@@ -3,11 +3,11 @@ package org.tzi.use.kodkod.plugin;
 import javax.swing.JOptionPane;
 
 import org.tzi.use.gui.main.MainWindow;
-import org.tzi.use.kodkod.plugin.gui.KodkodValidateKonfigurationWindow;
+import org.tzi.use.kodkod.plugin.gui.ModelValidatorConfigurationWindow;
 import org.tzi.use.runtime.gui.IPluginAction;
 import org.tzi.use.runtime.gui.IPluginActionDelegate;
 
-public class OpenKodkodValidateConfigurationGUIAction implements IPluginActionDelegate{
+public class OpenModelValidatorConfigurationGUIAction implements IPluginActionDelegate{
 
 	@Override
 	public void performAction(IPluginAction pluginAction) {
@@ -18,7 +18,7 @@ public class OpenKodkodValidateConfigurationGUIAction implements IPluginActionDe
 							"No Model", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		new KodkodValidateKonfigurationWindow(MainWindow.instance(), pluginAction.getSession().system().model());
+		new ModelValidatorConfigurationWindow(MainWindow.instance(), pluginAction.getSession().system().model());
 	}
 
 }
