@@ -8,6 +8,13 @@
 			id="org.tzi.use.kodkod.plugin.KodkodValidatePropertyAction">
 		</action>
 	</actions>
+	<actions>
+		<action label="Kodkod Property Plugin Konfiguration GUI" icon="resources/mv-gui.png"
+			class="org.tzi.use.kodkod.plugin.OpenKodkodValidateConfigurationGUIAction" tooltip="OpenKodkodValidateConfigurationGUIAction"
+			menu="Validation" menuitem="Kodkod" toolbaritem="plugins"
+			id="org.tzi.use.kodkod.plugin.OpenKodkodValidateConfigurationGUIAction">
+		</action>
+	</actions>
 	<commands>
 		<command id="org.tzi.use.kodkod.plugin.KodkodValidateCmd"
 			class="org.tzi.use.kodkod.plugin.KodkodValidateCmd" help="Validates the model using the model validator. A path to a configuration file can be specified. If no path is given, a generic configuration file will be created in the directory of the current USE specification."
