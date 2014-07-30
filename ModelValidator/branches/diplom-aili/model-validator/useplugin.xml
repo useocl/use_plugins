@@ -9,10 +9,10 @@
 		</action>
 	</actions>
 	<actions>
-		<action label="Kodkod Property Plugin Konfiguration GUI" icon="resources/mv-gui.png"
-			class="org.tzi.use.kodkod.plugin.OpenKodkodValidateConfigurationGUIAction" tooltip="OpenKodkodValidateConfigurationGUIAction"
+		<action label="Model Validator Plugin Configuration GUI" icon="resources/mv-gui.png"
+			class="org.tzi.use.kodkod.plugin.OpenModelValidatorConfigurationGUIAction" tooltip="OpenModelValidatorConfigurationGUIAction"
 			menu="Validation" menuitem="Kodkod" toolbaritem="plugins"
-			id="org.tzi.use.kodkod.plugin.OpenKodkodValidateConfigurationGUIAction">
+			id="org.tzi.use.kodkod.plugin.OpenModelValidatorConfigurationGUIAction">
 		</action>
 	</actions>
 	<commands>
