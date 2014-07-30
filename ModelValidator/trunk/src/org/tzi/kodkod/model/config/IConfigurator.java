@@ -57,6 +57,11 @@ public interface IConfigurator<M extends IElement> {
 
 	/**
 	 * Sets specific values for this element.
+	 * <p>
+	 * The parameter is a collection of arrays for the definition of predefined
+	 * links and association classes in the properties file. The property
+	 * <code>Association = Set{(obj1,obj2)}</code> will be represented by one
+	 * array with two entries "obj1" and "obj2".
 	 * 
 	 * @param specificValues
 	 */
