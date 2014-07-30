@@ -183,7 +183,23 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			min = readSize(type.name() + PropertyEntry.integerValueMin, Integer.MIN_VALUE, true);
 			max = readSize(type.name() + PropertyEntry.integerValueMax, Integer.MIN_VALUE, true);
 			
+			// check for values exceeding bitwith
 			int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
+			
+			if(!specificValues.isEmpty()){
+				int maxSpecific = Integer.MIN_VALUE;
+				for(String[] s : specificValues){
+					int curr = Integer.valueOf(s[0]);
+					if(curr > maxSpecific){
+						maxSpecific = curr;
+					}
+				}
+				int requiredBitwidthSpecific = ((int) Math.ceil(Math.log(Math.abs(maxSpecific))/Math.log(2))) +1;
+				if(requiredBitwidthSpecific > bitwidth){
+					warning("The configured bitwidth is too small for the specific Integer value(s). Required bitwidth: " + requiredBitwidthSpecific + " or greater.");
+				}
+			}
+			
 			if(min != Integer.MIN_VALUE){
 				// +1 for twos complement encoding
 				int requiredBitwidthMin = ((int) Math.ceil(Math.log(Math.abs(min))/Math.log(2))) +1;
