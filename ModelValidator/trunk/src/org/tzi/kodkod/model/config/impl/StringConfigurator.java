@@ -27,9 +27,11 @@ public class StringConfigurator extends TypeConfigurator {
 			lower.add(tupleFactory.tuple(type.name() + "_" + specific[0]));
 		}
 
-		int max = ranges.get(0).getUpper();
-		for (int i = allValues().size(); i < max; i++) {
-			lower.add(tupleFactory.tuple(type.name() + "_string" + i));
+		if(ranges.size() > 0){
+			int max = ranges.get(0).getUpper();
+			for (int i = allValues().size(); i < max; i++) {
+				lower.add(tupleFactory.tuple(type.name() + "_string" + i));
+			}
 		}
 
 		return lower;
@@ -40,9 +42,11 @@ public class StringConfigurator extends TypeConfigurator {
 		TupleSet upper = tupleFactory.noneOf(1);
 		upper.addAll(lowerBound(type, arity, tupleFactory));
 
-		int max = ranges.get(0).getUpper();
-		for (int i = allValues().size(); i < max; i++) {
-			upper.add(tupleFactory.tuple(type.name() + "_string" + i));
+		if(ranges.size() > 0){
+			int max = ranges.get(0).getUpper();
+			for (int i = allValues().size(); i < max; i++) {
+				upper.add(tupleFactory.tuple(type.name() + "_string" + i));
+			}
 		}
 
 		return upper;
@@ -59,9 +63,11 @@ public class StringConfigurator extends TypeConfigurator {
 			atoms.add(type.name() + "_" + specific[0]);
 		}
 
-		int max = ranges.get(0).getUpper();
-		for (int i = allValues().size(); i < max; i++) {
-			atoms.add(type.name() + "_string" + i);
+		if(ranges.size() > 0){
+			int max = ranges.get(0).getUpper();
+			for (int i = allValues().size(); i < max; i++) {
+				atoms.add(type.name() + "_string" + i);
+			}
 		}
 
 		return new ArrayList<Object>(atoms);

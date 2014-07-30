@@ -3,7 +3,7 @@ package org.tzi.kodkod.model.config.impl;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -22,12 +22,12 @@ import org.tzi.kodkod.model.type.ConfigurableType;
 public class RealConfigurator extends TypeConfigurator{
 
 	private double step = 0.5;
-	private DecimalFormat decimalFormat;
+	private final DecimalFormat decimalFormat;
 	
 	public RealConfigurator(){
 		DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance();
 		dfs.setDecimalSeparator('.');
-		decimalFormat = new DecimalFormat("#0.00",dfs); 
+		decimalFormat = new DecimalFormat("#0.00", dfs); 
 	}
 	
 	@Override
@@ -54,7 +54,7 @@ public class RealConfigurator extends TypeConfigurator{
 	
 	@Override
 	public List<Object> atoms(ConfigurableType type, List<Object> literals) {
-		Set<Object >atoms=new HashSet<Object>();
+		Set<Object >atoms = new LinkedHashSet<Object>();
 		atoms.addAll(literals);		
 
 		for(Range range : ranges){

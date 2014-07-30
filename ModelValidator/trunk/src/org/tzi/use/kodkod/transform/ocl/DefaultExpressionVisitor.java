@@ -9,6 +9,7 @@ import kodkod.ast.Node;
 import kodkod.ast.Relation;
 import kodkod.ast.Variable;
 
+import org.tzi.kodkod.KodkodModelValidatorConfiguration;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
@@ -46,6 +47,7 @@ import org.tzi.use.uml.ocl.expr.ExpUndefined;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
 import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Default visitor implementation for the transform use expression.
@@ -375,6 +377,13 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	 */
 	protected void visitConstInteger(int value) {
 		TypeLiterals integerType = model.typeFactory().integerType();
+		
+		int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
+		int requiredBitwidth = ((int) Math.ceil(Math.log(Math.abs(value))/Math.log(2))) +1;
+		if(requiredBitwidth > bitwidth){
+			LOG.error("Model contains number " + StringUtil.inQuotes(value) + " which is too big for configured bitwidth. Required bitwidth: " + requiredBitwidth + " or greater.");
+		}
+		
 		integerType.addTypeLiteral("" + value);
 		object = integerType.getTypeLiteral("" + value);
 	}

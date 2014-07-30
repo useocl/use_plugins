@@ -185,7 +185,7 @@ public final class LogMessages {
 	}
 
 	public static String extractSatSolverWarning(String defaultSatFactory) {
-		return "Extraction of satsolver libraries failed. Only default SatSolver " + inQuotes(defaultSatFactory) + " can be used!";
+		return "Extraction of satsolver libraries failed. Only default SatSolver " + inQuotes(defaultSatFactory) + " can be used! Is USE open twice?";
 	}
 
 	public static String libraryPathWarning(String defaultSatFactory, String exceptionMsg) {

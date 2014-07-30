@@ -1,15 +1,15 @@
 package org.tzi.kodkod.model.config.impl;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
 
-import org.tzi.kodkod.model.type.ConfigurableType;
 import org.tzi.kodkod.model.impl.Range;
+import org.tzi.kodkod.model.type.ConfigurableType;
 
 /**
  * Configurator for the integer type.
@@ -46,7 +46,7 @@ public class IntegerConfigurator extends TypeConfigurator {
 
 	@Override
 	public List<Object> atoms(ConfigurableType m, List<Object> literals) {
-		Set<Object> atoms = new HashSet<Object>();
+		Set<Object> atoms = new LinkedHashSet<Object>();
 		atoms.addAll(literals);
 
 		for (Range range : ranges) {
