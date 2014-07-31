@@ -49,6 +49,7 @@ public class ObjectStrategy extends ElementStrategy {
 
 		MObject mObject;
 		try {
+			//TODO is this a wrong implementation for ADE mode, but system state is reset anyways? Artifact?
 			mObject = systemApi.getObjectSafe(objectName);
 		}
 		catch(UseApiException ex){

@@ -38,7 +38,7 @@ public class OCLMethodInvoker {
 			method = operationLoader.getOperationMethod(opName, arguments, setOperation);
 
 			if (method == null) {
-				throw new TransformationException("Cannot find method for operation " + opName + ".");
+				throw new TransformationException("OCL operation " + opName + " is not supported.");
 			}
 		}
 

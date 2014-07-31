@@ -172,7 +172,7 @@ public class InvariantTransformator {
 				invariants.add(invariant);
 				debugOut(invariant);
 
-			} catch (Exception exception) {
+			} catch (TransformationException exception) {
 				printTransformationError(inv, exception);
 			}
 		}
