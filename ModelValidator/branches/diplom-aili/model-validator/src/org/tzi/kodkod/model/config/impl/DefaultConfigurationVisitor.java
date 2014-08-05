@@ -28,6 +28,8 @@ import org.tzi.kodkod.model.visitor.SimpleVisitor;
  */
 public class DefaultConfigurationVisitor extends SimpleVisitor {
 
+	private static final String DIVIDE_LINE = "----------";
+
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
 
 	private BufferedWriter writer;
@@ -47,17 +49,40 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 
 	@Override
 	public void visitModel(IModel model) {
+		iterate(model.typeFactory().configurableTypes().iterator());
+		writeDivideLine();
+		writeDivideLine();
 		for (IClass clazz : model.classes()) {
 			clazz.accept(this);
+			writeNewLine();
 			iterate(clazz.attributes().iterator());
+			writeDivideLine();
 		}
+		writeDivideLine();
 		iterate(model.associations().iterator());
-		iterate(model.typeFactory().configurableTypes().iterator());
-
+		writeDivideLine();
+		writeDivideLine();
 		try {
 			writer.close();
 		} catch (IOException e) {
 			LOG.error(LogMessages.propertiesConfigurationCloseError + ". " + e.getMessage());
+		}
+	}
+
+	private void writeNewLine() {
+		try {
+			writer.newLine();
+		} catch (IOException e) {
+			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
+		}
+	}
+
+	private void writeDivideLine() {
+		try {
+			writer.write(DIVIDE_LINE);
+			writer.newLine();
+		} catch (IOException e) {
+			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
 	}
 
@@ -143,7 +168,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		try {
 			writer.write(name + " = " + value);
 			writer.newLine();
-			writer.newLine();
+			//writer.newLine();
 		} catch (IOException e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
@@ -160,7 +185,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		try {
 			writer.write(name + " = " + value);
 			writer.newLine();
-			writer.newLine();
+			//writer.newLine();
 		} catch (IOException e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}

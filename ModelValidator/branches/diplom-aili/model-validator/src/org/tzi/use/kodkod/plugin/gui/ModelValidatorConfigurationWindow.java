@@ -98,14 +98,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         	@Override 
         	public void actionPerformed( ActionEvent e ) {
         		System.out.println("Programm beendet.");
-        		System.exit( 0 );
+        		dispose();
         	}
         } );
         closeButtonB.addActionListener( new ActionListener() {
         	@Override 
         	public void actionPerformed( ActionEvent e ) {
         		System.out.println("Programm beendet.");
-        		System.exit( 0 );
+        		dispose();
         	}
         } );
         

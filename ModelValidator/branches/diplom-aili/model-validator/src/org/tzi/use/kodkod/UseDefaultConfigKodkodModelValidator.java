@@ -71,7 +71,6 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 					String name = invariant.name().replaceFirst("::", "_");
 					writer.append(name + " = inactive");
 					writer.newLine();
-					writer.newLine();
 				}
 			}
 		} catch (IOException e) {
