@@ -14,11 +14,7 @@ public class ProofHelper {
 		StringBuilder sb = new StringBuilder();
 		
 		if(minimize){
-			try {
-				proof.minimize(new HybridStrategy(proof.log()));
-			} catch (Exception e) {
-				sb.append("Proof reduction failed. (" + e.getMessage() + ")\n\n");
-			}
+			proof.minimize(new HybridStrategy(proof.log()));
 		}
 		
 		sb.append("Unsatisfiable proof:\n");
