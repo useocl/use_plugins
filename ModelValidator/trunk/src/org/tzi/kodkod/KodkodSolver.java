@@ -25,7 +25,7 @@ import org.tzi.use.config.Options;
 import org.tzi.use.util.Log;
 
 /**
- * Encapsulation of the base algorithm for the model validiation with kodkod.
+ * Encapsulation of the base algorithm for the model validation with kodkod.
  * 
  * @author Hendrik Reitmann
  * 

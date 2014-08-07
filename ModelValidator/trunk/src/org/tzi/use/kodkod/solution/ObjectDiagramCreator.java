@@ -97,12 +97,12 @@ public class ObjectDiagramCreator {
 		}
 
 		// check invariants for correctness
-		MModel gModel = mSystem.generator().gModel();
+		MModel mModel = mSystem.model();
 		Evaluator evaluator = new Evaluator();
 		boolean invariantError = false;
 		for (IInvariant invariant : model.classInvariants()) {
 			if (invariant.isActivated()) {
-				BooleanValue result = (BooleanValue) evaluator.eval(gModel.getClassInvariant(invariant.name()).expandedExpression(),
+				BooleanValue result = (BooleanValue) evaluator.eval(mModel.getClassInvariant(invariant.name()).expandedExpression(),
 						mSystem.state());
 				if ((invariant.isNegated() && result.isTrue()) || (!invariant.isNegated() && result.isFalse())) {
 					LOG.info(LogMessages.unexpectedInvariantResult(invariant));

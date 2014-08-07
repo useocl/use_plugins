@@ -68,7 +68,9 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 	}
 
 	private void handleFailure() {
-		LOG.info(ProofHelper.buildProofString(solution.proof(), true));
+		if(solution.proof() != null){
+			LOG.info(ProofHelper.buildProofString(solution.proof(), true));
+		}
 	}
 	
 	/**

@@ -36,4 +36,9 @@ public class AssociationEnd implements IAssociationEnd {
 		return associatedClass;
 	}
 
+	@Override
+	public String toString() {
+		return name;
+	}
+	
 }

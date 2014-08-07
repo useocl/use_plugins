@@ -46,11 +46,6 @@ public class InvariantTransformator {
 
 	/**
 	 * Transformation of a single invariant.
-	 * 
-	 * @param model
-	 * @param mClassInvariant
-	 * @return
-	 * @throws TransformationException
 	 */
 	public IInvariant transform(IModel model, MClassInvariant mClassInvariant) throws TransformationException {
 		LOG.debug(mClassInvariant.toString() + ": " + mClassInvariant.bodyExpression().toString());
@@ -72,17 +67,14 @@ public class InvariantTransformator {
 				new ArrayList<String>());
 		mClassInvariant.bodyExpression().processWithVisitor(visitor);
 
-		return createInvariant(mClassInvariant.toString(), invariantClass, contextVariables.values(), visitor.getObject());
+		IInvariant invariant = createInvariant(mClassInvariant.toString(), invariantClass, contextVariables.values(), visitor.getObject());
+		
+		return invariant;
 	}
 
 	/**
 	 * Transforms a single invariant and add the resulting invariant to the
 	 * class of the model validator.
-	 * 
-	 * @param model
-	 * @param mClassInvariant
-	 * @return
-	 * @throws TransformationException
 	 */
 	public IInvariant transformAndAdd(IModel model, MClassInvariant mClassInvariant) throws TransformationException {
 		IInvariant invariant = transform(model, mClassInvariant);
@@ -93,12 +85,6 @@ public class InvariantTransformator {
 
 	/**
 	 * Creates a invariant for the model of the model validator.
-	 * 
-	 * @param name
-	 * @param invariantClass
-	 * @param variables
-	 * @param transform
-	 * @return
 	 */
 	private IInvariant createInvariant(String name, IClass invariantClass, Collection<Node> variables, Object transform) {
 		IInvariant invariant = factory.createInvariant(name, invariantClass);
@@ -139,9 +125,6 @@ public class InvariantTransformator {
 	/**
 	 * Transform all invariants and add the resulting invariants to the classes
 	 * of the model validator.
-	 * 
-	 * @param model
-	 * @param classInvariants
 	 */
 	public void transformAndAdd(IModel model, Collection<MClassInvariant> classInvariants) {
 		for (MClassInvariant inv : classInvariants) {
@@ -158,10 +141,6 @@ public class InvariantTransformator {
 
 	/**
 	 * Transformation of all given invariants.
-	 * 
-	 * @param model
-	 * @param classInvariants
-	 * @return
 	 */
 	public List<IInvariant> transform(IModel model, Collection<MClassInvariant> classInvariants) {
 		List<IInvariant> invariants = new ArrayList<IInvariant>();
