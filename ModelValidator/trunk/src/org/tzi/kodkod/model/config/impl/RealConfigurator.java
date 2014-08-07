@@ -39,6 +39,7 @@ public class RealConfigurator extends TypeConfigurator{
 		}
 
 		for(Range range : ranges){
+			//FIXME might fail to add a value if the calculated name is already in the specific values
 			for (double i = range.getLower(); i <= range.getUpper(); i+=step) {
 				lower.add(tupleFactory.tuple(type.name() + "_" + decimalFormat.format(i)));
 			}

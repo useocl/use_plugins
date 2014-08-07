@@ -38,4 +38,9 @@ public abstract class ModelElement implements IModelElement {
 		return model;
 	}
 
+	@Override
+	public String toString() {
+		return name;
+	}
+	
 }

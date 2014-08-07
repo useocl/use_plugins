@@ -29,6 +29,7 @@ public class StringConfigurator extends TypeConfigurator {
 
 		if(ranges.size() > 0){
 			int max = ranges.get(0).getUpper();
+			//FIXME might fail to add a value if the calculated name is already in the specific values
 			for (int i = allValues().size(); i < max; i++) {
 				lower.add(tupleFactory.tuple(type.name() + "_string" + i));
 			}
@@ -44,6 +45,7 @@ public class StringConfigurator extends TypeConfigurator {
 
 		if(ranges.size() > 0){
 			int max = ranges.get(0).getUpper();
+			//FIXME might fail to add a value if the calculated name is already in the specific values
 			for (int i = allValues().size(); i < max; i++) {
 				upper.add(tupleFactory.tuple(type.name() + "_string" + i));
 			}
