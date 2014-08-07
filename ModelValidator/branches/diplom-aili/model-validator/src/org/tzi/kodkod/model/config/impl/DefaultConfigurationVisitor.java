@@ -28,7 +28,8 @@ import org.tzi.kodkod.model.visitor.SimpleVisitor;
  */
 public class DefaultConfigurationVisitor extends SimpleVisitor {
 
-	private static final String DIVIDE_LINE = "----------";
+	private static final String STRONG_DIVIDE_LINE = "------------------------------------------------------------------------";
+	private static final String LIGHT_DIVIDE_LINE = "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
 
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
 
@@ -50,18 +51,18 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	@Override
 	public void visitModel(IModel model) {
 		iterate(model.typeFactory().configurableTypes().iterator());
-		writeDivideLine();
-		writeDivideLine();
+		writeDivideLine(STRONG_DIVIDE_LINE);
+		int i = 0;
 		for (IClass clazz : model.classes()) {
 			clazz.accept(this);
 			writeNewLine();
 			iterate(clazz.attributes().iterator());
-			writeDivideLine();
+			i++;
+			if (!(i >= model.classes().size())) writeDivideLine(LIGHT_DIVIDE_LINE);
 		}
-		writeDivideLine();
+		writeDivideLine(STRONG_DIVIDE_LINE);
 		iterate(model.associations().iterator());
-		writeDivideLine();
-		writeDivideLine();
+		writeDivideLine(STRONG_DIVIDE_LINE);
 		try {
 			writer.close();
 		} catch (IOException e) {
@@ -76,10 +77,10 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
 	}
-
-	private void writeDivideLine() {
+	
+	private void writeDivideLine(String line) {
 		try {
-			writer.write(DIVIDE_LINE);
+			writer.write(line);
 			writer.newLine();
 		} catch (IOException e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
