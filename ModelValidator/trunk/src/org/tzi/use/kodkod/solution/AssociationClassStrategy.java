@@ -32,12 +32,12 @@ public class AssociationClassStrategy extends ElementStrategy {
 		String objectNameAtom = (String) currentTuple.atom(0);
 		String objectName = objectNameAtom.replaceFirst(mAssociationClass.name() + "_", "");
 
-		MObject[] tupleObjects = new MObject[currentTuple.arity()];
+		MObject[] tupleObjects = new MObject[currentTuple.arity()-1];
 		for (int i = 1; i < currentTuple.arity(); i++) {
-			tupleObjects[i] = objectStates.get(currentTuple.atom(i)).object();
+			tupleObjects[i-1] = objectStates.get(currentTuple.atom(i)).object();
 		}
 
-		MLinkObject mLinkObject = null;
+		MLinkObject mLinkObject;
 		try {
 			mLinkObject = (MLinkObject) systemApi.getObjectSafe(objectName);
 		}

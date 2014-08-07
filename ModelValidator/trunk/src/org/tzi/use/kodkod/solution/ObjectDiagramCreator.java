@@ -207,7 +207,15 @@ public class ObjectDiagramCreator {
 					.remove(associationClassName);
 			strategy = new AssociationClassStrategy(systemApi, objectStates, mAssociationClass);
 
-			iterateTuplesAndCreate(strategy, relations.get(relation));
+			// filter association relations without a linkobject
+			TupleSet validRelations = relations.get(relation).clone();
+			for (Iterator<Tuple> it = validRelations.iterator(); it.hasNext();) {
+				Tuple tuple = (Tuple) it.next();
+				if(tuple.atom(0).equals(TypeConstants.UNDEFINED)){
+					it.remove();
+				}
+			}
+			iterateTuplesAndCreate(strategy, validRelations);
 		}
 
 		for (String relationName : associationClassesRelations.keySet()) {

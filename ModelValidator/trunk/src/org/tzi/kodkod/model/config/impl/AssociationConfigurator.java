@@ -48,7 +48,7 @@ public class AssociationConfigurator extends Configurator<IAssociation> {
 		for (String[] specific : specificValues) {
 			atoms = new ArrayList<String>();
 			for (int i = 0; i < arity; i++) {
-				atoms.add(specific[i]);
+				atoms.add(allAssociationEnds.get(i).associatedClass().name() + "_" + specific[i]);
 			}
 			lower.add(tupleFactory.tuple(atoms));
 		}
@@ -62,11 +62,15 @@ public class AssociationConfigurator extends Configurator<IAssociation> {
 
 		boolean hasZeroOneEnd = false;
 		TupleSet current;
+		IClass associationClass = association.associationClass();
+		
 		for (IAssociationEnd associationEnd : association.associationEnds()) {
 			current = tupleFactory.noneOf(1);
 			current.addAll(getAssociatedClassUpperBound(tupleFactory, associationEnd.associatedClass()));
 			if (associationEnd.multiplicity().isZeroOne() && association.isBinaryAssociation()) {
-				current.add(tupleFactory.tuple(TypeConstants.UNDEFINED));
+				if(associationClass == null){
+					current.add(tupleFactory.tuple(TypeConstants.UNDEFINED));
+				}
 				hasZeroOneEnd = true;
 			}
 			if (upper == null) {
@@ -76,13 +80,44 @@ public class AssociationConfigurator extends Configurator<IAssociation> {
 			}
 		}
 
-		IClass associationClass = association.associationClass();
 		if (associationClass != null) {
 			TupleSet associationClassTuples = associationClass.upperBound(tupleFactory);
-			if (hasZeroOneEnd) {
-				associationClassTuples.add(tupleFactory.tuple(TypeConstants.UNDEFINED));
-			}
 			upper = associationClassTuples.product(upper);
+			if (hasZeroOneEnd && association.isBinaryAssociation()) {
+				int rolepositionInTuple = 1;
+				TupleSet assocClause;
+				TupleSet undefinedTupleSet = tupleFactory.noneOf(1);
+				undefinedTupleSet.add(tupleFactory.tuple(TypeConstants.UNDEFINED));
+				
+				for (IAssociationEnd associationEnd : association.associationEnds()) {
+					if(associationEnd.multiplicity().isZeroOne()){
+						rolepositionInTuple++;
+						continue;
+					}
+					
+					assocClause = null;
+					
+					for(int i = 0; i < upper.arity(); i++) {
+						if(i == rolepositionInTuple){
+							if(assocClause == null){
+								assocClause = getAssociatedClassUpperBound(tupleFactory, associationEnd.associatedClass());
+							} else {
+								assocClause = assocClause.product(getAssociatedClassUpperBound(tupleFactory, associationEnd.associatedClass()));
+							}
+						}
+						else {
+							if(assocClause == null){
+								assocClause = undefinedTupleSet;
+							} else {
+								assocClause = assocClause.product(undefinedTupleSet);
+							}
+						}
+					}
+					
+					upper.addAll(assocClause);
+					rolepositionInTuple++;
+				}
+			}
 		}
 
 		return upper;
