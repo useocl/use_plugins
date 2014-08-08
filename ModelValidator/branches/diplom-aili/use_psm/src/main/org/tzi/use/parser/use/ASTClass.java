@@ -152,8 +152,10 @@ public class ASTClass extends ASTAnnotatable {
                 fClass.addOperation(op);
             } catch (SemanticException ex) {
                 ctx.reportError(ex);
+                astOp.setSignatureGenFailed();
             } catch (MInvalidModelException ex) {
                 ctx.reportError(fName, ex);
+                astOp.setSignatureGenFailed();
             }
         }
 

@@ -275,9 +275,10 @@ primaryExpression returns [ASTExpression n]
     | nPc=propertyCall[null, false] { $n = $nPc.n; }
     | LPAREN nExp=expression RPAREN { $n = $nExp.n; }
     | nIfExp=ifExpression { $n = $nIfExp.n; }
-    | id1=IDENT DOT 'allInstances' ( LPAREN RPAREN )?
-      { $n = new ASTAllInstancesExpression($id1); }
-      ( AT 'pre' { $n.setIsPre(); } ) ?
+    | id1=IDENT DOT 'allInstances' 
+        { $n = new ASTAllInstancesExpression($id1); }
+        ( AT 'pre' { $n.setIsPre(); } ) ?
+        ( LPAREN RPAREN )?
     | id2=IDENT DOT 'byUseId' ( LPAREN idExp=expression RPAREN )
       { $n = new ASTObjectByUseIdExpression($id2, $idExp.n); }
       ( AT 'pre' { $n.setIsPre(); } ) ?

@@ -23,6 +23,7 @@ package org.tzi.use.graph;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -243,6 +244,7 @@ public class DirectedGraphBase<N, E extends DirectedEdge<N>> extends AbstractCol
         		getNodeInfo(edge.source()).removeOutgoingEdge(edge);
         	}
         	fEdges.remove(edge);
+        	onEdgeRemoved(edge);
         }
         
         // remove outgoing edges from graph and node info
@@ -253,6 +255,7 @@ public class DirectedGraphBase<N, E extends DirectedEdge<N>> extends AbstractCol
         		getNodeInfo(edge.target()).removeIncomingEdge(edge);
         	}
         	fEdges.remove(edge);
+        	onEdgeRemoved(edge);
         }
                 
         fNodes.remove(o);
@@ -261,7 +264,15 @@ public class DirectedGraphBase<N, E extends DirectedEdge<N>> extends AbstractCol
         return true;
     }
 
-    @Override
+    /**
+     * Called if an edge waas removed from tha graph.
+	 * @param edge The removed edge
+	 */
+	protected void onEdgeRemoved(E edge) {
+		
+	}
+
+	@Override
     public List<N> getNodes()
     {
     	return new ArrayList<N>(fNodes.keySet());
@@ -316,6 +327,19 @@ public class DirectedGraphBase<N, E extends DirectedEdge<N>> extends AbstractCol
     }   
 
     /**
+     * Returns an unmodifiable collection of all
+     * incoming edges for <code>n</code>.
+     * The collection is view to the internal collection, i. e.,
+     * it will reflect changes to the graph.
+     * @param n
+     * @return
+     */
+    public Collection<E> getIncomingEdges(Object n) {
+        NodeInfo ni = getNodeInfo(n);
+        return Collections.unmodifiableCollection(ni.fIncomingEdges);
+    }
+    
+    /**
      * Returns the number of all outgoing edges of the specified node.
      *
      * @return the number of outgoing edges for node n
@@ -328,6 +352,19 @@ public class DirectedGraphBase<N, E extends DirectedEdge<N>> extends AbstractCol
         return ni.fOutgoingEdges.size();
     }
 
+    /**
+     * Returns an unmodifiable collection of all
+     * outgoing edges for <code>n</code>.
+     * The collection is view to the internal collection, i. e.,
+     * it will reflect changes to the graph. 
+     * @param n
+     * @return
+     */
+    public Collection<E> getOutgoingEdges(Object n) {
+        NodeInfo ni = getNodeInfo(n);
+        return Collections.unmodifiableCollection(ni.fOutgoingEdges);
+    }
+    
     /**
      * Returns an iterator over the edges in this collection. There
      * are no guarantees concerning the order in which the edges are
@@ -372,11 +409,11 @@ public class DirectedGraphBase<N, E extends DirectedEdge<N>> extends AbstractCol
 
         NodeInfo source = fNodes.get(e.source());
         if (source == null )
-            throw new NodeDoesNotExistException(e.source().toString());
+            throw new NodeDoesNotExistException(e.source());
 
         NodeInfo target = fNodes.get(e.target());
         if (target == null )
-            throw new NodeDoesNotExistException(e.target().toString());
+            throw new NodeDoesNotExistException(e.target());
 
         source.addOutgoingEdge(e);
         target.addIncomingEdge(e);
@@ -409,6 +446,9 @@ public class DirectedGraphBase<N, E extends DirectedEdge<N>> extends AbstractCol
 
         fEdges.remove(e);
         clearCache();
+        
+        onEdgeRemoved(e);
+        
         return true;
     }
 
@@ -826,14 +866,14 @@ public class DirectedGraphBase<N, E extends DirectedEdge<N>> extends AbstractCol
      * @throws NullPointerException If <code>n</code> is <code>null</code>.
      * @throws NodeDoesNotExistException If <code>n</code> is not in the graph.
      */
-    private NodeInfo getNodeInfo(Object n) {
+    protected NodeInfo getNodeInfo(Object n) {
         if (n == null )
             throw new NullPointerException();
 
         NodeInfo ni = fNodes.get(n);
         
         if (ni == null )
-            throw new NodeDoesNotExistException(n.toString());
+            throw new NodeDoesNotExistException(n);
         
         return ni;
     }

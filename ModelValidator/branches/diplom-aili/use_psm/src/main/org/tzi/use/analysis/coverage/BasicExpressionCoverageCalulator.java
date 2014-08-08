@@ -27,6 +27,7 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.ExpObjectByUseId;
+import org.tzi.use.uml.ocl.expr.ExpRange;
 import org.tzi.use.uml.ocl.expr.Expression;
 
 /**
@@ -88,5 +89,11 @@ public class BasicExpressionCoverageCalulator extends AbstractCoverageVisitor {
 	@Override
 	protected void addOperationCoverage(MClass sourceClass, MOperation op) {
 		coverage.getCoveredOperations().add(op);
+	}
+
+	@Override
+	public void visitRange(ExpRange exp) {
+		exp.getStart().processWithVisitor(this);
+		exp.getEnd().processWithVisitor(this);
 	}
 }

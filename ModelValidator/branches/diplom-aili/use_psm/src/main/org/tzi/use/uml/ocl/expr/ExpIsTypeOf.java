@@ -61,6 +61,11 @@ public final class ExpIsTypeOf extends Expression {
     	return fTargetType;
     }
     
+    @Override
+    public String name() {
+    	return "oclIsTypeOf";
+    }
+    
     /**
      * Evaluates expression and returns result value. 
      */
@@ -93,7 +98,7 @@ public final class ExpIsTypeOf extends Expression {
         else
         	sb.append(".");
         
-        sb.append("oclIsTypeOf(");
+        sb.append(name()).append("(");
         fTargetType.toString(sb);
         return sb.append(")");
     }

@@ -16,8 +16,8 @@ import com.google.common.collect.Multimap;
  * ExpOperation (see below). Also, this way the new operation symbol is
  * immediately available to the specification compiler.
  * 
- * @version $ProjectVersion: 0.393 $
  * @author Mark Richters
+ * @author Lars Hamann
  */
 
 public abstract class OpGeneric {

@@ -24,6 +24,7 @@ package org.tzi.use.gui.views.diagrams.elements;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 
 import org.tzi.use.gui.views.diagrams.util.Util;
@@ -51,7 +52,7 @@ public abstract class CompartmentNode extends PlaceableNode {
 	    	double singleHeight = Util.getLineHeight(fm);
 	    	
 	    	for ( int i = 0; i < values.length; i++ ) {
-	            rect.width = Math.max( rect.width, fm.stringWidth( values[i] ) );
+	            rect.width = Math.max( rect.width, g.getFont().getStringBounds(values[i], new FontRenderContext(null, true, true)).getWidth() );
 	        }
 	    	
 	        rect.height = (singleHeight + leading) * values.length + leading;
@@ -62,7 +63,7 @@ public abstract class CompartmentNode extends PlaceableNode {
     	FontMetrics fm = g.getFontMetrics();
     	int leading = Util.getLeading(fm);
     	String shortenSuffix = "...";
-    	double shortensuffixLength = g.getFontMetrics().stringWidth(shortenSuffix);
+    	int shortensuffixLength = g.getFontMetrics().stringWidth(shortenSuffix);
     	    	
     	if (values.length == 0) {
        	 	y += 2 * leading;
@@ -89,10 +90,11 @@ public abstract class CompartmentNode extends PlaceableNode {
            	y += singleHeight;
 			
            	String toDraw = values[i];
-           	double space = roundedBounds.getWidth() - 2 * HORIZONTAL_INDENT;
+           	double space = roundedBounds.getWidth() - (2 * HORIZONTAL_INDENT);
+           	double roundedRequiredSpace = Math.round(g.getFont().getStringBounds(toDraw, new FontRenderContext(null, true, true)).getWidth());
            	
            	//FIXME: There must be a better way in Java to do this!
-           	if (g.getFontMetrics().stringWidth(toDraw) > space) {
+           	if (roundedRequiredSpace > space) {
            		space -= shortensuffixLength; 
            		double usedSpace = 0;
            		StringBuilder newToDraw = new StringBuilder();

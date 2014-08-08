@@ -25,8 +25,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,10 +48,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import org.tzi.use.config.Options;
 import org.tzi.use.gui.main.MainWindow;
-import org.tzi.use.gui.util.MMHTMLPrintVisitor;
+import org.tzi.use.gui.views.evalbrowser.ExprEvalBrowser;
 import org.tzi.use.uml.mm.MClassInvariant;
-import org.tzi.use.uml.mm.MMPrintVisitor;
-import org.tzi.use.uml.mm.MMVisitor;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.expr.Evaluator;
 import org.tzi.use.uml.ocl.expr.Expression;
@@ -259,23 +255,9 @@ public class ClassInvariantView extends JPanel implements View {
                     } catch (MultiplicityViolationException ex) {
                         return;
                     }
-                    // get the invariant as html string
-                    StringWriter sw = new StringWriter();
-                    sw.write("<html>");
-                    
-                    MMVisitor v = new MMHTMLPrintVisitor(new PrintWriter(sw));
-                    fClassInvariants[fSelectedRow].processWithVisitor(v);
-                    sw.write("</html>");
-                    String htmlSpec = sw.toString();
-                    
-                    // get the invariant as normal string
-                    sw = new StringWriter();
-                    v = new MMPrintVisitor(new PrintWriter(sw));
-                    fClassInvariants[fSelectedRow].processWithVisitor(v);
-                    String spec = sw.toString();
-                    
+                                       
                     ExprEvalBrowser.createPlus(evaluator
-                            .getEvalNodeRoot(), fSystem, spec, htmlSpec);
+                            .getEvalNodeRoot(), fSystem, fClassInvariants[fSelectedRow]);
                 }
             }
         });

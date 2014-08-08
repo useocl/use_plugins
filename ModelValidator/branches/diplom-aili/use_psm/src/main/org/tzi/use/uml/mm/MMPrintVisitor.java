@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.tzi.use.uml.mm.commonbehavior.communications.MSignal;
+import org.tzi.use.uml.ocl.expr.ExpressionPrintVisitor;
+import org.tzi.use.uml.ocl.expr.ExpressionVisitor;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.uml.sys.soil.MStatement;
@@ -239,8 +241,21 @@ public class MMPrintVisitor implements MMVisitor {
     public void visitAttribute(MAttribute e) {
         indent();
         visitAnnotations(e);
-        println(id(e.name()) + ws() + other(":") + ws() +
+        
+        print(id(e.name()) + ws() + other(":") + ws() +
                 other(e.type().toString()));
+        
+        if(e.getInitExpression().isPresent()){
+        	print(ws() + keyword("init") + ws() + other(":") + ws());
+        	ExpressionVisitor v = createExpressionVisitor();
+        	e.getInitExpression().get().processWithVisitor(v);
+        }
+        else if(e.isDerived()){
+        	print(ws() + keyword("derived") + ws() + other(":") + ws());
+        	ExpressionVisitor v = createExpressionVisitor();
+        	e.getDeriveExpression().processWithVisitor(v);
+        }
+        println();
     }
 
     private void visitAttributesAndOperations( MClass e ) {
@@ -328,11 +343,18 @@ public class MMPrintVisitor implements MMVisitor {
         
         incIndent();
         indent();
-        println(other(e.bodyExpression().toString()));
+        ExpressionVisitor visitor = createExpressionVisitor();
+        e.bodyExpression().processWithVisitor(visitor);
+        println();
+        fOut.flush();
         decIndent();
     }
 
-    public void visitGeneralization(MGeneralization e) {
+	protected ExpressionVisitor createExpressionVisitor() {
+		return new ExpressionPrintVisitor(fOut);
+	}
+
+	public void visitGeneralization(MGeneralization e) {
     }
 
     public void visitModel(MModel e) {
@@ -410,7 +432,8 @@ public class MMPrintVisitor implements MMVisitor {
         	println(ws() + other("=") + ws());
             incIndent();
             indent(); 
-            print(other(e.expression().toString()));
+            ExpressionVisitor visitor = createExpressionVisitor();
+            e.expression().processWithVisitor(visitor);
             decIndent();
             println();
         } else if (e.hasStatement()) {
@@ -440,9 +463,12 @@ public class MMPrintVisitor implements MMVisitor {
                 other(e.operation().signature()));
         incIndent();
         indent();
-        println(keyword(e.isPre() ? "pre" : "post") + 
-                ws() + id(e.name()) + other(":") + ws() +
-                other(e.expression().toString()));
+        print(keyword(e.isPre() ? "pre" : "post") + 
+              ws() + id(e.name()) + other(":") + ws());
+        
+        ExpressionVisitor visitor = createExpressionVisitor();
+        e.expression().processWithVisitor(visitor);
+        println("");
         decIndent();
     }
 

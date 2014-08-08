@@ -38,6 +38,7 @@ import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MLink;
 import org.tzi.use.uml.sys.MLinkObject;
 import org.tzi.use.uml.sys.MObject;
+import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
 import org.tzi.use.uml.sys.StatementEvaluationResult;
 import org.tzi.use.uml.sys.soil.MAttributeAssignmentStatement;
@@ -61,6 +62,10 @@ import org.tzi.use.uml.sys.soil.MStatement;
 public class UseSystemApiUndoable extends UseSystemApi {
 	public UseSystemApiUndoable(Session session) {
 		super(session.system());
+	}
+	
+	public UseSystemApiUndoable(MSystem system) {
+		super(system);
 	}
 	
 	public UseSystemApiUndoable(MModel model) {

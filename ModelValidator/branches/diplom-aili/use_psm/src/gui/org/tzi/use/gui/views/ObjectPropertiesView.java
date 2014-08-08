@@ -27,6 +27,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,8 +62,10 @@ import org.tzi.use.uml.sys.MSystemState;
 import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.events.Event;
 import org.tzi.use.uml.sys.soil.MAttributeAssignmentStatement;
-import org.tzi.use.util.Log;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import com.google.common.eventbus.Subscribe;
 
 /** 
@@ -121,7 +125,6 @@ public class ObjectPropertiesView extends JPanel implements View {
         }
 
         public void setValueAt(Object value, int row, int col) {
-            Log.trace(this, "row = " + row + ", col = " + col + ", value = " + value);
             fValues[row] = value.toString();
             fireTableCellUpdated(row, col);
         }
@@ -131,18 +134,23 @@ public class ObjectPropertiesView extends JPanel implements View {
             if ( haveObject() ) {
                 MObjectState objState = fObject.state(fSystem.state());
                 fAttributeValueMap = objState.attributeValueMap();
-                final int N = fAttributeValueMap.size();
+                                
+                Collection<MAttribute> attributes = ModelBrowserSorting.getInstance().sortAttributes( fAttributeValueMap.keySet() );
                 
-                fAttributes = ModelBrowserSorting.getInstance().sortAttributes( 
-                					fAttributeValueMap.keySet() );
+                attributes = Collections2.filter(attributes, new Predicate<MAttribute>() {
+					@Override
+					public boolean apply(MAttribute input) {
+						return !input.isDerived();
+					}
+				});
                 
-                fValues = new String[N];
-                for (int i = 0; i < N; i++)
-                    fValues[i] = 
-                        ((Value) fAttributeValueMap
-                                .get((MAttribute) fAttributes.get(i))).toString();
+                fAttributes = Lists.newArrayList(attributes);
+                fValues = new String[fAttributes.size()];
+                for (int i = 0; i < fValues.length; i++) {
+                    fValues[i] = fAttributeValueMap.get(fAttributes.get(i)).toString();
+                }
             } else {
-                fAttributes = new ArrayList<MAttribute>();
+                fAttributes = Collections.emptyList();
                 fValues = new String[0];
             }
             fireTableDataChanged();

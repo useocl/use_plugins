@@ -70,7 +70,7 @@ public class StatementEffectTest extends TestCase {
 	@Override
 	public void setUp() throws MInvalidModelException, MSystemException, ExpInvalidException {
 		fTestSystem = new TestSystem();
-		systemApi = UseSystemApi.create(fTestSystem.getSystem());
+		systemApi = UseSystemApi.create(fTestSystem.getSystem(), false);
 		fState = fTestSystem.getState();
 		fOldState = new MSystemState("oldState", fState);
 		fOldVarEnv = new VariableEnvironment(fTestSystem.getVarEnv());
@@ -1211,7 +1211,7 @@ public class StatementEffectTest extends TestCase {
 			sum += x;
 		}
 		
-		assertEquals(lookUpVar("sum"), IntegerValue.valueOf(sum));
+		assertEquals(IntegerValue.valueOf(sum), lookUpVar("sum"));
 		
 		///////////////////////////////////////////////////
 		// iteration variable shadows existing variables //

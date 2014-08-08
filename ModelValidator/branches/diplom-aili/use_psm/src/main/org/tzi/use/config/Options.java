@@ -49,9 +49,12 @@ public class Options {
     // the release version
     public static final String RELEASE_VERSION = "3.1.0";
 
-    // the copyright:
+    // the copyright
     public static final String COPYRIGHT = "Copyright (C) 1999-2014 University of Bremen";
 
+    // the trained support apes
+    public static final String SUPPORT_MAIL = "grp-usedevel@informatik.uni-bremen.de";
+    
     /**
 	 * Name of the file for system properties located in the etc subdirectory of
 	 * the installation directory.

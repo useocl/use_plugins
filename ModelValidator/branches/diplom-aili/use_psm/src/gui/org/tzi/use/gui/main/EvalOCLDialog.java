@@ -42,7 +42,7 @@ import javax.swing.JTextArea;
 import org.tzi.use.config.Options;
 import org.tzi.use.gui.util.CloseOnEscapeKeyListener;
 import org.tzi.use.gui.util.TextComponentWriter;
-import org.tzi.use.gui.views.ExprEvalBrowser;
+import org.tzi.use.gui.views.evalbrowser.ExprEvalBrowser;
 import org.tzi.use.main.ChangeEvent;
 import org.tzi.use.main.ChangeListener;
 import org.tzi.use.main.Session;
@@ -136,7 +136,18 @@ class EvalOCLDialog extends JDialog {
         btnEval.addActionListener(new ActionListener() {
             @Override
 			public void actionPerformed(ActionEvent e) {
-                evaluate(fTextIn.getText(), false);
+            	if(fEvalBrowser != null && fEvalBrowser.getFrame().isVisible()){
+            		// if evaluation browser is already open, update it as well
+            		boolean evalSuccess = evaluate(fTextIn.getText(), true);
+            		
+            		if(evalSuccess){
+            			fEvalBrowser.updateEvalBrowser(evaluator
+                                .getEvalNodeRoot());
+            		}
+            	}
+            	else {
+            		evaluate(fTextIn.getText(), false);
+            	}
             }
         });
         Dimension dim = btnEval.getMaximumSize();

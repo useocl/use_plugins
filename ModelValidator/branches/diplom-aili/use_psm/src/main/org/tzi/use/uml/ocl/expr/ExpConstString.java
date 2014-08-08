@@ -32,7 +32,7 @@ import org.tzi.use.uml.ocl.value.Value;
  * @author  Mark Richters
  */
 public final class ExpConstString extends Expression {
-    private String fValue;
+    private final String fValue;
 
     public ExpConstString(String s) {
         super(TypeFactory.mkString());

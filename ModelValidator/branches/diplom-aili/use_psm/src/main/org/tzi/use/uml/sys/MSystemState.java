@@ -35,7 +35,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.tzi.use.config.Options;
-import org.tzi.use.gen.model.GFlaggedInvariant;
 import org.tzi.use.graph.DirectedGraph;
 import org.tzi.use.graph.DirectedGraphBase;
 import org.tzi.use.uml.mm.MAggregationKind;
@@ -186,12 +185,20 @@ public final class MSystemState {
 	 * Invokes updates on the controller for derived
 	 * values, e. g., derived links or attributes.
 	 */
-	public void updateDerivedValues() {
-		if(fSystem.isImmediatlyCalculateDerivedValues()) {	
+	public void updateDerivedValues(boolean forceUpdate) {
+		if(forceUpdate || fSystem.isImmediatlyCalculateDerivedValues()) {	
 			for (int i = 0; i < derivedValuesController.length; ++i) { 
 				derivedValuesController[i].updateState();
 			}
 		}
+	}
+	
+	/**
+	 * Invokes updates on the controller for derived
+	 * values, e. g., derived links or attributes.
+	 */
+	public void updateDerivedValues() {
+		updateDerivedValues(false);
 	}
 	
 	/**
@@ -843,7 +850,15 @@ public final class MSystemState {
 				MAssociationEnd checkAgainstEnd = assoc.associationEnds().get(i);
 				MAssociationEnd childEnd =  redefiningAssoc.associationEnds().get(i);
 				
-				if (!checkAgainstEnd.cls().equals(childEnd.cls()) && 
+				if (assoc.isUnion() || assoc.isDerived()) {
+					// In a union association, no invalid links can exist
+					// because, the redefined links are all subclasses and validated
+					// downwards the inheritance tree
+					
+					// For derived associations, the type checker ensures
+					// valid links.
+					continue;
+				} else if (!checkAgainstEnd.cls().equals(childEnd.cls()) && 
 					objects.get(i).cls().isSubClassOf(redefiningAssoc.associationEnds().get(i).cls() ) ) {
 					if (err != null) {
 						err.print("The link of the association ");
@@ -862,7 +877,7 @@ public final class MSystemState {
 							public String format(MAssociationEnd element) {
 								return element.name() + ":" + element.cls().name();
 							}} ));
-						err.print(").");
+						err.println(").");
 					}
 									
 					return false;
@@ -1553,9 +1568,8 @@ public final class MSystemState {
 			// get all invariants (loaded and normal class invariants)
 			// it doesn't matter if specific invariants are given or not
 
-			// get all loaded Invariants (generator)
-			for (GFlaggedInvariant flaggedInv : fSystem.generator().flaggedInvariants()) {
-				MClassInvariant inv = flaggedInv.classInvariant();
+			// get all loaded Invariants
+			for (MClassInvariant inv : fSystem.model().classInvariants()) {
 				Expression expr = inv.expandedExpression();
 				
 				// sanity check
@@ -1563,7 +1577,7 @@ public final class MSystemState {
 					throw new RuntimeException("Expression " + expr
 							+ "has type " + expr.type()
 							+ ", expected boolean type");
-				if (flaggedInv.negated()) {
+				if (inv.isNegated()) {
 					try {
 						Expression[] args = { expr };
 						Expression expr1 = ExpStdOp.create("not", args);
@@ -1581,8 +1595,9 @@ public final class MSystemState {
 				out.println("GeneratorInvariants: " + inv);
 			}
 		} else if (invNames.isEmpty()) {
+			//TODO does this branch still make sense after GModel refactoring?
 			// get all invariants
-			for(MClassInvariant inv : model.classInvariants()) {
+			for(MClassInvariant inv : model.modelClassInvariants()) {
 				Expression expr = inv.expandedExpression();
 				// sanity check
 				if (!expr.type().isBoolean())
@@ -1608,9 +1623,7 @@ public final class MSystemState {
 					negatedList.add(Boolean.FALSE);
 					exprList.add(expr);
 				} else {
-					GFlaggedInvariant flaggedInv = fSystem.generator()
-							.flaggedInvariant(invName);
-					inv = flaggedInv.classInvariant();
+					inv = fSystem.model().getClassInvariant(invName);
 					if (inv != null) {
 						Expression expr = inv.expandedExpression();
 						// sanity check
@@ -1618,7 +1631,7 @@ public final class MSystemState {
 							throw new RuntimeException("Expression " + expr
 									+ "has type " + expr.type()
 									+ ", expected boolean type");
-						if (flaggedInv.negated()) {
+						if (inv.isNegated()) {
 							try {
 								Expression[] args = { expr };
 								Expression expr1 = ExpStdOp.create("not", args);
@@ -1654,11 +1667,10 @@ public final class MSystemState {
 				Value v = (Value) resultValues.get();
 
 				// if value 'v' is null, the invariant can not be evaluated,
-				// therefor
-				// it is N/A (not available).
+				// therefore it is N/A (not available).
 				if (v == null) {
 					out.println("N/A");
-					// if there is a value, the invariant can allways be
+					// if there is a value, the invariant can always be
 					// evaluated and the
 					// result can be printed.
 				} else {
@@ -1822,6 +1834,9 @@ public final class MSystemState {
 		boolean res = true;
 		out.println("checking structure...");
 		out.flush();
+		
+		updateDerivedValues(true);
+		
 		// check the whole/part hierarchy
 		if (!checkWholePartLink(out)) {
 			if (!reportAllErrors) return false;
@@ -1863,7 +1878,7 @@ public final class MSystemState {
 			MAssociationEnd aend1 = it2.next();
 			MAssociationEnd aend2 = it2.next();
 
-			res = validateBinaryAssociations(out, assoc, aend1, aend2, reportAllErrors);
+			res = validateBinaryAssociations(out, assoc, aend1, aend2, reportAllErrors) && res;
 			if (!res && !reportAllErrors) return res;
 			
 			res = validateBinaryAssociations(out, assoc, aend2, aend1, reportAllErrors) && res;

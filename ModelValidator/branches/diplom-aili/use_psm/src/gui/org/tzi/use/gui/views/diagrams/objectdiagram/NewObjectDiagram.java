@@ -850,9 +850,6 @@ public class NewObjectDiagram extends DiagramViewWithObjectNode
 	public void updateObject(MObject obj) {
 		ObjectNode node = visibleData.fObjectToNodeMap.get(obj);
 		if (node != null) invalidateNode(node);
-		
-		node = hiddenData.fObjectToNodeMap.get(obj);
-		if (node != null) invalidateNode(node);
 	}
 
 	/**

@@ -7,7 +7,6 @@ import org.tzi.use.uml.ocl.type.SetType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.BagValue;
-import org.tzi.use.uml.ocl.value.IntegerValue;
 import org.tzi.use.uml.ocl.value.SetValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
@@ -29,57 +28,6 @@ public class StandardOperationsBag {
 		// reject
 		// collect
 		// count: inherited from Collection		
-		// Constructors
-		OpGeneric.registerOperation(new Op_mkBagRange(), opmap);
-	}
-}
-
-//--------------------------------------------------------
-//
-// Bag constructors.
-//
-// --------------------------------------------------------
-
-/* mkBagRange : Integer x Integer, ... -> Bag(Integer) */
-final class Op_mkBagRange extends OpGeneric {
-	public String name() {
-		return "mkBagRange";
-	}
-
-	public int kind() {
-		return OPERATION;
-	}
-
-	public boolean isInfixOrPrefix() {
-		return false;
-	}
-
-	public Type matches(Type params[]) {
-		return (params.length >= 2 && params.length % 2 == 0
-				&& params[0].isInteger() && params[1].isInteger()) ? TypeFactory
-				.mkBag(TypeFactory.mkInteger())
-				: null;
-	}
-
-	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
-		int[] ranges = new int[args.length];
-		for (int i = 0; i < args.length; i++)
-			ranges[i] = ((IntegerValue) args[i]).value();
-
-		return new BagValue(TypeFactory.mkInteger(), ranges);
-	}
-
-	public String stringRep(Expression args[], String atPre) {
-		if (args.length % 2 != 0)
-			throw new IllegalArgumentException("length=" + args.length);
-		String s = "Bag{";
-		for (int i = 0; i < args.length; i += 2) {
-			if (i > 0)
-				s += ",";
-			s += args[i] + ".." + args[i + 1];
-		}
-		s += "}";
-		return s;
 	}
 }
 

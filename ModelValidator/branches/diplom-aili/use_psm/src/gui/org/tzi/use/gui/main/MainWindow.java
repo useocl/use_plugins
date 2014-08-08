@@ -20,11 +20,18 @@
 package org.tzi.use.gui.main;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Event;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Polygon;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -49,6 +56,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -63,14 +71,18 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import org.tzi.use.config.Options;
 import org.tzi.use.config.RecentItems;
@@ -96,8 +108,6 @@ import org.tzi.use.gui.views.diagrams.behavior.sequencediagram.SequenceDiagramVi
 import org.tzi.use.gui.views.diagrams.classdiagram.ClassDiagramView;
 import org.tzi.use.gui.views.diagrams.objectdiagram.NewObjectDiagramView;
 import org.tzi.use.gui.views.diagrams.statemachine.StateMachineDiagramView;
-//import org.tzi.use.gui.views.seqDiag.SDScrollPane;
-//import org.tzi.use.gui.views.seqDiag.SequenceDiagramView;
 import org.tzi.use.main.ChangeEvent;
 import org.tzi.use.main.ChangeListener;
 import org.tzi.use.main.Session;
@@ -137,6 +147,7 @@ import com.itextpdf.text.pdf.PdfWriter;
  *  
  * @author Mark Richters
  * @author Lars Hamann
+ * @author Frank Hilken
  */
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame implements StateChangeListener {
@@ -179,13 +190,18 @@ public class MainWindow extends JFrame implements StateChangeListener {
 
     private JMenu recentFilesMenu;
     
-    private JButton addToToolBar(JToolBar toolBar, AbstractAction action,
-            String toolTip) {
-        JButton tb = toolBar.add(action);
-        tb.setMaximumSize(new Dimension(30,30));
-        tb.setToolTipText(toolTip);
-        tb.setText("");
+    private JButton addToToolBar(JToolBar toolBar, AbstractAction action, String toolTip) {
+        JButton tb = new JButton(action);
+        addToToolBar(toolBar, tb, toolTip);
         return tb;
+    }
+    
+    private AbstractButton addToToolBar(JToolBar toolBar, AbstractButton button, String toolTip) {
+    	toolBar.add(button);
+    	button.setMaximumSize(new Dimension(30, 30));
+    	button.setToolTipText(toolTip);
+    	button.setText("");
+    	return button;
     }
 
 	private static IRuntime fPluginRuntime;
@@ -203,6 +219,10 @@ public class MainWindow extends JFrame implements StateChangeListener {
 
         // create toolbar
 		fToolBar = new JToolBar();
+		fToolBar.setFloatable(false);
+		
+		fToolBar.addSeparator();
+		
 		addToToolBar(fToolBar, fActionFileOpenSpec,  "Open specification");
 		addToToolBar(fToolBar, fActionFileReload,  "Reload  current specification");
 		
@@ -225,6 +245,8 @@ public class MainWindow extends JFrame implements StateChangeListener {
 
 		addToToolBar(fToolBar, fActionViewCreateClassDiagram,
                 "Create class diagram view");
+		addToToolBar(fToolBar, fStateMachineDropdown,
+				"Create statemachine diagram view");
 		addToToolBar(fToolBar, fActionViewCreateObjectDiagram,
                 "Create object diagram view");
 		addToToolBar(fToolBar, fActionViewCreateClassInvariant,
@@ -435,6 +457,7 @@ public class MainWindow extends JFrame implements StateChangeListener {
         fTopSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, sp, fLogPanel);
         fTopSplitPane.setDividerLocation(400);
         fTopSplitPane.setOneTouchExpandable(true);
+        fTopSplitPane.setResizeWeight(.8d);
 
         // Layout and set the content pane
         JPanel contentPane = new JPanel();
@@ -761,6 +784,7 @@ public class MainWindow extends JFrame implements StateChangeListener {
         fActionViewCreateObjectCount.setEnabled(on);
         fActionViewCreateLinkCount.setEnabled(on);
         fActionViewCreateClassDiagram.setEnabled(on);
+        fStateMachineDropdown.setEnabled(on);
         fActionViewCreateObjectDiagram.setEnabled(on);
         fActionViewCreateClassInvariant.setEnabled(on);
         fActionViewCreateStateEvolution.setEnabled(on);
@@ -964,6 +988,8 @@ public class MainWindow extends JFrame implements StateChangeListener {
 
     private final ActionViewCreateClassDiagram fActionViewCreateClassDiagram = new ActionViewCreateClassDiagram();
 
+    private final StateMachineDropdown fStateMachineDropdown = new StateMachineDropdown();
+    
     private final ActionViewCreateObjectDiagram fActionViewCreateObjectDiagram = new ActionViewCreateObjectDiagram();
 
     private final ActionViewCreateClassInvariant fActionViewCreateClassInvariant = new ActionViewCreateClassInvariant();
@@ -1678,6 +1704,97 @@ public class MainWindow extends JFrame implements StateChangeListener {
         }
     }
 
+    /**
+     * Button for statemachine selection from the toolbar.
+     */
+    private class StateMachineDropdown extends JToggleButton {
+
+		private final JPopupMenu menu = new JPopupMenu();
+
+		public StateMachineDropdown() {
+			setIcon(MainWindow.this.getIcon("Diagram.gif"));
+			menu.addPopupMenuListener(new PopupListener());
+			addItemListener(new DropdownItemListener());
+			
+			// reserve space for arrow (there must be a nicer solution, also: magic numbers)
+			Insets in = getMargin();
+			Insets in2 = new Insets(in.top +1, 2, in.bottom, 12);
+			setMargin(in2);
+		}
+
+		@Override
+		public Dimension getMaximumSize() {
+			// hacky?
+			return super.getPreferredSize();
+		}
+		
+		@Override
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(g);
+
+			Color oldColor = g.getColor();
+			if(isEnabled()){
+				g.setColor(Color.BLACK);
+			}
+			else {
+				g.setColor(Color.GRAY);
+			}
+			
+			Polygon triangle = new Polygon(new int[]{ 0, 9, 5 }, new int[]{ 0, 0, 4 }, 3);
+			triangle.translate(23, 13);
+			g.fillPolygon(triangle);
+			
+			g.setColor(oldColor);
+		}
+		
+		private class DropdownItemListener implements ItemListener {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					// build menu from model
+					menu.removeAll();
+					int elems = 0;
+
+					for (final MClass cls : fSession.system().model().classes()) {
+						for (final MStateMachine sm : cls.getOwnedProtocolStateMachines()) {
+							JMenuItem item = menu.add(cls.name() + "::" + sm.name());
+							item.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									showStateMachineView(sm);
+								}
+							});
+							++elems;
+						}
+					}
+
+					if (elems == 0) {
+						JMenuItem item = menu.add("<html><i>No statemashines available.</i></html>");
+						item.setEnabled(false);
+					}
+
+					menu.show(StateMachineDropdown.this, 0, getHeight());
+				}
+			}
+		}
+
+		private class PopupListener implements PopupMenuListener {
+			@Override
+			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+			}
+
+			@Override
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+				StateMachineDropdown.this.setSelected(false);
+			}
+
+			@Override
+			public void popupMenuCanceled(PopupMenuEvent e) {
+			}
+		}
+
+	}
+    
     /**
      * Creates a new object diagram view.
      */

@@ -10,14 +10,10 @@ import org.tzi.use.uml.ocl.type.TupleType;
 import org.tzi.use.uml.ocl.type.TupleType.Part;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.TypeFactory;
-import org.tzi.use.uml.ocl.value.BagValue;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.ocl.value.CollectionValue;
 import org.tzi.use.uml.ocl.value.IntegerValue;
-import org.tzi.use.uml.ocl.value.OrderedSetValue;
 import org.tzi.use.uml.ocl.value.RealValue;
-import org.tzi.use.uml.ocl.value.SequenceValue;
-import org.tzi.use.uml.ocl.value.SetValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.util.Log;
@@ -539,18 +535,7 @@ final class Op_collection_flatten extends OpGeneric {
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
 		CollectionValue coll = (CollectionValue) args[0];
-
-		if (coll.isBag())
-			return ((BagValue) coll).flatten(resultType);
-		else if (coll.isSet())
-			return ((SetValue) coll).flatten(resultType);
-		else if (coll.isSequence())
-			return ((SequenceValue) coll).flatten(resultType);
-		else if (coll.isOrderedSet())
-			return ((OrderedSetValue) coll).flatten(resultType);
-		else
-			throw new RuntimeException("Unexpected collection type `"
-					+ coll.type() + "'.");
+		return coll.flatten(resultType);
 	}
 }
 

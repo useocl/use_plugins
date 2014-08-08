@@ -77,6 +77,10 @@ public final class MAttribute extends MModelElementImpl implements UseFileLocata
     	return deriveExpression != null;
     }
     
+    public boolean hasInitExpression() {
+    	return initExpression != null;
+    }
+    
     /**
      * Sets the derive expression for this attribute.
 	 * @param exp The derive expression, can be <code>null</code>.

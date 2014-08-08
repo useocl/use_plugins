@@ -756,24 +756,35 @@ public class DirectedEdgeFactory {
                .draw( graphic );
     }
     
-    public static void drawArrow(final Graphics2D g, final int x1, final int y1, final int x2, final int y2) {
-        int ARR_SIZE = 8;
+    public enum ArrowStyle {
+    	FILLED,
+    	OPEN
+    }
+    
+    public static void drawArrow(final Graphics2D g, final int x1, final int y1, final int x2, final int y2, ArrowStyle style) {
+        int ARR_LENGTH = 8;
+        int ARR_WIDTH  = 5;
         
         // Get the current transform
         AffineTransform saveAT = g.getTransform();
         
         double dx = x2 - x1, dy = y2 - y1;
         double angle = Math.atan2(dy, dx);
-        int len = (int) Math.sqrt(dx*dx + dy*dy);
+        int len = (int)Math.round(Math.sqrt(dx*dx + dy*dy));
         AffineTransform at = AffineTransform.getTranslateInstance(x1, y1);
         at.concatenate(AffineTransform.getRotateInstance(angle));
         // Perform transformation
         g.transform(at);
 
-        // Draw horizontal arrow starting in (0, 0)
-        g.drawLine(0, 0, (int) len, 0);
-        g.fillPolygon(new int[] {len, len-ARR_SIZE, len-ARR_SIZE, len},
-                      new int[] {0, -ARR_SIZE, ARR_SIZE, 0}, 4);
+        // Draw horizontal line starting in (0, 0) to start of arrowhead
+        g.drawLine(0, 0, len, 0);
+        if (style == ArrowStyle.FILLED) {
+	        g.fillPolygon(new int[] {len, len-ARR_LENGTH, len-ARR_LENGTH, len},
+	                      new int[] {0,   -ARR_WIDTH,     ARR_WIDTH,      0  }, 4);
+        } else {
+        	g.drawLine(len, 0, len - ARR_LENGTH,  ARR_WIDTH);
+        	g.drawLine(len, 0, len - ARR_LENGTH, -ARR_WIDTH);
+        }
         
         // Restore original transform
         g.setTransform(saveAT);

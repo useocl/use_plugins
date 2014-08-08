@@ -19,19 +19,16 @@
 
 // $Id$
 
-package org.tzi.use.gui.views;
+package org.tzi.use.gui.views.evalbrowser;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.GridLayout;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
@@ -40,13 +37,11 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.HashSet;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
-import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -55,7 +50,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -66,7 +61,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.WindowConstants;
 import javax.swing.event.PopupMenuEvent;
@@ -81,8 +75,13 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.util.CaptureTheWindow;
+import org.tzi.use.gui.util.MMHTMLPrintVisitor;
+import org.tzi.use.uml.mm.MClassInvariant;
+import org.tzi.use.uml.mm.MMVisitor;
 import org.tzi.use.uml.ocl.expr.EvalNode;
+import org.tzi.use.uml.ocl.expr.EvalNode.TreeValue;
 import org.tzi.use.uml.ocl.expr.ExpExists;
 import org.tzi.use.uml.ocl.expr.ExpForAll;
 import org.tzi.use.uml.ocl.expr.ExpStdOp;
@@ -91,6 +90,7 @@ import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.operations.StandardOperationsBoolean;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.value.BooleanValue;
+import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.ocl.value.VarBindings.Entry;
@@ -104,8 +104,17 @@ import org.tzi.use.uml.sys.MSystem;
  */
 @SuppressWarnings("serial")
 public class ExprEvalBrowser extends JPanel {
-    private final MSystem fSystem;
+    
+	private enum ShowVariableAssignment {
+		LATE,
+		EARLY,
+		NEVER
+	}
+	
+	private final MSystem fSystem;
 
+	private ShowVariableAssignment varAssignmentMode = ShowVariableAssignment.LATE;
+	
     // several attributes needed by the inner classes: e.g. the action- and
     // item-listener
     JFrame fParent;
@@ -120,7 +129,7 @@ public class ExprEvalBrowser extends JPanel {
 
     JList<Entry> fVarAssList;
 
-    JTextArea fSubstituteWin;
+    JEditorPane fSubstituteWin;
 
     JScrollPane fScrollSubstituteWin, fScrollVarAssList;
 
@@ -150,12 +159,13 @@ public class ExprEvalBrowser extends JPanel {
 
     JCheckBoxMenuItem fNoColorHighlightingChk = new JCheckBoxMenuItem("Black and white");
 
-    JRadioButtonMenuItem[] fTreeViews = {
-            new JRadioButtonMenuItem("Late variable assignment", true),
-            new JRadioButtonMenuItem("Early variable assignment"),
-            new JRadioButtonMenuItem("Variable assignment & substitution"),
-            new JRadioButtonMenuItem("Variable substitution"),
-            new JRadioButtonMenuItem("No variable assignment") };
+    JRadioButtonMenuItem[] rbVariableAssignment = {
+            new JRadioButtonMenuItem("Late", true),
+            new JRadioButtonMenuItem("Early"),
+            new JRadioButtonMenuItem("Never")
+    };
+      
+    JCheckBoxMenuItem cbSubstituteVariables = new JCheckBoxMenuItem("Variable Substitution", false);
 
     JRadioButtonMenuItem[] fTreeHighlightings = {
             new JRadioButtonMenuItem("No highlighting", true),
@@ -165,21 +175,11 @@ public class ExprEvalBrowser extends JPanel {
 
     DefaultMutableTreeNode fTopNode;
 
-    String fTitle;
-
-    String fHtmlTitle;
-
     JPanel fSouthPanel;
 
     int fDefaultDividerSize;
 
     double fTreeIndent = 0;
-
-    boolean fEarlyVarEval = false;
-
-    boolean fHideVarAss = false;
-
-    boolean fVarSubstitution = false;
 
     boolean fFirstInvoke1 = true;
 
@@ -199,19 +199,23 @@ public class ExprEvalBrowser extends JPanel {
 
     EvalMouseAdapter fMouseListener = new EvalMouseAdapter();
 
-    private char getHighlighting(EvalNode node) {
+    private boolean isSubstituteVars() {
+    	return cbSubstituteVariables.isSelected();
+    }
+    
+    private TreeValue getNodeTreeValue(EvalNode node) {
     	Value value = node.getResult();
-    	Type type = node.getExpr().type();
+    	Type type = node.getExpression().type();
     	
     	if (value.equals(BooleanValue.TRUE)) {
-            return 't';
+            return TreeValue.TRUE;
         } else if (value.equals(BooleanValue.FALSE)) {
-            return 'f';
+            return TreeValue.FALSE;
         } else if (value.equals(UndefinedValue.instance)
                 && type.isBoolean()) {
-            return 'u';
+            return TreeValue.UNDEFINED;
         } else {
-        	return 'i';
+        	return TreeValue.INVALID;
         }
     }
     
@@ -219,43 +223,50 @@ public class ExprEvalBrowser extends JPanel {
      * builds the evaluation tree recursively from the EvalNodes
      */
     private void createNodes(DefaultMutableTreeNode treeParent, EvalNode node) {
-        Expression parentExpr = node.getExpr();
-        Vector<Entry> parentVars = node.getVarBindings();
+        Expression parentExpr = node.getExpression();
+        List<Entry> parentVars = node.getVarBindings();
 
         breakLabel: for(EvalNode child : node.children()) {
-            Expression childExpr = child.getExpr();
+            Expression childExpr = child.getExpression();
             DefaultMutableTreeNode treeChild = new DefaultMutableTreeNode(child);
-            // TreeHighlightings for the node
-            char[] highlightings = new char[2];
+            
             TreeNode[] treePath = treeParent.getPath();
             // subtree highlighting
             DefaultMutableTreeNode dnode = treeParent;
             EvalNode enode;
             
-            highlightings[0] = getHighlighting(child);
-            if (highlightings[0] == 'i') {
+            // Goes up the tree path and looks for the first 
+            // parent node that has a boolean value (true, false, null) 
+            TreeValue subtreeValue = getNodeTreeValue(child);
+            if (subtreeValue == TreeValue.INVALID) {
                 for (int i = treePath.length - 1; i >= 0; i--) {
                     dnode = (DefaultMutableTreeNode) treePath[i];
                     enode = (EvalNode) dnode.getUserObject();
-                    highlightings[0] = getHighlighting(enode);
-                    if(highlightings[0] != 'i'){
+                    subtreeValue = getNodeTreeValue(enode);
+                    if(subtreeValue != TreeValue.INVALID){
                     	break;
                     }
                 }
                 
-                if (highlightings[0] == 'i') {
+                if (subtreeValue == TreeValue.INVALID) {
                     EvalNode root = (EvalNode) fTopNode.getUserObject();
-                    highlightings[0] = getHighlighting(root);
+                    subtreeValue = getNodeTreeValue(root);
                 }
             }
+            child.setSubTreeValue(subtreeValue);
+            
             
             // complete subtree highlighting
+            TreeValue completeTreeValue = TreeValue.INVALID;
             dnode = (DefaultMutableTreeNode) treePath[0];
             enode = (EvalNode) dnode.getUserObject();
             if (treePath.length == 1) {
-            	highlightings[1] = getHighlighting(child);
+            	completeTreeValue = getNodeTreeValue(child);
             }
             
+            // Searches from the root + 1 node down to
+            // the first node on the tree path that has a 
+            // valid boolean value (true, false, null)
             for (int i = 1; i < treePath.length; i++) {
                 dnode = (DefaultMutableTreeNode) treePath[i];
                 enode = (EvalNode) dnode.getUserObject();
@@ -263,54 +274,58 @@ public class ExprEvalBrowser extends JPanel {
                 if (enode.isEarlyVarNode())
                     continue;
                 
-                highlightings[1] = getHighlighting(enode);
-                if(highlightings[1] != 'i'){
+                completeTreeValue = getNodeTreeValue(enode);
+                if(completeTreeValue != TreeValue.INVALID){
                 	break;
                 }
             }
             
-            if (highlightings[1] == 'i') {
+            if (completeTreeValue == TreeValue.INVALID) {
                 EvalNode root = (EvalNode) fTopNode.getUserObject();
-                highlightings[1] = getHighlighting(root);
+                completeTreeValue = getNodeTreeValue(root);
             }
             
-            child.setHighlighting(highlightings);
-            // remove all Varbindings that are in the system state but not in
+            child.setCompleteTreeValue(completeTreeValue);
+            
+            // remove all variable bindings that are in the system state but not in
             // the term
             
             // VarBindings for the Early-Variable-Assignment-View
-            Vector<Entry> childVars = child.getVarBindings();
+            List<Entry> childVars = child.getVarBindings();
             childVars.removeAll(fNeedlessVarBindings);
             
-            Vector<Entry> newVars = new Vector<Entry>( childVars );
+            List<Entry> newVars = new ArrayList<Entry>( childVars );
 
             newVars.removeAll(parentVars);
             DefaultMutableTreeNode paren = treeParent;
-            // if new Variables appear in the term, they are added in the tree
+            // if new variables appear in the term, they are added in the tree
             // before the child
-            if (fEarlyVarEval && newVars.size() > 0) {
+            if (varAssignmentMode == ShowVariableAssignment.EARLY && newVars.size() > 0) {
                 Entry e = newVars.get(0);
-                enode = new EvalNode(new Vector<Entry>(childVars));
-                ExpVariable expVar = new ExpVariable(e.getVarName(), e
-                        .getValue().type());
+                
+                enode = new EvalNodeVarAssignment(new Vector<Entry>(childVars));
+                ExpVariable expVar = new ExpVariable(e.getVarName(), e.getValue().type());
                 enode.setExpression(expVar);
                 enode.setResult(e.getValue());
                 // if the child-node is expanded the new variable assignment
                 // node is also expanded
-                enode.setVisibleAttr(child.isVisible());
-                enode.setVarAssignment(e.getVarName() + " = " + e.getValue());
-                // Highlighting for the new Var-Assignment-Node
-                char[] highlightings2 = highlightings.clone();
+                enode.setVisible(child.isVisible());
+                ((EvalNodeVarAssignment)enode).addVarAssignment(e);
+                // The highlighting for the new Var-Assignment-Node
+                // is reused from the previous eval node.
+                // If only one new var is added and it is true oder false,
+                // the highlighting for the sub tree is set to the corresponding value
+                enode.setSubTreeValue(subtreeValue);
+                enode.setCompleteTreeValue(completeTreeValue);
+                
                 if (newVars.size() == 1 && enode.getResult().equals(BooleanValue.TRUE))
-                    highlightings2[0] = 't';
+                    enode.setSubTreeValue(TreeValue.TRUE);
                 else if (newVars.size() == 1 && enode.getResult().equals(BooleanValue.FALSE))
-                    highlightings2[0] = 'f';
-                enode.setHighlighting(highlightings2);
+                    enode.setSubTreeValue(TreeValue.FALSE);
 
                 for (int i = 1; i < newVars.size(); i++) {
                     Entry e2 = newVars.get(i);
-                    enode.setVarAssignment(e2.getVarName() + " = "
-                            + e2.getValue());
+                    ((EvalNodeVarAssignment)enode).addVarAssignment(e2);
                 }
 
                 DefaultMutableTreeNode chil = new DefaultMutableTreeNode(enode);
@@ -319,9 +334,9 @@ public class ExprEvalBrowser extends JPanel {
             } // end of Early-Variable-Assignment-View
 
             // set the var Substitution View if requested
-            child.setVarSubstituteView(fVarSubstitution);
+            child.setSubstituteVariables(isSubstituteVars());
             // don't add var assignments if not desired
-            if (!fHideVarAss || !(childExpr instanceof ExpVariable)) {
+            if (varAssignmentMode == ShowVariableAssignment.LATE || !(childExpr instanceof ExpVariable)) {
                 // don't add insignificant nodes like "1=1" to the eval tree
                 if (!childExpr.toString().equals(child.getResult().toString())) {
                     paren.add(treeChild);
@@ -365,16 +380,14 @@ public class ExprEvalBrowser extends JPanel {
         
         // the tree is created later when the default configuration is set
         createNodes(fTopNode, root);
-        // highlightings informations for the root node
-        char[] highlightings = new char[2];
+        // highlighting information for the root node
         if (root.getResult().equals(BooleanValue.TRUE)) {
-            highlightings[0] = 't';
-            highlightings[1] = 't';
+            root.setSubTreeValue(TreeValue.TRUE);
+            root.setCompleteTreeValue(TreeValue.TRUE);
         } else if (root.getResult().equals(BooleanValue.FALSE)) {
-            highlightings[0] = 'f';
-            highlightings[1] = 'f';
+            root.setSubTreeValue(TreeValue.FALSE);
+            root.setCompleteTreeValue(TreeValue.FALSE);
         }
-        root.setHighlighting(highlightings);
         // remove old tree
         fScrollTree.remove(fTree);
         // create the tree
@@ -404,9 +417,8 @@ public class ExprEvalBrowser extends JPanel {
         fVarAssList.setListData(new Vector<Entry>());
         fSubstituteWin.setText(null);
         // set new text for the top-label
-        fTitle = root.getExpr().toString();
-        String htmlTitle = "<html>" + root.getHtmlExpr() + "</html>";
-        adjustTopWidth(fTitle, htmlTitle);
+        String htmlTitle = "<html>" + root.getExpressionString(false) + "</html>";
+        fTopLabel.setText(htmlTitle);
     }
 
     /**
@@ -414,8 +426,7 @@ public class ExprEvalBrowser extends JPanel {
      */
     public static ExprEvalBrowser create(EvalNode root, MSystem sys) {
         ExprEvalBrowser eb;
-        eb = createPlus(root, sys, root.getExpr().toString(), "<html>"
-                + root.getHtmlExpr() + "</html>");
+        eb = createPlus(root, sys, null);
         return eb;
     }
 
@@ -423,10 +434,23 @@ public class ExprEvalBrowser extends JPanel {
      * creates a new evaluation browser window with the tree created from the
      * hand overed root node
      */
-    public static ExprEvalBrowser createPlus(EvalNode root, MSystem sys,
-            String invName, String invHtml) {
+    public static ExprEvalBrowser createPlus(EvalNode root, MSystem sys, MClassInvariant inv) {
         final JFrame f = new JFrame("Evaluation browser ");
-        ExprEvalBrowser eb = new ExprEvalBrowser(root, sys, invName, invHtml, f);
+        String expressionString;
+        
+        if (inv == null) {
+        	expressionString = "<html>" + root.getExpressionString(false) + "</html>"; 
+        } else {
+        	StringWriter sw = new StringWriter();
+            sw.write("<html>");
+            
+            MMVisitor v = new MMHTMLPrintVisitor(new PrintWriter(sw));
+            inv.processWithVisitor(v);
+            sw.write("</html>");
+            expressionString = sw.toString();
+        }
+        
+        ExprEvalBrowser eb = new ExprEvalBrowser(root, sys, expressionString, f);
 
         // Layout the content pane
         JPanel contentPane = new JPanel();
@@ -435,10 +459,11 @@ public class ExprEvalBrowser extends JPanel {
 
         f.setContentPane(contentPane);
         f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        f.setPreferredSize(new Dimension(800, 300));
         f.pack();
+        f.setLocationRelativeTo(MainWindow.instance());
         f.setVisible(true);
-        // set the right size for the top
-        eb.adjustTopWidth(invName, invHtml);
+
         // set the default configuration for the eval browser
         eb.fActionListener.actionPerformed(new ActionEvent(new JMenuItem(
                 "Default configuration"), 0, "Default configuration"));
@@ -450,18 +475,19 @@ public class ExprEvalBrowser extends JPanel {
     /**
      * the constructor for the new evaluation browser window
      */
-    public ExprEvalBrowser(EvalNode root, MSystem sys, String invAsStr,
-            String invInHtml, JFrame mother) {
+    public ExprEvalBrowser(EvalNode root, MSystem sys, String expressionString, JFrame mother) {
         fSystem = sys;
         setLayout(new BorderLayout());
         // connection to the mother JFrame
         this.fParent = mother;
+        
         // set the title in the NORTH
-        fTitle = invAsStr;
-        fHtmlTitle = invInHtml;
+        
         fTopLabel = new JLabel();
         fTopLabel.setToolTipText("Double click to min or max title, "
                 + "right click to open config menu");
+        fTopLabel.setText(expressionString);
+        
         add(fTopLabel, BorderLayout.NORTH);
 
         // set the combo-menu in the SOUTH with popupmenu-listener
@@ -499,18 +525,18 @@ public class ExprEvalBrowser extends JPanel {
         // the tree is created later when the default configuration is set
         createNodes(fTopNode, root);
         // Highlighting information for the root node
-        char[] highlightings = new char[2];
+        //FIXME: Code-Clone
         if (root.getResult().equals(BooleanValue.TRUE)) {
-            highlightings[0] = 't';
-            highlightings[1] = 't';
+            root.setSubTreeValue(TreeValue.TRUE);
+            root.setCompleteTreeValue(TreeValue.TRUE);
         } else if (root.getResult().equals(BooleanValue.FALSE)) {
-            highlightings[0] = 'f';
-            highlightings[1] = 'f';
+            root.setSubTreeValue(TreeValue.FALSE);
+            root.setCompleteTreeValue(TreeValue.FALSE);
         }
-        root.setHighlighting(highlightings);
         // create the tree
         fTreeModel = new DefaultTreeModel(fTopNode);
         fTree = new JTree(fTreeModel);
+        fTree.setRowHeight(0);
         fTree.putClientProperty("JTree.lineStyle", "Angled");
         // Listener sets the content to the VarBinding- and
         // VarSubstitution-Window
@@ -533,7 +559,9 @@ public class ExprEvalBrowser extends JPanel {
 			public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     Entry var = fVarAssList.getSelectedValue();
-                    new ObjectBrowser(fSystem, var);
+                    if(var.getValue().type().isTrueObjectType()){
+                    	new ObjectBrowser(fSystem, ((ObjectValue) var.getValue()).value());
+                    }
                 }
             }
         };
@@ -542,10 +570,10 @@ public class ExprEvalBrowser extends JPanel {
 
         fScrollVarAssList = new JScrollPane(fVarAssList);
         // Termview Window
-        fSubstituteWin = new JTextArea();
+        fSubstituteWin = new JEditorPane();
         fSubstituteWin.setEditable(false);
-        fSubstituteWin.setLineWrap(true);
-        fSubstituteWin.setWrapStyleWord(true);
+        fSubstituteWin.setContentType("text/html");
+        
         fScrollSubstituteWin = new JScrollPane(fSubstituteWin);
 
         // add the mouse listener for the config and the tree popup menu
@@ -554,72 +582,7 @@ public class ExprEvalBrowser extends JPanel {
         fVarAssList.addMouseListener(fMouseListener);
         fSubstituteWin.addMouseListener(fMouseListener);
         fTopLabel.addMouseListener(fMouseListener);
-
         addMouseListener(fMouseListener);
-        // shortcuts
-        JButton shortcuts = new JButton("Fit width");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('f');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Default configuration");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('d');
-        shortcuts = new JButton("Set as default");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('s');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Capture to file");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('c');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Extended Search");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('x');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Variable assignment window");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('v');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Subexpression evaluation window");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('e');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Late variable assignment");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('1');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Early variable assignment");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('2');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Variable assignment & substitution");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('3');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Variable substitution");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('4');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("No variable assignment");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('5');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("No highlighting");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('0');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Term highlighting");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('9');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Subtree highlighting");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('8');
-        shortcuts.addActionListener(fActionListener);
-        shortcuts = new JButton("Complete Subtree highlighting");
-        add(shortcuts, BorderLayout.CENTER);
-        shortcuts.setMnemonic('7');
-        shortcuts.addActionListener(fActionListener);
 
         // add the tree to the contentpane
         add(fSplit1, BorderLayout.CENTER);
@@ -668,11 +631,11 @@ public class ExprEvalBrowser extends JPanel {
         TreeModel model = fTree.getModel();
         if (model.isLeaf(node) || enode.getResult().toString().equals(stop))
             return;
-        else if (fEarlyVarEval) {
+        else if (varAssignmentMode == ShowVariableAssignment.EARLY) {
             DefaultMutableTreeNode dchild = dnode;
             EvalNode echild = (EvalNode) dchild.getUserObject();
             while (dchild.getChildCount() > 0
-                    && echild.getExpr() instanceof ExpVariable
+                    && echild.getExpression() instanceof ExpVariable
                     && !echild.getResult().equals(BooleanValue.TRUE)
                     && !echild.getResult().equals(BooleanValue.FALSE)) {
                 dchild = (DefaultMutableTreeNode) dchild.getChildAt(0);
@@ -700,11 +663,11 @@ public class ExprEvalBrowser extends JPanel {
                 expandAllTrue(path, "false");
             else if (!val && enode.getResult().equals(BooleanValue.FALSE))
                 expandAllTrue(path, "true");
-            else if (fEarlyVarEval) {
+            else if (varAssignmentMode == ShowVariableAssignment.EARLY) {
                 DefaultMutableTreeNode dchild = dnode;
                 EvalNode echild = (EvalNode) dchild.getUserObject();
                 while (dchild.getChildCount() > 0
-                        && echild.getExpr() instanceof ExpVariable) {
+                        && echild.getExpression() instanceof ExpVariable) {
                     dchild = (DefaultMutableTreeNode) dchild.getChildAt(0);
                     echild = (EvalNode) dchild.getUserObject();
                 }
@@ -783,14 +746,14 @@ public class ExprEvalBrowser extends JPanel {
                     DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) clickedPath
                             .getLastPathComponent();
                     EvalNode enode = (EvalNode) dnode.getUserObject();
-                    StringSelection cont = new StringSelection(enode
-                            .toNormString());
+                    StringSelection cont = new StringSelection(enode.getExpressionStringRaw(isSubstituteVars()));
+                    
                     clip.setContents(cont, null);
                 }
             };
             treepop.add(copyAction);
 
-            // Initilize the Configuration Menu
+            // Initialize the Configuration Menu
             // extended search
             JMenu extendedSearch = new JMenu("Extended evaluation");
             extendedSearch.add(fExtendedExists);
@@ -840,13 +803,38 @@ public class ExprEvalBrowser extends JPanel {
             fVarSubstituteWinChk.addItemListener(fItemListener);
             popup.add(fVarSubstituteWinChk);
             // the 4 Tree Views
-            JMenu menu = new JMenu("Tree views");
+            JMenu menu = new JMenu("Show variable assignments");
             ButtonGroup bg_treeview = new ButtonGroup();
-            for (int i = 0; i < fTreeViews.length; i++) {
-                fTreeViews[i].addActionListener(fActionListener);
-                menu.add(fTreeViews[i]);
-                bg_treeview.add(fTreeViews[i]);
-            }
+            
+			for (int i = 0; i < rbVariableAssignment.length; ++i) {
+				rbVariableAssignment[i]
+						.addActionListener(new ChangeVarAssignmentViewActionListener(
+								ShowVariableAssignment.values()[i]));
+				menu.add(rbVariableAssignment[i]);
+				bg_treeview.add(rbVariableAssignment[i]);
+			}
+                        
+            menu.addSeparator();
+            
+            cbSubstituteVariables.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) fTreeModel.getRoot();
+		            
+		            markVisibleNodes(dnode);
+		            
+		            // rebuild the tree
+		            fTopNode.removeAllChildren();
+		            EvalNode enode = (EvalNode) fTopNode.getUserObject();
+		            createNodes(fTopNode, enode);
+		            fTreeModel.reload();
+		            // expand the nodes expanded before
+		            expandMarkedNodes(dnode);					
+				}
+			});
+            
+            menu.add(cbSubstituteVariables);
+            
             popup.add(menu);
             // Syntax Highlighting
             menu = new JMenu("True-false highlighting");
@@ -915,20 +903,8 @@ public class ExprEvalBrowser extends JPanel {
                 }
 
             } else if (e.isPopupTrigger()
-                    || e.getButton() == MouseEvent.BUTTON3)
+                    || e.getButton() == MouseEvent.BUTTON3) {
                 popup.show(e.getComponent(), e.getX(), e.getY());
-            else if (e.getClickCount() == 2
-                    && (e.getComponent() == fTopLabel || e.getComponent() == fSouthPanel)) {
-                if (!fTopLabel.getText().equals("")) {
-                    fTopLabel.setPreferredSize(new Dimension(0, 5));
-                    fTopLabel.setText("");
-                    fTopLabel.setVisible(false);
-                    fTopLabel.setVisible(true);
-                } else {
-                    fTopLabel.setText(fHtmlTitle);
-                    adjustTopWidth(fTitle, fHtmlTitle);
-                }
-                fParent.repaint();
             } else if (e.getButton() == MouseEvent.BUTTON1
                     && e.getComponent() != fVarAssList
                     && e.getComponent() != fSubstituteWin) {
@@ -1073,6 +1049,31 @@ public class ExprEvalBrowser extends JPanel {
 
     }
 
+    private class ChangeVarAssignmentViewActionListener implements ActionListener {
+
+    	private final ShowVariableAssignment switchTo;
+    	
+    	public ChangeVarAssignmentViewActionListener(ShowVariableAssignment to) {
+    		this.switchTo = to;
+    	}
+    	
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			varAssignmentMode = switchTo;
+            DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) fTreeModel.getRoot();
+            
+            markVisibleNodes(dnode);
+            
+            // rebuild the tree
+            fTopNode.removeAllChildren();
+            EvalNode enode = (EvalNode) fTopNode.getUserObject();
+            createNodes(fTopNode, enode);
+            fTreeModel.reload();
+            // expand the nodes expanded before
+            expandMarkedNodes(dnode);
+		}
+    	
+    }
     /**
      * ActionListener for all the buttons in the configuration menu
      */
@@ -1086,7 +1087,6 @@ public class ExprEvalBrowser extends JPanel {
             if (command.equals("Close")) {
                 close();
             } else if (command.equals("Fit width")) {
-                deleteHTMLTags(fTopNode);
                 formatNodes(fTopNode);
                 // adjustTopWidth(fTopLabel,fTitle,fTopLabel.getText());
             } else if (command.equals("Variable assignment window")) {
@@ -1107,7 +1107,7 @@ public class ExprEvalBrowser extends JPanel {
                 fTreeHighlightings[2].setSelected(true);
                 fTree.setCellRenderer(new SubtreeRenderer());
                 fTree.repaint();
-            } else if (command.equalsIgnoreCase("Complete subtree hightliting")) {
+            } else if (command.equalsIgnoreCase("Complete subtree highlighting")) {
                 fTreeHighlightings[3].setSelected(true);
                 fTree.setCellRenderer(new CompleteSubtreeRenderer());
                 fTree.repaint();
@@ -1129,19 +1129,19 @@ public class ExprEvalBrowser extends JPanel {
                 String prop = System.getProperty("use.gui.view.evalbrowser.treeview", "false");
                 
                 if (prop.equals("earlyVarAssignment"))
-                    actionPerformed(new ActionEvent(fTreeViews[1], 0,
+                    actionPerformed(new ActionEvent(rbVariableAssignment[1], 0,
                             "Early variable assignment"));
                 else if (prop.equals("VarAssignment&Substitution"))
-                    actionPerformed(new ActionEvent(fTreeViews[2], 0,
+                    actionPerformed(new ActionEvent(rbVariableAssignment[2], 0,
                             "Variable assignment & substitution"));
                 else if (prop.equals("VarSubstitution"))
-                    actionPerformed(new ActionEvent(fTreeViews[3], 0,
+                    actionPerformed(new ActionEvent(rbVariableAssignment[3], 0,
                             "Variable substitution"));
                 else if (prop.equals("noVarAssignment"))
-                    actionPerformed(new ActionEvent(fTreeViews[4], 0,
+                    actionPerformed(new ActionEvent(rbVariableAssignment[4], 0,
                             "No variable assignment"));
                 else
-                    actionPerformed(new ActionEvent(fTreeViews[0], 0,
+                    actionPerformed(new ActionEvent(rbVariableAssignment[0], 0,
                             "Late variable assignment"));
                 prop = System.getProperty(
                         "use.gui.view.evalbrowser.highlighting", "false");
@@ -1168,92 +1168,15 @@ public class ExprEvalBrowser extends JPanel {
                     fNoColorHighlightingChk.setSelected(true);
                 else
                     fNoColorHighlightingChk.setSelected(false);
-                // delete the HTML-Formatting
-                deleteHTMLTags(fTopNode);
+
             } else if (command.equals("Set as default")) {
-                new SetDefaultDialog(fParent);
+                new SetDefaultDialog(ExprEvalBrowser.this, fParent);
 
             } else if (command.equals("Capture to file")) {
                 // CaptureTheWindow ctw = new CaptureTheWindow();
                 Thread t = new Thread(new CaptureTheWindow(fParent));
                 t.start();
-
-            } else if (command.equals("Late variable assignment")) {
-                fTreeViews[0].setSelected(true);
-                fHideVarAss = false;
-                fEarlyVarEval = false;
-                fVarSubstitution = false;
-                DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) fTreeModel
-                        .getRoot();
-                markVisibleNodes(dnode);
-                // rebuild the tree
-                fTopNode.removeAllChildren();
-                EvalNode enode = (EvalNode) fTopNode.getUserObject();
-                createNodes(fTopNode, enode);
-                fTreeModel.reload();
-                // expand the nodes expanded before
-                expandMarkedNodes(dnode);
-            } else if (command.equals("Early variable assignment")) {
-                fTreeViews[1].setSelected(true);
-                fHideVarAss = true;
-                fEarlyVarEval = true;
-                fVarSubstitution = false;
-                DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) fTreeModel
-                        .getRoot();
-                markVisibleNodes(dnode);
-                // rebuild the tree
-                fTopNode.removeAllChildren();
-                EvalNode enode = (EvalNode) fTopNode.getUserObject();
-                createNodes(fTopNode, enode);
-                fTreeModel.reload();
-                // expand the nodes expanded before
-                expandMarkedNodes(dnode);
-            } else if (command.equals("Variable assignment & substitution")) {
-                fTreeViews[2].setSelected(true);
-                fHideVarAss = true;
-                fEarlyVarEval = true;
-                fVarSubstitution = true;
-                DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) fTreeModel
-                        .getRoot();
-                markVisibleNodes(dnode);
-                // rebuild the tree
-                fTopNode.removeAllChildren();
-                EvalNode enode = (EvalNode) fTopNode.getUserObject();
-                createNodes(fTopNode, enode);
-                fTreeModel.reload();
-                // expand the nodes expanded before
-                expandMarkedNodes(dnode);
-            } else if (command.equals("Variable substitution")) {
-                fTreeViews[3].setSelected(true);
-                fHideVarAss = true;
-                fEarlyVarEval = false;
-                fVarSubstitution = true;
-                DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) fTreeModel.getRoot();
-                markVisibleNodes(dnode);
-                // rebuild the tree
-                fTopNode.removeAllChildren();
-                EvalNode enode = (EvalNode) fTopNode.getUserObject();
-                createNodes(fTopNode, enode);
-                fTreeModel.reload();
-                // expand the nodes expanded before
-                expandMarkedNodes(dnode);
-            } else if (command.equals("No variable assignment")) {
-                fTreeViews[4].setSelected(true);
-                fHideVarAss = true;
-                fEarlyVarEval = false;
-                fVarSubstitution = false;
-                DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) fTreeModel
-                        .getRoot();
-                markVisibleNodes(dnode);
-                // rebuild the tree
-                fTopNode.removeAllChildren();
-                EvalNode enode = (EvalNode) fTopNode.getUserObject();
-                createNodes(fTopNode, enode);
-                fTreeModel.reload();
-                // expand the nodes expanded before
-                expandMarkedNodes(dnode);
             }
-
         }
 
 		/**
@@ -1297,390 +1220,31 @@ public class ExprEvalBrowser extends JPanel {
             double nodeIndent = fTreeIndent * dnode.getLevel();
             nodeIndent += fTreeIndent * 2 + 4;
             double nodeWidth = fScrollTree.getWidth() - nodeIndent;
-            // detect the fonr metrics of the current node
-            char highlighting[] = enode.getHighlighting();
+            // detect the font metrics of the current node
+            
             FontMetrics fm = fTree.getFontMetrics(fTree.getFont());
             if (!fNoColorHighlightingChk.isSelected()
-                    || fTreeHighlightings[0].isSelected()
-                    || highlighting.length < 2)
+                    || fTreeHighlightings[0].isSelected())
                 fm = fTree.getFontMetrics(fTree.getFont());
             else if (fTreeHighlightings[1].isSelected()
                     && (enode.getResult().equals(BooleanValue.TRUE) || enode.getResult().equals(BooleanValue.FALSE)))
-                fm = fTree
-                        .getFontMetrics(fTree.getFont().deriveFont(Font.BOLD));
+                fm = fTree.getFontMetrics(fTree.getFont().deriveFont(Font.BOLD));
             else if (fTreeHighlightings[2].isSelected()
-                    && (highlighting[0] == 't' || highlighting[0] == 'f'))
-                fm = fTree
-                        .getFontMetrics(fTree.getFont().deriveFont(Font.BOLD));
+                    && (enode.getSubTreeValue() == TreeValue.TRUE || enode.getSubTreeValue() == TreeValue.FALSE))
+                fm = fTree.getFontMetrics(fTree.getFont().deriveFont(Font.BOLD));
             else if (fTreeHighlightings[3].isSelected()
-                    && (highlighting[1] == 't' || highlighting[0] == 'f'))
-                fm = fTree
-                        .getFontMetrics(fTree.getFont().deriveFont(Font.BOLD));
+                    && (enode.getCompleteTreeValue() == TreeValue.TRUE || enode.getSubTreeValue() == TreeValue.FALSE))
+                fm = fTree.getFontMetrics(fTree.getFont().deriveFont(Font.BOLD));
             // set the width for the node if the node text goes beyond the
             // viewpane
-            if (nodeIndent + fm.stringWidth(enode.toNormString()) > fScrollTree
-                    .getWidth())
-                enode.setTabWidth(nodeWidth);
+            if (nodeIndent + fm.stringWidth(enode.getExpressionStringRaw(isSubstituteVars())) > fScrollTree.getWidth())
+                enode.setWidth((int)nodeWidth);
+            
             fTreeModel.nodeChanged(node);
             // traverse the remaining child nodes
             // if node is leaf loop will not enter
             for (int i = 0; i < node.getChildCount(); i++)
                 formatNodes(node.getChildAt(i));
-        }
-
-        /**
-         * formats the nodes into the initial state without width specification
-         */
-        public void deleteHTMLTags(TreeNode node) {
-            DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) node;
-            EvalNode enode = (EvalNode) dnode.getUserObject();
-            enode.resetTabWidth();
-            fTreeModel.nodeChanged(node);
-            // traverse the remaining nodes
-            for (int i = 0; i < node.getChildCount(); i++)
-                deleteHTMLTags(node.getChildAt(i));
-        }
-
-    }
-
-    /**
-     * Set-Default-Configuration Dialog
-     */
-    class SetDefaultDialog extends JDialog {
-
-        public SetDefaultDialog(JFrame mother) {
-            super(mother, "Evaluation browser configuration", true);
-            Container c = getContentPane();
-            c.setLayout(new GridLayout(2, 1));
-            JLabel titleLabel = new JLabel(
-                    "Set current evaluation browser configurations as default");
-            titleLabel.setHorizontalAlignment(JLabel.CENTER);
-            titleLabel.setVerticalAlignment(JLabel.CENTER);
-            c.add(titleLabel);
-            JPanel p = new JPanel(new FlowLayout());
-            JButton b1 = new JButton("For this session");
-            // action for setting the defaults for only the current session
-            b1.addActionListener(new ActionListener() {
-                @Override
-				public void actionPerformed(ActionEvent event) {
-                    if (fExtendedExists.isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.exists",
-                                "true");
-                    else
-                        System.setProperty("use.gui.view.evalbrowser.exists",
-                                "false");
-                    if (fExtendedForAll.isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.forall",
-                                "true");
-                    else
-                        System.setProperty("use.gui.view.evalbrowser.forall",
-                                "false");
-                    if (fExtendedOr.isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.or",
-                                "true");
-                    else
-                        System.setProperty("use.gui.view.evalbrowser.or",
-                                "false");
-                    if (fExtendedAnd.isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.and",
-                                "true");
-                    else
-                        System.setProperty("use.gui.view.evalbrowser.and",
-                                "false");
-                    if (fExtendedImplies.isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.implies",
-                                "true");
-                    else
-                        System.setProperty("use.gui.view.evalbrowser.implies",
-                                "false");
-                    if (fVarAssListChk.isSelected())
-                        System.setProperty(
-                                "use.gui.view.evalbrowser.VarAssignmentWindow",
-                                "true");
-                    else
-                        System.setProperty(
-                                "use.gui.view.evalbrowser.VarAssignmentWindow",
-                                "false");
-                    if (fVarSubstituteWinChk.isSelected())
-                        System
-                                .setProperty(
-                                        "use.gui.view.evalbrowser.SubExprSubstitutionWindow",
-                                        "true");
-                    else
-                        System
-                                .setProperty(
-                                        "use.gui.view.evalbrowser.SubExprSubstitutionWindow",
-                                        "false");
-                    if (fTreeViews[0].isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.treeview",
-                                "lateVarAssignment");
-                    else if (fTreeViews[1].isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.treeview",
-                                "earlyVarAssignment");
-                    else if (fTreeViews[2].isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.treeview",
-                                "VarAssignment&Substitution");
-                    else if (fTreeViews[3].isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.treeview",
-                                "VarSubstitution");
-                    else if (fTreeViews[4].isSelected())
-                        System.setProperty("use.gui.view.evalbrowser.treeview",
-                                "noVarAssignment");
-                    if (fTreeHighlightings[0].isSelected())
-                        System.setProperty(
-                                "use.gui.view.evalbrowser.highlighting", "no");
-                    else if (fTreeHighlightings[1].isSelected())
-                        System.setProperty(
-                                "use.gui.view.evalbrowser.highlighting", "term");
-                    else if (fTreeHighlightings[2].isSelected())
-                        System.setProperty(
-                                "use.gui.view.evalbrowser.highlighting",
-                                "subtree");
-                    else if (fTreeHighlightings[3].isSelected())
-                        System.setProperty(
-                                "use.gui.view.evalbrowser.highlighting",
-                                "complete");
-                    if (fNoColorHighlightingChk.isSelected())
-                        System.setProperty(
-                                "use.gui.view.evalbrowser.blackHighlighting",
-                                "true");
-                    else
-                        System.setProperty(
-                                "use.gui.view.evalbrowser.blackHighlighting",
-                                "false");
-                    setVisible(false);
-                    dispose();
-                }
-            });
-            JButton b2 = new JButton("For all sessions");
-            // action for setting the defaults and save them persistently in the
-            // config file
-            b2.addActionListener(new ActionListener() {
-                @Override
-				public void actionPerformed(ActionEvent event) {
-                    StringBuilder s = new StringBuilder();
-                    File f = new File(System.getProperty("user.dir", null),
-                            ".userc");
-                    if (!f.exists())
-                        f = new File(System.getProperty("user.home", null),
-                                ".userc");
-                    try {
-                        // create new config-file if there was no
-                        if (!f.exists())
-                            f.createNewFile();
-                        // f = new File(System.getProperty("user.home", null),
-                        // ".userc");
-                        // read the config file int string s
-                        FileReader reader = new FileReader(f);
-                        for (int c; (c = reader.read()) != -1;) {
-                            s.append((char) c);
-                        }
-                        reader.close();
-                        if (s.length() != 0 && s.charAt(s.length() - 1) != '\n')
-                            s.append("\n");
-                        
-                        String str = s.toString();
-                        // reconfigure s
-                        str = setConfigPoint(str,
-                                "use.gui.view.evalbrowser.exists",
-                                fExtendedExists.isSelected());
-                        str = setConfigPoint(str,
-                                "use.gui.view.evalbrowser.forall",
-                                fExtendedForAll.isSelected());
-                        str = setConfigPoint(str, "use.gui.view.evalbrowser.and",
-                                fExtendedAnd.isSelected());
-                        str = setConfigPoint(str, "use.gui.view.evalbrowser.or",
-                                fExtendedOr.isSelected());
-                        str = setConfigPoint(str,
-                                "use.gui.view.evalbrowser.implies",
-                                fExtendedImplies.isSelected());
-                        str = setConfigPoint(str,
-                                "use.gui.view.evalbrowser.VarAssignmentWindow",
-                                fVarAssListChk.isSelected());
-                        str = setConfigPoint(
-                                str,
-                                "use.gui.view.evalbrowser.SubExprSubstitutionWindow",
-                                fVarSubstituteWinChk.isSelected());
-                        if (fTreeViews[0].isSelected())
-                            str = setConfigPoint(str,
-                                    "use.gui.view.evalbrowser.treeview",
-                                    "lateVarAssignment");
-                        else if (fTreeViews[1].isSelected())
-                            str = setConfigPoint(str,
-                                    "use.gui.view.evalbrowser.treeview",
-                                    "earlyVarAssignment");
-                        else if (fTreeViews[2].isSelected())
-                            str = setConfigPoint(str,
-                                    "use.gui.view.evalbrowser.treeview",
-                                    "VarAssignment&Substitution");
-                        else if (fTreeViews[3].isSelected())
-                            str = setConfigPoint(str,
-                                    "use.gui.view.evalbrowser.treeview",
-                                    "VarSubstitution");
-                        else if (fTreeViews[4].isSelected())
-                            str = setConfigPoint(str,
-                                    "use.gui.view.evalbrowser.treeview",
-                                    "noVarAssignment");
-                        if (fTreeHighlightings[0].isSelected())
-                            str = setConfigPoint(str,
-                                    "use.gui.view.evalbrowser.highlighting", "no");
-                        else if (fTreeHighlightings[1].isSelected())
-                            str = setConfigPoint(str,
-                                    "use.gui.view.evalbrowser.highlighting",
-                                    "term");
-                        else if (fTreeHighlightings[2].isSelected())
-                            str = setConfigPoint(str,
-                                    "use.gui.view.evalbrowser.highlighting",
-                                    "subtree");
-                        else if (fTreeHighlightings[3].isSelected())
-                            str = setConfigPoint(str,
-                                    "use.gui.view.evalbrowser.highlighting",
-                                    "complete");
-                        str = setConfigPoint(str,
-                                "use.gui.view.evalbrowser.blackHighlighting",
-                                fNoColorHighlightingChk.isSelected());
-
-                        // rewrite the config file
-                        FileWriter writer = new FileWriter(f);
-                        for (int i = 0; i < str.length(); i++)
-                            writer.write(str.charAt(i));
-                        writer.close();
-                    } catch (IOException e) {
-                        new ErrorFrame(
-                                "IO Error with Configuration File occured");
-                    }
-                    setVisible(false);
-                    dispose();
-
-                }
-            });
-            JButton b3 = new JButton("Cancel");
-            // cancel-Action
-            b3.addActionListener(new ActionListener() {
-                @Override
-				public void actionPerformed(ActionEvent event) {
-                    setVisible(false);
-                    dispose();
-                }
-            });
-            p.add(b1);
-            p.add(b2);
-            p.add(b3);
-            c.add(p);
-            pack();
-            setVisible(true);
-        }
-
-        /**
-         * sets the desired value to the attribute in the configure file. this
-         * method is for the non-boolean attributes.
-         * 
-         * @return the changed content of the configure file
-         */
-        public String setConfigPoint(String confFileContent, String attr,
-                String val) {
-            confFileContent = "\n" + confFileContent;
-            String escaptedAttr = "";
-            for (int i = 0; i < attr.length(); i++) {
-                if (attr.charAt(i) == '.')
-                    escaptedAttr += "\\.";
-                else
-                    escaptedAttr += attr.charAt(i);
-            }
-            Pattern p = Pattern.compile("\n" + escaptedAttr);
-            String parts[] = p.split(confFileContent);
-            confFileContent = "";
-            for (int i = 0; i < parts.length; i++) {
-                if (i == parts.length - 1) {
-                    confFileContent += truncatePart(parts[i]);
-                } else {
-                    System.setProperty(attr, val);
-                    confFileContent += truncatePart(parts[i]) + "\n" + attr
-                            + "=" + val;
-                }
-            }
-            if (parts.length == 1) {
-                if (confFileContent.length() != 0
-                        && confFileContent.charAt(confFileContent.length() - 1) != '\n')
-                    confFileContent += "\n";
-                System.setProperty(attr, val);
-                confFileContent += attr + "=" + val + "\n";
-            }
-            return confFileContent.substring(1);
-
-        }
-
-        /**
-         * sets the desired value to the attribute in the configure file this
-         * method is for the boolean attributes.
-         * 
-         * @return the changed content of the configure file
-         */
-        public String setConfigPoint(String confFileContent, String attr,
-                boolean boolVal) {
-            String val;
-            if (boolVal)
-                val = "true";
-            else
-                val = "false";
-            confFileContent = "\n" + confFileContent;
-            String escaptedAttr = "";
-            for (int i = 0; i < attr.length(); i++) {
-                if (attr.charAt(i) == '.')
-                    escaptedAttr += "\\.";
-                else
-                    escaptedAttr += attr.charAt(i);
-            }
-            Pattern p = Pattern.compile("\n" + escaptedAttr);
-            String parts[] = p.split(confFileContent);
-            confFileContent = "";
-            for (int i = 0; i < parts.length; i++) {
-                if (i == parts.length - 1) {
-                    confFileContent += truncatePart(parts[i]);
-                } else {
-                    System.setProperty(attr, val);
-                    confFileContent += truncatePart(parts[i]) + "\n" + attr
-                            + "=" + val;
-                }
-            }
-            if (parts.length == 1) {
-                if (confFileContent.length() != 0
-                        && confFileContent.charAt(confFileContent.length() - 1) != '\n')
-                    confFileContent += "\n";
-                System.setProperty(attr, val);
-                confFileContent += attr + "=" + val + "\n";
-            }
-            return confFileContent.substring(1);
-        }
-
-        /**
-         * detaches the value from the rest of the part of the config file
-         * 
-         * @param part
-         *            the part of the config file
-         * @return the rest of the part of the config file
-         */
-        private String truncatePart(String part) {
-            for (int i = 0; i < part.length(); i++)
-                if (part.charAt(i) == '\n') {
-                    return part.substring(i);
-                }
-            return "";
-        }
-    } // SetDefaultDialog
-
-    /**
-     * shows an error Frame for the user
-     */
-    public class ErrorFrame extends JFrame {
-        public ErrorFrame(String labelTxt) {
-            super("Error message");
-            JLabel label = new JLabel(labelTxt);
-            label.setHorizontalAlignment(JLabel.CENTER);
-            add(label);
-            setSize(300, 100);
-            setVisible(true);
-            adjustTopWidth(label, labelTxt, labelTxt);
         }
     }
 
@@ -1720,249 +1284,106 @@ public class ExprEvalBrowser extends JPanel {
             DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) path
                     .getLastPathComponent();
             EvalNode enode = (EvalNode) dnode.getUserObject();
-            // get the Varbindings
-            Vector<Entry> bindings = enode.getVarBindings();
+
+            List<Entry> bindings = enode.getVarBindings();
+            
             // set content to the variable window
-            fVarAssList.setListData(bindings);
+            fVarAssList.setListData(bindings.toArray(new Entry[bindings.size()]));
+                        
             // substitutes subexpressions with the values
-            String subs = "";
-            subs = enode.getExprAndValue();
-            DefaultMutableTreeNode dnode2;
-            EvalNode enode2;
-            for (int i = 0; i < dnode.getChildCount(); i++) {
-                if (i > 0 && dnode.getChildCount() > 2)
-                    break;
-                dnode2 = (DefaultMutableTreeNode) dnode.getChildAt(i);
-                enode2 = (EvalNode) dnode2.getUserObject();
-                subs = substituteSubExpr(subs, enode2.getExpr().toString(),
-                        enode2.getResult().toString());
-            }
-            fSubstituteWin.setText(enode.substituteVariables(subs));
-        }
-
-        /**
-         * substitutes the subexpressions with the associated values
-         * 
-         * @return the expression with substituted subexpressions with their
-         *         values
-         */
-        public String substituteSubExpr(String expr, String subExpr,
-                String subValue) {
-            String ret = expr;
-            HashSet<Character> stoken = new HashSet<Character>();
-            stoken.add(new Character(' '));
-            stoken.add(new Character('<'));
-            stoken.add(new Character('>'));
-            stoken.add(new Character('('));
-            stoken.add(new Character(')'));
-            stoken.add(new Character('.'));
-            stoken.add(new Character(':'));
-            stoken.add(new Character('-'));
-            Pattern p = Pattern.compile(escapeString(subExpr));
-            String[] parts = p.split(ret);
-            String help = "";
-            for (int j = 0; j < parts.length; j++) {
-
-                if (j == parts.length - 1)
-                    help += parts[j];
-                else {
-                    help += parts[j];
-                    char first = ' ';
-                    if (parts[j].length() > 0)
-                        first = parts[j].charAt(parts[j].length() - 1);
-                    char second = ' ';
-                    if (parts[j + 1] != null)
-                        second = parts[j + 1].charAt(0);
-                    if (stoken.contains(new Character(first))
-                            && stoken.contains(new Character(second)))
-                        help += subValue;
-                    else
-                        help += subExpr;
-                }
-            }
-            ret = help;
-            return ret;
-        }
-
-        /**
-         * escapes the metacharacters .([{\^$|)?*+ with a backslash '\'
-         * 
-         * @param origin
-         *            the original string
-         * @return the espaped string
-         */
-        public String escapeString(String origin) {
-            String ret = "";
-            for (int i = 0; i < origin.length(); i++) {
-                char c = origin.charAt(i);
-                if (c == '.' || c == '(' || c == '[' || c == '{' || c == '\\'
-                        || c == '^' || c == '$' || c == '|' || c == '}'
-                        || c == ']' || c == ')' || c == '?' || c == '*')
-                    ret += "\\";
-                ret += origin.charAt(i);
-            }
-            return ret;
+			String content = "<html><head><style> <!-- body { font-family: sansserif; } --> </style></head><body><font size=\"-1\">"
+					+ enode.substituteChildExpressions()
+					+ "</font></body></html>";
+            fSubstituteWin.setText(content);
         }
     }
 
-    /**
-     * the TreeCellRenderer for term-Highlighting
-     */
-    class TermRenderer extends DefaultTreeCellRenderer {
-        @Override
+    private static final Color COLOR_TRUE = new Color(0, 0x80, 0);
+    private static final Color COLOR_FALSE = new Color(0xc0, 0, 0);
+    
+    abstract class TreeHighlightingRenderer extends DefaultTreeCellRenderer {
+    	
+    	protected abstract TreeValue getTreeValue(EvalNode node);
+    	
+    	@Override
 		public Component getTreeCellRendererComponent(JTree tree, Object value,
                 boolean sel, boolean expanded, boolean leaf, int row,
                 boolean hasFocus) {
 
             DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) value;
             EvalNode enode = (EvalNode)dnode.getUserObject();
+            TreeValue treeValue = getTreeValue(enode);
             
-            if (!enode.htmlUsed())
-                super.getTreeCellRendererComponent(tree, value, sel, expanded,
-                        leaf, row, hasFocus);
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
             
-            if (enode.getResult().equals(BooleanValue.TRUE)) {
+            switch (treeValue) {
+            case TRUE:
                 if (fNoColorHighlightingChk.isSelected()) {
                     setFont(fDefaultFont.deriveFont(Font.BOLD));
                     setForeground(Color.black);
                     setBackgroundNonSelectionColor(Color.white);
                 } else {
                     setFont(fDefaultFont);
-                    setForeground(new Color(0, 0x80, 0));
+                    setForeground(COLOR_TRUE);
                     setBackgroundNonSelectionColor(Color.white);
                 }
-            } else if (enode.getResult().equals(BooleanValue.FALSE)) {
+                break;
+            case FALSE:
                 if (fNoColorHighlightingChk.isSelected()) {
                     setFont(fDefaultFont.deriveFont(Font.BOLD));
                     setForeground(Color.white);
                     setBackgroundNonSelectionColor(Color.black);
                 } else {
                     setFont(fDefaultFont);
-                    setForeground(new Color(0xc0, 0, 0));
+                    setForeground(COLOR_FALSE);
                     setBackgroundNonSelectionColor(Color.white);
                 }
-            } else {
+                break;
+            default:
                 setFont(fDefaultFont);
                 setForeground(Color.black);
                 setBackgroundNonSelectionColor(Color.white);
             }
-
-            if (enode.htmlUsed())
-                super.getTreeCellRendererComponent(tree, value, sel, expanded,
-                        leaf, row, hasFocus);
-
+            
             return this;
 
         }
+    }
+    
+    /**
+     * the TreeCellRenderer for term-Highlighting
+     */
+    class TermRenderer extends TreeHighlightingRenderer {
+		@Override
+		protected TreeValue getTreeValue(EvalNode node) {
+			if (node.getResult().equals(BooleanValue.TRUE)) {
+				return TreeValue.TRUE;
+			} else if (node.getResult().equals(BooleanValue.FALSE)) {
+				return TreeValue.FALSE;
+			} else {
+				return TreeValue.INVALID;
+			}
+		}
     }
 
     /**
      * the TreeCellRenderer for subtree-Highlighting
      */
-    class SubtreeRenderer extends DefaultTreeCellRenderer {
-        @Override
-		public Component getTreeCellRendererComponent(JTree tree, Object value,
-                boolean sel, boolean expanded, boolean leaf, int row,
-                boolean hasFocus) {
-
-            DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) value;
-            EvalNode enode = (EvalNode) dnode.getUserObject();
-            if (!enode.htmlUsed())
-                super.getTreeCellRendererComponent(tree, value, sel, expanded,
-                        leaf, row, hasFocus);
-            char[] highlightings = enode.getHighlighting();
-            if (highlightings != null && highlightings[0] == 't') {
-                if (fNoColorHighlightingChk.isSelected()) {
-                    setFont(fDefaultFont.deriveFont(Font.BOLD));
-                    setForeground(Color.black);
-                    setBackgroundNonSelectionColor(Color.white);
-                } else {
-                    setFont(fDefaultFont);
-                    setForeground(new Color(0, 0x80, 0));
-                    setBackgroundNonSelectionColor(Color.white);
-                }
-            } else if (highlightings != null && highlightings[0] == 'f') {
-                if (fNoColorHighlightingChk.isSelected()) {
-                    setFont(fDefaultFont.deriveFont(Font.BOLD));
-                    setForeground(Color.white);
-                    setBackgroundNonSelectionColor(Color.black);
-                } else {
-                    setFont(fDefaultFont);
-                    setForeground(new Color(0xc0, 0, 0));
-                    setBackgroundNonSelectionColor(Color.white);
-                }
-            } else {
-                if (fNoColorHighlightingChk.isSelected()) {
-                    setFont(fDefaultFont);
-                    setForeground(Color.black);
-                    setBackgroundNonSelectionColor(Color.white);
-                } else {
-                    setFont(fDefaultFont);
-                    setForeground(Color.black);
-                    setBackgroundNonSelectionColor(Color.white);
-                }
-            }
-
-            if (enode.htmlUsed()) {
-                super.getTreeCellRendererComponent(tree, value, sel, expanded,
-                        leaf, row, hasFocus);
-            }
-
-            return this;
-        }
+    class SubtreeRenderer extends TreeHighlightingRenderer {
+		@Override
+		protected TreeValue getTreeValue(EvalNode node) {
+			return node.getSubTreeValue();
+		}
     }
 
     /**
      * highlights Complete Subtree of the evaluated complete terms
      */
-    class CompleteSubtreeRenderer extends DefaultTreeCellRenderer {
-        @Override
-		public Component getTreeCellRendererComponent(JTree tree, Object value,
-                boolean sel, boolean expanded, boolean leaf, int row,
-                boolean hasFocus) {
-
-            DefaultMutableTreeNode dnode = (DefaultMutableTreeNode) value;
-            EvalNode enode = (EvalNode) dnode.getUserObject();
-            if (!enode.htmlUsed())
-                super.getTreeCellRendererComponent(tree, value, sel, expanded,
-                        leaf, row, hasFocus);
-            char[] highlightings = enode.getHighlighting();
-            if (highlightings[1] == 't') {
-                if (fNoColorHighlightingChk.isSelected()) {
-                    setFont(fDefaultFont.deriveFont(Font.BOLD));
-                    setForeground(Color.black);
-                    setBackgroundNonSelectionColor(Color.white);
-                } else {
-                    setFont(fDefaultFont);
-                    setForeground(new Color(0, 0x80, 0));
-                    setBackgroundNonSelectionColor(Color.white);
-                }
-            } else if (highlightings[1] == 'f') {
-                if (fNoColorHighlightingChk.isSelected()) {
-                    setFont(fDefaultFont.deriveFont(Font.BOLD));
-                    setForeground(Color.white);
-                    setBackgroundNonSelectionColor(Color.black);
-                } else {
-                    setFont(fDefaultFont);
-                    setForeground(new Color(0xc0, 0, 0));
-                    setBackgroundNonSelectionColor(Color.white);
-                }
-            } else {
-                if (fNoColorHighlightingChk.isSelected()) {
-                    setFont(fDefaultFont);
-                    setForeground(Color.black);
-                    setBackgroundNonSelectionColor(Color.white);
-                } else {
-                    setFont(fDefaultFont);
-                    setForeground(Color.black);
-                    setBackgroundNonSelectionColor(Color.white);
-                }
-            }
-            if (enode.htmlUsed())
-                super.getTreeCellRendererComponent(tree, value, sel, expanded,
-                        leaf, row, hasFocus);
-            return this;
-        }
+    class CompleteSubtreeRenderer extends TreeHighlightingRenderer {
+		@Override
+		protected TreeValue getTreeValue(EvalNode node) {
+			return node.getCompleteTreeValue();
+		}
     }
 
     public void markVisibleNodes(TreeNode tnode) {
@@ -1972,9 +1393,9 @@ public class ExprEvalBrowser extends JPanel {
         TreePath path = new TreePath(dnode.getPath());
                 
         if (fTree.isVisible(path))
-            enode.setVisibleAttr(true);
+            enode.setVisible(true);
         else
-            enode.setVisibleAttr(false);
+            enode.setVisible(false);
         
         for (int i = 0; i < dnode.getChildCount(); i++) {
             child = (DefaultMutableTreeNode) dnode.getChildAt(i);
@@ -1999,46 +1420,6 @@ public class ExprEvalBrowser extends JPanel {
             child = (DefaultMutableTreeNode) dnode.getChildAt(i);
             expandMarkedNodes(child);
         }
-    }
-
-    public void adjustTopWidth(String text, String htmlText) {
-        adjustTopWidth(fTopLabel, text, htmlText);
-    }
-
-    public void adjustTopWidth(JLabel label, String text, String htmlText) {
-        // get the Display Size
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        Dimension displaySize = tk.getScreenSize();
-        int maxWidth = (int) displaySize.getWidth();
-
-        // Dimension windowSize = getSize();
-        int windowSize = getWidth();
-
-        if (windowSize < maxWidth)
-            maxWidth = windowSize;
-        // calculate the Dimension for the title
-        FontMetrics fm = label.getFontMetrics(label.getFont());
-        int topWidth = 0;
-        int topHeight = fm.getHeight();
-        // int topHeight = 0;
-        Pattern p = Pattern.compile("\n");
-        String s[] = p.split(text);
-        for (int i = 0; i < s.length; i++) {
-            // if the current string is wider
-            if (topWidth < fm.stringWidth(s[i]))
-                if (fm.stringWidth(s[i]) < maxWidth)
-                    // string is between width so far and maxWidth
-                    topWidth = fm.stringWidth(s[i]);
-                else
-                    topWidth = maxWidth;
-            // increment the height with 1 line or more if needed
-            topHeight += (fm.getHeight() * (1 + (fm.stringWidth(s[i]) / maxWidth)));
-        }
-        // set the Size of the South Frame
-        label.setPreferredSize(new Dimension(topWidth, topHeight));
-        // make changes visible
-        label.setText(htmlText);
-        label.invalidate();
     }
 
     /**

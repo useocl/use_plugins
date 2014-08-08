@@ -31,8 +31,7 @@ import org.tzi.use.uml.ocl.value.Value;
 
 /**
  * Expression for creating an empty collection.
- *
- * @version     $ProjectVersion: 0.393 $
+ * (USE specific extension, only for backward compatibility)
  * @author  Mark Richters
  */
 public final class ExpEmptyCollection extends Expression {
@@ -75,23 +74,22 @@ public final class ExpEmptyCollection extends Expression {
     }
 
     @Override
+    public String name() {
+    	return "oclEmpty";
+    }
+    
+    @Override
     public StringBuilder toString(StringBuilder sb) {
-        sb.append("oclEmpty(");
+        sb.append(name()).append("(");
         type().toString(sb);
         return sb.append(")");
     }
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#processWithVisitor(org.tzi.use.uml.ocl.expr.ExpressionVisitor)
-	 */
 	@Override
 	public void processWithVisitor(ExpressionVisitor visitor) {
 		visitor.visitEmptyCollection(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#childExpressionRequiresPreState()
-	 */
 	@Override
 	protected boolean childExpressionRequiresPreState() {
 		return false;

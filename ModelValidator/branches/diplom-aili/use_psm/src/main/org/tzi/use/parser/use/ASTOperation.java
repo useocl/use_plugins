@@ -110,8 +110,7 @@ public class ASTOperation extends ASTAnnotatable {
             resultType = fType.gen(ctx);
         }
         
-        fOperation = ctx.modelFactory().createOperation(fName.getText(), varDeclList,
-                                                        resultType);
+        fOperation = ctx.modelFactory().createOperation(fName.getText(), varDeclList, resultType);
         
         // sets the line position of the USE-Model in this attribute
         fOperation.setPositionInModel( fName.getLine() );
@@ -187,6 +186,17 @@ public class ASTOperation extends ASTAnnotatable {
 			
 			throw new SemanticException(fName, message.toString());
 		}
+	}
+
+
+	/**
+	 * During compilation, this operation marks this AST-node
+	 * as invali, because the signature had errors.
+	 * Any call to {@link #genFinal(Context)} afterwards 
+	 * is ignored.
+	 */
+	public void setSignatureGenFailed() {
+		this.fOperation = null;
 	}
 }
 

@@ -56,14 +56,18 @@ public class ASTInvariantClause extends ASTAnnotatable {
         return fExpr.toString();
     }
 
-
     void gen(Context ctx, List<Token> varTokens, MClass cls) {
+    	gen(ctx, varTokens, cls, true);
+    }
+    
+    MClassInvariant gen(Context ctx, List<Token> varTokens, MClass cls, boolean addToModel) {
         // enter context variable into scope of invariant
         ObjectType ot = TypeFactory.mkObjectType(cls);
         Symtable vars = ctx.varTable();
         vars.enterScope();
 
         List<String> varNames = new ArrayList<String>();
+        MClassInvariant inv = null;
         
         try {
             if (varTokens != null && varTokens.size() > 0) {                
@@ -88,13 +92,15 @@ public class ASTInvariantClause extends ASTAnnotatable {
 				invName = fName.getText();
 			}
             
-            MClassInvariant inv = onCreateMClassInvariant(ctx, cls, varNames, expr, invName);
+            inv = onCreateMClassInvariant(ctx, cls, varNames, expr, invName);
             
             this.genAnnotations(inv);
             
             // sets the line position of the USE-Model in this  invarinat
             inv.setPositionInModel( fExpr.getStartToken().getLine() );
-            ctx.model().addClassInvariant(inv);
+            if(addToModel){
+            	ctx.model().addClassInvariant(inv);
+            }
         } catch (MInvalidModelException ex) {
             ctx.reportError(fExpr.getStartToken(), ex);
         } catch (ExpInvalidException ex) {
@@ -104,6 +110,7 @@ public class ASTInvariantClause extends ASTAnnotatable {
         }
         vars.exitScope(); 
         ctx.exprContext().pop();
+        return inv;
     }
 
 	protected MClassInvariant onCreateMClassInvariant(Context ctx, MClass cls,

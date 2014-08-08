@@ -24,11 +24,13 @@ package org.tzi.use.uml.mm;
 import java.util.List;
 
 import org.tzi.use.uml.ocl.expr.ExpAllInstances;
+import org.tzi.use.uml.ocl.expr.ExpConstBoolean;
 import org.tzi.use.uml.ocl.expr.ExpExists;
 import org.tzi.use.uml.ocl.expr.ExpForAll;
 import org.tzi.use.uml.ocl.expr.ExpInvalidException;
 import org.tzi.use.uml.ocl.expr.ExpReject;
 import org.tzi.use.uml.ocl.expr.ExpSelect;
+import org.tzi.use.uml.ocl.expr.ExpStdOp;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
@@ -76,6 +78,14 @@ public final class MClassInvariant extends MModelElementImpl implements UseFileL
     private VarDeclList fVars;
     
     /**
+     * Flags from generator.
+     */
+    private boolean loaded;
+    private boolean active;
+    private boolean negated;
+    private boolean checkedByBarrier;
+    
+    /**
      * If <code>true</code>, the body expression is expanded
      * to <code>className.allInstances()->exists(body)</code> instead of
      * <code>className.allInstances()->forAll(body)</code>.
@@ -94,11 +104,13 @@ public final class MClassInvariant extends MModelElementImpl implements UseFileL
         fBody = inv;
         fBody.assertBoolean();
         fVars = new VarDeclList(true);
+        loaded = false;
+        active = true;
+        negated = false;
         fIsExistential = isExistential;
-        
-        // expand expression
+
+        // parse variables
         ObjectType t = TypeFactory.mkObjectType(fClass);
-        Expression allInstances = new ExpAllInstances(t);
         if (vars == null || vars.size() == 0)
         {
         	fHasVars = false;
@@ -113,16 +125,22 @@ public final class MClassInvariant extends MModelElementImpl implements UseFileL
         	}
         }
         
-        if (isExistential)
-        {
-        	fExpanded = new ExpExists(fVars, allInstances, fBody);
-        }
-        else
-        {
-        	fExpanded = new ExpForAll(fVars, allInstances, fBody);
-        }
+        calculateExpandedExpression();
     }
 
+    /**
+     * Creates a dynamic invariant.
+     */
+    MClassInvariant(String name, List<String> vars, MClass cls, Expression inv, boolean isExistential, boolean active, boolean negated)
+    		throws ExpInvalidException {
+    	this(name, vars, cls, inv, isExistential);
+    	
+		loaded = true;
+		this.active = active;
+		this.negated = negated;
+		
+		calculateExpandedExpression();
+    }
 
     public String qualifiedName(){
     	return fClass.name() + "::" + name();
@@ -142,7 +160,18 @@ public final class MClassInvariant extends MModelElementImpl implements UseFileL
         return fBody;
     }
 
-    /** 
+    private void calculateExpandedExpression() throws ExpInvalidException {
+		ObjectType t = TypeFactory.mkObjectType(fClass);
+	    Expression allInstances = new ExpAllInstances(t);
+	    
+	    if (fIsExistential) {
+	    	fExpanded = new ExpExists(fVars, allInstances, fBody);
+	    } else {
+	    	fExpanded = new ExpForAll(fVars, allInstances, fBody);
+	    }
+	}
+
+	/** 
      * Returns the expanded expression of the invariant. This
      * expression requires no context and can be evaluated
      * globally. If {@link #isExistential()} is <code>false</code>, it is enclosed by a <code>forAll</code> expression iterating over
@@ -152,6 +181,21 @@ public final class MClassInvariant extends MModelElementImpl implements UseFileL
         return fExpanded;
     }
 
+    public Expression flaggedExpression() {
+		Expression invExpr = expandedExpression();
+		
+		if(!active){
+			return new ExpConstBoolean(true);
+		}
+		if(negated){
+			try {
+				return ExpStdOp.create("not", new Expression[]{ invExpr });
+			} catch (ExpInvalidException e) {}
+		}
+		
+		return invExpr;
+	}
+    
     /** 
      * Returns an expression for selecting all instances that violate
      * the invariant.  The expression is generated as
@@ -178,14 +222,13 @@ public final class MClassInvariant extends MModelElementImpl implements UseFileL
             //   A.allInstances()->forAll(a2|
             //     A.allInstances()->forAll(a3| true)))
             for (int i = fVars.size() - 1; i > 0; --i) {
-            	 current = new ExpForAll(fVars.varDecl(i), allInstances, fBody);
+            	 current = new ExpForAll(fVars.varDecl(i), allInstances, current);
             }
             
             return new ExpReject(fVars.varDecl(0), allInstances, current);
 
         } catch (ExpInvalidException ex) {
-            throw new RuntimeException("getExpressionForViolatingInstances failed: " +
-                                       ex.getMessage());
+            throw new RuntimeException("getExpressionForViolatingInstances failed", ex);
         }
     }
 
@@ -215,13 +258,12 @@ public final class MClassInvariant extends MModelElementImpl implements UseFileL
             //   A.allInstances()->forAll(a2|
             //     A.allInstances()->forAll(a3| true)))
             for (int i = fVars.size() - 1; i > 0; --i) {
-            	 current = new ExpForAll(fVars.varDecl(i), allInstances, fBody);
+            	 current = new ExpForAll(fVars.varDecl(i), allInstances, current);
             }
             
             return new ExpSelect(fVars.varDecl(0), allInstances, current);
         } catch (ExpInvalidException ex) {
-            throw new RuntimeException("getExpressionForSatisfyingInstances failed: " +
-                                       ex.getMessage());
+            throw new RuntimeException("getExpressionForSatisfyingInstances failed", ex);
         }
     }
 
@@ -266,7 +308,44 @@ public final class MClassInvariant extends MModelElementImpl implements UseFileL
     	return fHasVars ? fVars : null;
     }
 
-    /**
+	public boolean isLoaded() {
+		return loaded;
+	}
+    
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public boolean isNegated() {
+		return negated;
+	}
+
+	public void setNegated(boolean negated) {
+		this.negated = negated;
+	}
+
+	/**
+	 * <code>true</code> if this invariant is validated by
+	 * an automatically placed barrier. So it can be ignored
+	 * by the last check.
+	 * @return the checkedByBarrier
+	 */
+	public boolean isCheckedByBarrier() {
+		return checkedByBarrier;
+	}
+
+	/**
+	 * @param checkedByBarrier the checkedByBarrier to set
+	 */
+	public void setCheckedByBarrier(boolean checkedByBarrier) {
+		this.checkedByBarrier = checkedByBarrier;
+	}
+	
+	/**
      * Returns a string representation of this model element.
      */
     @Override

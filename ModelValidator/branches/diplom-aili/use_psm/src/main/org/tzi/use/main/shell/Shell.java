@@ -33,7 +33,6 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -58,7 +57,6 @@ import org.tzi.use.analysis.coverage.AttributeAccessInfo;
 import org.tzi.use.analysis.coverage.CoverageAnalyzer;
 import org.tzi.use.analysis.coverage.CoverageData;
 import org.tzi.use.config.Options;
-import org.tzi.use.gen.model.GFlaggedInvariant;
 import org.tzi.use.gen.tool.GGeneratorArguments;
 import org.tzi.use.gen.tool.GNoResultException;
 import org.tzi.use.main.MonitorAspectGenerator;
@@ -74,13 +72,13 @@ import org.tzi.use.runtime.shell.impl.PluginShellCmdProxy;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MClassInvariant;
+import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MMInstanceGenerator;
 import org.tzi.use.uml.mm.MMPrintVisitor;
 import org.tzi.use.uml.mm.MMVisitor;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MModelElement;
 import org.tzi.use.uml.mm.ModelFactory;
-import org.tzi.use.uml.ocl.expr.EvalNode;
 import org.tzi.use.uml.ocl.expr.Evaluator;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.MultiplicityViolationException;
@@ -326,12 +324,12 @@ public final class Shell implements Runnable, PPCHandler {
                             + nl
                             + "due to an error in the program. The program will try to continue, but may"
                             + nl
-                            + "not be able to recover from the error. Please send a bug report to grp-usedevel@informatik.uni-bremen.de"
+                            + "not be able to recover from the error. Please send a bug report to"
+                            + nl
+                            + Options.SUPPORT_MAIL
                             + nl
                             + "with a description of your last input and include the following output:");
             System.err.println("Program version: " + Options.RELEASE_VERSION);
-			// System.err.println("Project version: " +
-			// Options.PROJECT_VERSION);
             System.err.print("Stack trace: ");
             ex.printStackTrace(System.err);
         }
@@ -636,7 +634,6 @@ public final class Shell implements Runnable, PPCHandler {
         boolean verbose = false;
         boolean details = false;
         boolean all = false;
-        boolean noGenInv = true;
         ArrayList<String> invNames = new ArrayList<String>();
         StringTokenizer tokenizer = new StringTokenizer(line);
         // skip command
@@ -651,20 +648,11 @@ public final class Shell implements Runnable, PPCHandler {
                 all = true;
             } else {
                 MClassInvariant inv = system().model().getClassInvariant(token);
-                if (system().generator() != null && inv == null) {
-                    GFlaggedInvariant gInv = system().generator()
-                            .flaggedInvariant(token);
-                    if (gInv != null) {
-                        inv = gInv.classInvariant();
-                        noGenInv = false;
-                    }
+                if (inv == null){
+					Log.error("Model has no invariant named " + StringUtil.inQuotes(token) + ".");
                 }
-                if (!noGenInv) {
-                    if (inv == null)
-                        Log.error("Model has no invariant named `" + token
-                                + "'.");
-                    else
-                        invNames.add(token);
+                else {
+                	invNames.add(token);
                 }
             }
         }
@@ -1320,7 +1308,7 @@ public final class Shell implements Runnable, PPCHandler {
     	}
     	
     	Log.println(filename);
-		cmdOpen(filename, quiet);
+		cmdOpen("\"" + filename + "\"", quiet);
     }
     
     /**
@@ -1450,28 +1438,6 @@ public final class Shell implements Runnable, PPCHandler {
                     .varBindings(), output);
             // print result
             System.out.println("-> " + val.toStringWithType());
-            if (verboseEval && Options.doGUI) {
-                Class<?> exprEvalBrowserClass = null;
-                try {
-                    exprEvalBrowserClass = Class
-                            .forName("org.tzi.use.gui.views.ExprEvalBrowser");
-                } catch (ClassNotFoundException e) {
-					Log
-							.error(
-									"Could not load GUI. Probably use-gui-...jar is missing.",
-									e);
-                    System.exit(1);
-                }
-                try {
-                    Method create = exprEvalBrowserClass.getMethod("create",
-                            new Class[] { EvalNode.class, MSystem.class });
-					create.invoke(null, new Object[] {
-							evaluator.getEvalNodeRoot(), system() });
-                } catch (Exception e) {
-                    Log.error("FATAL ERROR.", e);
-                    System.exit(1);
-                }
-            }
         } catch (MultiplicityViolationException e) {
             System.out.println("-> " + "Could not evaluate. " + e.getMessage());
         }
@@ -1488,7 +1454,14 @@ public final class Shell implements Runnable, PPCHandler {
         }
 
         // compile query
-        MSystem system = system();
+        MSystem system;
+        try {
+			system = system();
+        }
+        catch (NoSystemException e) {
+        	MModel model = new ModelFactory().createModel("empty model");
+			system = new MSystem(model);
+		}
         InputStream stream = new ByteArrayInputStream(line.getBytes());
            
 		Expression expr = OCLCompiler.compileExpression(
@@ -1628,9 +1601,6 @@ public final class Shell implements Runnable, PPCHandler {
     // Generator Commands
     //***********************************************************
 
-    /**
-     *  
-     */
 	private void cmdGenLoadInvariants(String str, MSystem system, boolean doEcho) {
 		String filename = str.trim();
 		if (filename.length() == 0)
@@ -1642,7 +1612,7 @@ public final class Shell implements Runnable, PPCHandler {
 				in = new BufferedInputStream(new FileInputStream(filename));
 				handleBOM(in);
 				
-				system.generator().loadInvariants(in, str.trim(), doEcho);
+				system.loadInvariants(in, str.trim(), doEcho, new PrintWriter(getOut(), true));
 				
 				setFileClosed();
 			} catch (FileNotFoundException e) {
@@ -1650,6 +1620,9 @@ public final class Shell implements Runnable, PPCHandler {
 				return;
 			} catch (IOException e) {
 				Log.error("Error accessing file " + StringUtil.inQuotes(filename) + ": " + e.getMessage());
+				return;
+			} catch (MInvalidModelException e) {
+				Log.error("Error adding class invariant(s).");
 				return;
 			} finally {
 				if (in != null) {
@@ -1661,18 +1634,24 @@ public final class Shell implements Runnable, PPCHandler {
 		}
 	}
 
-    /**
-     *  
-     */
     private void cmdGenUnloadInvariants(String str, MSystem system) {
         StringTokenizer st = new StringTokenizer(str);
         Set<String> names = new TreeSet<String>();
         try {
-            while (st.hasMoreTokens())
-                names.add(st.nextToken());
-            system.generator().unloadInvariants(names);
+            while (st.hasMoreTokens()){
+            	names.add(st.nextToken());
+            }
+            
+            // if no invariant names are given all invariants are removed
+            if(names.isEmpty()){
+            	for(MClassInvariant inv : system.model().getLoadedClassInvariants()){
+            		names.add(inv.qualifiedName());
+            	}
+            }
+            
+            system.unloadInvariants(names, new PrintWriter(Log.out(), true));
         } catch (NoSuchElementException e) {
-            Log.error("syntax is `unload [invnames]'");
+            Log.error("syntax is " + StringUtil.inQuotes("unload [invnames]"));
         }
     }
 
@@ -1745,12 +1724,27 @@ public final class Shell implements Runnable, PPCHandler {
         } catch (NoSuchElementException e) {
             error = true;
         }
-        if (error)
-            Log.error("syntax is `flags [invnames] ((+d|-d) | (+n|-n))'");
-        else if (disabled == null && negated == null)
-            system.generator().printInvariantFlags(names);
-        else
-            system.generator().setInvariantFlags(names, disabled, negated);
+        
+        Set<MClassInvariant> invs = new HashSet<MClassInvariant>();
+        for(String invName : names){
+        	MClassInvariant inv = system.model().getClassInvariant(invName);
+        	if(inv == null){
+        		Log.error("Invariant " + StringUtil.inQuotes(invName) + " does not exist. " + 
+                        "Ignoring " + StringUtil.inQuotes(invName) + ".");
+        		continue;
+        	}
+        	invs.add(inv);
+        }
+        
+        if (error){
+        	Log.error("syntax is `flags [invnames] ((+d|-d) | (+n|-n))'");
+        }
+        else if (disabled == null && negated == null){
+        	system.generator().printInvariantFlags(invs);
+        }
+        else {
+        	system.setClassInvariantFlags(invs, (disabled == null)? null : Boolean.valueOf(!disabled.booleanValue()), negated);
+        }
     }
 
     /**

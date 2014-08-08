@@ -67,6 +67,11 @@ public final class ExpAsType extends Expression {
     	return type();
     }
     
+    @Override
+    public String name() {
+    	return "oclAsType";
+    }
+    
     /**
      * Evaluates expression and returns result value. 
      */
@@ -96,22 +101,16 @@ public final class ExpAsType extends Expression {
     @Override
     public StringBuilder toString(StringBuilder sb) {
         fSourceExpr.toString(sb);
-        sb.append(".oclAsType(");
+        sb.append(".").append(name()).append("(");
         type().toString(sb);
         return sb.append(")");
     }
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#processWithVisitor(org.tzi.use.uml.ocl.expr.ExpressionVisitor)
-	 */
 	@Override
 	public void processWithVisitor(ExpressionVisitor visitor) {
 		visitor.visitAsType(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#childExpressionRequiresPreState()
-	 */
 	@Override
 	protected boolean childExpressionRequiresPreState() {
 		return fSourceExpr.requiresPreState();

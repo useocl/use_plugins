@@ -34,58 +34,6 @@ public class StandardOperationsOrderedSet {
 		OpGeneric.registerOperation(new Op_orderedSet_union(), opmap);		
 		OpGeneric.registerOperation(new Op_orderedSet_including(), opmap);
 		OpGeneric.registerOperation(new Op_orderedSet_excluding(), opmap);
-		
-		// Constructors
-		OpGeneric.registerOperation(new Op_mkOrderedSetRange(), opmap);
-	}
-}
-
-//--------------------------------------------------------
-//
-// OrderedSet constructors.
-//
-// --------------------------------------------------------
-
-/* mkSequenceRange : Integer x Integer, ... -> OrderedSet(Integer) */
-final class Op_mkOrderedSetRange extends OpGeneric {
-	public String name() {
-		return "mkOrderedSetRange";
-	}
-
-	public int kind() {
-		return OPERATION;
-	}
-
-	public boolean isInfixOrPrefix() {
-		return false;
-	}
-
-	public Type matches(Type params[]) {
-		return (params.length >= 2 && params.length % 2 == 0
-				&& params[0].isInteger() && params[1].isInteger()) ? TypeFactory
-				.mkOrderedSet(TypeFactory.mkInteger())
-				: null;
-	}
-
-	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
-		int[] ranges = new int[args.length];
-		for (int i = 0; i < args.length; i++)
-			ranges[i] = ((IntegerValue) args[i]).value();
-
-		return new OrderedSetValue(TypeFactory.mkInteger(), ranges);
-	}
-
-	public String stringRep(Expression args[], String atPre) {
-		if (args.length % 2 != 0)
-			throw new IllegalArgumentException("length=" + args.length);
-		String s = "OrderedSet{";
-		for (int i = 0; i < args.length; i += 2) {
-			if (i > 0)
-				s += ",";
-			s += args[i] + ".." + args[i + 1];
-		}
-		s += "}";
-		return s;
 	}
 }
 

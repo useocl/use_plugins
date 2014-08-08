@@ -51,10 +51,10 @@ stat returns [ASTStatement n]
   ASTSequenceStatement seq = new ASTSequenceStatement($start);
 }
 :
-  nextStat[seq]
+  s = singleStat {seq.addStatement($s.n);}
   (
     SEMI
-    nextStat[seq]
+    s2 = singleStat {seq.addStatement($s2.n); }
   )* 
   
   { 
@@ -62,25 +62,10 @@ stat returns [ASTStatement n]
   }
 ;
 
-
-////////////////////////////////////////////////////////////////////////////////
-//
-////////////////////////////////////////////////////////////////////////////////
-nextStat[ASTSequenceStatement seq]
-:
-  s = singleStat
-  {
-      seq.addStatement($s.n);
-  }
-;
-
 ////////////////////////////////////////////////////////////////////////////////
 // 
 ////////////////////////////////////////////////////////////////////////////////
 singleStat returns [ASTStatement n]
-//options {
-  //backtrack = true;
-//}
 : 
     emp = emptyStat      { $n = $emp.n; } // i.    (empty statement)
   // handled in stat rule                 // ii.   (sequence)

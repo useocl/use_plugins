@@ -40,6 +40,9 @@ import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.collections.CollectionUtil;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
+
 /**
  * A Model is a top-level package containing all other model elements.
  *  
@@ -476,12 +479,24 @@ public class MModel extends MModelElementImpl {
     }
 
     /**
-     * Returns a collection containing all class invariants.
+     * Returns a collection containing all class invariants (including loaded invariants).
      * 
      * @return collection of MClassInvariant objects.
      */
     public Collection<MClassInvariant> classInvariants() {
         return fClassInvariants.values();
+    }
+    
+    /**
+     * @return collection of class invariants from the use file loaded
+     */
+    public Collection<MClassInvariant> modelClassInvariants() {
+		return Maps.filterValues(fClassInvariants, new Predicate<MClassInvariant>() {
+			@Override
+			public boolean apply(MClassInvariant inv) {
+				return !inv.isLoaded();
+			}
+		}).values();
     }
 
     /**
@@ -500,6 +515,8 @@ public class MModel extends MModelElementImpl {
         }
         return res;
     }
+    
+    
 
     /**
      * Returns a collection containing all invariants for a given class and its
@@ -530,7 +547,30 @@ public class MModel extends MModelElementImpl {
     public MClassInvariant getClassInvariant(String name) {
         return fClassInvariants.get(name);
     }
-
+    
+	/**
+	 * Returns all loaded invariants.
+	 */
+	public Collection<MClassInvariant> getLoadedClassInvariants() {
+		return Maps.filterValues(fClassInvariants, new Predicate<MClassInvariant>() {
+			@Override
+			public boolean apply(MClassInvariant inv) {
+				return inv.isLoaded();
+			}
+		}).values();
+	}
+    
+	public MClassInvariant removeClassInvariant(String name) {
+		MClassInvariant inv = fClassInvariants.get(name);
+		
+		if(inv != null && inv.isLoaded()){
+			fClassInvariants.remove(name);
+			return inv;
+		}
+		
+		return null;
+	}
+	
     /**
      * Adds a pre-/postcondition.
      */

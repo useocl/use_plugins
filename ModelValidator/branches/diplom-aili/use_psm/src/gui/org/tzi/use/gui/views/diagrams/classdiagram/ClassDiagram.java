@@ -414,7 +414,9 @@ public class ClassDiagram extends DiagramView
     }
     
     /**
-     * Shows an already hidden class.
+     * Shows or hides a class.
+     * @param cls The <code>MClass</code> to show or hide
+     * @param show If <code>true</code>, the class is shown otherwise it is hidden.
      */
     protected void showOrHideClassNode( MClass cls, boolean show ) {
     	ClassDiagramData source = (show ? hiddenData : visibleData);
@@ -429,7 +431,7 @@ public class ClassDiagram extends DiagramView
             if (show) 
             	fGraph.add( n );
             else
-            	fGraph.remove(n);
+            	fGraph.remove( n );
             
             source.fClassToNodeMap.remove( cls );
             target.fClassToNodeMap.put(cls, n);

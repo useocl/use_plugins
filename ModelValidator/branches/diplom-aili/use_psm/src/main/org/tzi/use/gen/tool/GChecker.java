@@ -30,11 +30,14 @@ import java.util.Comparator;
 
 import org.tzi.use.gen.assl.dynamics.IGChecker;
 import org.tzi.use.gen.assl.dynamics.IGCollector;
-import org.tzi.use.gen.model.GFlaggedInvariant;
-import org.tzi.use.gen.model.GModel;
 import org.tzi.use.gen.tool.statistics.GInvariantStatistic;
 import org.tzi.use.gen.tool.statistics.GStatistic;
+import org.tzi.use.uml.mm.MClassInvariant;
+import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.ocl.expr.Evaluator;
 import org.tzi.use.uml.ocl.expr.MultiplicityViolationException;
+import org.tzi.use.uml.ocl.value.BooleanValue;
+import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MSystemState;
 import org.tzi.use.util.NullPrintWriter;
 
@@ -58,12 +61,14 @@ public class GChecker implements IGChecker {
         
     private final Comparator<GStatistic> invariantComparator;
     
-    public GChecker(GModel model, GGeneratorArguments args) {
+    private final Evaluator fEvaluator = new Evaluator();
+    
+    public GChecker(MModel model, GGeneratorArguments args) {
         fCheckStructure = args.checkStructure();
-                
-        fInvariantStatistics = new GInvariantStatistic[model.flaggedInvariants().size()];
+        fInvariantStatistics = new GInvariantStatistic[model.classInvariants().size()];
+        
         int index = 0;
-        for (GFlaggedInvariant inv : model.flaggedInvariants()) {
+        for (MClassInvariant inv : model.classInvariants()) {
         	fInvariantStatistics[index] = new GInvariantStatistic(inv);
         	++index;
         }
@@ -91,25 +96,32 @@ public class GChecker implements IGChecker {
             for (int i = 0; i < fInvariantStatistics.length; ++i)
             	fInvariantStatistics[i].localReset();
             	
-        } else
-            sortCounter++;
+        } else {
+            ++sortCounter;
+        }
         
         // evaluating invariants
         boolean result = true;
         long start;
-                
+        boolean valid;
+        Value value;
+        
         for (int k = 0; k < fSize && result; k++) {
             GInvariantStatistic stat = fInvariantStatistics[k];
-            if (!stat.flaggedInvariant().disabled() && !stat.flaggedInvariant().isCheckedByBarrier() ) {
+            if (stat.getInvariant().isActive() && !stat.isCheckedByBarrier() ) {
             	
             	try {
             		start = System.nanoTime();
-	            	boolean valid = stat.flaggedInvariant().eval(collector, state);
+	            		                    
+	                value = fEvaluator.eval( stat.getInvariant().expandedExpression(), state );
+	                    
+	                valid = value.isDefined() && ((BooleanValue) value).isFalse() == stat.getInvariant().isNegated();
+	                	            	
 	                stat.registerResult(valid, System.nanoTime() - start);
 	                
 	                if (!valid) {
 	                	if (collector.doBasicPrinting())
-	                		collector.basicPrintWriter().println(stat.flaggedInvariant().toString() + " invalid.");
+	                		collector.basicPrintWriter().println(stat.getInvariant().toString() + " invalid.");
 	                	 
 	                    result = false;
 	                    break;
@@ -160,7 +172,7 @@ public class GChecker implements IGChecker {
         
         for (int k = 0; k < fSize; k++) {
         	GInvariantStatistic s = fInvariantStatistics[k];
-        	if (!s.flaggedInvariant().isCheckedByBarrier()) {
+        	if (!s.isCheckedByBarrier()) {
         		pw.println(s.toStringForStatistics());
         		totalChecks += s.getTotalChecks();
         	}

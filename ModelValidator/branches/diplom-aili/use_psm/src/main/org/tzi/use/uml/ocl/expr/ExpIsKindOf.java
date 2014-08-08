@@ -109,4 +109,9 @@ public final class ExpIsKindOf extends Expression {
 	protected boolean childExpressionRequiresPreState() {
 		return fSourceExpr.requiresPreState();
 	}
+	
+	@Override
+	public String name() {
+		return "oclIsKindOf";
+	}
 }

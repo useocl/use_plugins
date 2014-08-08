@@ -45,8 +45,8 @@
 	<property name="jruby.jar"            location="${lib.dir}/jruby-1.7.2.jar"/>
 	<property name="combinatoricslib.jar" location="${lib.dir}/combinatoricslib-0.2.jar"/>
     <property name="vtd-xml.jar"          location="${lib.dir}/vtd-xml.jar"/>
-    <property name="itextpdf.jar"         location="${lib.dir}/itextpdf-5.3.3.jar"/>
-	<property name="guava.jar"            location="${lib.dir}/guava-14.0-rc2.jar"/>
+    <property name="itextpdf.jar"         location="${lib.dir}/itextpdf-5.5.2.jar"/>
+	<property name="guava.jar"            location="${lib.dir}/guava-17.0.jar"/>
 	<property name="annotation.jar"       location="${build.libbuild.dir}/org.eclipse.jdt.annotation_1.1.0.v20130513-1648.jar"/> 
 	<property name="readline.src.dir"     location="${src.main.dir}/org/tzi/use/util/input"/>
 	<property name="parser.dir"           location="${src.main.dir}/org/tzi/use/parser"/>
@@ -123,6 +123,9 @@
 				<uptodate srcfile="${parser.dir}/base/USEBase.gpart" 
                   targetfile="${parser.dir}/use/USEParser.java"/>
 
+				<!-- <uptodate srcfile="${parser.dir}/use/USELexerRules.gpart" 
+				  targetfile="${parser.dir}/use/USEParser.java"/> -->
+					
 				<!-- shell grammar exists -->
 				<available file="${parser.dir}/shell/ShellCommand.g" />
 
@@ -199,6 +202,7 @@
 			<fileset file="${parser.dir}/base/USEBase.gpart" />
 			<fileset file="${parser.dir}/base/OCLBase.gpart" />
 			<fileset file="${parser.dir}/base/SoilBase.gpart" />
+			<!-- <fileset file="${parser.dir}/use/USELexerRules.gpart" /> -->
 			<fileset file="${parser.dir}/base/OCLLexerRules.gpart" />
 		</concat>
 
@@ -254,7 +258,7 @@
 	</target>
 
 	<!-- compile USE sources -->
-	<target name="compile-use" depends="compile-use-runtime, test-classcycles" />
+	<target name="compile-use" depends="compile-use-runtime" />
 
 	<target name="compile-use-main" depends="create-parser, setversion">
 		<mkdir dir="${build.classes.dir}"/>
@@ -472,8 +476,7 @@
 </target>
 
 <!-- run all tests -->
-
-<target name="test" description="run all tests" depends="test-junit, test-other" />
+<target name="test" description="run all tests" depends="test-classcycles, test-junit, test-other" />
 
 <!-- run unit tests -->
 <target name="test-junit" description="run unit tests" depends="build">
@@ -525,7 +528,7 @@
 </condition>
 </target>
 
-<target name="test-classcycles" depends="check-classcycles-available" if="classcycleslib.available">
+<target name="test-classcycles" depends="compile-use,check-classcycles-available" if="classcycleslib.available">
 <taskdef name="classycleDependencyCheck" 
              classname="classycle.ant.DependencyCheckingTask" classpath="lib_build/Classycle1.3.3/classycle.jar"/>
 

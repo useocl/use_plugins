@@ -107,6 +107,7 @@ public abstract class CollectionValue extends Value implements Iterable<Value> {
     public abstract boolean includesAll(CollectionValue v);
     public abstract boolean excludesAll(CollectionValue v);
     public abstract int count(Value v);
+    public abstract CollectionValue flatten(Type resultType);
 
     protected abstract Integer getClassCompareNr();
     
@@ -206,5 +207,6 @@ public abstract class CollectionValue extends Value implements Iterable<Value> {
     	else
     		return new SequenceValue(elemType(), this.getSortedElements());
     }
+    
 }
 

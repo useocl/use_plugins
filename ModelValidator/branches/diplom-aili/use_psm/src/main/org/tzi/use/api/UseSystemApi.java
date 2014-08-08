@@ -67,34 +67,31 @@ public abstract class UseSystemApi {
 	public static UseSystemApi create(Session session) {
 		return new UseSystemApiUndoable(session);
 	}
+	
+	/**
+	 * Creates a new system API for the given system.
+	 * @param system The system to encapsulate with the API.
+	 * @param enableUndo Whether the API should generate undo statements
+	 * @return A new UseSystemApi instance with the system state encapsulated to manipulate it.
+	 */
+	public static UseSystemApi create(MSystem system, boolean enableUndo) {
+		if (enableUndo)
+			return new UseSystemApiUndoable(system);
+		else 
+			return new UseSystemApiNative(system);
+	}
 
+	/**
+	 * Creates a new system API for the given model.
+	 * @param model The model to create a new system API for. 
+	 * @param enableUndo Whether the API should generate undo statements
+	 * @return A new UseSystemApi instance with an empty system state to manipulate.
+	 */
 	public static UseSystemApi create(MModel model, boolean enableUndo) {
 		if (enableUndo)
 			return new UseSystemApiUndoable(model);
 		else 
 			return new UseSystemApiNative(model);
-	}
-	
-	/**
-	 * Creates a new system API for the given model.
-	 * The returned API implementation is designed to be used
-	 * inside an application using USE as a library. 
-	 * @param model The model to create a new system API for. 
-	 * @return A new UseSystemApi instance with an empty system state to manipulate.
-	 */
-	public static UseSystemApi create(MModel model) {
-		return new UseSystemApiNative(model);
-	}
-	
-	/**
-	 * Creates a new system API for the given system.
-	 * The returned API implementation is designed to be used
-	 * inside an application using USE as a library. 
-	 * @param system The system to encapsulate with the API.
-	 * @return A new UseSystemApi instance with the system state encapsulated to manipulate it.
-	 */
-	public static UseSystemApi create(MSystem system) {
-		return new UseSystemApiNative(system);
 	}
 	
 	protected final MSystem system;

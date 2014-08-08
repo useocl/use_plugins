@@ -489,6 +489,7 @@ public abstract class ExpQuery extends Expression {
      * Return name of concrete query expression, e.g. `select'. Defined by
      * subclasses.
      */
+    @Override
     public abstract String name();
 
     @Override

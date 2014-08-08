@@ -23,6 +23,7 @@ package org.tzi.use.uml.ocl.value;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MSystemState;
@@ -31,7 +32,6 @@ import org.tzi.use.uml.sys.MSystemState;
  * Variable bindings bind names to values. Bindings are kept on a stack and can
  * be retrieved by name. Main use is for expression evaluation.
  * 
- * @version $ProjectVersion: 0.393 $
  * @author Mark Richters
  */
 public final class VarBindings implements Iterable<VarBindings.Entry> {
@@ -74,8 +74,7 @@ public final class VarBindings implements Iterable<VarBindings.Entry> {
         
         @Override
         public int hashCode() {
-        	// TODO dont use Object.hashCode() here :) (FindBugs ole!)
-        	return super.hashCode();
+        	return fVarname.hashCode() * fValue.hashCode();
         }
         
         public String toString() {
@@ -83,7 +82,7 @@ public final class VarBindings implements Iterable<VarBindings.Entry> {
         }
     }
     
-    private ArrayList<Entry> fBindings;
+    private List<Entry> fBindings;
 
     private MSystemState fVisibleState;
     

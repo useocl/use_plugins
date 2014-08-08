@@ -58,6 +58,7 @@ import org.tzi.use.uml.ocl.expr.ExpOclInState;
 import org.tzi.use.uml.ocl.expr.ExpOne;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
+import org.tzi.use.uml.ocl.expr.ExpRange;
 import org.tzi.use.uml.ocl.expr.ExpReject;
 import org.tzi.use.uml.ocl.expr.ExpSelect;
 import org.tzi.use.uml.ocl.expr.ExpSelectByKind;
@@ -362,5 +363,11 @@ public abstract class AbstractCoverageVisitor implements ExpressionVisitor{
 			addClassCoverage(((ObjectType)expSelectByType.type().elemType()).cls());
 		}
 		expSelectByType.getSourceExpression().processWithVisitor(this);		
+	}
+
+	@Override
+	public void visitRange(ExpRange exp) {
+		exp.getStart().processWithVisitor(this);
+		exp.getEnd().processWithVisitor(this);
 	}
 }

@@ -67,5 +67,9 @@ public class VarInitializer {
     	
     	return sb;
     }
+
+	public VarDecl getVarDecl() {
+		return this.fVarDecl;		
+	}
 }
 

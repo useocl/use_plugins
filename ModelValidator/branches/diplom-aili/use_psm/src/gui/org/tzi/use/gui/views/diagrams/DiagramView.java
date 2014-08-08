@@ -92,7 +92,6 @@ import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 /**
  * Combines everything that the class and object diagram have in common.
  * 
- * @version $ProjectVersion: 0.393 $
  * @author Fabian Gutsche
  * @author Lars Hamann
  */
@@ -905,7 +904,7 @@ public abstract class DiagramView extends JPanel
     		loadLayout(defaultLayoutFile);
     		hasUserDefinedLayout = false;
     	} catch (Exception e) {
-    		fLog.println("Error loading default Layout. Using random layout.");
+    		fLog.println("Error loading default Layout. Using random layout. Cause: " + e.getMessage());
     		resetLayout();
     	}
     }

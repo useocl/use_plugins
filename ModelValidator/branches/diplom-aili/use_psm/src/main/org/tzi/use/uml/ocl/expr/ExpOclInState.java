@@ -68,9 +68,6 @@ public class ExpOclInState extends Expression {
         return res;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#toString(java.lang.StringBuilder)
-	 */
 	@Override
 	public StringBuilder toString(StringBuilder sb) {
 		sourceExpr.toString(sb);
@@ -81,9 +78,6 @@ public class ExpOclInState extends Expression {
 		return sb;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#processWithVisitor(org.tzi.use.uml.ocl.expr.ExpressionVisitor)
-	 */
 	@Override
 	public void processWithVisitor(ExpressionVisitor visitor) {
 		visitor.visitOclInState(this);
@@ -104,12 +98,13 @@ public class ExpOclInState extends Expression {
 		return stateToCheck;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#childExpressionRequiresPreState()
-	 */
 	@Override
 	protected boolean childExpressionRequiresPreState() {
 		return sourceExpr.requiresPreState();
 	}
 
+	@Override
+	public String name() {
+		return "oclInState";
+	}
 }

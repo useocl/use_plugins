@@ -79,17 +79,11 @@ public final class ExpObjAsSet extends Expression {
         return fObjExp.toString(sb);
     }
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#processWithVisitor(org.tzi.use.uml.ocl.expr.ExpressionVisitor)
-	 */
 	@Override
 	public void processWithVisitor(ExpressionVisitor visitor) {
 		visitor.visitObjAsSet(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#childExpressionRequiresPreState()
-	 */
 	@Override
 	protected boolean childExpressionRequiresPreState() {
 		return fObjExp.requiresPreState();

@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.tzi.use.api.UseApiException;
 import org.tzi.use.api.UseModelApi;
 import org.tzi.use.api.UseSystemApi;
-import org.tzi.use.api.impl.UseSystemApiUndoable;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.ExpressionWithValue;
@@ -46,32 +45,29 @@ import org.tzi.use.uml.sys.soil.MVariableAssignmentStatement;
  */
 public class MSystemStateTest extends TestCase {
 
-    public void testGetCrossProductOfInstanceSets() {
-    	try {
-	        UseModelApi api = new UseModelApi("test");
-	        MClass c1 = api.createClass("C1", false);
-	        MClass c2 = api.createClass("C2", false);
-	        MClass c3 = api.createClass("C3", false);
-	        
-	        UseSystemApi sysApi = UseSystemApi.create(api.getModel());
+    public void testGetCrossProductOfInstanceSets() throws UseApiException {
+    	
+        UseModelApi api = new UseModelApi("test");
+        MClass c1 = api.createClass("C1", false);
+        MClass c2 = api.createClass("C2", false);
+        MClass c3 = api.createClass("C3", false);
+        
+        UseSystemApi sysApi = UseSystemApi.create(api.getModel(), false);
 
-        	sysApi.createObjectEx(c1,"o1_1");
-        	sysApi.createObjectEx(c2,"o2_1");
-        	sysApi.createObjectEx(c2,"o2_2");
-        	sysApi.createObjectEx(c3,"o3_1");
-        	sysApi.createObjectEx(c3,"o3_2");
-        	sysApi.createObjectEx(c3,"o3_3");
-            
-        	MSystemState state = sysApi.getSystem().state();
-            assertEquals(2, state.getCrossProductOfInstanceSets(
-                    Arrays.asList(new MClass[]{c1,c2})).size());
-            assertEquals(3, state.getCrossProductOfInstanceSets(
-                    Arrays.asList(new MClass[]{c1,c3})).size());
-            assertEquals(6, state.getCrossProductOfInstanceSets(
-                    Arrays.asList(new MClass[]{c2,c3})).size());
-        } catch (UseApiException e) {
-            throw new RuntimeException(e);
-        }
+    	sysApi.createObjectEx(c1,"o1_1");
+    	sysApi.createObjectEx(c2,"o2_1");
+    	sysApi.createObjectEx(c2,"o2_2");
+    	sysApi.createObjectEx(c3,"o3_1");
+    	sysApi.createObjectEx(c3,"o3_2");
+    	sysApi.createObjectEx(c3,"o3_3");
+        
+    	MSystemState state = sysApi.getSystem().state();
+        assertEquals(2, state.getCrossProductOfInstanceSets(
+                Arrays.asList(new MClass[]{c1,c2})).size());
+        assertEquals(3, state.getCrossProductOfInstanceSets(
+                Arrays.asList(new MClass[]{c1,c3})).size());
+        assertEquals(6, state.getCrossProductOfInstanceSets(
+                Arrays.asList(new MClass[]{c2,c3})).size());
     }
 
     /**
@@ -88,7 +84,7 @@ public class MSystemStateTest extends TestCase {
     	MClass test = api.createClass("Test", false);
     	MClass test1 = api.createClass("Test1", false);
     	
-    	UseSystemApiUndoable sys = (UseSystemApiUndoable)UseSystemApi.create(api.getModel(), true);
+    	UseSystemApi sys = UseSystemApi.create(api.getModel(), true);
 
     	try {
 	    	createObjects(sys, test, numObjects);
@@ -134,7 +130,7 @@ public class MSystemStateTest extends TestCase {
     	MClass test = api.createClass("Test", false);
     	MClass test1 = api.createClass("Test1", false);
     	
-    	UseSystemApiUndoable sys = (UseSystemApiUndoable)UseSystemApi.create(api.getModel(), true);
+    	UseSystemApi sys = UseSystemApi.create(api.getModel(), true);
     	MObject obj;
     	
 		obj = sys.createObjectEx(test, null);
@@ -213,7 +209,7 @@ public class MSystemStateTest extends TestCase {
      * @param num
      * @throws UseApiException 
      */
-    private MObject createObjects(UseSystemApiUndoable sys, MClass cls, int num) throws UseApiException {
+    private MObject createObjects(UseSystemApi sys, MClass cls, int num) throws UseApiException {
     	MObject obj = null;
     	for (int i = 0; i < num; ++i) {
     		obj = sys.createObjectEx(cls, null);
@@ -222,13 +218,13 @@ public class MSystemStateTest extends TestCase {
     	return obj;
     }
     
-    private void undoN(UseSystemApiUndoable sys, int undos) throws UseApiException, OperationNotSupportedException {
+    private void undoN(UseSystemApi sys, int undos) throws UseApiException, OperationNotSupportedException {
     	for (int i = 0; i < undos; ++i) {
     		sys.undo();
     	}
     }
     
-    private void redoN(UseSystemApiUndoable sys, int redos) throws UseApiException, OperationNotSupportedException {
+    private void redoN(UseSystemApi sys, int redos) throws UseApiException, OperationNotSupportedException {
     	for (int i = 0; i < redos; ++i) {
     		sys.redo();
     	}

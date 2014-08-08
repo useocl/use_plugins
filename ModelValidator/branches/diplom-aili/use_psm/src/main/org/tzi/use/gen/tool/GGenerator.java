@@ -29,25 +29,21 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.tzi.use.config.Options;
 import org.tzi.use.gen.assl.dynamics.GEvalProcedure;
 import org.tzi.use.gen.assl.dynamics.GEvaluationException;
 import org.tzi.use.gen.assl.statics.GInstrBarrier;
 import org.tzi.use.gen.assl.statics.GProcedure;
-import org.tzi.use.gen.model.GFlaggedInvariant;
-import org.tzi.use.gen.model.GModel;
 import org.tzi.use.parser.generator.ASSLCompiler;
 import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MMPrintVisitor;
 import org.tzi.use.uml.mm.MMVisitor;
+import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
 import org.tzi.use.uml.sys.soil.MStatement;
@@ -62,7 +58,7 @@ import org.tzi.use.util.Log;
  */
 public class GGenerator {
 
-    protected GModel fGModel;
+    protected MModel fModel;
     protected MSystem fSystem;
     protected GResult fLastResult;
     protected GGeneratorArguments fConfig;
@@ -73,7 +69,7 @@ public class GGenerator {
     
     public GGenerator( MSystem system ) {
         fSystem = system;
-        fGModel = new GModel(system.model());
+        fModel = system.model();
         fLastResult = null;
         fConfig = new GGeneratorArguments();
     }
@@ -89,13 +85,13 @@ public class GGenerator {
             pw.close();
             System.err.println("THE GENERATOR HAS AN INTERNAL ERROR." + nl +
                                "PLEASE SEND THE FILE `generator_error.txt'"+nl+
-                               "TO joebo@informatik.uni-bremen.de.");
+                               "TO " + Options.SUPPORT_MAIL + ".");
             System.err.println("The random number generator was " 
                                + "initialized with " + randomNr + ".");
         } catch (IOException ioException) {
             System.err.println("THE GENERATOR HAS AN INTERNAL ERROR." + nl +
                                "PLEASE SEND THE FOLLOWING INFORMATION "+nl+
-                               "TO joebo@informatik.uni-bremen.de.");
+                               "TO " + Options.SUPPORT_MAIL + ".");
             System.err.println("Program version: " + Options.RELEASE_VERSION);
             System.err.println("Stack trace: ");
             e.printStackTrace();
@@ -151,10 +147,10 @@ public class GGenerator {
                     collector.setDetailPrintWriter(pw);
 
                 if (fConfig.isCalculateBarriers()) {
-                	call.getProcedure().calculateBarriers(collector, fGModel);
+                	call.getProcedure().calculateBarriers(collector, fModel);
                 }
                 
-                GChecker checker = new GChecker(fGModel, fConfig);
+                GChecker checker = new GChecker(fModel, fConfig);
                 Log.verbose(call.getProcedure().toString() + " started...");
                 
                 try {
@@ -218,71 +214,18 @@ public class GGenerator {
         }
     }
 
-    private void setInvFlags( GFlaggedInvariant inv,
-                              Boolean disabled,
-                              Boolean negated) {
-        if (disabled!=null)
-            inv.setDisabled( disabled.booleanValue() );
-        if (negated!=null)
-            inv.setNegated( negated.booleanValue() );
-    }
-
-    private List<GFlaggedInvariant> flaggedInvariants( Set<String> names ) {
-        // if names==null all flaggedInvariants will be returned.
-        List<GFlaggedInvariant> invs = new ArrayList<GFlaggedInvariant>();
-        
-        if (names.isEmpty())
-            invs = new ArrayList<GFlaggedInvariant>(fGModel.flaggedInvariants());
-        else {
-            for (String name : names) {
-                GFlaggedInvariant inv = fGModel.getFlaggedInvariant(name);
-                if (inv != null)
-                    invs.add(inv);
-                else
-                    Log.error("Invariant `" + name + "' does not exist. " + 
-                              "Ignoring `" + name + "'.");
-            }
-        }
-        return invs;
-    }
-
-	public List<GFlaggedInvariant> flaggedInvariants() {
-		List<GFlaggedInvariant> invs = new ArrayList<GFlaggedInvariant>(fGModel
-				.flaggedInvariants());
-		return invs;
-	}
-
-    public GFlaggedInvariant flaggedInvariant (String name) {
-        GFlaggedInvariant inv = null;
-        inv = fGModel.getFlaggedInvariant(name);
-        if (inv == null) {
-            Log.error("Invariant `" + name + "' does not exist. " +
-                      "Ignoring `" + name + "'.");
-        }
-        return inv;
-    }
-  
-    public void setInvariantFlags( Set<String> names,
-                                   Boolean disabled,
-                                   Boolean negated ) {
-        for (GFlaggedInvariant inv : flaggedInvariants(names)) {
-            setInvFlags(inv, disabled, negated);
-        }
-    }
-
-    public void printInvariantFlags( Set<String> names ) {
+    public void printInvariantFlags( Set<MClassInvariant> invs ) {
         boolean found = false;
-        if (!names.isEmpty())
+        if (!invs.isEmpty())
             System.out.println(
                                "Listing only invariants given as parameter...");
     
-        List<GFlaggedInvariant> flInvs = flaggedInvariants(names);
         System.out.println("- disabled class invariants:");
         
-        for (GFlaggedInvariant flaggedInv : flInvs) {
-            if (flaggedInv.disabled()) {
-                System.out.println(flaggedInv.classInvariant().toString()+" "
-                                   + (flaggedInv.negated() ? "(negated)" : "" ));
+        for (MClassInvariant classInv : invs) {
+            if (!classInv.isActive()) {
+                System.out.println(classInv.qualifiedName() + " "
+                                   + (classInv.isNegated() ? "(negated)" : "" ));
                 found = true;
             }
         }
@@ -291,10 +234,10 @@ public class GGenerator {
         found = false;
         System.out.println("- enabled class invariants:");
         	
-        for (GFlaggedInvariant flaggedInv : flInvs) {
-            if (!flaggedInv.disabled()) {
-                System.out.println(flaggedInv.classInvariant().toString()+" "
-                                   + (flaggedInv.negated() ? "(negated)" : "" ));
+        for (MClassInvariant classInv : invs) {
+            if (classInv.isActive()) {
+                System.out.println(classInv.qualifiedName() + " "
+                                   + (classInv.isNegated() ? "(negated)" : "" ));
                 found = true;
             }
         }
@@ -332,9 +275,9 @@ public class GGenerator {
     		}
     		
     		if (fConfig.printTimeRelatedData())
-    			pw.println(String.format("Checked %,d times in %,.3fs (%,.0f checks/s).", overallChecks, duration, checksPerSecond));
+    			pw.println(String.format("Checks including barriers: %,d (%,.0f checks/s).", overallChecks, checksPerSecond));
     		else
-    			pw.println(String.format("Checked %,d times.", overallChecks));
+    			pw.println(String.format("Checks including barriers: %,d.", overallChecks));
     	}
     	
         if (fConfig.useTryCuts())
@@ -400,46 +343,9 @@ public class GGenerator {
         }
     }
 
-    public void loadInvariants( InputStream in, String inputName, boolean doEcho ) {
-        Collection<MClassInvariant> addedInvs = null;
-        
-        addedInvs = ASSLCompiler.compileAndAddInvariants(
-                                                        fGModel,
-                                                        in,
-                                                        inputName,
-                                                        new PrintWriter(System.err) );
-        
-        if (addedInvs != null && doEcho) {
-            System.out.println("Added invariants:");
-            
-            for (MClassInvariant inv : addedInvs) {
-            	System.out.println( inv.toString() );
-            }
-            
-            if (addedInvs.isEmpty())
-                System.out.println("(none)");
-        }
-    }
-
-    public void unloadInvariants(Set<String> pNames) {
-        Set<String> names = new TreeSet<String>(pNames);
-        
-        if (names.isEmpty()) {
-            for (MClassInvariant inv : fGModel.loadedClassInvariants()) {
-                names.add( inv.cls().name() + "::" + inv.name() );
-            }
-        }
-
-        for (String name : names) {	
-            if (fGModel.removeClassInvariant(name) == null )
-                Log.error("Invariant `" + name + "' does not exist or is " +
-                          "an invariant of the original model. Ignoring.");
-        }
-    }
-    
     public void printLoadedInvariants() {
         MMVisitor v = new MMPrintVisitor(new PrintWriter(System.out, true));
-        Collection<MClassInvariant> loadedInvs = fGModel.loadedClassInvariants();
+        Collection<MClassInvariant> loadedInvs = fModel.getLoadedClassInvariants();
         
         for (MClassInvariant inv : loadedInvs) {
             inv.processWithVisitor(v);
@@ -464,10 +370,7 @@ public class GGenerator {
         return fSystem;
     }
 
-	/**
-	 * @return
-	 */
-	public GModel gModel() {
-		return fGModel;
+	public MModel model() {
+		return fModel;
 	}
 }

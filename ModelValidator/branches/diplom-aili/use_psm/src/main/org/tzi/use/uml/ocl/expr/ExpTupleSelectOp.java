@@ -83,17 +83,11 @@ public final class ExpTupleSelectOp extends Expression {
 		return fTupleExp;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#processWithVisitor(org.tzi.use.uml.ocl.expr.ExpressionVisitor)
-	 */
 	@Override
 	public void processWithVisitor(ExpressionVisitor visitor) {
 		visitor.visitTupleSelectOp(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.tzi.use.uml.ocl.expr.Expression#childExpressionRequiresPreState()
-	 */
 	@Override
 	protected boolean childExpressionRequiresPreState() {
 		return fTupleExp.requiresPreState();

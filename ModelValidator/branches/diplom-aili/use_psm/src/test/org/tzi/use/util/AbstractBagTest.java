@@ -298,7 +298,7 @@ public class AbstractBagTest extends TestCase {
             b = mApi.createClass("B", false);
             c = mApi.createClass("C", false);
             
-            UseSystemApi sApi = UseSystemApi.create(mApi.getModel());
+            UseSystemApi sApi = UseSystemApi.create(mApi.getModel(), false);
             
             sApi.createObjectsEx(a, "a1");
             sApi.createObjectsEx(b, "b1");

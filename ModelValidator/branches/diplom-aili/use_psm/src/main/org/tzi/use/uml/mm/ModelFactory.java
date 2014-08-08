@@ -37,7 +37,7 @@ import org.tzi.use.uml.ocl.type.Type;
  * @version     $ProjectVersion: 0.393 $
  * @author  Mark Richters
  */
-public final class ModelFactory {
+public class ModelFactory {
 
     public MModel createModel(String name) {
         return new MModel(name);

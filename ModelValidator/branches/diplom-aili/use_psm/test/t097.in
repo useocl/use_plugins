@@ -59,7 +59,7 @@ gen start -r 703 -t t097.assl tryAC(4,4)
 gen result
 *Random number generator was initialized with 703.
 *Checked 1 snapshots.
-*Checked 2 times.
+*Checks including barriers: 2.
 *Made 0 try cuts.
 *Ignored at least 64,911 useless link combinations.
 *Added 1 barriers.
@@ -83,7 +83,7 @@ gen start -r 703 -t -ac t097.assl tryAC(4,4)
 gen result
 *Random number generator was initialized with 703.
 *Checked 1 snapshots.
-*Checked 2 times.
+*Checks including barriers: 2.
 *Made 0 try cuts.
 *Added 1 barriers.
 *Barriers blocked 1 times.

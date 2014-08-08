@@ -21,9 +21,11 @@ package org.tzi.use.uml.sys;
 
 import static org.tzi.use.util.StringUtil.inQuotes;
 
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -40,10 +42,13 @@ import javax.swing.event.EventListenerList;
 
 import org.tzi.use.config.Options;
 import org.tzi.use.gen.tool.GGenerator;
+import org.tzi.use.parser.generator.ASSLCompiler;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MClassInvariant;
+import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.MPrePostCondition;
@@ -59,6 +64,10 @@ import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.ocl.value.VarBindings;
 import org.tzi.use.uml.sys.MSystemState.DeleteObjectResult;
 import org.tzi.use.uml.sys.events.AttributeAssignedEvent;
+import org.tzi.use.uml.sys.events.ClassInvariantChangeEvent;
+import org.tzi.use.uml.sys.events.ClassInvariantChangeEvent.InvariantStateChange;
+import org.tzi.use.uml.sys.events.ClassInvariantsLoadedEvent;
+import org.tzi.use.uml.sys.events.ClassInvariantsUnloadedEvent;
 import org.tzi.use.uml.sys.events.Event;
 import org.tzi.use.uml.sys.events.LinkDeletedEvent;
 import org.tzi.use.uml.sys.events.LinkInsertedEvent;
@@ -348,6 +357,76 @@ public final class MSystem {
 		fObjects.remove(obj.name());
 	}
 
+	public void loadInvariants(InputStream in, String inputName, boolean doEcho, PrintWriter out) throws MInvalidModelException {
+		Collection<MClassInvariant> invs = ASSLCompiler
+				.compileInvariants(fModel, in, inputName,
+						out);
+
+		for(MClassInvariant inv : invs){
+			fModel.addClassInvariant(inv);
+		}
+		
+		if(invs != null && invs.size() > 0){
+			fireClassInvariantsLoadedEvent(invs);
+		}
+
+		if (invs != null && doEcho) {
+			out.println("Added invariants:");
+
+			for (MClassInvariant inv : invs) {
+				out.println(inv.toString());
+			}
+
+			if (invs.isEmpty()){
+				out.println("(none)");
+			}
+		}
+	}
+	
+	public void unloadInvariants(Set<String> invNames, PrintWriter out) {
+		Collection<MClassInvariant> invs = new LinkedList<MClassInvariant>();
+		for(String name : invNames){
+			MClassInvariant inv = fModel.removeClassInvariant(name);
+			if(inv == null){
+				out.println("Invariant " + StringUtil.inQuotes(name)
+						+ " does not exist or is an invariant of the original model. Ignoring.");
+			} else {
+				invs.add(inv);
+			}
+		}
+
+		if(invs.size() > 0){
+			fireClassInvariantsUnloadedEvent(invs);
+		}
+	}
+	
+	/**
+	 * @see #setClassInvariantFlags(MClassInvariant, Boolean, Boolean)
+	 * @param disabled May be {@code null} for no change.
+	 * @param negated May be {@code null} for no change.
+	 */
+	public void setClassInvariantFlags(Collection<MClassInvariant> invs, Boolean disabled, Boolean negated) {
+		for (MClassInvariant inv : invs) {
+			setClassInvariantFlags(inv, disabled, negated);
+		}
+	}
+
+	/**
+	 * @param inv invariant to set flags
+	 * @param active State if invariant is active. May be {@code null} for no change.
+	 * @param negated State if invariant is negated. May be {@code null} for no change.
+	 */
+	public void setClassInvariantFlags(MClassInvariant inv, Boolean active, Boolean negated) {
+		if (active != null){
+			inv.setActive(active.booleanValue());
+			fireClassInvariantChangeEvent(inv, active.booleanValue() ? InvariantStateChange.ACTIVATED : InvariantStateChange.DEACTIVATED);
+		}
+		if (negated != null){
+			inv.setNegated(negated.booleanValue());
+			fireClassInvariantChangeEvent(inv, negated.booleanValue() ? InvariantStateChange.NEGATED : InvariantStateChange.DENEGATED);
+		}
+	}
+	
 	/**
 	 * Evaluates all pre conditions of a called operation.
 	 * 
@@ -362,8 +441,7 @@ public final class MSystem {
 			operationCall.setPreConditionsCheckResult(Collections.<MPrePostCondition, Boolean> emptyMap());
 			return;
 		}
-		;
-
+		
 		Map<MPrePostCondition, Boolean> results = new LinkedHashMap<MPrePostCondition, Boolean>(preConditions.size());
 		operationCall.setPreConditionsCheckResult(results);
 
@@ -575,22 +653,26 @@ public final class MSystem {
 		MObjectState objState = operationCall.getSelf().state(fCurrentState);
 
 		for (MProtocolStateMachineInstance psm : objState.getProtocolStateMachinesInstances()) {
+			// Operation is not covered by the state machine
+			if (!psm.getProtocolStateMachine().handlesOperation(operationCall.getOperation()))
+				continue;
+			
 			Map<MRegion, Set<MTransition>> possibleTransitions = new LinkedHashMap<MRegion, Set<MTransition>>();
 			boolean validOperationCall = psm.validOperationCall(ctx, operationCall, possibleTransitions);
 
 			if (!psm.isExecutingTransition() && !validOperationCall) {
-				throw new MSystemException("No valid transition available in protocol state machine " + StringUtil.inQuotes(psm) + " for operation call "
+				throw new MSystemException("No valid transition available in protocol state machine " + inQuotes(psm) + " for operation call "
 						+ operationCall.toString() + ".");
 			}
 
 			if (psm.isExecutingTransition() && validOperationCall) {
 				// TODO: Put output to context
-				Log.warn("Warning: The state machine instance " + StringUtil.inQuotes(psm.toString()));
-				Log.warn("ignores the possible valid operation call " + StringUtil.inQuotes(operationCall.toString()) + ",");
+				Log.warn("Warning: The state machine instance " + inQuotes(psm.toString()));
+				Log.warn("ignores the possible valid operation call " + inQuotes(operationCall.toString()) + ",");
 				Log.warn("because it already executes a transition.");
 			}
 
-			if (!psm.isExecutingTransition()) {
+			if (!psm.isExecutingTransition() && !possibleTransitions.isEmpty()) {
 				operationCall.putPossibleTransitions(psm, possibleTransitions);
 				psm.setExecutingTransition(true);
 			}
@@ -701,8 +783,8 @@ public final class MSystem {
 				}
 				psm.setExecutingTransition(false);
 			} else {
-				throw new MSystemException("No valid transition after operation call " + StringUtil.inQuotes(operationCall) + " for protocol state machine "
-						+ StringUtil.inQuotes(psm) + ". Possible transitions:\n" + StringUtil.fmtSeq(results.values(), "\n"));
+				throw new MSystemException("No valid transition after operation call " + inQuotes(operationCall) + " for protocol state machine "
+						+ inQuotes(psm) + ". Possible transitions:\n" + StringUtil.fmtSeq(results.values(), "\n"));
 			}
 		}
 	}
@@ -1594,6 +1676,24 @@ public final class MSystem {
 	
 	OperationExitedEvent fireOperationExited(MOperationCall operationCall) {
 		OperationExitedEvent e = new OperationExitedEvent(operationCall);
+		getEventBus().post(e);
+		return e;
+	}
+	
+	ClassInvariantsLoadedEvent fireClassInvariantsLoadedEvent(Collection<MClassInvariant> invariants) {
+		ClassInvariantsLoadedEvent e = new ClassInvariantsLoadedEvent(invariants);
+		getEventBus().post(e);
+		return e;
+	}
+	
+	ClassInvariantsUnloadedEvent fireClassInvariantsUnloadedEvent(Collection<MClassInvariant> invariants) {
+		ClassInvariantsUnloadedEvent e = new ClassInvariantsUnloadedEvent(invariants);
+		getEventBus().post(e);
+		return e;
+	}
+	
+	ClassInvariantChangeEvent fireClassInvariantChangeEvent(MClassInvariant invariant, InvariantStateChange change){
+		ClassInvariantChangeEvent e = new ClassInvariantChangeEvent(invariant, change);
 		getEventBus().post(e);
 		return e;
 	}

@@ -62,7 +62,7 @@ public class MCmdDestroyObjectsTest extends TestCase {
             fail( ex.getMessage() );
         }
         
-        systemApi = UseSystemApi.create(modelApi.getModel());
+        systemApi = UseSystemApi.create(modelApi.getModel(), false);
     }
     
     /**

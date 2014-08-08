@@ -30,14 +30,22 @@ import org.tzi.use.uml.ocl.value.Value;
  * @author  Joern Bohling
  */
 public class ExpressionWithValue extends Expression  {
-    private Value fValue;
+    
+	private final Value fValue;
 
     public ExpressionWithValue( Value value ) {
         super(value.type());
         fValue = value;
     }
     
-    public Value eval(EvalContext ctx) {
+    /**
+	 * @return the fValue
+	 */
+	public Value getValue() {
+		return fValue;
+	}
+
+	public Value eval(EvalContext ctx) {
         return fValue;
     }
     

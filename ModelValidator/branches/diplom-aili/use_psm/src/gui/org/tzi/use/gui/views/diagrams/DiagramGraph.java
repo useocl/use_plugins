@@ -145,8 +145,6 @@ public class DiagramGraph extends DirectedGraphBase<PlaceableNode, EdgeBase>  {
 	@Override
 	public synchronized boolean removeEdge(EdgeBase e) {
 		if (super.removeEdge(e)) {
-			uninitializedEdges.remove(e);
-			invalidatedEdges.remove(e);
 			if (!e.isReflexive()) {
 				setEdgeOffset(edgesBetween(e.source(), e.target()));
 			}
@@ -168,6 +166,14 @@ public class DiagramGraph extends DirectedGraphBase<PlaceableNode, EdgeBase>  {
 		uninitializedNodes.remove(o);
 		invalidatedNodes.remove(o);
 		return super.remove(o);
+	}
+
+	@Override
+	protected void onEdgeRemoved(EdgeBase edge) {
+		// Since DirectedGraphBase removes the edges related to the node
+		// we need to remove them from the additional edge sets
+		this.invalidatedEdges.remove(edge);
+		this.uninitializedEdges.remove(edge);
 	}
 
 	/**

@@ -65,7 +65,11 @@ public class MProtocolStateMachine extends MStateMachine {
 			for (MTransition t : r.getTransitions()) {
 				// PSM only contains protocol transitions
 				MProtocolTransition pt = (MProtocolTransition)t;
-				if (operation.equals(pt.getReferred()))
+				// some transitions don't have an operation, e. g., create
+				if (pt.getReferred() == null) continue;
+				
+				if (operation.equals(pt.getReferred()) || 
+					operation.isValidOverrideOf(pt.getReferred()))
 					return true;
 			}
 		}

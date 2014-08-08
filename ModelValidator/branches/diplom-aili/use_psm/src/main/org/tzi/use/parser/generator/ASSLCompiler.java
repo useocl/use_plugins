@@ -28,6 +28,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.antlr.runtime.ANTLRInputStream;
@@ -39,9 +40,9 @@ import org.tzi.use.parser.Context;
 import org.tzi.use.parser.ParseErrorHandler;
 import org.tzi.use.parser.SemanticException;
 import org.tzi.use.parser.use.ASTConstraintDefinition;
+import org.tzi.use.uml.mm.GeneratorModelFactory;
 import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MModel;
-import org.tzi.use.uml.mm.ModelFactory;
 import org.tzi.use.uml.sys.MSystemState;
 
 public class ASSLCompiler {
@@ -222,7 +223,7 @@ public class ASSLCompiler {
      * @param  err output stream for error messages
      * @return Collection the added invariants (MClassInvariant)
      */
-    public static Collection<MClassInvariant> compileAndAddInvariants(MModel model,
+    public static Collection<MClassInvariant> compileInvariants(MModel model,
                                                      InputStream in,
                                                      String inName,
                                                      PrintWriter err) {
@@ -247,17 +248,14 @@ public class ASSLCompiler {
                 Context ctx = new Context(inName,
                                           err,
                                           null,
-                                          new ModelFactory());
-                Collection<MClassInvariant> existingInvs = model.classInvariants();
+                                          new GeneratorModelFactory());
                 ctx.setModel(model);
                 
+                addedInvs = new LinkedList<MClassInvariant>();
                 for (ASTConstraintDefinition cd : consDefList) {
                     // adds the class invariants to the given model
-                    cd.gen(ctx);
+                    addedInvs.addAll(cd.gen(ctx, false));
                 }
-                
-                addedInvs = new ArrayList<MClassInvariant>(model.classInvariants());
-                addedInvs.removeAll(existingInvs);
             }
         } catch (RecognitionException e) {
             err.println(e.line + ":" +

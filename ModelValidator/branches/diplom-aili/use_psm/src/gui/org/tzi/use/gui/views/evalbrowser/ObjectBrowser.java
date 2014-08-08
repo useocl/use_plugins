@@ -19,12 +19,10 @@
 
 // $Id$
 
-package org.tzi.use.gui.views;
+package org.tzi.use.gui.views.evalbrowser;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -35,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
-import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.DefaultCellEditor;
@@ -53,7 +50,6 @@ import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.value.Value;
-import org.tzi.use.uml.ocl.value.VarBindings.Entry;
 import org.tzi.use.uml.sys.MLink;
 import org.tzi.use.uml.sys.MLinkSet;
 import org.tzi.use.uml.sys.MObject;
@@ -65,7 +61,7 @@ import org.tzi.use.uml.sys.MSystemState;
  * Window for the Object Properties 
  */
 @SuppressWarnings("serial")
-class ObjectBrowser extends JFrame {
+public class ObjectBrowser extends JFrame {
     private JTable fTable;
     private TableModel fTableModel;
     private JScrollPane fTablePane;
@@ -175,10 +171,7 @@ class ObjectBrowser extends JFrame {
      */
     private void selectObject(String objName) {
         MSystemState state = fSystem.state();
-        if(objName.charAt(0) == '@'){
-            objName = objName.substring(1);
-            fObject = state.objectByName(objName);
-        }
+        fObject = state.objectByName(objName);
     }
     
     public void calcLinks(){
@@ -220,10 +213,11 @@ class ObjectBrowser extends JFrame {
     }
     
     private void update() {
-        if(fTablePane!=null)
-            getContentPane().remove(fTablePane);
+        
+    	this.fTopLabel.setText(fObject.name() + ":" + fObject.type().toString());
+    	
         calcLinks();
-        //updateGUIState();
+        
         fCellEditors = new TreeMap<String, DefaultCellEditor>();
         for(int i=0; i<fAssoc.size(); i++) {
             JComboBox<MObject> combo = new JComboBox<MObject>();
@@ -242,8 +236,7 @@ class ObjectBrowser extends JFrame {
                         Object obj = e.getItem();
                         if(obj instanceof MObject) {
                             MObject sel = (MObject)obj;
-                            selectObject("@"+sel.name());
-                            setTopLabelText("@"+fObject.name()+" : "+fObject.type());
+                            selectObject(sel.name());
                             update();
                             fTableModel.update();
                         }
@@ -256,10 +249,46 @@ class ObjectBrowser extends JFrame {
         }
         
         fTableModel = new TableModel();
-        fTable = new JTable(fTableModel) {
+        fTable.setModel(fTableModel);
+        fTableModel.update();
+        this.repaint();
+    }
+    
+    public ObjectBrowser(MSystem sys, MObject var){
+        super("Object browser");
+        
+        if(var == null){
+        	throw new IllegalArgumentException("Need an Object.");
+        }
+        
+        fSystem = sys;
+        fObject = var;
+        
+        getContentPane().setLayout(new BorderLayout());
+        fTopLabel = new JLabel("Object browser");
+        fTopLabel.setHorizontalAlignment(JLabel.CENTER);
+        fTopLabel.setVerticalAlignment(JLabel.CENTER);
+        
+        JButton button = new JButton("Close");
+        button.setSize(new Dimension(30,(int)button.getHeight()));
+        button.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent event){
+                setVisible(false);
+                dispose();
+            }
+        });         
+        
+        Box comboBox = Box.createHorizontalBox();
+        comboBox.add(Box.createGlue());
+        comboBox.add(button);
+        comboBox.add(Box.createGlue());         
+
+        getContentPane().add(fTopLabel,BorderLayout.NORTH);
+        getContentPane().add(comboBox,BorderLayout.SOUTH);
+        
+        fTable = new JTable() {
             public TableCellEditor getCellEditor(int row, int column) {
                 int modelColumn = convertColumnIndexToModel( column );
-                //return (TableCellEditor)fCellEditors.get(fAssoc.get(row).toString());
                 
                 if(modelColumn == 3 && row < fAssoc.size()) {
                     return (TableCellEditor)fCellEditors.get(fAssoc.get(row).toString()); 
@@ -269,79 +298,17 @@ class ObjectBrowser extends JFrame {
             }
         };
         
-        fTable.setPreferredScrollableViewportSize(new Dimension(250, 70));
+        fTable.setPreferredScrollableViewportSize(new Dimension(400, 150));
         fTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
         fTablePane = new JScrollPane(fTable);
-        fTableModel.update();
         getContentPane().add(fTablePane,BorderLayout.CENTER);
-    }
-    
-    public void setTopLabelText(String txt){
-        // get the Display Size
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        Dimension displaySize = tk.getScreenSize();
-        int maxWidth = (int)displaySize.getWidth();
         
-        //Dimension windowSize = getSize();
-        int windowSize = getWidth();
-        
-        if(windowSize < maxWidth)
-            maxWidth = windowSize;
-        // calculate the Dimension for the title
-        FontMetrics fm = fTopLabel.getFontMetrics(fTopLabel.getFont());
-        int topWidth = 0;
-        int topHeight = fm.getHeight();
-        //int topHeight = 0;
-        Pattern p = Pattern.compile("\n");
-        String s[] = p.split(txt);
-        for (int i=0; i<s.length; i++){
-            // if the current string is wider 
-            if(topWidth < fm.stringWidth(s[i]))
-                if(fm.stringWidth(s[i]) < maxWidth)
-                    // string is between width so far and maxWidth 
-                    topWidth = fm.stringWidth(s[i]);
-                else topWidth = maxWidth;
-            // increment the height with 1 line or more if needed
-            topHeight += (fm.getHeight() *(1+(fm.stringWidth(s[i])/maxWidth)));
-        }
-        // set the Size of the South Frame
-        fTopLabel.setPreferredSize(new Dimension(topWidth,topHeight));
-        // make changes visible
-        fTopLabel.setText(txt);
-        fTopLabel.setVisible(false);
-        fTopLabel.setVisible(true);
-    }
-    
-    public ObjectBrowser(MSystem sys, Entry var){
-        super("Object browser");
-        fSystem = sys;
-        getContentPane().setLayout(new BorderLayout());
-        fTopLabel = new JLabel(var.getValue().toStringWithType());
-        //fTopLabel.setSize(300,100);
-        fTopLabel.setHorizontalAlignment(JLabel.CENTER);
-        fTopLabel.setVerticalAlignment(JLabel.CENTER);
-        JButton button = new JButton("Close");
-        button.setSize(new Dimension(30,(int)button.getHeight()));
-        button.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent event){
-                setVisible(false);
-                dispose();
-            }
-        });         
-        Box comboBox = Box.createHorizontalBox();
-        comboBox.add(Box.createGlue());
-        comboBox.add(button);
-        comboBox.add(Box.createGlue());         
-        
-        // first select Object then create new table of attribute/value pairs
-        selectObject(var.getValue().toString());
-        if(fObject!=null) 
-            update();
-        
-        getContentPane().add(fTopLabel,BorderLayout.NORTH);
-        getContentPane().add(comboBox,BorderLayout.SOUTH);
         setSize(600,300);
         setVisible(true);
-        setTopLabelText(var.getValue().toStringWithType());
+        
+        update();
+        
+        pack();
     }
 }

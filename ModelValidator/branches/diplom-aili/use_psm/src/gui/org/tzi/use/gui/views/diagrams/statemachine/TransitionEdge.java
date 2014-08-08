@@ -32,6 +32,7 @@ import java.util.Set;
 import org.tzi.use.gui.util.PersistHelper;
 import org.tzi.use.gui.views.diagrams.DiagramOptions;
 import org.tzi.use.gui.views.diagrams.edges.DirectedEdgeFactory;
+import org.tzi.use.gui.views.diagrams.edges.DirectedEdgeFactory.ArrowStyle;
 import org.tzi.use.gui.views.diagrams.elements.EdgeProperty;
 import org.tzi.use.gui.views.diagrams.elements.PlaceableNode;
 import org.tzi.use.gui.views.diagrams.elements.edges.EdgeBase;
@@ -184,7 +185,8 @@ public class TransitionEdge extends EdgeBase {
 								(int) Math.round(p1.getX()),
 								(int) Math.round(p1.getY()),
 								(int) Math.round(p2.getX()),
-								(int) Math.round(p2.getY()));
+								(int) Math.round(p2.getY()),
+								ArrowStyle.OPEN);
 					} else {
 						g.drawLine((int) Math.round(p1.getX()),
 								   (int) Math.round(p1.getY()),

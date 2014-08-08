@@ -32,7 +32,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,13 +61,11 @@ import javax.swing.table.TableColumnModel;
 
 import org.tzi.use.config.Options;
 import org.tzi.use.gui.main.MainWindow;
-import org.tzi.use.gui.util.MMHTMLPrintVisitor;
 import org.tzi.use.gui.util.PopupListener;
+import org.tzi.use.gui.views.evalbrowser.ExprEvalBrowser;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MClassInvariant;
-import org.tzi.use.uml.mm.MMPrintVisitor;
-import org.tzi.use.uml.mm.MMVisitor;
 import org.tzi.use.uml.ocl.expr.Evaluator;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.MultiplicityViolationException;
@@ -406,23 +403,11 @@ public class ClassExtentView extends JPanel implements View, ActionListener {
                                 } catch (MultiplicityViolationException ex) {
                                     return;
                                 }
-                                // get the invariant as html string
-                                StringWriter sw = new StringWriter();
-                                sw.write("<html>");
-                                MMVisitor v = new MMHTMLPrintVisitor(
-                                        new PrintWriter(sw));
-                                fClassInvariants[i].processWithVisitor(v);
-                                sw.write("</html>");
-                                String htmlSpec = sw.toString();
-                                // get the invariant as normal string
-                                sw = new StringWriter();
-                                v = new MMPrintVisitor(new PrintWriter(sw));
-                                fClassInvariants[i].processWithVisitor(v);
-                                String spec = sw.toString();
+
                                 ExprEvalBrowser eb = ExprEvalBrowser
                                         .createPlus(
                                                 evaluator.getEvalNodeRoot(),
-                                                fSystem, spec, htmlSpec);
+                                                fSystem, fClassInvariants[i]);
                                 eb.setSelectionElement(fTable.getSelectedRow());
                                 break;
                             }

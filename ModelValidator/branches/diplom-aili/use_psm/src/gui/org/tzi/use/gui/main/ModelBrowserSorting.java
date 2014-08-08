@@ -221,9 +221,9 @@ public class ModelBrowserSorting  {
     }
     
     /**
-     * Calls the specific algorithem in which way the tree will be sorted.
+     * Calls the specific algorithm in which way the tree will be sorted.
      *
-     * @return The correct sorted <code>ArrayList</code>.
+     * @return A new list containing the attributes in the currently set sort order.
      */
     public List<MAttribute> sortAttributes(Collection<MAttribute> items) {
         ArrayList<MAttribute> attributes = new ArrayList<MAttribute>( items );

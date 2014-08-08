@@ -125,10 +125,6 @@ public class MProtocolStateMachineInstance {
 	 */
 	public boolean validOperationCall(EvalContext ctx, MOperationCall operationCall, Map<MRegion, Set<MTransition>> possibleTransitions) {
 		
-		// Operation is not covered by the state machine
-		if (!stateMachine.handlesOperation(operationCall.getOperation()))
-			return true;
-		
 		boolean foundValid = false;
 		
 		for (Map.Entry<MRegion, MState> entry : this.currentRegionsState.entrySet()) {
@@ -141,9 +137,13 @@ public class MProtocolStateMachineInstance {
 			
 			for (MTransition t : outgoingTransitions) {
 				MProtocolTransition pt = (MProtocolTransition)t;
+				// some transitions don't have an operation, e. g., create
+				if (pt.getReferred() == null) continue;
+				
 				boolean isValid = false;
 				
-				if (operationCall.getOperation().equals(pt.getReferred())) {
+				if (   operationCall.getOperation().equals(pt.getReferred())
+					|| operationCall.getOperation().isValidOverrideOf(pt.getReferred())) {
 					// Check the guard
 					if (pt.hasGuard()) {
 						Evaluator oclEvaluator = new Evaluator();

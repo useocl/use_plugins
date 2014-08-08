@@ -168,7 +168,11 @@ public class OpEnterOpExitPPCHandler implements PPCHandler {
 					
 					for (MTransition t : s.getOutgoing()) {
 						MProtocolTransition pt = (MProtocolTransition)t;
-						if (operationCall.getOperation().equals(pt.getReferred())) {
+						// May refer to create, etc.
+						if (pt.getReferred() == null) continue;
+						
+						if (operationCall.getOperation().equals(pt.getReferred()) ||
+							operationCall.getOperation().isValidOverrideOf(pt.getReferred())) {
 							boolean possible = possibleInRegion.contains(t);
 							fOutput.println("Transition " + t.toString() + " is " + (possible ? "" : "not ") + "possible.");
 						}
