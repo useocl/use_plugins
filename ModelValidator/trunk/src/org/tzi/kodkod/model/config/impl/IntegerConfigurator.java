@@ -23,15 +23,6 @@ public class IntegerConfigurator extends TypeConfigurator {
 	public TupleSet lowerBound(ConfigurableType type, int arity, TupleFactory tupleFactory) {
 		TupleSet lower = tupleFactory.noneOf(1);
 
-		/*for (String[] specific : allValues()) {
-			lower.add(tupleFactory.tuple(Integer.parseInt(specific[0])));
-		}
-
-		for (Range range : ranges) {
-			for (int i = range.getLower(); i <= range.getUpper(); i++) {
-				lower.add(tupleFactory.tuple(Integer.valueOf(i)));
-			}
-		}*/
 		for(Object atom : type.atoms()){
 			lower.add(tupleFactory.tuple(atom));
 		}

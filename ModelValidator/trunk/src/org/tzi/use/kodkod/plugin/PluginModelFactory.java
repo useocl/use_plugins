@@ -19,6 +19,10 @@ import org.tzi.use.main.ChangeEvent;
 import org.tzi.use.main.ChangeListener;
 import org.tzi.use.main.Session;
 import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.sys.events.ClassInvariantsLoadedEvent;
+import org.tzi.use.uml.sys.events.ClassInvariantsUnloadedEvent;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * Singleton to encapsulate the model transformation.
@@ -99,6 +103,7 @@ public enum PluginModelFactory implements ChangeListener {
 			return;
 		}
 		s.addChangeListener(this);
+		session.system().getEventBus().register(this);
 		session = s;
 	}
 	
@@ -106,4 +111,15 @@ public enum PluginModelFactory implements ChangeListener {
 	public void stateChanged(ChangeEvent e) {
 		reTransform = true;
 	}
+	
+	@Subscribe
+	public void onClassInvariantLoaded(ClassInvariantsLoadedEvent ev){
+		reTransform = true;
+	}
+	
+	@Subscribe
+	public void onClassInvariantUnloaded(ClassInvariantsUnloadedEvent ev){
+		reTransform = true;
+	}
+	
 }
