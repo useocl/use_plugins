@@ -103,8 +103,8 @@ public enum PluginModelFactory implements ChangeListener {
 			return;
 		}
 		s.addChangeListener(this);
-		session.system().getEventBus().register(this);
 		session = s;
+		session.system().getEventBus().register(this);
 	}
 	
 	@Override
