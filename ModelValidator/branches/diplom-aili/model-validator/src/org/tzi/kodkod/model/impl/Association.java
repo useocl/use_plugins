@@ -96,7 +96,7 @@ public class Association extends ModelElement implements IAssociation {
 			associationEnd = temporary.get(i);
 
 			expression = helper.univ_l(relation(), i);
-			for (int j = 0; j < temporary.size() - i - 1; j++) {
+			for (int j = 0; j < temporary.size() - i - 1; j++) { // helper.univ_r
 				expression = expression.join(Expression.UNIV);
 			}
 
@@ -113,7 +113,7 @@ public class Association extends ModelElement implements IAssociation {
 		}
 		return Formula.and(formulas);
 	}
-
+	
 	/**
 	 * Creates the formula for the multiplicity constraints.
 	 * 

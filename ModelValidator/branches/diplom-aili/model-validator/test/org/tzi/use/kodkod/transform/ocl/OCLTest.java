@@ -87,7 +87,7 @@ public class OCLTest {
 		shell.processLineSafely("!create examAdaBobCyd:Exam_AC between (ada,bob,cyd)");
 		shell.processLineSafely("!create examDanBobCyd:Exam_AC between (dan,bob,cyd)");
 
-		model = PluginModelFactory.INSTANCE.getModel(mSystem.generator().gModel());
+		model = PluginModelFactory.INSTANCE.getModel(mModel);
 
 		OCLGroupRegistry registry = OCLGroupRegistry.INSTANCE;
 		registry.unregisterAll();

@@ -5,17 +5,7 @@
 
 	<appender name="ConsoleAppender" class="org.apache.log4j.ConsoleAppender">
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%-5p %C{1}: %m%n%n" />
-		</layout>
-	</appender>
-
-	<appender name="FileAppender" class="biz.minaret.log4j.DatedFileAppender">
-		<param name="Directory" value="kodkodLogs" />
-		<param name="Prefix" value="" />
-		<param name="Suffix" value="" />
-		<param name="Append" value="false" />
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d{HH:mm:ss:SS} - %p - %C{1} - %m%n%n" />
+			<param name="ConversionPattern" value="%d{HH:mm:ss} %-5p %C{1}: %m%n%n" />
 		</layout>
 	</appender>
 
@@ -108,6 +98,10 @@
 		<level value="INFO" />
 	</logger>
 	
+	<logger name="org.tzi.use.kodkod.solution.ObjectDiagramCreator">
+		<level value="INFO" />
+	</logger>
+	
 	<!-- Konfiguration der einzelnen Elemente -->
 	<logger name="org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor">
 		<level value="INFO" />
@@ -120,7 +114,6 @@
 	<root>
 		<priority value="INFO" />
 		<appender-ref ref="ConsoleAppender" />
-		<appender-ref ref="FileAppender" />
 		<appender-ref ref="UseLogAppender" />
 	</root>
 

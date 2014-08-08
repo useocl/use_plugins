@@ -1,7 +1,7 @@
 package org.tzi.kodkod;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +25,7 @@ import org.tzi.use.config.Options;
 import org.tzi.use.util.Log;
 
 /**
- * Encapsulation of the base algorithm for the model validiation with kodkod.
+ * Encapsulation of the base algorithm for the model validation with kodkod.
  * 
  * @author Hendrik Reitmann
  * 
@@ -51,7 +51,6 @@ public class KodkodSolver {
 		solver.options().setBitwidth(configuration.bitwidth());
 		
 		Solution solution = solver.solve(constraint, bounds);
-		
 		
 		createEvaluator(solver, solution);
 
@@ -102,7 +101,7 @@ public class KodkodSolver {
 	 * @return
 	 */
 	private Universe createUniverse(IModel model) {
-		Set<Object> atoms = new HashSet<Object>();
+		Set<Object> atoms = new LinkedHashSet<Object>();
 
 		List<TypeAtoms> typeAtoms = new ArrayList<TypeAtoms>(model.enumTypes());
 		typeAtoms.addAll(model.typeFactory().typeAtoms());

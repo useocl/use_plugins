@@ -33,6 +33,7 @@ import org.tzi.use.uml.ocl.expr.ExpOclInState;
 import org.tzi.use.uml.ocl.expr.ExpOne;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
+import org.tzi.use.uml.ocl.expr.ExpRange;
 import org.tzi.use.uml.ocl.expr.ExpReject;
 import org.tzi.use.uml.ocl.expr.ExpSelect;
 import org.tzi.use.uml.ocl.expr.ExpSelectByKind;
@@ -304,6 +305,11 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
 		
+	}
+
+	@Override
+	public void visitRange(ExpRange exp) {
+		LOG.debug("ExpRange");
 	}
 
 }

@@ -1,8 +1,5 @@
 package org.tzi.kodkod.ocl.operation;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import kodkod.ast.Expression;
 import kodkod.ast.Variable;
 
@@ -30,34 +27,9 @@ public class CollectionConstructorGroup extends OCLOperationGroup {
 		return true;
 	}
 
-	public Expression mkSetRange(Expression... elem) {
-		List<Expression> constructorExpressions = new ArrayList<Expression>();
-
-		for (int i = 0; i < elem.length + 1 / 2; i += 2) {
-			constructorExpressions.add(mkSetRange(elem[i], elem[i + 1]));
-		}
-
-		return setLiteral(constructorExpressions.toArray(new Expression[constructorExpressions.size()]));
-	}
-
-	public Expression mkBagRange(Expression... elem) {
-		LOG.warn(LogMessages.unsupportedCollectionWarning("bags"));
-		return mkSetRange(elem);
-	}
-
-	public Expression mkSequenceRange(Expression... elem) {
-		LOG.warn(LogMessages.unsupportedCollectionWarning("sequences"));
-		return mkSetRange(elem);
-	}
-
-	public Expression mkOrderedSetRange(Expression... elem) {
-		LOG.warn(LogMessages.unsupportedCollectionWarning("orderedSets"));
-		return mkSetRange(elem);
-	}
-
 	// OCL: x..y
 
-	private Expression mkSetRange(Expression from, Expression to) {
+	public Expression mkSetRange(Expression from, Expression to) {
 		final Variable i = Variable.unary("i");
 
 		return from.eq(undefined).or(to.eq(undefined))

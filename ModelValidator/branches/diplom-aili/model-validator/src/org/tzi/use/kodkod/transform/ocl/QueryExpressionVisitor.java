@@ -135,7 +135,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	public void visitQuery(ExpQuery exp) {
 		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getRangeExpression().processWithVisitor(visitor);
-		sourceType = visitor.getSourceType();
+		sourceType = exp.getRangeExpression().type();
 		arguments.add(0, visitor.getObject());
 
 		List<String> replacedVariables = createVariables(exp.getVariableDeclarations());

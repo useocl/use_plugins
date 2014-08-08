@@ -28,7 +28,6 @@ public class Configurator<M extends IElement> implements IConfigurator<M> {
 
 	public Configurator() {
 		ranges = new ArrayList<Range>();
-		ranges.add(new Range(0, 0));
 		specificValues = new HashSet<String[]>();
 	}
 

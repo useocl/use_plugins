@@ -97,6 +97,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 			write(clazz.name() + PropertyEntry.objMin, DefaultConfigurationValues.objectsPerClassMin);
 			write(clazz.name() + PropertyEntry.objMax, DefaultConfigurationValues.objectsPerClassMax);
 		}
+		iterate(clazz.attributes().iterator());
 	}
 
 	@Override

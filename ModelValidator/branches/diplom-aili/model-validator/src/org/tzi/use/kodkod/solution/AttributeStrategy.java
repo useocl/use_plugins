@@ -4,12 +4,12 @@ import java.util.Map;
 
 import kodkod.instance.Tuple;
 
+import org.tzi.use.api.UseApiException;
+import org.tzi.use.api.UseSystemApi;
 import org.tzi.use.uml.mm.MAttribute;
-import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MObjectState;
-import org.tzi.use.uml.sys.MSystemState;
 
 /**
  * Strategy for the creation of attributes.
@@ -21,13 +21,13 @@ public class AttributeStrategy extends ElementStrategy {
 
 	private String attributeName;
 
-	public AttributeStrategy(MSystemState mSystemState, MModel mModel, Map<String, MObjectState> objectStates, String attributeName) {
-		super(mSystemState, mModel, objectStates);
+	public AttributeStrategy(UseSystemApi sApi, Map<String, MObjectState> objectStates, String attributeName) {
+		super(sApi, objectStates);
 		this.attributeName = attributeName;
 	}
 
 	@Override
-	public void createElement(Tuple currentTuple) {
+	public void createElement(Tuple currentTuple) throws UseApiException {
 		MObjectState mObjectState = objectStates.get(currentTuple.atom(0));
 
 		MAttribute mAttribute = findAttribute(mObjectState);
@@ -40,7 +40,7 @@ public class AttributeStrategy extends ElementStrategy {
 			Value newVal = valueCreator.create(attributeType, atom);
 
 			if (newVal != null) {
-				mObjectState.setAttributeValue(mAttribute, newVal);
+				systemApi.setAttributeValueEx(mObjectState.object(), mAttribute, newVal);
 			}
 		}
 	}

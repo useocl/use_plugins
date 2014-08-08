@@ -111,11 +111,11 @@ public final class LogMessages {
 	}
 
 	public static String invIndepSyntaxError(String argument) {
-		return argument + " has not the correct syntax. Use " + inQuotes("class") + " - " + inQuotes("invariant") + ".";
+		return argument + " does not have the correct syntax. Use " + inQuotes("class") + " - " + inQuotes("invariant") + ".";
 	}
 
 	public static String unsupportedCollectionWarning(String collectionName) {
-		return "This approach supports no " + collectionName + ". All collections will be handled like sets.";
+		return "This approach does not support " + collectionName + ". All collections will be handled like sets.";
 	}
 
 	public static String differentSymbolOperationMappingsError(String operator, String mapping) {
@@ -185,7 +185,7 @@ public final class LogMessages {
 	}
 
 	public static String extractSatSolverWarning(String defaultSatFactory) {
-		return "Extraction of satsolver libraries failed. Only default SatSolver " + inQuotes(defaultSatFactory) + " can be used!";
+		return "Extraction of satsolver libraries failed. Only default SatSolver " + inQuotes(defaultSatFactory) + " can be used! Is USE open twice?";
 	}
 
 	public static String libraryPathWarning(String defaultSatFactory, String exceptionMsg) {

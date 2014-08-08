@@ -1,6 +1,6 @@
 package org.tzi.kodkod.model.type;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +18,7 @@ public class PrimitiveTypeFactory extends TypeFactory {
 
 	@Override
 	protected Map<String, Type> createBuildInTypes() {
-		Map<String, Type> buildInTypes = new HashMap<String, Type>();
+		Map<String, Type> buildInTypes = new LinkedHashMap<String, Type>();
 		buildInTypes.put(TypeConstants.UNDEFINED, new UndefinedType());
 		buildInTypes.put(TypeConstants.UNDEFINED_SET, new UndefinedSetType());
 		buildInTypes.put(TypeConstants.ANY, new AnyType());

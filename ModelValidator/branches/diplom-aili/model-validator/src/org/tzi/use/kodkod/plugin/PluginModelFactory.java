@@ -1,7 +1,5 @@
 package org.tzi.use.kodkod.plugin;
 
-import java.io.File;
-
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.iface.IModelFactory;
 import org.tzi.kodkod.model.impl.SimpleFactory;
@@ -17,6 +15,9 @@ import org.tzi.kodkod.ocl.operation.IntegerOperationGroup;
 import org.tzi.kodkod.ocl.operation.SetOperationGroup;
 import org.tzi.kodkod.ocl.operation.VariableOperationGroup;
 import org.tzi.use.kodkod.transform.ModelTransformator;
+import org.tzi.use.main.ChangeEvent;
+import org.tzi.use.main.ChangeListener;
+import org.tzi.use.main.Session;
 import org.tzi.use.uml.mm.MModel;
 
 /**
@@ -25,12 +26,12 @@ import org.tzi.use.uml.mm.MModel;
  * @author Hendrik Reitmann
  * 
  */
-public enum PluginModelFactory {
+public enum PluginModelFactory implements ChangeListener {
 
 	INSTANCE;
 
-	private String modelStatistics = "";
-	private long lastModified = 0;
+	private Session session = null;
+	private boolean reTransform = true;
 
 	private IModel model;
 	private TypeFactory typeFactory;
@@ -49,11 +50,8 @@ public enum PluginModelFactory {
 	 * @return
 	 */
 	public IModel getModel(final MModel mModel) {
-		File file = new File(mModel.filename());
-
-		if (!modelStatistics.equals(mModel.getStats()) || lastModified != file.lastModified()) {
-			modelStatistics = mModel.getStats();
-			lastModified = file.lastModified();
+		if (reTransform) {
+			reTransform = false;
 
 			ModelTransformator transformator = new ModelTransformator(modelFactory, typeFactory);
 			model = transformator.transform(mModel);
@@ -94,5 +92,18 @@ public enum PluginModelFactory {
 		registry.registerOperationGroup(new ConditionalOperationGroup(typeFactory));
 		registry.registerOperationGroup(new SetOperationGroup(typeFactory));
 		registry.registerOperationGroup(new CollectionConstructorGroup(typeFactory));
+	}
+	
+	public void registerForSession(Session s){
+		if(s == session){
+			return;
+		}
+		s.addChangeListener(this);
+		session = s;
+	}
+	
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		reTransform = true;
 	}
 }

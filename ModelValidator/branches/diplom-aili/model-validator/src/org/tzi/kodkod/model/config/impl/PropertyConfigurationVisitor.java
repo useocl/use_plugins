@@ -12,6 +12,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
+import org.tzi.kodkod.KodkodModelValidatorConfiguration;
 import org.tzi.kodkod.KodkodQueryCache;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IAssociation;
@@ -171,30 +172,79 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		readTypeValues(type, type.name());
 
 		TypeConfigurator configurator = typeConfigurators.get(type);
-		configurator.setSpecificValues(typeSpecificValues.get(type));
-
-		int min = 0, max = 1;
-		if (type.isInteger()) {
-			min = readSize(type.name() + PropertyEntry.integerValueMin, 0, true);
-			max = readSize(type.name() + PropertyEntry.integerValueMax, 1, true);
-		} else {
-			if (type.isString()) {
-				min = readSize(type.name() + PropertyEntry.stringValuesMin, 0, false);
-				max = readSize(type.name() + PropertyEntry.stringValuesMax, 1, false);
-			} else {
-				if (type.isReal()) {
-					min = readSize(type.name() + PropertyEntry.realValueMin, 0, true);
-					max = readSize(type.name() + PropertyEntry.realValueMax, 1, true);
-				}
-			}
+		List<String[]> specificValues = typeSpecificValues.get(type);
+		if(specificValues.size() > 0){
+			configurator.setSpecificValues(specificValues);
 		}
 
-		try {
-			List<Range> ranges = new ArrayList<Range>();
-			ranges.add(new Range(min, max));
-			configurator.setRanges(ranges);
-		} catch (Exception e) {
-			error(e.getMessage());
+		int min;
+		int max;
+		if (type.isInteger()) {
+			min = readSize(type.name() + PropertyEntry.integerValueMin, Integer.MIN_VALUE, true);
+			max = readSize(type.name() + PropertyEntry.integerValueMax, Integer.MIN_VALUE, true);
+			
+			// check for values exceeding bitwith
+			int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
+			
+			if(!specificValues.isEmpty()){
+				int maxSpecific = Integer.MIN_VALUE;
+				for(String[] s : specificValues){
+					int curr = Integer.valueOf(s[0]);
+					if(curr > maxSpecific){
+						maxSpecific = curr;
+					}
+				}
+				int requiredBitwidthSpecific = ((int) Math.ceil(Math.log(Math.abs(maxSpecific))/Math.log(2))) +1;
+				if(requiredBitwidthSpecific > bitwidth){
+					warning("The configured bitwidth is too small for the specific Integer value(s). Required bitwidth: " + requiredBitwidthSpecific + " or greater.");
+				}
+			}
+			
+			if(min != Integer.MIN_VALUE){
+				// +1 for twos complement encoding
+				int requiredBitwidthMin = ((int) Math.ceil(Math.log(Math.abs(min))/Math.log(2))) +1;
+				
+				if(requiredBitwidthMin > bitwidth){
+					warning("The configured bitwidth is too small for the property Integer min value. Required bitwidth: " + requiredBitwidthMin + " or greater.");
+				}
+			}
+			if(max != Integer.MIN_VALUE){
+				// +1 for twos complement encoding
+				int requiredBitwidthMax = ((int) Math.ceil(Math.log(Math.abs(max))/Math.log(2))) +1;
+				
+				if(requiredBitwidthMax > bitwidth){
+					warning("The configured bitwidth is too small for the property Integer max value. Required bitwidth: " + requiredBitwidthMax + " or greater.");
+				}
+			}
+		} else if (type.isString()) {
+			min = readSize(type.name() + PropertyEntry.stringValuesMin, Integer.MIN_VALUE, false);
+			max = readSize(type.name() + PropertyEntry.stringValuesMax, Integer.MIN_VALUE, false);
+		} else if (type.isReal()) {
+			min = readSize(type.name() + PropertyEntry.realValueMin, Integer.MIN_VALUE, true);
+			max = readSize(type.name() + PropertyEntry.realValueMax, Integer.MIN_VALUE, true);
+		}
+		else {
+			error("Unknown Configurable Type");
+			return;
+		}
+		
+		if(min != Integer.MIN_VALUE || max != Integer.MIN_VALUE){
+			if(min == Integer.MIN_VALUE){
+				// default value for min is 0
+				min = 0;
+			}
+			if(max == Integer.MIN_VALUE){
+				// default value for max is 1
+				max = 1;
+			}
+			
+			try {
+				List<Range> ranges = new ArrayList<Range>();
+				ranges.add(new Range(min, max));
+				configurator.setRanges(ranges);
+			} catch (Exception e) {
+				error(e.getMessage());
+			}
 		}
 
 		type.setConfigurator(configurator);
@@ -251,7 +301,9 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			configurator = new ClassConfigurator();
 		}
 
-		configurator.setSpecificValues(values);
+		if(values.size() > 0){
+			configurator.setSpecificValues(values);
+		}
 		int min = readSize(clazz.name() + PropertyEntry.objMin, 0, false);
 		classMinObjects.put(clazz.name(), min);
 		configurator.setLimits(min, readSize(clazz.name() + PropertyEntry.objMax, min, false));
@@ -287,7 +339,9 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	 */
 	protected void setAssociationConfigurator(IAssociation association, List<String[]> values) {
 		AssociationConfigurator configurator = new AssociationConfigurator();
-		configurator.setSpecificValues(values);
+		if(values.size() > 0){
+			configurator.setSpecificValues(values);
+		}
 		configurator.setLimits(readSize(association.name() + PropertyEntry.linksMin, 0, false),
 				readSize(association.name() + PropertyEntry.linksMax, -1, false));
 		association.setConfigurator(configurator);
@@ -327,7 +381,9 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		List<String[]> values = getTypeSpecificValues(type);
 		for (String element : readSingleElements(typeName)) {
 			element = element.trim().replaceAll("'", "");
-			values.add(new String[] { element });
+			if(!element.isEmpty()){
+				values.add(new String[] { element });
+			}
 		}
 	}
 

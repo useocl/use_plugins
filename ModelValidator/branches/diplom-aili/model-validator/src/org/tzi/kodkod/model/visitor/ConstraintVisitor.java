@@ -16,7 +16,7 @@ import org.tzi.kodkod.model.iface.IModel;
  */
 public class ConstraintVisitor extends SimpleVisitor {
 
-	private Formula formula = null;
+	private Formula formula;
 
 	public ConstraintVisitor() {
 		formula = Formula.TRUE;

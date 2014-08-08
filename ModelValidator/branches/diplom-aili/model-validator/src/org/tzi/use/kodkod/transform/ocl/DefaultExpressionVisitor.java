@@ -9,6 +9,7 @@ import kodkod.ast.Node;
 import kodkod.ast.Relation;
 import kodkod.ast.Variable;
 
+import org.tzi.kodkod.KodkodModelValidatorConfiguration;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
@@ -38,6 +39,7 @@ import org.tzi.use.uml.ocl.expr.ExpObjAsSet;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
+import org.tzi.use.uml.ocl.expr.ExpRange;
 import org.tzi.use.uml.ocl.expr.ExpSequenceLiteral;
 import org.tzi.use.uml.ocl.expr.ExpSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpStdOp;
@@ -45,6 +47,7 @@ import org.tzi.use.uml.ocl.expr.ExpUndefined;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
 import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Default visitor implementation for the transform use expression.
@@ -146,6 +149,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitBagLiteral(ExpBagLiteral exp) {
 		super.visitBagLiteral(exp);
+		LOG.warn(LogMessages.unsupportedCollectionWarning("bags"));
 		visitCollectionLiteral(exp, "bagLiteral");
 	}
 
@@ -293,6 +297,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitOrderedSetLiteral(ExpOrderedSetLiteral exp) {
 		super.visitOrderedSetLiteral(exp);
+		LOG.warn(LogMessages.unsupportedCollectionWarning("orderedSets"));
 		visitCollectionLiteral(exp, "orderedSetLiteral");
 	}
 
@@ -309,6 +314,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitSequenceLiteral(ExpSequenceLiteral exp) {
 		super.visitSequenceLiteral(exp);
+		LOG.warn(LogMessages.unsupportedCollectionWarning("sequences"));
 		visitCollectionLiteral(exp, "sequenceLiteral");
 	}
 
@@ -344,6 +350,26 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		visitVariableOperation(exp);
 	}
 
+	@Override
+	public void visitRange(ExpRange exp) {
+		super.visitRange(exp);
+		
+		org.tzi.use.uml.ocl.expr.Expression[] expToVisit = new org.tzi.use.uml.ocl.expr.Expression[]{
+				exp.getStart(),
+				exp.getEnd()
+		};
+		List<Object> args = new ArrayList<Object>(2);
+		
+		DefaultExpressionVisitor visitor;
+		for(org.tzi.use.uml.ocl.expr.Expression e : expToVisit){
+			visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
+			e.processWithVisitor(visitor);
+			args.add(visitor.getObject());
+		}
+		
+		invokeMethod("mkSetRange", args, false);
+	}
+	
 	/**
 	 * Handle a constant int value.
 	 * 
@@ -351,6 +377,13 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	 */
 	protected void visitConstInteger(int value) {
 		TypeLiterals integerType = model.typeFactory().integerType();
+		
+		int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
+		int requiredBitwidth = ((int) Math.ceil(Math.log(Math.abs(value))/Math.log(2))) +1;
+		if(requiredBitwidth > bitwidth){
+			LOG.error("Model contains number " + StringUtil.inQuotes(value) + " which is too big for configured bitwidth. Required bitwidth: " + requiredBitwidth + " or greater.");
+		}
+		
 		integerType.addTypeLiteral("" + value);
 		object = integerType.getTypeLiteral("" + value);
 	}
