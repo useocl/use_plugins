@@ -8,7 +8,7 @@ import kodkod.ast.Relation;
 import kodkod.instance.TupleSet;
 
 import org.tzi.kodkod.helper.LogMessages;
-import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.main.Session;
 
 /**
  * Class for the model validation with scrolling functionality.
@@ -21,8 +21,8 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 	protected int solutionIndex = 0;
 	protected List<Map<Relation, TupleSet>> solutions;
 
-	public UseScrollingKodkodModelValidator(MSystem mSystem) {
-		super(mSystem);
+	public UseScrollingKodkodModelValidator(Session session) {
+		super(session);
 		solutions = new ArrayList<Map<Relation, TupleSet>>();
 	}
 	
@@ -34,7 +34,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 			LOG.info(LogMessages.pagingNext);
 			previousLog();
 		} else {
-			mSystem.reset();
+			session.reset();
 			newSolution(solution.instance().relationTuples());
 		}
 	}

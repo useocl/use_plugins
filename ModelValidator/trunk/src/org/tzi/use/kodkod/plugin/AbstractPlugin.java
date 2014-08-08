@@ -20,10 +20,12 @@ public abstract class AbstractPlugin {
 
 	protected static final Logger LOG = Logger.getLogger(AbstractPlugin.class);
 
+	protected Session session;
 	protected MModel mModel;
 	protected MSystem mSystem;
 
 	protected void initialize(Session session) {
+		this.session = session;
 		mSystem = session.system();
 		mModel = mSystem.model();
 		PluginModelFactory.INSTANCE.registerForSession(session);

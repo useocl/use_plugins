@@ -49,7 +49,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 		try {
 			File file = configureModel();
 			enrichModel();
-			validate(new UseDefaultConfigKodkodModelValidator(mSystem, file));
+			validate(new UseDefaultConfigKodkodModelValidator(session, file));
 		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 			e.printStackTrace();
@@ -94,7 +94,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * @return
 	 */
 	protected KodkodModelValidator createValidator() {
-		return new UseKodkodModelValidator(mSystem);
+		return new UseKodkodModelValidator(session);
 	}
 
 	/**

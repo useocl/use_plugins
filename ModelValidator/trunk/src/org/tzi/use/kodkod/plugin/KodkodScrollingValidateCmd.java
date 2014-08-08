@@ -67,7 +67,7 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 
 	@Override
 	protected KodkodModelValidator createValidator() {
-		validator = new UseScrollingKodkodModelValidator(mSystem);
+		validator = new UseScrollingKodkodModelValidator(session);
 		return validator;
 	}
 }

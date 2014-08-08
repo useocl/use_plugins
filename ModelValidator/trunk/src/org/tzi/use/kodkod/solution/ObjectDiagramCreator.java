@@ -20,6 +20,7 @@ import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.api.UseApiException;
 import org.tzi.use.api.UseSystemApi;
+import org.tzi.use.main.Session;
 import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.expr.Evaluator;
@@ -47,9 +48,9 @@ public class ObjectDiagramCreator {
 
 	private Map<String, MObjectState> objectStates;
 
-	public ObjectDiagramCreator(IModel model, MSystem mSystem) {
+	public ObjectDiagramCreator(IModel model, Session session) {
 		this.model = model;
-		systemApi = UseSystemApi.create(mSystem, true);
+		systemApi = UseSystemApi.create(session);
 	}
 
 	/**

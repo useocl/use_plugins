@@ -1,11 +1,11 @@
 package org.tzi.use.kodkod;
 
-import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.main.Session;
 
 public class UseScrollingAllKodkodModelValidator extends UseScrollingKodkodModelValidator {
 
-	public UseScrollingAllKodkodModelValidator(MSystem mSystem) {
-		super(mSystem);
+	public UseScrollingAllKodkodModelValidator(Session session) {
+		super(session);
 	}
 
 	@Override
@@ -14,7 +14,7 @@ public class UseScrollingAllKodkodModelValidator extends UseScrollingKodkodModel
 		if (!errors) {
 			solutions.add(solution.instance().relationTuples());
 		} else {
-			mSystem.reset();
+			session.reset();
 		}
 		newSolution(solution.instance().relationTuples());
 	}

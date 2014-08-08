@@ -15,7 +15,7 @@ import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.use.api.UseApiException;
 import org.tzi.use.kodkod.solution.ObjectDiagramCreator;
 import org.tzi.use.kodkod.solution.ObjectDiagramCreator.ErrorType;
-import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.main.Session;
 
 /**
  * Class for a simple model validation with subsequent object diagram
@@ -28,10 +28,10 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 
 	protected static final Logger LOG = Logger.getLogger(UseKodkodModelValidator.class);
 
-	protected MSystem mSystem;
+	protected Session session;
 
-	public UseKodkodModelValidator(MSystem mSystem) {
-		this.mSystem = mSystem;
+	public UseKodkodModelValidator(Session session) {
+		this.session = session;
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 		if(createObjectDiagram(solution.instance().relationTuples())){
 			LOG.info("USE found errors in the solution. Try to find a new solution!");
 			
-			mSystem.reset();
+			session.reset();
 			newSolution(solution.instance().relationTuples());
 		}
 		evaluateInactiveInvariants();
@@ -81,8 +81,8 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 	protected boolean createObjectDiagram(Map<Relation, TupleSet> relationTuples) {
 		LOG.info(LogMessages.objDiagramCreation);
 
-		mSystem.reset();
-		ObjectDiagramCreator diagramCreator = new ObjectDiagramCreator(model, mSystem);
+		session.reset();
+		ObjectDiagramCreator diagramCreator = new ObjectDiagramCreator(model, session);
 		try {
 			diagramCreator.create(relationTuples);
 			// only retry another solution if the current one contains structural errors
