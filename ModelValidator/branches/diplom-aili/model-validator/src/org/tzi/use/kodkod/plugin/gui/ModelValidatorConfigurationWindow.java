@@ -21,6 +21,13 @@ import javax.swing.JTable;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
 
+
+/**
+ *  A GUI for the configuration of the model validator
+ * 
+ * @author Subi Aili
+ *
+ */
 public class ModelValidatorConfigurationWindow extends JDialog {
 	
 	private static final long serialVersionUID = 1L;
