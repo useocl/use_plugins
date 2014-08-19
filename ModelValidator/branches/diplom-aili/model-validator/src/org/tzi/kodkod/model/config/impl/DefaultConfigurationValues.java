@@ -17,8 +17,8 @@ public class DefaultConfigurationValues {
 	public static final int attributesPerClassMin = -1;
 	public static final int attributesPerClassMax = -1;
 
-	public static final int stringMin = 1;
-	public static final int stringMax = 5;
+	public static final int stringMin = -10;
+	public static final int stringMax = 10;
 
 	public static final int integerMin = -10;
 	public static final int integerMax = 10;

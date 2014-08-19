@@ -5,11 +5,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IAssociation;
+import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
@@ -28,8 +30,10 @@ import org.tzi.kodkod.model.visitor.SimpleVisitor;
  */
 public class DefaultConfigurationVisitor extends SimpleVisitor {
 
+	private static final int PUNCHED_CARD_LENGTH = 72;
 	private static final String STRONG_DIVIDE_LINE = "------------------------------------------------------------------------";
 	private static final String LIGHT_DIVIDE_LINE = "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
+	private static final String DEFAULT_SECTION = "[config01]";
 
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
 
@@ -50,6 +54,8 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 
 	@Override
 	public void visitModel(IModel model) {
+		writeDivideLine(DEFAULT_SECTION);
+		writeNewLine();
 		iterate(model.typeFactory().configurableTypes().iterator());
 		writeDivideLine(STRONG_DIVIDE_LINE);
 		int i = 0;
@@ -60,7 +66,6 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 			i++;
 			if (!(i >= model.classes().size())) writeDivideLine(LIGHT_DIVIDE_LINE);
 		}
-		writeDivideLine(STRONG_DIVIDE_LINE);
 		iterate(model.associations().iterator());
 		writeDivideLine(STRONG_DIVIDE_LINE);
 		try {
@@ -82,6 +87,29 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		try {
 			writer.write(line);
 			writer.newLine();
+		} catch (IOException e) {
+			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
+		}
+	}
+	
+	private void writeAssociationLine(IAssociation association) {
+		String writerString = "";
+		Iterator<IAssociationEnd> aes = association.associationEnds().iterator();
+		writerString = writerString + "-- ";
+		writerString = writerString + association.name();
+		writerString = writerString + "(";
+		IAssociationEnd ae = aes.next();
+		writerString = writerString + ae.name() + ":" + ae.associatedClass() + ",";
+		ae = aes.next();
+		writerString = writerString + ae.name() + ":" + ae.associatedClass() + ") ";
+		int writerStringLength = writerString.length();
+		if (writerStringLength < PUNCHED_CARD_LENGTH) {
+			for (int i=0; i < (PUNCHED_CARD_LENGTH - writerStringLength); i++) {
+				writerString = writerString + "-";
+			}
+		}
+		try {
+			writer.write(writerString);
 		} catch (IOException e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
@@ -117,6 +145,8 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		configurator.setLimits(DefaultConfigurationValues.linksPerAssocMin, DefaultConfigurationValues.linksPerAssocMax);
 		association.setConfigurator(configurator);
 		if (association.associationClass() == null) {
+			writeAssociationLine(association);
+			writeNewLine();
 			write(association.name() + PropertyEntry.linksMin, DefaultConfigurationValues.linksPerAssocMin);
 			write(association.name() + PropertyEntry.linksMax, DefaultConfigurationValues.linksPerAssocMax);
 		}
@@ -161,7 +191,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	}
 
 	/**
-	 * Writes the value with the given name to the configuration file.
+	 * Writes the given int value with the given name to the configuration file.
 	 * 
 	 * @param name
 	 * @param value
@@ -192,4 +222,5 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
 	}
+
 }

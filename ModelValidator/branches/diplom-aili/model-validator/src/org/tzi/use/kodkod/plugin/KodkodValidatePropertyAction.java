@@ -1,17 +1,13 @@
 package org.tzi.use.kodkod.plugin;
 
-import java.io.File;
-
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-import org.tzi.use.gui.util.ExtFileFilter;
 import org.tzi.use.runtime.gui.IPluginAction;
 import org.tzi.use.runtime.gui.IPluginActionDelegate;
 
 /**
- * Action-Class to extend the toolbar with a button to call the model validator
- * with a configuration file.
+ * Action-Class to extend the toolbar with a button to call a GUI to configurate 
+ * the model validator with a configuration file.
  * 
  * @author Hendrik Reitmann
  * 
@@ -28,6 +24,7 @@ public class KodkodValidatePropertyAction extends KodkodValidateCmd implements I
 		
 		initialize(pluginAction.getSession(), pluginAction.getParent());
 
+		/*
 		JFileChooser fileChooser;
 		if (mModel.getModelDirectory() != null) {
 			fileChooser = new JFileChooser(mModel.getModelDirectory().getPath());
@@ -38,7 +35,13 @@ public class KodkodValidatePropertyAction extends KodkodValidateCmd implements I
 
 		if (fileChooser.showOpenDialog(pluginAction.getParent()) == JFileChooser.APPROVE_OPTION) {
 			File file = fileChooser.getSelectedFile();
+			
 			extractConfigureAndValidate(file);
 		}
+		*/
+		
+		getConfigurationOverGUIAndValidate(pluginAction);
+		
 	}
+
 }

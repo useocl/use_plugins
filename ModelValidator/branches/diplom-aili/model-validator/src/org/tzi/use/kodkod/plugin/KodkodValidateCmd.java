@@ -1,17 +1,24 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
+import java.util.Iterator;
 
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.SubnodeConfiguration;
 import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationVisitor;
 import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
 import org.tzi.kodkod.model.iface.IInvariant;
+import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.kodkod.UseDefaultConfigKodkodModelValidator;
 import org.tzi.use.kodkod.UseKodkodModelValidator;
+import org.tzi.use.kodkod.plugin.gui.ModelValidatorConfigurationWindow;
 import org.tzi.use.main.shell.Shell;
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
+import org.tzi.use.runtime.gui.IPluginAction;
 import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
 import org.tzi.use.uml.mm.MClassInvariant;
 
@@ -24,6 +31,7 @@ import org.tzi.use.uml.mm.MClassInvariant;
 public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmdDelegate {
 
 	private PropertyConfigurationVisitor configurationVisitor;
+	private Boolean shouldValidate;
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
@@ -72,8 +80,8 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	}
 
 	/**
-	 * Configures the model, extracts an object diagram and calls the model
-	 * validator.
+	 * Configures the model from the first configuration section of the configuration file,
+	 * extracts an object diagram and calls the model validator.
 	 * 
 	 * @param file
 	 */
@@ -84,6 +92,22 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 			validate(createValidator());
 			configurationVisitor.printWarnings();
 		} catch (ConfigurationException e) {
+			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
+		}
+	}
+	
+	/**
+	 * Opens the GUI for configuration of the Model Validator
+	 */
+	protected final void getConfigurationOverGUIAndValidate(IPluginAction pluginAction) {
+		try {
+			configureModel(pluginAction);
+			if (shouldValidate) {
+				enrichModel();
+				validate(createValidator());
+				configurationVisitor.printWarnings();
+			}
+		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
 		}
 	}
@@ -105,13 +129,13 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 */
 	private void configureModel(File file) throws ConfigurationException {
 		model().reset();
-		configurationVisitor = new PropertyConfigurationVisitor(file.getAbsolutePath());
+		configurationVisitor = new PropertyConfigurationVisitor(getFirstSectorConfiguration(file));
 		model().accept(configurationVisitor);
-
+		
 		if (configurationVisitor.containErrors()) {
 			throw new ConfigurationException();
 		}
-
+		
 		LOG.info(LogMessages.modelConfigurationSuccessful);
 	}
 
@@ -129,6 +153,49 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 		LOG.info(LogMessages.modelConfigurationSuccessful);
 
 		return configurationVisitor.getFile();
+	}
+	
+	private void configureModel(IPluginAction pluginAction) throws Exception {
+		model().reset();
+		File file = new File(mModel.filename().replaceAll("\\.use", "") + ".properties");
+        if (!file.exists()) {
+        	model().accept(new DefaultConfigurationVisitor(mModel.filename()));
+        }
+        ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
+        		new ModelValidatorConfigurationWindow(MainWindow.instance(), pluginAction.getSession().system().model());
+        if (modelValidatorConfigurationWindow.getChosenPropertiesConfiguration() != null) {
+        	if (modelValidatorConfigurationWindow.isValidatable()) {
+	        	configurationVisitor = new PropertyConfigurationVisitor(modelValidatorConfigurationWindow.getChosenPropertiesConfiguration());
+	        	modelValidatorConfigurationWindow.dispose();
+	        	model().accept(configurationVisitor);
+	        	shouldValidate = true;
+	        	if (configurationVisitor.containErrors()) {
+	        		throw new ConfigurationException();
+	        	}
+	        	LOG.info(LogMessages.modelConfigurationSuccessful);
+        	} else { 
+        		shouldValidate = false;
+        		System.out.println("Validation aborted.");
+        	}
+        } else System.out.println("No Configuration loaded"); //TODO: In die LOG schreiben? Frank fragen
+
+
+	}
+	
+	@SuppressWarnings("unchecked")
+	private PropertiesConfiguration getFirstSectorConfiguration(File file) throws ConfigurationException {
+		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
+		Iterator<String> sectionsIterator = hierarchicalINIConfiguration.getSections().iterator();
+		PropertiesConfiguration firstSectorConfiguration = new PropertiesConfiguration();
+		String section = sectionsIterator.next();
+		SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
+		Iterator<String> keysIterator = sectionConfigurations.getKeys();
+		while (keysIterator.hasNext()) {
+			String key = keysIterator.next();
+			if (!key.startsWith("--"))
+				firstSectorConfiguration.addProperty(key, sectionConfigurations.getString(key));
+		}
+		return firstSectorConfiguration;
 	}
 
 	private void validate(KodkodModelValidator modelValidator) {

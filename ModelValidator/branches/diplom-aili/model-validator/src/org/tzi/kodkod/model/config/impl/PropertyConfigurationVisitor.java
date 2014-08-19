@@ -49,6 +49,17 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	private List<String> warnings;
 	private List<String> errors;
 
+	public PropertyConfigurationVisitor(PropertiesConfiguration pc) throws ConfigurationException {
+		config = pc;
+		
+		classSpecificValues = new HashMap<String, List<String>>();
+		classMinObjects = new HashMap<String, Integer>();
+		typeSpecificValues = new HashMap<ConfigurableType, List<String[]>>();
+		typeConfigurators = new HashMap<ConfigurableType, TypeConfigurator>();
+		warnings = new ArrayList<String>();
+		errors = new ArrayList<String>();
+	}
+	
 	public PropertyConfigurationVisitor(String file) throws ConfigurationException {
 		config = new PropertiesConfiguration(file);
 
@@ -59,6 +70,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		warnings = new ArrayList<String>();
 		errors = new ArrayList<String>();
 	}
+	
 
 	@Override
 	public void visitModel(IModel model) {
