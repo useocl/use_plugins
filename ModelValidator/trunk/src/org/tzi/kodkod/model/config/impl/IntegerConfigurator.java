@@ -1,6 +1,5 @@
 package org.tzi.kodkod.model.config.impl;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +35,7 @@ public class IntegerConfigurator extends TypeConfigurator {
 	}
 
 	@Override
-	public List<Object> atoms(ConfigurableType m, List<Object> literals) {
+	public Set<Object> atoms(ConfigurableType m, List<Object> literals) {
 		Set<Object> atoms = new LinkedHashSet<Object>();
 		atoms.addAll(literals);
 
@@ -50,6 +49,6 @@ public class IntegerConfigurator extends TypeConfigurator {
 			atoms.add(Integer.valueOf(specific[0]));
 		}
 
-		return new ArrayList<Object>(atoms);
+		return new LinkedHashSet<Object>(atoms);
 	}
 }

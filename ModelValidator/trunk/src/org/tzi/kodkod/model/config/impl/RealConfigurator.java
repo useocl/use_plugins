@@ -2,7 +2,6 @@ package org.tzi.kodkod.model.config.impl;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,9 +38,10 @@ public class RealConfigurator extends TypeConfigurator{
 		}
 
 		for(Range range : ranges){
-			//FIXME might fail to add a value if the calculated name is already in the specific values
-			for (double i = range.getLower(); i <= range.getUpper(); i+=step) {
+			double i = range.getLower();
+			while ( lower.size() <= range.getUpper() ) {
 				lower.add(tupleFactory.tuple(type.name() + "_" + decimalFormat.format(i)));
+				i+=step;
 			}
 		}
 		
@@ -54,7 +54,7 @@ public class RealConfigurator extends TypeConfigurator{
 	}
 	
 	@Override
-	public List<Object> atoms(ConfigurableType type, List<Object> literals) {
+	public Set<Object> atoms(ConfigurableType type, List<Object> literals) {
 		Set<Object >atoms = new LinkedHashSet<Object>();
 		atoms.addAll(literals);		
 
@@ -68,7 +68,7 @@ public class RealConfigurator extends TypeConfigurator{
 			atoms.add(type.name() + "_" + decimalFormat.format(Double.parseDouble(specific[0])));
 		}
 		
-		return new ArrayList<Object>(atoms);
+		return new LinkedHashSet<Object>(atoms);
 	}
 
 	public void setStep(double step) {

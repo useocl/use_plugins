@@ -1,7 +1,7 @@
 package org.tzi.kodkod.model.config.impl;
 
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -29,9 +29,10 @@ public class StringConfigurator extends TypeConfigurator {
 
 		if(ranges.size() > 0){
 			int max = ranges.get(0).getUpper();
-			//FIXME might fail to add a value if the calculated name is already in the specific values
-			for (int i = allValues().size(); i < max; i++) {
+			int i = allValues().size();
+			while (lower.size() < max) {
 				lower.add(tupleFactory.tuple(type.name() + "_string" + i));
+				i++;
 			}
 		}
 
@@ -45,9 +46,10 @@ public class StringConfigurator extends TypeConfigurator {
 
 		if(ranges.size() > 0){
 			int max = ranges.get(0).getUpper();
-			//FIXME might fail to add a value if the calculated name is already in the specific values
-			for (int i = allValues().size(); i < max; i++) {
+			int i = allValues().size();
+			while ( upper.size() < max ) {
 				upper.add(tupleFactory.tuple(type.name() + "_string" + i));
+				i++;
 			}
 		}
 
@@ -55,7 +57,7 @@ public class StringConfigurator extends TypeConfigurator {
 	}
 
 	@Override
-	public List<Object> atoms(ConfigurableType type, List<Object> literals) {
+	public Set<Object> atoms(ConfigurableType type, List<Object> literals) {
 		Set<Object> atoms = new HashSet<Object>();
 		atoms.addAll(literals);
 
@@ -67,11 +69,19 @@ public class StringConfigurator extends TypeConfigurator {
 
 		if(ranges.size() > 0){
 			int max = ranges.get(0).getUpper();
-			for (int i = allValues().size(); i < max; i++) {
+			/*for (int i = allValues().size(); i < max; i++) {
 				atoms.add(type.name() + "_string" + i);
+			}*/
+			int i = allValues().size();
+			int numAdded = allValues().size();
+			while (numAdded < max) {
+				if (atoms.add(type.name() + "_string" + i)) {
+					numAdded++;
+				}
+				i++;
 			}
 		}
 
-		return new ArrayList<Object>(atoms);
+		return new LinkedHashSet<Object>(atoms);
 	}
 }

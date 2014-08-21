@@ -26,9 +26,10 @@ public class ClassConfigurator extends Configurator<IClass> {
 				boundTupleSet.add(tupleFactory.tuple(clazz.name() + "_" + specific[0]));
 				objectsCounter += 1;
 			}
-			//FIXME might fail to add a value if the calculated name is already in the specific values
-			for (int i = specificValues.size(); i < bound; i++) {
+			int i = boundTupleSet.size();
+			while (boundTupleSet.size() < bound) {
 				boundTupleSet.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i + 1)));
+				i++;
 			}
 		}
 		return boundTupleSet;
