@@ -29,7 +29,7 @@ public class StringConfigurator extends TypeConfigurator {
 
 		if(ranges.size() > 0){
 			int max = ranges.get(0).getUpper();
-			int i = allValues().size();
+			int i = allValues().size() + 1;
 			while (lower.size() < max) {
 				lower.add(tupleFactory.tuple(type.name() + "_string" + i));
 				i++;
@@ -46,7 +46,7 @@ public class StringConfigurator extends TypeConfigurator {
 
 		if(ranges.size() > 0){
 			int max = ranges.get(0).getUpper();
-			int i = allValues().size();
+			int i = allValues().size() + 1;
 			while ( upper.size() < max ) {
 				upper.add(tupleFactory.tuple(type.name() + "_string" + i));
 				i++;
@@ -69,10 +69,7 @@ public class StringConfigurator extends TypeConfigurator {
 
 		if(ranges.size() > 0){
 			int max = ranges.get(0).getUpper();
-			/*for (int i = allValues().size(); i < max; i++) {
-				atoms.add(type.name() + "_string" + i);
-			}*/
-			int i = allValues().size();
+			int i = allValues().size() + 1;
 			int numAdded = allValues().size();
 			while (numAdded < max) {
 				if (atoms.add(type.name() + "_string" + i)) {

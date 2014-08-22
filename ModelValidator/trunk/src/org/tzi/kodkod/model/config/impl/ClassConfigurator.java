@@ -26,9 +26,9 @@ public class ClassConfigurator extends Configurator<IClass> {
 				boundTupleSet.add(tupleFactory.tuple(clazz.name() + "_" + specific[0]));
 				objectsCounter += 1;
 			}
-			int i = boundTupleSet.size();
+			int i = boundTupleSet.size() + 1;
 			while (boundTupleSet.size() < bound) {
-				boundTupleSet.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i + 1)));
+				boundTupleSet.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i)));
 				i++;
 			}
 		}

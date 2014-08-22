@@ -38,10 +38,8 @@ public class RealConfigurator extends TypeConfigurator{
 		}
 
 		for(Range range : ranges){
-			double i = range.getLower();
-			while ( lower.size() <= range.getUpper() ) {
+			for (double i = range.getLower(); i <= range.getUpper(); i+=step) {
 				lower.add(tupleFactory.tuple(type.name() + "_" + decimalFormat.format(i)));
-				i+=step;
 			}
 		}
 		
