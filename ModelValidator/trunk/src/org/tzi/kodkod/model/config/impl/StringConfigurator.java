@@ -1,10 +1,12 @@
 package org.tzi.kodkod.model.config.impl;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import kodkod.instance.Tuple;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
 
@@ -21,39 +23,49 @@ public class StringConfigurator extends TypeConfigurator {
 
 	@Override
 	public TupleSet lowerBound(ConfigurableType type, int arity, TupleFactory tupleFactory) {
-		TupleSet lower = tupleFactory.noneOf(1);
+		TupleSet lowerTupleSet = tupleFactory.noneOf(1);
+		Iterator<String []> allValuesIterator = allValues().iterator();
+		int max = ranges.get(0).getUpper();
 
-		for (String[] specific : allValues()) {
-			lower.add(tupleFactory.tuple(type.name() + "_" + specific[0]));
+		String [] specific; 
+		for (int i = 0; i < max; i++) {
+			if (allValuesIterator.hasNext()) {
+				specific = allValuesIterator.next();
+				lowerTupleSet.add(tupleFactory.tuple(type.name() + "_" + specific[0]));
+			}
 		}
 
 		if(ranges.size() > 0){
-			int max = ranges.get(0).getUpper();
 			int i = allValues().size() + 1;
-			while (lower.size() < max) {
-				lower.add(tupleFactory.tuple(type.name() + "_string" + i));
+			while (lowerTupleSet.size() < max) {
+				lowerTupleSet.add(tupleFactory.tuple(type.name() + "_string" + i));
 				i++;
 			}
 		}
 
-		return lower;
+		return lowerTupleSet;
 	}
 
 	@Override
 	public TupleSet upperBound(ConfigurableType type, int arity, TupleFactory tupleFactory) {
-		TupleSet upper = tupleFactory.noneOf(1);
-		upper.addAll(lowerBound(type, arity, tupleFactory));
+		int max = ranges.get(0).getUpper();
+		TupleSet upperTupleSet = tupleFactory.noneOf(1);
+		Iterator<Tuple> lowerIterator = lowerBound(type,arity,tupleFactory).iterator();
+		for (int i = 0; i < max; i++) {
+			if (lowerIterator.hasNext()) {
+				upperTupleSet.add(lowerIterator.next());
+			}
+		}
 
 		if(ranges.size() > 0){
-			int max = ranges.get(0).getUpper();
 			int i = allValues().size() + 1;
-			while ( upper.size() < max ) {
-				upper.add(tupleFactory.tuple(type.name() + "_string" + i));
+			while ( upperTupleSet.size() < max ) {
+				upperTupleSet.add(tupleFactory.tuple(type.name() + "_string" + i));
 				i++;
 			}
 		}
 
-		return upper;
+		return upperTupleSet;
 	}
 
 	@Override
