@@ -6,7 +6,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import kodkod.instance.Tuple;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
 
@@ -17,22 +16,23 @@ import org.tzi.kodkod.model.type.TypeConstants;
  * Configurator for the string type
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class StringConfigurator extends TypeConfigurator {
 
 	@Override
 	public TupleSet lowerBound(ConfigurableType type, int arity, TupleFactory tupleFactory) {
+		int max = Integer.MAX_VALUE;
+		if(ranges.size() > 0){
+			// limit maximum amount of specific values
+			max = ranges.get(0).getUpper();
+		}
+		
 		TupleSet lowerTupleSet = tupleFactory.noneOf(1);
-		Iterator<String []> allValuesIterator = allValues().iterator();
-		int max = ranges.get(0).getUpper();
-
-		String [] specific; 
-		for (int i = 0; i < max; i++) {
-			if (allValuesIterator.hasNext()) {
-				specific = allValuesIterator.next();
-				lowerTupleSet.add(tupleFactory.tuple(type.name() + "_" + specific[0]));
-			}
+		Iterator<String[]> allValuesIterator = allValues().iterator();
+		String[] specific;
+		while(lowerTupleSet.size() < max && allValuesIterator.hasNext()) {
+			specific = allValuesIterator.next();
+			lowerTupleSet.add(tupleFactory.tuple(type.name() + "_" + specific[0]));
 		}
 
 		if(ranges.size() > 0){
@@ -48,16 +48,11 @@ public class StringConfigurator extends TypeConfigurator {
 
 	@Override
 	public TupleSet upperBound(ConfigurableType type, int arity, TupleFactory tupleFactory) {
-		int max = ranges.get(0).getUpper();
 		TupleSet upperTupleSet = tupleFactory.noneOf(1);
-		Iterator<Tuple> lowerIterator = lowerBound(type,arity,tupleFactory).iterator();
-		for (int i = 0; i < max; i++) {
-			if (lowerIterator.hasNext()) {
-				upperTupleSet.add(lowerIterator.next());
-			}
-		}
+		upperTupleSet.addAll(lowerBound(type, arity, tupleFactory));
 
 		if(ranges.size() > 0){
+			int max = ranges.get(0).getUpper();
 			int i = allValues().size() + 1;
 			while ( upperTupleSet.size() < max ) {
 				upperTupleSet.add(tupleFactory.tuple(type.name() + "_string" + i));
