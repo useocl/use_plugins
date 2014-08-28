@@ -1,38 +1,26 @@
 package org.tzi.use.kodkod.plugin.gui;
 
-import javax.swing.table.AbstractTableModel;
+import java.util.Arrays;
+import java.util.Vector;
 
-public class ConfigurationTableModel extends AbstractTableModel {
+import javax.swing.table.DefaultTableModel;
+
+public class ConfigurationTableModel extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 
-	private String[] columnNames;
-	private Object[][] data;
-
-	public ConfigurationTableModel(String[] columnNames,
-			Object[][] data) {
+	@SuppressWarnings("unchecked")
+	public ConfigurationTableModel(String[] columnNames, Object[][] data) {
 		super();
-		this.columnNames = columnNames;
-		this.data = data;
-	}
-	
-	@Override
-	public int getColumnCount() {
-        return columnNames.length;
-    }
-
-	@Override
-    public int getRowCount() {
-        return data.length;
-    }
-
-	@Override
-    public String getColumnName(int col) {
-        return columnNames[col];
-    }
-
-	@Override
-    public Object getValueAt(int row, int col) {
-		return data[row][col];
+		this.columnIdentifiers = new Vector<String>(Arrays.asList(columnNames));
+		this.dataVector = new Vector<Vector<Object>>();
+		for (int row = 0; row < data.length; row++) {
+			Vector<Object> tempVector = new Vector<Object>();
+			for (int col = 0; col < columnNames.length; col++) {
+				tempVector.add(data[row][col]);
+			}
+			dataVector.addElement(tempVector);
+		}
+		fireTableDataChanged();
 	}
 	
 	public boolean isCellEditable(int row, int col) {
@@ -42,10 +30,5 @@ public class ConfigurationTableModel extends AbstractTableModel {
             return true;
         }
 	}
-	
-	public void setValueAt(Object value, int row, int col) {
-        data[row][col] = value;
-        fireTableCellUpdated(row, col);
-    }
 
 }

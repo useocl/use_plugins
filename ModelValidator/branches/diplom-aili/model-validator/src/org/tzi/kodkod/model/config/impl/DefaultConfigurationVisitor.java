@@ -33,7 +33,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	private static final int PUNCHED_CARD_LENGTH = 72;
 	private static final String STRONG_DIVIDE_LINE = "------------------------------------------------------------------------";
 	private static final String LIGHT_DIVIDE_LINE = "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
-	private static final String DEFAULT_SECTION = "[config01]";
+	private static final String DEFAULT_SECTION = "[default]";
 
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
 
