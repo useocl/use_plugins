@@ -161,6 +161,8 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
         if (!file.exists()) {
         	model().accept(new DefaultConfigurationVisitor(mModel.filename()));
         }
+        //TODO: Wenn es keinen uebergrossen Umstand macht: Alles so anpassen, dass man statt des MModels das IModel von Reitmann benutzt:
+        //ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = new ModelValidatorConfigurationWindow(MainWindow.instance(), model(), filedirectory, filename);
         ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
         		new ModelValidatorConfigurationWindow(MainWindow.instance(), pluginAction.getSession().system().model());
         if (modelValidatorConfigurationWindow.getChosenPropertiesConfiguration() != null) {

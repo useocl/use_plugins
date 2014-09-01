@@ -32,7 +32,11 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
+import org.tzi.kodkod.model.impl.AssociationClass;
+import org.tzi.kodkod.model.impl.Model;
 import org.tzi.use.gui.util.ExtFileFilter;
+import org.tzi.use.uml.mm.MAssociation;
+import org.tzi.use.uml.mm.MAssociationClassImpl;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
@@ -48,18 +52,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private File file;
-	private HierarchicalINIConfiguration hierarchicalINIConfiguration;
-	private Hashtable<String,PropertiesConfiguration> propertiesConfigurations;
-	private PropertiesConfiguration propertiesConfiguration;
-	private Hashtable<String, ConfigurationTableModel> classAttributes;
-	private Hashtable<String,JTable> classAssociations;
-	private Boolean validatable;
-	private Boolean tableChanged;
+	private static final String ASSOCIATIONCLASS_INDICATOR = "(Associationclass)";
 	
-	
-	private String[] associationsColumns = new String[]{"Associations", "Min", "Max"};
-	private Object[][] associationsData;
+	private String[] associationsColumns = new String[]{"Associations", "Min", "Max", "Values"};
+	private ConfigurationTableModel selectedAssociations;
 	private JTable associations;
 
 	private String[] attributesColumns = new String[]{"Attributes", "Min", "Max", "MinSize", "MaxSize", "Values"};
@@ -74,6 +70,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private ConfigurationTableModel basicTypesConfiguration;
 	private JTable basicTypes;
 
+	private File file;
+	private HierarchicalINIConfiguration hierarchicalINIConfiguration;
+	private Hashtable<String,PropertiesConfiguration> propertiesConfigurations;
+	private PropertiesConfiguration propertiesConfiguration;
+	private Hashtable<String, ConfigurationTableModel> classAttributes;
+	private Hashtable<String, ConfigurationTableModel> classAssociations;
+	private Boolean validatable;
+	private Boolean tableChanged;
 	
 	private JTabbedPane tabbedPane;
 	private JPanel mainPanel;
@@ -90,6 +94,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private ComboBoxActionListener comboBoxActionListener;
 	private ListSelectionModel classTableSelectionListener;
 	private AttributesTableListener attributesTableListener;
+	private AssociationsTableListener associationsTableListener;
 	
 
 	private class ComboBoxActionListener implements ActionListener {
@@ -119,56 +124,59 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			int col = e.getColumn();
 			int row = e.getFirstRow();
 			Object value = basicTypes.getValueAt(row, col);
-			System.out.println("Fuer "+basictype
+			System.out.print("Fuer "+basictype
 					+" in Zeile "+row+" und Spalte "+col
-					+" ist der Wert "+value+" hinzugefuegt worden!");
+					+" soll der Wert "+value+" hinzugefuegt werden!");
 			if (basictype.equals("Integer")) {
 				switch (col) {
-					case 1: propertiesConfiguration.setProperty("Integer_min", value); break;
-					case 2: propertiesConfiguration.setProperty("Integer_max", value); break;
+					case 1: propertiesConfiguration.setProperty("Integer_min", value); System.out.println("Geschafft!"); break;
+					case 2: propertiesConfiguration.setProperty("Integer_max", value); System.out.println("Geschafft!"); break;
 					case 4: 
 						String [] values = preparStringForConfiguration((String) value);
 						if (values != null) 
 							propertiesConfiguration.setProperty("Integer", Integer.getInteger(values[0]));
-						else
-							break;
+						else {
+							System.out.println("Geschafft!"); break;
+						}
 						for (int i=1; i < values.length; i++) {
 							propertiesConfiguration.addProperty("Integer", Integer.getInteger(values[i]));
 						}
-						break;
+						System.out.println("Geschafft!"); break;
 				}
 			} else
 			if (basictype.equals("Real")) {
 				switch (col) {
-				case 1: propertiesConfiguration.setProperty("Real_min", value); break;
-				case 2: propertiesConfiguration.setProperty("Real_max", value); break;
-				case 3: propertiesConfiguration.setProperty("Real_step", value); break;
+				case 1: propertiesConfiguration.setProperty("Real_min", value); System.out.println("Geschafft!"); break;
+				case 2: propertiesConfiguration.setProperty("Real_max", value); System.out.println("Geschafft!"); break;
+				case 3: propertiesConfiguration.setProperty("Real_step", value); System.out.println("Geschafft!"); break;
 				case 4: 
 					String [] values = preparStringForConfiguration((String) value);
 					if (values != null) 
 						propertiesConfiguration.setProperty("Real", Integer.getInteger(values[0]));
-					else
-						break;
-					for (int i=1; i < values.length; i++) {
-						propertiesConfiguration.addProperty("Real", values[i]);
+					else {
+						System.out.println("Geschafft!"); break;
 					}
-					break;
+					for (int i=1; i < values.length; i++) {
+						propertiesConfiguration.addProperty("Real", Integer.getInteger(values[i]));
+					}
+					System.out.println("Geschafft!"); break;
 				}
 			} else
 			if (basictype.equals("String")) {
 				switch (col) {
-					case 1: propertiesConfiguration.setProperty("String_min", value); break;
-					case 2: propertiesConfiguration.setProperty("String_max", value); break;
+					case 1: propertiesConfiguration.setProperty("String_min", value); System.out.println("Geschafft!"); break;
+					case 2: propertiesConfiguration.setProperty("String_max", value); System.out.println("Geschafft!"); break;
 					case 4: 
 						String [] values = preparStringForConfiguration((String) value);
 						if (values != null) 
 							propertiesConfiguration.setProperty("String", Integer.getInteger(values[0]));
-						else
-							break;
-						for (int i=1; i < values.length; i++) {
-							propertiesConfiguration.addProperty("String", values[i]);
+						else {
+							System.out.println("Geschafft!"); break;
 						}
-						break;
+						for (int i=1; i < values.length; i++) {
+							propertiesConfiguration.addProperty("String", Integer.getInteger(values[i]));
+						}
+						System.out.println("Geschafft!"); break;
 				}
 			}
 			tableChanged = true;
@@ -183,21 +191,23 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			int col = e.getColumn();
 			int row = e.getFirstRow();
 			Object value = classes.getValueAt(row, col);
-			System.out.println("Fuer "+className
+			System.out.print("Fuer "+className
 					+" in Zeile "+row+" und Spalte "+col
-					+" ist der Wert "+value+" hinzugefuegt worden!");
+					+" soll der Wert "+value+" hinzugefuegt werden!");
 			switch (col) {
-			case 1: propertiesConfiguration.setProperty(className + "_min", value); break;
-			case 2: propertiesConfiguration.setProperty(className + "_max", value); break;
+			case 1: propertiesConfiguration.setProperty(className + "_min", value); System.out.println("Geschafft!"); break;
+			case 2: propertiesConfiguration.setProperty(className + "_max", value); System.out.println("Geschafft!"); break;
 			case 3: 
 				String [] values = preparStringForConfiguration((String) value);
 				if (values != null) 
 					propertiesConfiguration.setProperty(className, Integer.getInteger(values[0]));
-				else
-					break;
+				else {
+					System.out.println("Geschafft!"); break;
+				}
 				for (int i=1; i < values.length-1; i++) {
 					propertiesConfiguration.addProperty(className, values[i]);
 				}
+				System.out.println("Geschafft!"); 
 				break;
 			}
 			tableChanged = true;
@@ -241,8 +251,31 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		
 		@Override
 		public void tableChanged(TableModelEvent e) {
-			// TODO Auto-generated method stub
-			
+			String associationName = (String)associations.getValueAt(e.getFirstRow(), 0);
+			if (associationName.contains(ASSOCIATIONCLASS_INDICATOR)) {
+				associationName = associationName.substring(0, associationName.indexOf(ASSOCIATIONCLASS_INDICATOR));
+            }
+			int col = e.getColumn();
+			int row = e.getFirstRow();
+			Object value = associations.getValueAt(row, col);
+			System.out.println("Fuer "+associationName
+					+" in Zeile "+row+" und Spalte "+col+1
+					+" ist der Wert "+value+" hinzugefuegt worden!");
+			switch (col) {
+			case 1: propertiesConfiguration.setProperty(associationName + "_min", value); break;
+			case 2: propertiesConfiguration.setProperty(associationName + "_max", value); break;
+			case 3: 
+				String [] values = preparStringForConfiguration((String) value);
+				if (values != null) 
+					propertiesConfiguration.setProperty(associationName, Integer.getInteger(values[0]));
+				else
+					break;
+				for (int i=1; i < values.length; i++) {
+					propertiesConfiguration.addProperty(associationName, values[i]);
+				}
+				break;
+			}
+			tableChanged = true;
 		}
 		
 	}
@@ -264,21 +297,19 @@ public class ModelValidatorConfigurationWindow extends JDialog {
                 }
             }
             String selectedClass = (String) classes.getValueAt(selectedRow, 0);
+            if (selectedClass.contains(ASSOCIATIONCLASS_INDICATOR)) {
+            	selectedClass = selectedClass.substring(0, selectedClass.indexOf(ASSOCIATIONCLASS_INDICATOR));
+            }
             fillSelectedAttributes(selectedClass);
-            //TODO: fillSelectedAssociations() fehlt noch
+            fillSelectedAssociations(selectedClass);
         }
     }
 
 	public ModelValidatorConfigurationWindow(final JFrame parent, final MModel model) {
 		super(parent, "Model-Validator Configuration");
 		
-		associationsColumns = new String[]{"Associations", "Min", "Max"};
-		associationsData = new Object[][]{
-				{"belongsTo",	1,	2},
-				{"owns", 		3,	4},
-				{"cowFarmer", 	2,	6}
-		};
-		associations = new JTable(associationsData, associationsColumns);
+		selectedAssociations = new ConfigurationTableModel(associationsColumns, new Object[1][4]);
+		associations = new JTable(selectedAssociations);
 		
 		selectedAttributes = new ConfigurationTableModel(attributesColumns, new Object[1][6]);
 		attributes = new JTable(selectedAttributes);
@@ -302,11 +333,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		classes.setSelectionModel(classTableSelectionListener);
 		attributesTableListener = new AttributesTableListener();
 		selectedAttributes.addTableModelListener(attributesTableListener);
+		associationsTableListener = new AssociationsTableListener();
+		selectedAssociations.addTableModelListener(associationsTableListener);
 		
 		
 		file = new File(model.filename().replaceAll("\\.use", "") + ".properties");
 		propertiesConfigurations = new Hashtable<String, PropertiesConfiguration>();
 		classAttributes = new Hashtable<String,ConfigurationTableModel>();
+		classAssociations = new Hashtable<String,ConfigurationTableModel>();
 		validatable = false;
 
 		//TODO: Design durch bessers als das hier verbessern
@@ -348,9 +382,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         			fillConfigurationInBasicTypes(propertiesConfiguration);
         			fillConfigurationInClasses(propertiesConfiguration, model);
         			fillConfigurationInAttributes(propertiesConfiguration, model);
-        			//TODO: fillConfigurationInAssociations() hierrein, sobald fertig
+        			fillConfigurationInAssociations(propertiesConfiguration, model);
         			collectConfigurations(file); //TODO: Zur Zeit notwendig, da chosenPropertiesConfiguration nicht genuegend gefuellt. Diese Zeile wegmachen, sobald alle Konfiguration aus allen Tabellen erfolgreich ausgelesen werden koennen
         			tableChanged = false;
+        			classes.clearSelection();
         			System.out.println("File loaded.");
         		} else {System.out.println("Loading file failed.");}
         		
@@ -399,7 +434,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         fillConfigurationInBasicTypes(propertiesConfiguration);
         fillConfigurationInClasses(propertiesConfiguration, model);
         fillConfigurationInAttributes(propertiesConfiguration, model);
-        //TODO: fillConfigurationInAssociations() hierrein, sobald fertig
+        fillConfigurationInAssociations(propertiesConfiguration, model);
+        classes.clearSelection();
         collectConfigurations(file); //TODO: Diese Zeile wegmachen, sobald alle Konfiguration aus allen Tabellen erfolgreich ausgelesen werden koennen
         tableChanged = false;
     	
@@ -525,18 +561,54 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		}
 	}
 	
+	private Boolean isAssociationclass(MClass clazz) {
+		if (clazz.getClass().equals(MAssociationClassImpl.class)) {
+			return true;
+		}
+		return false;
+	}
+	
+	private Boolean isAssociationclass(MAssociation association) {
+		if (association.getClass().equals(MAssociationClassImpl.class)) {
+			return true;
+		}
+		return false;
+	}
+	
 	private void fillConfigurationInClasses(PropertiesConfiguration pc, MModel model) {
 		Iterator<MClass> classes = model.classes().iterator();
 		int row = 0;
 		while (classes.hasNext()) {
-			String className = classes.next().toString();
-			classesConfiguration.setValueAt(className,row,0);
-			classesConfiguration.setValueAt(pc.getInt(className+"_min"),row,1);
-			classesConfiguration.setValueAt(pc.getInt(className+"_max"),row,2);
-			if (pc.getStringArray(className).length > 0) {
-				classesConfiguration.setValueAt(prepareConfigurationValuesForTable(pc.getStringArray(className)),row,3);
+			MClass clazz = classes.next();
+			String className = clazz.toString();
+			if (!isAssociationclass(clazz)) {
+				classesConfiguration.setValueAt(className,row,0);
 			} else {
-				classesConfiguration.setValueAt(null, row,3);
+				classesConfiguration.setValueAt(className+ASSOCIATIONCLASS_INDICATOR,row,0);
+			}
+			if (!isAssociationclass(clazz)) {
+				if (pc.containsKey(className+"_min")) {
+					classesConfiguration.setValueAt(pc.getInt(className+"_min"),row,1);
+				}
+				if (pc.containsKey(className+"_max")) {
+					classesConfiguration.setValueAt(pc.getInt(className+"_max"),row,2);
+				}
+				if (pc.containsKey(className)) {
+					if (pc.getStringArray(className).length > 0) {
+						classesConfiguration.setValueAt(prepareConfigurationValuesForTable(pc.getStringArray(className)),row,3);
+					} else {
+						classesConfiguration.setValueAt(null, row,3);
+					}
+				}
+			} else {
+				if (pc.containsKey(className+"_ac")) {
+					if (pc.getStringArray(className).length > 0) {
+						classesConfiguration.setValueAt(prepareConfigurationValuesForTable(pc.getStringArray(className+"_ac")),row,3);
+					} else {
+						classesConfiguration.setValueAt(null, row,3);
+					}
+				}
+				
 			}
 			row++;
 		}
@@ -546,30 +618,34 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		Boolean isFirstClass = true;
 
 		while (classes.hasNext()) {
-			int row = 0;
 			MClass clazz = classes.next();
 			String className = clazz.toString().trim();
 			Iterator<MAttribute> attributesIterator = clazz.allAttributes().iterator();
 			int attributesCount = clazz.allAttributes().size();
 			Object[][] attributesData = new Object[attributesCount][6];
-			while (attributesIterator.hasNext()) {
+			for (int row = 0; attributesIterator.hasNext(); row++) {
 				MAttribute attribute = attributesIterator.next();
 				String attributeName = className+"_"+attribute.toString().substring(0, (attribute.toString().indexOf(':')-1)).trim();
 				attributesData[row][0] = attributeName;
-				attributesData[row][1] = pc.getInt(attributeName+"_min");
-				attributesData[row][2] = pc.getInt(attributeName+"_max");
+				if (pc.containsKey(attributeName+"_min")) {
+					attributesData[row][1] = pc.getInt(attributeName+"_min");
+				}
+				if (pc.containsKey(attributeName+"_max")) {
+					attributesData[row][2] = pc.getInt(attributeName+"_max");
+				}
 				if (pc.containsKey(attributeName+"_minSize")) {
 					attributesData[row][3] = pc.getInt(attributeName+"_minSize");
 				}
 				if (pc.containsKey(attributeName+"_maxSize")) {
 					attributesData[row][4] = pc.getInt(attributeName+"_maxSize");
 				}
-				if (pc.getStringArray(attributeName).length > 0) {
-					attributesData[row][5] = prepareConfigurationValuesForTable(pc.getStringArray(attributeName));
-				} else {
-					attributesData[row][5] = null;
+				if (pc.containsKey(attributeName)) {
+					if (pc.getStringArray(attributeName).length > 0) {
+						attributesData[row][5] = prepareConfigurationValuesForTable(pc.getStringArray(attributeName));
+					} else {
+						attributesData[row][5] = null;
+					}
 				}
-				row++;
 			}
 			classAttributes.put(className, new ConfigurationTableModel(attributesColumns,attributesData));
 			if (isFirstClass) {
@@ -596,14 +672,78 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		selectedAttributes.addTableModelListener(attributesTableListener);
 	}
 	
-	private void fillConfigurationInAssociationsTable(PropertiesConfiguration pc) {
-		//TODO: sich nach fillConfigurationInAttributesTable() richten
+	/**
+	 * fills classAssociations with associations referenced to their
+	 * first association end
+	 */
+	private void fillConfigurationInAssociations(PropertiesConfiguration pc, MModel model) {
+		Iterator<MClass> classes = model.classes().iterator();
+		Boolean isFirstClass = true;
+
+		while (classes.hasNext()) {
+			MClass clazz = classes.next();
+			String className = clazz.toString().trim();
+			int classAssociationsCount = 0;
+			Iterator<MAssociation> associationsIterator = model.associations().iterator();
+			while (associationsIterator.hasNext()) {
+				MAssociation association = associationsIterator.next();
+				if (association.associationEnds().iterator().next().cls().equals(clazz) || clazz.equals(association)) {
+					classAssociationsCount++;
+				}
+			}
+			Object[][] associationsData = new Object[classAssociationsCount][4];
+			String associationName;
+			associationsIterator = model.associations().iterator();
+			int row = 0;
+			while (associationsIterator.hasNext() && (row < classAssociationsCount)) {
+				MAssociation association = associationsIterator.next();
+				if ((association.associationEnds().iterator().next().cls().equals(clazz))
+						|| isAssociationclass(clazz)) {
+					associationName = association.toString().trim();
+					if (!isAssociationclass(association)) {
+						associationsData[row][0] = associationName;
+					} else {
+						associationsData[row][0] = associationName+ASSOCIATIONCLASS_INDICATOR;
+					}
+					if (pc.containsKey(associationName+"_min")) {
+						associationsData[row][1] = pc.getInt(associationName+"_min");
+					}
+					if (pc.containsKey(associationName+"_max")) {
+						associationsData[row][2] = pc.getInt(associationName+"_max");
+					}
+					if (pc.containsKey(associationName)) {
+						if (pc.getStringArray(associationName).length > 0) {
+							associationsData[row][3] = prepareConfigurationValuesForTable(pc.getStringArray(associationName));
+						} else {
+							associationsData[row][3] = null;
+						}
+					}
+					row++;
+				}
+			}
+			classAssociations.put(className, new ConfigurationTableModel(associationsColumns,associationsData));
+			if (isFirstClass) {
+				fillSelectedAssociations(className);
+				isFirstClass = false;
+			}
+		}
 	}
 		
 	private void fillSelectedAssociations(String className) {
-		// TODO: Wie bei fillSelectedAttributes()
-		// TODO: Wie bei collectConfigurations() soll die Attribute der ersten Klasse gleich in die
-		// Attributentabelle ueberfuehrt werden
+		selectedAssociations.removeTableModelListener(associationsTableListener);
+		ConfigurationTableModel table = classAssociations.get(className.trim());
+		int rowCount = selectedAssociations.getRowCount();
+		for (int row = 0; row < rowCount; row++) {
+			selectedAssociations.removeRow(0);
+		}
+		for (int row = 0; row < table.getRowCount(); row++) {
+			Object[] tempRow = new Object[table.getColumnCount()];
+			for (int col = 0; col < table.getColumnCount(); col++) {
+				tempRow[col] = table.getValueAt(row, col);
+			}
+			selectedAssociations.addRow(tempRow);
+		}
+		selectedAssociations.addTableModelListener(associationsTableListener);
 	}
-	
+
 }
