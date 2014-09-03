@@ -32,8 +32,6 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
-import org.tzi.kodkod.model.impl.AssociationClass;
-import org.tzi.kodkod.model.impl.Model;
 import org.tzi.use.gui.util.ExtFileFilter;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClassImpl;
@@ -52,7 +50,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private static final String ASSOCIATIONCLASS_INDICATOR = "(Associationclass)";
+	private static final String ASSOCIATIONCLASS_INDICATOR = " [AC]";
 	
 	private String[] associationsColumns = new String[]{"Associations", "Min", "Max", "Values"};
 	private ConfigurationTableModel selectedAssociations;
@@ -76,6 +74,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private PropertiesConfiguration propertiesConfiguration;
 	private Hashtable<String, ConfigurationTableModel> classAttributes;
 	private Hashtable<String, ConfigurationTableModel> classAssociations;
+	private String selectedClass;
 	private Boolean validatable;
 	private Boolean tableChanged;
 	
@@ -187,7 +186,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		
 		@Override
 		public void tableChanged(TableModelEvent e) {
-			String className = (String)classes.getValueAt(e.getFirstRow(), 0);
+			String className = clearString((String)classes.getValueAt(e.getFirstRow(), 0),ASSOCIATIONCLASS_INDICATOR);
 			int col = e.getColumn();
 			int row = e.getFirstRow();
 			Object value = classes.getValueAt(row, col);
@@ -219,7 +218,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 		@Override
 		public void tableChanged(TableModelEvent e) {
-			String attributeName = (String)attributes.getValueAt(e.getFirstRow(), 0);
+			String attributeName = clearString((String)attributes.getValueAt(e.getFirstRow(), 0), null);
 			int col = e.getColumn();
 			int row = e.getFirstRow();
 			Object value = attributes.getValueAt(row, col);
@@ -251,10 +250,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		
 		@Override
 		public void tableChanged(TableModelEvent e) {
-			String associationName = (String)associations.getValueAt(e.getFirstRow(), 0);
-			if (associationName.contains(ASSOCIATIONCLASS_INDICATOR)) {
-				associationName = associationName.substring(0, associationName.indexOf(ASSOCIATIONCLASS_INDICATOR));
-            }
+			String associationName = clearString((String)associations.getValueAt(e.getFirstRow(), 0),ASSOCIATIONCLASS_INDICATOR);
 			int col = e.getColumn();
 			int row = e.getFirstRow();
 			Object value = associations.getValueAt(row, col);
@@ -280,12 +276,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		
 	}
 	
-	//TODO: Restliche TableListener machen
-	
 	class ClassTableSelectionHandler implements ListSelectionListener {
 		// TODO: es soll auf die Abwahl einer Klassenzeile reagiert und die
-		// Werte der abgewaehlten Klasse in die Hashtabelle classesAttributes und classesAssociations abspeichert werden,
-		// und es soll diese gewaehlten Klassenattribute- und assoziatonen in der Attributen- und Assoziationentabelle angezeigt werden
+		// Werte der abgewaehlten Klasse in die Hashtabelle classesAttributes und classesAssociations abspeichert werden
         public void valueChanged(ListSelectionEvent e) { 
         	ListSelectionModel lsm = (ListSelectionModel) e.getSource();
         	int selectedRow = 0;
@@ -296,10 +289,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
                 	selectedRow = i;
                 }
             }
-            String selectedClass = (String) classes.getValueAt(selectedRow, 0);
-            if (selectedClass.contains(ASSOCIATIONCLASS_INDICATOR)) {
-            	selectedClass = selectedClass.substring(0, selectedClass.indexOf(ASSOCIATIONCLASS_INDICATOR));
-            }
+            selectedClass = clearString((String) classes.getValueAt(selectedRow, 0),ASSOCIATIONCLASS_INDICATOR);
             fillSelectedAttributes(selectedClass);
             fillSelectedAssociations(selectedClass);
         }
@@ -419,8 +409,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         	}
         } );
         
-        tabbedPane.add("Basic Types", createBasicTypesTab());
-        tabbedPane.add("Classes and Associations", createClassesAndAssociationsTab());
+        tabbedPane.add("Basic types", createBasicTypesTab());
+        tabbedPane.add("Classes and associations", createClassesAndAssociationsTab());
+        //TODO: tabbedPane.add("Invariants and options", createInvariantsAndOptionsTab());
         mainUpperPanel.add(openFileButton);
         mainUpperPanel.add(sectionSelectionComboBox);
         mainUpperPanel.add(saveConfigurationButton);
@@ -443,7 +434,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
     	this.setLocationRelativeTo(parent);
     	this.pack();
     	this.setVisible(true);
-    	
 	}
 		
 	@SuppressWarnings("unchecked")
@@ -490,9 +480,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private JPanel createBasicTypesTab() {
-		//Testdatenmodel
 		JScrollPane basicTypesScrollPane = new JScrollPane(basicTypes);
-		
 		JPanel basicTypesPanel = new JPanel(new BorderLayout());
 		basicTypesPanel.add(new JLabel("Basic Types"), BorderLayout.NORTH);
 		basicTypesPanel.add(basicTypesScrollPane, BorderLayout.CENTER);
@@ -522,6 +510,15 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         caaTabLeftSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, classesPanel, caaTabRightSplitPane);
 		return caaTabLeftSplitPane;
 	}
+	
+	/* TODO:
+	 * private JSplitPane createInvariantsAndOptionsTab() {
+		JScrollPane invariantsAndOptionsScrollPane = new JScrollPane(invariantsAndOptions);
+		JPanel invariantsAndOptionsPanel = new JPanel(new BorderLayout());
+		invariantsAndOptionsPanel.add(new JLabel("Invariants and Options"), BorderLayout.NORTH);
+		invariantsAndOptionsPanel.add(invariantsAndOptionsScrollPane, BorderLayout.CENTER);
+		return invariantsAndOptionsPane;
+	}*/
 	
 	private String [] preparStringForConfiguration(String values) {
 		if (values != null) {
@@ -581,10 +578,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		while (classes.hasNext()) {
 			MClass clazz = classes.next();
 			String className = clazz.toString();
-			if (!isAssociationclass(clazz)) {
-				classesConfiguration.setValueAt(className,row,0);
+			if (isAssociationclass(clazz) && clazz.isAbstract()) {
+				classesConfiguration.setValueAt( html(italic(className+bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
+			} else if (isAssociationclass(clazz) && !clazz.isAbstract()) {
+				classesConfiguration.setValueAt( html(className+italic(bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
+			} else if (!isAssociationclass(clazz) && clazz.isAbstract()) {
+				classesConfiguration.setValueAt( html(italic(className)) ,row,0);
 			} else {
-				classesConfiguration.setValueAt(className+ASSOCIATIONCLASS_INDICATOR,row,0);
+				classesConfiguration.setValueAt(className,row,0);
 			}
 			if (!isAssociationclass(clazz)) {
 				if (pc.containsKey(className+"_min")) {
@@ -620,11 +621,20 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		while (classes.hasNext()) {
 			MClass clazz = classes.next();
 			String className = clazz.toString().trim();
-			Iterator<MAttribute> attributesIterator = clazz.allAttributes().iterator();
-			int attributesCount = clazz.allAttributes().size();
+			Iterator<MAttribute> attributesIterator = clazz.attributes().iterator();
+			int attributesCount = 0;
+			for (MAttribute attribute : clazz.attributes()) {
+				if (!attribute.isDerived()) {
+					attributesCount++;
+				}
+			}
 			Object[][] attributesData = new Object[attributesCount][6];
-			for (int row = 0; attributesIterator.hasNext(); row++) {
-				MAttribute attribute = attributesIterator.next();
+			int row = 0;
+			for(MAttribute attribute : clazz.attributes()){
+				if(attribute.isDerived()){
+					continue;
+				}
+				attribute = attributesIterator.next();
 				String attributeName = className+"_"+attribute.toString().substring(0, (attribute.toString().indexOf(':')-1)).trim();
 				attributesData[row][0] = attributeName;
 				if (pc.containsKey(attributeName+"_min")) {
@@ -646,7 +656,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						attributesData[row][5] = null;
 					}
 				}
+				row++;
 			}
+
 			classAttributes.put(className, new ConfigurationTableModel(attributesColumns,attributesData));
 			if (isFirstClass) {
 				fillSelectedAttributes(className);
@@ -700,10 +712,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				if ((association.associationEnds().iterator().next().cls().equals(clazz))
 						|| isAssociationclass(clazz)) {
 					associationName = association.toString().trim();
-					if (!isAssociationclass(association)) {
-						associationsData[row][0] = associationName;
+					if (isAssociationclass(association) && association.isAbstract()) {
+						associationsData[row][0] = html(italic(associationName+bold(ASSOCIATIONCLASS_INDICATOR)));
+					} else if (isAssociationclass(association) && !association.isAbstract()) {
+						associationsData[row][0] = html(associationName+italic(bold(ASSOCIATIONCLASS_INDICATOR)));
+					} else if (!isAssociationclass(association) && association.isAbstract()) {
+						associationsData[row][0] = html(italic(associationName));
 					} else {
-						associationsData[row][0] = associationName+ASSOCIATIONCLASS_INDICATOR;
+						associationsData[row][0] = associationName;
 					}
 					if (pc.containsKey(associationName+"_min")) {
 						associationsData[row][1] = pc.getInt(associationName+"_min");
@@ -744,6 +760,33 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			selectedAssociations.addRow(tempRow);
 		}
 		selectedAssociations.addTableModelListener(associationsTableListener);
+	}
+	
+	private String html(String string) {
+		return "<html>"+string+"</html>";
+	}
+	
+	private String bold(String string) {
+		return "<b>"+string+"</b>";
+	}
+	
+	private String italic(String string) {
+		return "<i>"+string+"</i>";
+	}
+	
+	private String clearString(String string, String deleteEnding) {
+		if (string.contains("<html>")) {
+			String temp = string.replaceAll("\\<[^>]*>","");
+			if (temp.contains(deleteEnding)) {
+				return temp.substring(0,temp.indexOf(deleteEnding)).trim();
+			} else {
+				return temp.trim();
+			}
+		} else if (string.contains(deleteEnding)) {
+				return string.substring(0,string.indexOf(deleteEnding)).trim();
+		} else {
+				return string.trim();
+		}
 	}
 
 }
