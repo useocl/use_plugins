@@ -44,10 +44,6 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 	
 	/**
 	 * Validation to check the independence of a single invariant.
-	 * 
-	 * @param model
-	 * @param className
-	 * @param invariantName
 	 */
 	public void validate(IModel model, String className, String invariantName) {
 		validateSingleInvariant = true;
