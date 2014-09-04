@@ -1,5 +1,7 @@
 package org.tzi.use.kodkod.plugin;
 
+import java.lang.ref.WeakReference;
+
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.iface.IModelFactory;
 import org.tzi.kodkod.model.impl.SimpleFactory;
@@ -34,7 +36,7 @@ public enum PluginModelFactory implements ChangeListener {
 
 	INSTANCE;
 
-	private Session session = null;
+	private WeakReference<Session> session = new WeakReference<Session>(null);
 	private boolean reTransform = true;
 
 	private IModel model;
@@ -99,12 +101,12 @@ public enum PluginModelFactory implements ChangeListener {
 	}
 	
 	public void registerForSession(Session s){
-		if(s == session){
+		if(session.get() != null && s == session.get()){
 			return;
 		}
 		s.addChangeListener(this);
-		session = s;
-		session.system().getEventBus().register(this);
+		s.system().getEventBus().register(this);
+		session = new WeakReference<Session>(s);
 	}
 	
 	@Override
