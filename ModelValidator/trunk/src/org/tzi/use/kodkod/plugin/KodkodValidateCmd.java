@@ -5,7 +5,6 @@ import java.io.File;
 import org.apache.commons.configuration.ConfigurationException;
 import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
-import org.tzi.kodkod.model.config.impl.DefaultConfigurationVisitor;
 import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
 import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.use.kodkod.UseDefaultConfigKodkodModelValidator;
@@ -21,9 +20,7 @@ import org.tzi.use.uml.mm.MClassInvariant;
  * @author Hendrik Reitmann
  * 
  */
-public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmdDelegate {
-
-	private PropertyConfigurationVisitor configurationVisitor;
+public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShellCmdDelegate {
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
@@ -79,7 +76,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 */
 	protected final void extractConfigureAndValidate(File file) {
 		try {
-			configureModel(file);
+			PropertyConfigurationVisitor configurationVisitor = configureModel(file);
 			enrichModel();
 			validate(createValidator());
 			configurationVisitor.printWarnings();
@@ -95,40 +92,6 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 */
 	protected KodkodModelValidator createValidator() {
 		return new UseKodkodModelValidator(session);
-	}
-
-	/**
-	 * Configuration of the model with the data from the given file.
-	 * 
-	 * @param file
-	 * @throws ConfigurationException
-	 */
-	private void configureModel(File file) throws ConfigurationException {
-		model().reset();
-		configurationVisitor = new PropertyConfigurationVisitor(file.getAbsolutePath());
-		model().accept(configurationVisitor);
-
-		if (configurationVisitor.containErrors()) {
-			throw new ConfigurationException();
-		}
-
-		LOG.info(LogMessages.modelConfigurationSuccessful);
-	}
-
-	/**
-	 * Configuration with the default search space.
-	 * 
-	 * @return
-	 * @throws Exception
-	 */
-	private File configureModel() throws Exception {
-		model().reset();
-		DefaultConfigurationVisitor configurationVisitor = new DefaultConfigurationVisitor(mModel.filename());
-		model().accept(configurationVisitor);
-
-		LOG.info(LogMessages.modelConfigurationSuccessful);
-
-		return configurationVisitor.getFile();
 	}
 
 	private void validate(KodkodModelValidator modelValidator) {
