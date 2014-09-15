@@ -59,7 +59,7 @@ import org.tzi.use.uml.ocl.expr.VarDeclList;
  */
 public class SimpleExpressionVisitor implements ExpressionVisitor {
 
-	protected static final Logger LOG = Logger.getLogger(SimpleExpressionVisitor.class);
+	private static final Logger LOG = Logger.getLogger(SimpleExpressionVisitor.class);
 
 	@Override
 	public void visitAllInstances(ExpAllInstances exp) {

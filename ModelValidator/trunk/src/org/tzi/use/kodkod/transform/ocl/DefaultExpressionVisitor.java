@@ -9,6 +9,7 @@ import kodkod.ast.Node;
 import kodkod.ast.Relation;
 import kodkod.ast.Variable;
 
+import org.apache.log4j.Logger;
 import org.tzi.kodkod.KodkodModelValidatorConfiguration;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
@@ -57,6 +58,8 @@ import org.tzi.use.util.StringUtil;
  */
 public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 
+	private static final Logger LOG = Logger.getLogger(DefaultExpressionVisitor.class);
+	
 	protected IModel model;
 	protected Relation undefined;
 	protected Relation undefined_Set;

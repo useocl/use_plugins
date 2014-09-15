@@ -156,7 +156,7 @@ public class ObjectDiagramCreator {
 
 				if (!isType(nameSplit[0]) && !isToStringMap(nameSplit[0])) {
 					if (isAssociation(relationName, relation)) {
-						strategy = new AssociationStrategy(systemApi, objectStates, relationName);
+						strategy = new LinkStrategy(systemApi, objectStates, relationName);
 
 					} else if (isAttributeOfSimpleObject(relationName, relation)) {
 						strategy = new AttributeStrategy(systemApi, objectStates,
@@ -206,7 +206,7 @@ public class ObjectDiagramCreator {
 			associationClassesRelations.remove(mAssociationClass.name());
 			Relation relation = associationClassesRelations
 					.remove(associationClassName);
-			strategy = new AssociationClassStrategy(systemApi, objectStates, mAssociationClass);
+			strategy = new LinkObjectStrategy(systemApi, objectStates, mAssociationClass);
 
 			// filter association relations without a linkobject
 			TupleSet validRelations = relations.get(relation).clone();

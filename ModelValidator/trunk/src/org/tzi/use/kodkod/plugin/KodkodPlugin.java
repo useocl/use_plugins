@@ -4,11 +4,10 @@ import java.io.File;
 
 import org.apache.log4j.xml.DOMConfigurator;
 import org.tzi.kodkod.helper.PathHelper;
-import org.tzi.use.runtime.IPlugin;
 import org.tzi.use.runtime.IPluginRuntime;
 import org.tzi.use.runtime.impl.Plugin;
 
-public class KodkodPlugin extends Plugin implements IPlugin {
+public class KodkodPlugin extends Plugin {
 
 	private final String PLUGIN_ID = "KodkodPlugin";
 

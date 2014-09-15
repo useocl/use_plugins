@@ -53,8 +53,10 @@ public class OCLTest {
 	public static void setUpBeforeClass() throws Exception {
 		File file = new File("test/org/tzi/use/kodkod/transform/ocl/testModel.use");
 
-		FileInputStream specStream = new FileInputStream(file);
-		MModel mModel = USECompiler.compileSpecification(specStream, "testModel.use", new PrintWriter(System.err), new ModelFactory());
+		MModel mModel;
+		try (FileInputStream specStream = new FileInputStream(file)){
+			mModel = USECompiler.compileSpecification(specStream, "testModel.use", new PrintWriter(System.err), new ModelFactory());
+		}
 
 		Session session = new Session();
 		mSystem = new MSystem(mModel);
