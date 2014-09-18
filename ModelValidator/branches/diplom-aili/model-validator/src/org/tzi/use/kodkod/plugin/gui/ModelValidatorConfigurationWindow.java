@@ -50,6 +50,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ASSOCIATIONCLASS_INDICATOR = " [AC]";
+	private static final String NON_EDITABLE = "non-editable";
 	
 	private String[] associationsColumns = new String[]{"Associations", "Min", "Max", "Values"};
 	private ConfigurationTableModel selectedAssociations;
@@ -106,7 +107,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			// mit dem Wechsel in einen anderen Konfigurationsektor wirklich verwerfen will.
 			// Wenn nicht, wird der Konfigurationssektor nicht gewechselt.
 			// Pruefung ob etwas geaendert wurde, kann einfacherweise
-			// ueber die Boolean-Variable somethingChanged() ermittelt werden.
+			// ueber die Boolean-Variable tableChanged ermittelt werden.
 
 			@SuppressWarnings("unchecked")
 			JComboBox<String> cb = (JComboBox<String>) e.getSource();
@@ -205,25 +206,25 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						+" value: "+value);
 				switch (col) {
 				case 1: 
-					if (!isAssociationclass(model.getClass(className))) {
+					if (!isAssociationclass(model.getClass(className)) && !model.getClass(className).isAbstract()) {
 						propertiesConfiguration.setProperty(className + "_min", value);
 						System.out.println(" done.");
 						break;
 					} else {
-						System.out.println("AClasses min are ignored!");
 						break;
 					}
 				case 2: 
-					if (!isAssociationclass(model.getClass(className))) {
+					if (!isAssociationclass(model.getClass(className)) && !model.getClass(className).isAbstract()) {
 						propertiesConfiguration.setProperty(className + "_max", value);
 						System.out.println(" done.");
 						break;
 					} else {
-						System.out.println("AClasses min are ignored!");
 						break;
 					}
 				case 3: 
-					if (!isAssociationclass(model.getClass(className))) {
+					if (model.getClass(className).isAbstract()) {
+						break;
+					} else if (!isAssociationclass(model.getClass(className))) {
 						String [] values = preparStringForConfiguration((String) value);
 						if (values != null) 
 							propertiesConfiguration.setProperty(className, Integer.getInteger(values[0]));
@@ -333,8 +334,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * Listens for changed class row selection in the class table
 	 */
 	class ClassTableSelectionHandler implements ListSelectionListener {
-		// TODO: es soll auf die Abwahl einer Klassenzeile reagiert und die
-		// Werte der abgewaehlten Klasse in die Hashtabelle classesAttributes und classesAssociations abspeichert werden
         public void valueChanged(ListSelectionEvent e) { 
         	if (!e.getValueIsAdjusting()) {	
         		ListSelectionModel lsm = (ListSelectionModel) e.getSource();
@@ -454,9 +453,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         	}
         });
         
-        //TODO: Bevor die GUI geschlossen wird sollte vorher geprueft werden,
-        //ob die veraenderungen bereits uebernommen(Apply-Button gedrueckt) wurden.
-        //Warnung ausgeben dass, falls die Konfiguration nicht abgespeichert(Save-Button gedrueckt) wurde,
+        //TODO: Warnung ausgeben dass, falls die Konfiguration nicht abgespeichert(Save-Button gedrueckt) wurde,
         //diese in der folgenden Validierung zwar verwendet wird, danach aber verworfen ist.
         validateButton.addActionListener( new ActionListener() {
         	@Override 
@@ -672,6 +669,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					classesConfiguration.setValueAt( html(italic(className+bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
 				} else {
 					classesConfiguration.setValueAt( html(className+italic(bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
+					classesConfiguration.setValueAt(NON_EDITABLE,row,1);
+					classesConfiguration.setValueAt(NON_EDITABLE,row,2);
 				}
 			} else {
 				if (clazz.isAbstract()) {
@@ -681,9 +680,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 			}
 			if (clazz.isAbstract()) {
-				classesConfiguration.setValueAt("non-editable",row,1);
-				classesConfiguration.setValueAt("non-editable",row,2);
-				classesConfiguration.setValueAt("non-editable",row,3);
+				classesConfiguration.setValueAt(NON_EDITABLE,row,1);
+				classesConfiguration.setValueAt(NON_EDITABLE,row,2);
+				classesConfiguration.setValueAt(NON_EDITABLE,row,3);
 				row++;
 				continue;
 			}
@@ -823,7 +822,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 			}
 		}
-		classAttributes.put(className, table);
+		//classAttributes.put(className, table);
 	}
 	
 	/**
@@ -908,7 +907,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			selectedAssociations.addRow(tempRow);
 		}
 		selectedAssociations.addTableModelListener(associationsTableListener);
-		System.out.println("Assoziationstabelle erneuert.");
 	}
 	
 	/**
@@ -933,7 +931,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 			}
 		}
-		classAssociations.put(className, table);
+		//classAssociations.put(className, table);
 	}
 	
 	private String html(String string) {
