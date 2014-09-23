@@ -1,22 +1,30 @@
 package org.tzi.use.kodkod.plugin.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Iterator;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -26,16 +34,20 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
+import org.tzi.kodkod.model.config.impl.PropertyEntry;
 import org.tzi.use.gui.util.ExtFileFilter;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClassImpl;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MModel;
 
 
@@ -47,25 +59,30 @@ import org.tzi.use.uml.mm.MModel;
  */
 public class ModelValidatorConfigurationWindow extends JDialog {
 	
+
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ASSOCIATIONCLASS_INDICATOR = " [AC]";
 	private static final String NON_EDITABLE = "non-editable";
+	private static final int OPTIONS_TABLE_DIVIDER_HEIGHT = 2;
+	private static final int OPTIONS_TABLE_HEIGHT = 64;
+	
+	String [] optionsColNames = new String[]{"Options","On","Off"};
+	String [] invariantsColNames = new String[]{"Invariants","Active","Inactive","Negate"};
+	InvariantsOptionsTable invariants;
+	InvariantsOptionsTable options;
+	String selectedButton;
 	
 	private String[] associationsColumns = new String[]{"Associations", "Min", "Max", "Values"};
-	private ConfigurationTableModel selectedAssociations;
 	private JTable associations;
 
 	private String[] attributesColumns = new String[]{"Attributes", "Min", "Max", "MinSize", "MaxSize", "Values"};
-	private ConfigurationTableModel selectedAttributes;
 	private JTable attributes;
 
 	private String[] classesColumns = new String[]{"Classes", "Min", "Max", "Values"};;
-	private ConfigurationTableModel classesConfiguration;
 	private JTable classes;
 
 	private String[] basicTypesColumns = new String[]{"Typ", "Min", "Max", "Step", "Values"};
-	private ConfigurationTableModel basicTypesConfiguration;
 	private JTable basicTypes;
 
 	private MModel model;
@@ -355,39 +372,118 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	        }
         }
     }
+	
+	private class InvariantsOptionsTableModel extends DefaultTableModel {
+		private static final long serialVersionUID = 1L;
+		
+		public InvariantsOptionsTableModel(Object rowData[][], String columnNames[]) {
+			super(rowData, columnNames);
+		}
+		
+		@Override
+		public boolean isCellEditable(int row, int col) {
+			if (col==0) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+	}
+	
+	private class InvariantsOptionsTable extends JTable {
+		private static final long serialVersionUID = 1L;
+
+		public InvariantsOptionsTable(InvariantsOptionsTableModel iotm) {
+			super(iotm);
+		}
+		
+		@Override
+		public void tableChanged(TableModelEvent e) {
+			int row = e.getFirstRow();
+			int col = e.getColumn();
+			if (row >= 0 && col >= 0) {
+				System.out.println(getValueAt(row,0)+": "+selectedButton);
+			}
+			super.tableChanged(e);
+			repaint();
+		}
+	}
+	
+	private class SwitchRenderer implements TableCellRenderer {
+		public Component getTableCellRendererComponent(JTable table, Object value,
+				boolean isSelected, boolean hasFocus, int row, int column) {
+			if (value == null)
+				return null;
+			return (Component) value;
+		}
+	}
+	
+	private class SwitchEditor extends DefaultCellEditor implements ItemListener {
+		private static final long serialVersionUID = 1L;
+		
+		private JRadioButton button;
+		
+		public SwitchEditor(JCheckBox checkbox) {
+			super(checkbox);
+		}
+		
+		public Component getTableCellEditorComponent(JTable table, Object value,
+				boolean isSelected, int row, int column) {
+			if (value == null)
+				return null;
+			button = (JRadioButton) value;
+			button.addItemListener(this);
+			return (Component) value;
+		}
+		
+		public Object getCellEditorValue() {
+			button.removeItemListener(this);
+			return button;
+		}
+
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			selectedButton = ((AbstractButton) e.getItemSelectable()).getActionCommand();
+			super.fireEditingStopped();
+		}
+		
+	}
 
 	public ModelValidatorConfigurationWindow(final JFrame parent, final MModel model) {
 		super(parent, "Model-Validator Configuration");
 		
+		//TODO: Design durch bessers als das hier verbessern
+		this.getRootPane().setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, getRootPane().getBackground()));
+		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		//TODO: USE soll weiterhin verwendbar bleiben, waehrrend die MV-GUI weiterlaeuft.
+		//Vielleicht durch Einkapselung des ganzen Kodkod-Validationsverfahren als ein Thread?
+		this.setModalityType(ModalityType.APPLICATION_MODAL);
+		this.setResizable(true);
+		this.setSize(800,300);
+
 		this.model = model;
 		
-		selectedAssociations = new ConfigurationTableModel(associationsColumns, new Object[1][4]);
-		associations = new JTable(selectedAssociations);
+		associations = new JTable(new ConfigurationTableModel(associationsColumns, new Object[1][4]));
+		attributes = new JTable(new ConfigurationTableModel(attributesColumns, new Object[1][6]));
+		classes = new JTable(new ConfigurationTableModel(classesColumns, new Object[model.classes().size()][4]));
+		basicTypes = new JTable(new ConfigurationTableModel(basicTypesColumns, new Object[3][5]));
+		options = new InvariantsOptionsTable(new InvariantsOptionsTableModel(new Object[2][3], optionsColNames));
+		invariants = new InvariantsOptionsTable(new InvariantsOptionsTableModel(
+				new Object[model.classInvariants().size()][4],invariantsColNames));
 		
-		selectedAttributes = new ConfigurationTableModel(attributesColumns, new Object[1][6]);
-		attributes = new JTable(selectedAttributes);
-		
-		classesConfiguration = new ConfigurationTableModel(classesColumns, new Object[model.classes().size()][4]); 
-		classes = new JTable(classesConfiguration);
-		
-		basicTypesConfiguration = new ConfigurationTableModel(basicTypesColumns, 
-				new Object[][]{
-					//{"Boolean", null,	null, 	null,	null},
-					{"Integer",	null,	null, 	null,	null},
-					{"Real", 	null,	null, 	null,	null},
-					{"String", 	null,	null, 	null,	null}
-		});
-		basicTypes = new JTable(basicTypesConfiguration);
+		//TODO: Hier muss aus der propertiesConfiguration gelesen werden, und die entsprechenden Optionen gesetzt werden
+		//in Form von: 	((AbstractButton) invariants.getModel().getValueAt(0, 1)).setSelected(true);
+		//und: 			((AbstractButton) invariants.getModel().getValueAt(1, 2)).setSelected(true);
 
-		basicTypesConfiguration.addTableModelListener(new BasicTypesTableListener());
-		classesConfiguration.addTableModelListener(new ClassesTableListener());
+		basicTypes.getModel().addTableModelListener(new BasicTypesTableListener());
+		classes.getModel().addTableModelListener(new ClassesTableListener());
 		classTableSelectionListener = classes.getSelectionModel();
 		classTableSelectionListener.addListSelectionListener(new ClassTableSelectionHandler());
 		classes.setSelectionModel(classTableSelectionListener);
 		attributesTableListener = new AttributesTableListener();
-		selectedAttributes.addTableModelListener(attributesTableListener);
+		attributes.getModel().addTableModelListener(attributesTableListener);
 		associationsTableListener = new AssociationsTableListener();
-		selectedAssociations.addTableModelListener(associationsTableListener);
+		associations.getModel().addTableModelListener(associationsTableListener);
 		
 		
 		file = new File(model.filename().replaceAll("\\.use", "") + ".properties");
@@ -396,13 +492,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		classAssociations = new Hashtable<String,ConfigurationTableModel>();
 		validatable = false;
 
-		//TODO: Design durch bessers als das hier verbessern
-		getRootPane().setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, getRootPane().getBackground()));
-		
-		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		this.setModalityType(ModalityType.APPLICATION_MODAL); // "blocks all top-level windows from the same Java application except those from its own child hierarchy"
-    	this.setResizable(true);
-    	this.setSize(800,300);
     	
     	tabbedPane = new JTabbedPane(JTabbedPane.TOP);
     	mainPanel = new JPanel();
@@ -431,6 +520,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
         		if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
         			file = fileChooser.getSelectedFile();
+        			//TODO: Sicherstellen, dass saemtliche Tabellen neu gemalt werden, als wuerde(oder auch genauso) die
+        			//GUI neugestartet sein
         			collectConfigurations(file);
         			insertConfigurationInBasicTypes();
         			insertConfigurationInClasses();
@@ -465,7 +556,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         
         tabbedPane.add("Basic types", createBasicTypesTab());
         tabbedPane.add("Classes and associations", createClassesAndAssociationsTab());
-        //TODO: tabbedPane.add("Invariants and options", createInvariantsAndOptionsTab());
+        tabbedPane.add("Invariants and options", createInvariantsAndOptionsTab());
         mainUpperPanel.add(openFileButton);
         mainUpperPanel.add(sectionSelectionComboBox);
         mainUpperPanel.add(saveConfigurationButton);
@@ -481,6 +572,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         insertConfigurationInClasses();
         insertConfigurationInAttributes();
         insertConfigurationInAssociations();
+        insertConfigurationInInvariantsOptions();
         classes.setRowSelectionInterval(0,0);
         collectConfigurations(file); //TODO: Diese Zeile wegmachen, sobald alle Konfiguration aus allen Tabellen erfolgreich ausgelesen werden koennen
     	
@@ -547,6 +639,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private JPanel createBasicTypesTab() {
+		basicTypes.getModel().setValueAt("Integer",0,0);
+		basicTypes.getModel().setValueAt("Real",1,0);
+		basicTypes.getModel().setValueAt("String",2,0);
 		JScrollPane basicTypesScrollPane = new JScrollPane(basicTypes);
 		JPanel basicTypesPanel = new JPanel(new BorderLayout());
 		basicTypesPanel.add(new JLabel("Basic Types"), BorderLayout.NORTH);
@@ -578,14 +673,83 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		return caaTabLeftSplitPane;
 	}
 	
-	/* TODO:
-	 * private JSplitPane createInvariantsAndOptionsTab() {
-		JScrollPane invariantsAndOptionsScrollPane = new JScrollPane(invariantsAndOptions);
-		JPanel invariantsAndOptionsPanel = new JPanel(new BorderLayout());
-		invariantsAndOptionsPanel.add(new JLabel("Invariants and Options"), BorderLayout.NORTH);
-		invariantsAndOptionsPanel.add(invariantsAndOptionsScrollPane, BorderLayout.CENTER);
-		return invariantsAndOptionsPane;
-	}*/
+	private JSplitPane createInvariantsAndOptionsTab() {
+		options.getModel().setValueAt(PropertyEntry.aggregationcyclefreeness,0,0);
+		options.getModel().setValueAt(new JRadioButton("On"),0,1);
+		options.getModel().setValueAt(new JRadioButton("Off"),0,2);
+		options.getModel().setValueAt(PropertyEntry.forbiddensharing,1,0);
+		options.getModel().setValueAt(new JRadioButton("On"),1,1);
+		options.getModel().setValueAt(new JRadioButton("Off"),1,2);
+		
+		ButtonGroup aCFButtonsA = new ButtonGroup();
+		aCFButtonsA.add((JRadioButton) options.getModel().getValueAt(0, 1));
+		aCFButtonsA.add((JRadioButton) options.getModel().getValueAt(0, 2));
+		ButtonGroup aCFButtonsB = new ButtonGroup();
+		aCFButtonsB.add((JRadioButton) options.getModel().getValueAt(1, 1));
+		aCFButtonsB.add((JRadioButton) options.getModel().getValueAt(1, 2));
+		
+
+		Iterator<MClassInvariant> allInvariantsIterator = model.classInvariants().iterator();
+		Hashtable<String,ButtonGroup> buttonGroups = new Hashtable<String,ButtonGroup>();
+		int i = 0;
+		while (allInvariantsIterator.hasNext()) {
+			String invName = allInvariantsIterator.next().name();
+			invariants.getModel().setValueAt(invName,i,0);
+			invariants.getModel().setValueAt(new JRadioButton("Active"), i, 1);
+			invariants.getModel().setValueAt(new JRadioButton("Inactive"), i, 2);
+			invariants.getModel().setValueAt(new JRadioButton("Negate"), i, 3);
+			
+			buttonGroups.put(invName,new ButtonGroup());
+			buttonGroups.get(invName).add((AbstractButton) invariants.getModel().getValueAt(i, 1));
+			buttonGroups.get(invName).add((AbstractButton) invariants.getModel().getValueAt(i, 2));
+			buttonGroups.get(invName).add((AbstractButton) invariants.getModel().getValueAt(i, 3));
+			
+			i++;
+		}	
+		
+/*		ButtonGroup fSButtonsA = new ButtonGroup();
+		fSButtonsA.add((JRadioButton) invariants.getModel().getValueAt(0,1));
+		fSButtonsA.add((JRadioButton) invariants.getModel().getValueAt(0,2));
+		fSButtonsA.add((JRadioButton) invariants.getModel().getValueAt(0,3));
+		ButtonGroup fSButtonsB = new ButtonGroup();
+		fSButtonsB.add((JRadioButton) invariants.getModel().getValueAt(1,1));
+		fSButtonsB.add((JRadioButton) invariants.getModel().getValueAt(1,2));
+		fSButtonsB.add((JRadioButton) invariants.getModel().getValueAt(1,3));
+		ButtonGroup fSButtonsC = new ButtonGroup();
+		fSButtonsC.add((JRadioButton) invariants.getModel().getValueAt(2,1));
+		fSButtonsC.add((JRadioButton) invariants.getModel().getValueAt(2,2));
+		fSButtonsC.add((JRadioButton) invariants.getModel().getValueAt(2,3));*/
+		//TODO: Jeder Button und jede ButtonGroup muss abhaengig von der Anzahl und Einstellungen aus den Tabellen erstellt werden
+		
+		options.getColumn("On").setCellRenderer(new SwitchRenderer());
+		options.getColumn("Off").setCellRenderer(new SwitchRenderer());
+		invariants.getColumn("Active").setCellRenderer(new SwitchRenderer());
+		invariants.getColumn("Inactive").setCellRenderer(new SwitchRenderer());
+		invariants.getColumn("Negate").setCellRenderer(new SwitchRenderer());
+		
+		options.getColumn("On").setCellEditor(new SwitchEditor(new JCheckBox()));
+		options.getColumn("Off").setCellEditor(new SwitchEditor(new JCheckBox()));
+		invariants.getColumn("Active").setCellEditor(new SwitchEditor(new JCheckBox()));
+		invariants.getColumn("Inactive").setCellEditor(new SwitchEditor(new JCheckBox()));
+		invariants.getColumn("Negate").setCellEditor(new SwitchEditor(new JCheckBox()));
+		
+		options.setPreferredScrollableViewportSize(new Dimension(350,options.getRowHeight()*options.getRowCount()));
+		options.getColumnModel().getColumn(0).setPreferredWidth(200);
+		invariants.setPreferredScrollableViewportSize(new Dimension(800,invariants.getRowHeight()*invariants.getRowCount()));
+		invariants.getColumnModel().getColumn(0).setPreferredWidth(400);
+		
+		JPanel optionsPanel = new JPanel();
+		JPanel invariantsPanel = new JPanel();
+		JSplitPane ioPane;
+		
+		optionsPanel.add(new JScrollPane(options));
+		invariantsPanel.add(new JScrollPane(invariants));
+		ioPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, optionsPanel, invariantsPanel);
+		ioPane.setDividerLocation(OPTIONS_TABLE_HEIGHT);
+		ioPane.setDividerSize(OPTIONS_TABLE_DIVIDER_HEIGHT);
+		
+		return ioPane;
+	}
 	
 	private String [] preparStringForConfiguration(String values) {
 		if (values != null) {
@@ -618,23 +782,23 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * @param pc
 	 */
 	private void insertConfigurationInBasicTypes() {
-		basicTypesConfiguration.setValueAt(propertiesConfiguration.getInt("Integer_min"), 0, 1);
-		basicTypesConfiguration.setValueAt(propertiesConfiguration.getInt("Integer_max"), 0, 2);
+		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("Integer_min"), 0, 1);
+		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("Integer_max"), 0, 2);
 		if (!(propertiesConfiguration.getProperty("Integer") == null)) {
-			basicTypesConfiguration.setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("Integer")), 0, 4);
-		} else basicTypesConfiguration.setValueAt(null, 0, 4);
-		basicTypesConfiguration.setValueAt(propertiesConfiguration.getInt("Real_min"), 1, 1);
-		basicTypesConfiguration.setValueAt(propertiesConfiguration.getInt("Real_max"), 1, 2);
-		basicTypesConfiguration.setValueAt(propertiesConfiguration.getDouble("Real_step"), 1, 3);
+			basicTypes.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("Integer")), 0, 4);
+		} else basicTypes.getModel().setValueAt(null, 0, 4);
+		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("Real_min"), 1, 1);
+		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("Real_max"), 1, 2);
+		basicTypes.getModel().setValueAt(propertiesConfiguration.getDouble("Real_step"), 1, 3);
 		if (!(propertiesConfiguration.getProperty("Real") == null)) {
-			basicTypesConfiguration.setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("Real")), 1, 4);
-		} else basicTypesConfiguration.setValueAt(null, 1, 4);
-		basicTypesConfiguration.setValueAt(propertiesConfiguration.getInt("String_min"), 2, 1);
-		basicTypesConfiguration.setValueAt(propertiesConfiguration.getInt("String_max"), 2, 2);
+			basicTypes.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("Real")), 1, 4);
+		} else basicTypes.getModel().setValueAt(null, 1, 4);
+		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("String_min"), 2, 1);
+		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("String_max"), 2, 2);
 		if (!(propertiesConfiguration.getProperty("String") == null)) {
-			basicTypesConfiguration.setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("String")), 2, 4);
+			basicTypes.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("String")), 2, 4);
 		} else {
-			basicTypesConfiguration.setValueAt(null, 2, 4);
+			basicTypes.getModel().setValueAt(null, 2, 4);
 		}
 	}
 	
@@ -659,53 +823,53 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * @param model
 	 */
 	private void insertConfigurationInClasses() {
-		Iterator<MClass> classes = model.classes().iterator();
+		Iterator<MClass> classesIterator = model.classes().iterator();
 		int row = 0;
-		while (classes.hasNext()) {
-			MClass clazz = classes.next();
+		while (classesIterator.hasNext()) {
+			MClass clazz = classesIterator.next();
 			String className = clazz.toString();
 			if (isAssociationclass(clazz)) {
 				if (clazz.isAbstract()) {
-					classesConfiguration.setValueAt( html(italic(className+bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
+					classes.getModel().setValueAt( html(italic(className+bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
 				} else {
-					classesConfiguration.setValueAt( html(className+italic(bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
-					classesConfiguration.setValueAt(NON_EDITABLE,row,1);
-					classesConfiguration.setValueAt(NON_EDITABLE,row,2);
+					classes.getModel().setValueAt( html(className+italic(bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
+					classes.getModel().setValueAt(NON_EDITABLE,row,1);
+					classes.getModel().setValueAt(NON_EDITABLE,row,2);
 				}
 			} else {
 				if (clazz.isAbstract()) {
-					classesConfiguration.setValueAt( html(italic(className)) ,row,0);
+					classes.getModel().setValueAt( html(italic(className)) ,row,0);
 				} else {
-					classesConfiguration.setValueAt(className,row,0);
+					classes.getModel().setValueAt(className,row,0);
 				}
 			}
 			if (clazz.isAbstract()) {
-				classesConfiguration.setValueAt(NON_EDITABLE,row,1);
-				classesConfiguration.setValueAt(NON_EDITABLE,row,2);
-				classesConfiguration.setValueAt(NON_EDITABLE,row,3);
+				classes.getModel().setValueAt(NON_EDITABLE,row,1);
+				classes.getModel().setValueAt(NON_EDITABLE,row,2);
+				classes.getModel().setValueAt(NON_EDITABLE,row,3);
 				row++;
 				continue;
 			}
 			if (!isAssociationclass(clazz)) {
 				if (propertiesConfiguration.containsKey(className+"_min")) {
-					classesConfiguration.setValueAt(propertiesConfiguration.getInt(className+"_min"),row,1);
+					classes.getModel().setValueAt(propertiesConfiguration.getInt(className+"_min"),row,1);
 				}
 				if (propertiesConfiguration.containsKey(className+"_max")) {
-					classesConfiguration.setValueAt(propertiesConfiguration.getInt(className+"_max"),row,2);
+					classes.getModel().setValueAt(propertiesConfiguration.getInt(className+"_max"),row,2);
 				}
 				if (propertiesConfiguration.containsKey(className)) {
 					if (propertiesConfiguration.getProperty(className) != null) {
-						classesConfiguration.setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty(className)),row,3);
+						classes.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty(className)),row,3);
 					} else {
-						classesConfiguration.setValueAt(null, row,3);
+						classes.getModel().setValueAt(null, row,3);
 					}
 				}
 			} else {
 				if (propertiesConfiguration.containsKey(className+"_ac")) {
 					if (propertiesConfiguration.getProperty(className) != null) {
-						classesConfiguration.setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty(className+"_ac")),row,3);
+						classes.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty(className+"_ac")),row,3);
 					} else {
-						classesConfiguration.setValueAt(null, row,3);
+						classes.getModel().setValueAt(null, row,3);
 					}
 				}
 				
@@ -778,20 +942,20 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * @param className
 	 */
 	private void fillAttributeTable(String className) {
-		selectedAttributes.removeTableModelListener(attributesTableListener);
+		attributes.getModel().removeTableModelListener(attributesTableListener);
 		ConfigurationTableModel table = classAttributes.get(className);
-		int rowCount = selectedAttributes.getRowCount();
+		int rowCount = attributes.getModel().getRowCount();
 		for (int row = 0; row < rowCount; row++) {
-			selectedAttributes.removeRow(0);
+			((ConfigurationTableModel) attributes.getModel()).removeRow(0);
 		}
 		for (int row = 0; row < table.getRowCount(); row++) {
 			Object[] tempRow = new Object[table.getColumnCount()];
 			for (int col = 0; col < table.getColumnCount(); col++) {
 				tempRow[col] = table.getValueAt(row, col);
 			}
-			selectedAttributes.addRow(tempRow);
+			((ConfigurationTableModel) attributes.getModel()).addRow(tempRow);
 		}
-		selectedAttributes.addTableModelListener(attributesTableListener);
+		attributes.getModel().addTableModelListener(attributesTableListener);
 	}
 	
 	/**
@@ -822,7 +986,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 			}
 		}
-		//classAttributes.put(className, table);
 	}
 	
 	/**
@@ -893,20 +1056,20 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * @param className
 	 */
 	private void fillAssociationTable(String className) {
-		selectedAssociations.removeTableModelListener(associationsTableListener);
+		associations.getModel().removeTableModelListener(associationsTableListener);
 		ConfigurationTableModel table = classAssociations.get(className.trim());
-		int rowCount = selectedAssociations.getRowCount();
+		int rowCount = associations.getModel().getRowCount();
 		for (int row = 0; row < rowCount; row++) {
-			selectedAssociations.removeRow(0);
+			((ConfigurationTableModel) associations.getModel()).removeRow(0);
 		}
 		for (int row = 0; row < table.getRowCount(); row++) {
 			Object[] tempRow = new Object[table.getColumnCount()];
 			for (int col = 0; col < table.getColumnCount(); col++) {
 				tempRow[col] = table.getValueAt(row, col);
 			}
-			selectedAssociations.addRow(tempRow);
+			((ConfigurationTableModel) associations.getModel()).addRow(tempRow);
 		}
-		selectedAssociations.addTableModelListener(associationsTableListener);
+		associations.getModel().addTableModelListener(associationsTableListener);
 	}
 	
 	/**
@@ -931,7 +1094,30 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 			}
 		}
-		//classAssociations.put(className, table);
+	}
+	
+	private void insertConfigurationInInvariantsOptions() {
+		if ((propertiesConfiguration.containsKey(PropertyEntry.aggregationcyclefreeness)) && (propertiesConfiguration.getString(PropertyEntry.aggregationcyclefreeness) != null)) {
+			if (propertiesConfiguration.getString(PropertyEntry.aggregationcyclefreeness).equalsIgnoreCase("on")) {
+				((JRadioButton) options.getModel().getValueAt(0,1)).setSelected(true);
+			} else {
+				((JRadioButton) options.getModel().getValueAt(0,2)).setSelected(true);
+			}
+		} else {
+			((JRadioButton) options.getModel().getValueAt(0,2)).setSelected(true);
+		}
+		if ((propertiesConfiguration.containsKey(PropertyEntry.forbiddensharing)) && (propertiesConfiguration.getString(PropertyEntry.forbiddensharing) != null)) {
+			if (propertiesConfiguration.getString(PropertyEntry.forbiddensharing).equalsIgnoreCase("on")) {
+				((JRadioButton) options.getModel().getValueAt(1,1)).setSelected(true);
+			} else {
+				((JRadioButton) options.getModel().getValueAt(1,2)).setSelected(true);
+			}
+		} else {
+			((JRadioButton) options.getModel().getValueAt(1,1)).setSelected(true);
+		}
+		
+		// TODO: Invarianteneinstellungen aus der Konfiguration in die Tabelle ueberfuehren
+		Iterator<MClassInvariant> allInvariantsIterator = model.classInvariants().iterator();
 	}
 	
 	private String html(String string) {
