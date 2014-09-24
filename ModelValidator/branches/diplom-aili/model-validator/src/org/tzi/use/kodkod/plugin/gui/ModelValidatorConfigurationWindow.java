@@ -403,6 +403,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			int col = e.getColumn();
 			if (row >= 0 && col >= 0) {
 				System.out.println(getValueAt(row,0)+": "+selectedButton);
+				if (selectedButton != null) {
+					propertiesConfiguration.setProperty(clearString((String) getValueAt(row,0)), selectedButton.toLowerCase());
+					System.out.println("done.");
+				}
 			}
 			super.tableChanged(e);
 			repaint();
@@ -470,10 +474,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		options = new InvariantsOptionsTable(new InvariantsOptionsTableModel(new Object[2][3], optionsColNames));
 		invariants = new InvariantsOptionsTable(new InvariantsOptionsTableModel(
 				new Object[model.classInvariants().size()][4],invariantsColNames));
-		
-		//TODO: Hier muss aus der propertiesConfiguration gelesen werden, und die entsprechenden Optionen gesetzt werden
-		//in Form von: 	((AbstractButton) invariants.getModel().getValueAt(0, 1)).setSelected(true);
-		//und: 			((AbstractButton) invariants.getModel().getValueAt(1, 2)).setSelected(true);
 
 		basicTypes.getModel().addTableModelListener(new BasicTypesTableListener());
 		classes.getModel().addTableModelListener(new ClassesTableListener());
@@ -527,6 +527,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         			insertConfigurationInClasses();
         			insertConfigurationInAttributes();
         			insertConfigurationInAssociations();
+        			insertConfigurationInInvariantsOptions();
         			collectConfigurations(file); //TODO: Zur Zeit notwendig, da chosenPropertiesConfiguration nicht genuegend gefuellt. Diese Zeile wegmachen, sobald alle Konfiguration aus allen Tabellen erfolgreich ausgelesen werden koennen
         			tableChanged = false;
         			classes.clearSelection();
@@ -693,7 +694,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		Hashtable<String,ButtonGroup> buttonGroups = new Hashtable<String,ButtonGroup>();
 		int i = 0;
 		while (allInvariantsIterator.hasNext()) {
-			String invName = allInvariantsIterator.next().name();
+			MClassInvariant inv = allInvariantsIterator.next();
+			String invName = inv.cls()+"_"+inv.name();
+			System.out.println(invName);
 			invariants.getModel().setValueAt(invName,i,0);
 			invariants.getModel().setValueAt(new JRadioButton("Active"), i, 1);
 			invariants.getModel().setValueAt(new JRadioButton("Inactive"), i, 2);
@@ -706,20 +709,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			
 			i++;
 		}	
-		
-/*		ButtonGroup fSButtonsA = new ButtonGroup();
-		fSButtonsA.add((JRadioButton) invariants.getModel().getValueAt(0,1));
-		fSButtonsA.add((JRadioButton) invariants.getModel().getValueAt(0,2));
-		fSButtonsA.add((JRadioButton) invariants.getModel().getValueAt(0,3));
-		ButtonGroup fSButtonsB = new ButtonGroup();
-		fSButtonsB.add((JRadioButton) invariants.getModel().getValueAt(1,1));
-		fSButtonsB.add((JRadioButton) invariants.getModel().getValueAt(1,2));
-		fSButtonsB.add((JRadioButton) invariants.getModel().getValueAt(1,3));
-		ButtonGroup fSButtonsC = new ButtonGroup();
-		fSButtonsC.add((JRadioButton) invariants.getModel().getValueAt(2,1));
-		fSButtonsC.add((JRadioButton) invariants.getModel().getValueAt(2,2));
-		fSButtonsC.add((JRadioButton) invariants.getModel().getValueAt(2,3));*/
-		//TODO: Jeder Button und jede ButtonGroup muss abhaengig von der Anzahl und Einstellungen aus den Tabellen erstellt werden
 		
 		options.getColumn("On").setCellRenderer(new SwitchRenderer());
 		options.getColumn("Off").setCellRenderer(new SwitchRenderer());
@@ -1100,8 +1089,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		if ((propertiesConfiguration.containsKey(PropertyEntry.aggregationcyclefreeness)) && (propertiesConfiguration.getString(PropertyEntry.aggregationcyclefreeness) != null)) {
 			if (propertiesConfiguration.getString(PropertyEntry.aggregationcyclefreeness).equalsIgnoreCase("on")) {
 				((JRadioButton) options.getModel().getValueAt(0,1)).setSelected(true);
-			} else {
+			} else if (propertiesConfiguration.getString(PropertyEntry.aggregationcyclefreeness).equalsIgnoreCase("off")) {
 				((JRadioButton) options.getModel().getValueAt(0,2)).setSelected(true);
+			} else {
+				System.out.println("Wrong value for aggregationcyclefreeness; it must be \"on\" or \"off\""); //TODO: Exception ausgeben? Fehler loggen?
 			}
 		} else {
 			((JRadioButton) options.getModel().getValueAt(0,2)).setSelected(true);
@@ -1109,15 +1100,32 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		if ((propertiesConfiguration.containsKey(PropertyEntry.forbiddensharing)) && (propertiesConfiguration.getString(PropertyEntry.forbiddensharing) != null)) {
 			if (propertiesConfiguration.getString(PropertyEntry.forbiddensharing).equalsIgnoreCase("on")) {
 				((JRadioButton) options.getModel().getValueAt(1,1)).setSelected(true);
-			} else {
+			} else if (propertiesConfiguration.getString(PropertyEntry.forbiddensharing).equalsIgnoreCase("off")) {
 				((JRadioButton) options.getModel().getValueAt(1,2)).setSelected(true);
+			} else {
+				System.out.println("Wrong value for forbiddensharing; it must be \"on\" or \"off\"."); //TODO: Exception ausgeben? Fehler loggen?
 			}
 		} else {
 			((JRadioButton) options.getModel().getValueAt(1,1)).setSelected(true);
 		}
 		
-		// TODO: Invarianteneinstellungen aus der Konfiguration in die Tabelle ueberfuehren
-		Iterator<MClassInvariant> allInvariantsIterator = model.classInvariants().iterator();
+		int invCount = model.classInvariants().size();
+		for (int i = 0; i < invCount; i++) {
+			String invNameOfRow = (String) invariants.getModel().getValueAt(i, 0);
+			if ((propertiesConfiguration.containsKey(invNameOfRow)) && (propertiesConfiguration.getString(invNameOfRow) != null) ) {
+				if (propertiesConfiguration.getString(invNameOfRow).equalsIgnoreCase("active")) {
+					((JRadioButton) invariants.getModel().getValueAt(i, 1)).setSelected(true);
+				} else if (propertiesConfiguration.getString(invNameOfRow).equalsIgnoreCase("inactive")) {
+					((JRadioButton) invariants.getModel().getValueAt(i, 2)).setSelected(true);
+				} else if (propertiesConfiguration.getString(invNameOfRow).equalsIgnoreCase("negate")) {
+					((JRadioButton) invariants.getModel().getValueAt(i, 3)).setSelected(true);
+				} else {
+					System.out.println("Wrong value for "+invNameOfRow+"; it must be \"active\", \"inactive\" or \"negate\".");
+				}
+			} else {
+				((JRadioButton) invariants.getModel().getValueAt(i, 2)).setSelected(true);
+			}
+		}
 	}
 	
 	private String html(String string) {
@@ -1137,17 +1145,15 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * @return string cleaned from html-tags and a specified string ending 
 	 */
 	private String clearString(String string) {
-		String endingToDelete = ASSOCIATIONCLASS_INDICATOR;
-		
 		if (string.contains("<html>")) {
 			String temp = string.replaceAll("\\<[^>]*>","");
-			if (temp.contains(endingToDelete)) {
-				return temp.substring(0,temp.indexOf(endingToDelete)).trim();
+			if (temp.contains(ASSOCIATIONCLASS_INDICATOR)) {
+				return temp.substring(0,temp.indexOf(ASSOCIATIONCLASS_INDICATOR)).trim();
 			} else {
 				return temp.trim();
 			}
-		} else if (string.contains(endingToDelete)) {
-				return string.substring(0,string.indexOf(endingToDelete)).trim();
+		} else if (string.contains(ASSOCIATIONCLASS_INDICATOR)) {
+				return string.substring(0,string.indexOf(ASSOCIATIONCLASS_INDICATOR)).trim();
 		} else {
 				return string.trim();
 		}
