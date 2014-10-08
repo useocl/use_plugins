@@ -55,4 +55,9 @@ public class PropertyEntry {
 	public static final String aggregationcyclefreeness = "aggregationcyclefreeness";
 	
 	public static final String forbiddensharing = "forbiddensharing";
+	
+	public static final int PUNCHED_CARD_LENGTH = 72;
+	public static final String STRONG_DIVIDE_LINE = "------------------------------------------------------------------------";
+	public static final String LIGHT_DIVIDE_LINE = "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
+	public static final String DEFAULT_SECTION = "[default]";
 }

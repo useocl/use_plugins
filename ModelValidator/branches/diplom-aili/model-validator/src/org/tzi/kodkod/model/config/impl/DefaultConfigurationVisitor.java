@@ -30,11 +30,6 @@ import org.tzi.kodkod.model.visitor.SimpleVisitor;
  */
 public class DefaultConfigurationVisitor extends SimpleVisitor {
 
-	private static final int PUNCHED_CARD_LENGTH = 72;
-	private static final String STRONG_DIVIDE_LINE = "------------------------------------------------------------------------";
-	private static final String LIGHT_DIVIDE_LINE = "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
-	private static final String DEFAULT_SECTION = "[default]";
-
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
 
 	private BufferedWriter writer;
@@ -54,20 +49,20 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 
 	@Override
 	public void visitModel(IModel model) {
-		writeDivideLine(DEFAULT_SECTION);
+		writeDivideLine(PropertyEntry.DEFAULT_SECTION);
 		writeNewLine();
 		iterate(model.typeFactory().configurableTypes().iterator());
-		writeDivideLine(STRONG_DIVIDE_LINE);
+		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
 		int i = 0;
 		for (IClass clazz : model.classes()) {
 			clazz.accept(this);
 			writeNewLine();
 			iterate(clazz.attributes().iterator());
 			i++;
-			if (!(i >= model.classes().size())) writeDivideLine(LIGHT_DIVIDE_LINE);
+			if (!(i >= model.classes().size())) writeDivideLine(PropertyEntry.LIGHT_DIVIDE_LINE);
 		}
 		iterate(model.associations().iterator());
-		writeDivideLine(STRONG_DIVIDE_LINE);
+		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
 		try {
 			writer.close();
 		} catch (IOException e) {
@@ -103,8 +98,8 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		ae = aes.next();
 		writerString = writerString + ae.name() + ":" + ae.associatedClass() + ") ";
 		int writerStringLength = writerString.length();
-		if (writerStringLength < PUNCHED_CARD_LENGTH) {
-			for (int i=0; i < (PUNCHED_CARD_LENGTH - writerStringLength); i++) {
+		if (writerStringLength < PropertyEntry.PUNCHED_CARD_LENGTH) {
+			for (int i=0; i < (PropertyEntry.PUNCHED_CARD_LENGTH - writerStringLength); i++) {
 				writerString = writerString + "-";
 			}
 		}

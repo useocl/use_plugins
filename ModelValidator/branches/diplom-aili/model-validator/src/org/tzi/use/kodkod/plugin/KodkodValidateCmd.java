@@ -100,6 +100,8 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * Opens the GUI for configuration of the Model Validator
 	 */
 	protected final void getConfigurationOverGUIAndValidate(IPluginAction pluginAction) {
+		// TODO: Diesen ganzen Prozess in eine Thread packen, damit man die GUI benutzen und validieren kann, und gleichzeitig
+		// die Diagramme in USE weiter anschauen und nutzen kann. 
 		try {
 			configureModel(pluginAction);
 			if (shouldValidate) {

@@ -44,6 +44,7 @@ import org.apache.commons.configuration.SubnodeConfiguration;
 import org.tzi.kodkod.model.config.impl.PropertyEntry;
 import org.tzi.use.gui.util.ExtFileFilter;
 import org.tzi.use.uml.mm.MAssociation;
+import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationClassImpl;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
@@ -67,6 +68,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private static final int OPTIONS_TABLE_DIVIDER_HEIGHT = 2;
 	private static final int OPTIONS_TABLE_HEIGHT = 64;
 	
+	String selectedSection;
 	String [] optionsColNames = new String[]{"Options","On","Off"};
 	String [] invariantsColNames = new String[]{"Invariants","Active","Inactive","Negate"};
 	InvariantsOptionsTable invariants;
@@ -87,8 +89,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 	private MModel model;
 	private File file;
-	private HierarchicalINIConfiguration hierarchicalINIConfiguration;
-	private Hashtable<String,PropertiesConfiguration> propertiesConfigurations;
+	private Hashtable<String,PropertiesConfiguration> propertiesConfigurationSections;
 	private PropertiesConfiguration propertiesConfiguration;
 	private Hashtable<String, ConfigurationTableModel> classAttributes;
 	private Hashtable<String, ConfigurationTableModel> classAssociations;
@@ -114,24 +115,28 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private AssociationsTableListener associationsTableListener;
 	
 	/*
-	 * Listens for changed selection in the drop down menu
+	 * Listens for changed selection in the drop down menu, puts previous propertiesConfiguration
+	 * into propertiesConfigurationSection with former selectedSection, then gets the current
+	 * selected Section and get its propertiesConfiguration, eventually puts the loaded configurations
+	 * into the tables.
 	 */
 	private class ComboBoxActionListener implements ActionListener {
+		@SuppressWarnings("unchecked")
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO: Wenn an der Konfiguration etwas geaendert wurde,
-			// sollte vorher gefragt werden, ob man diese Veraenderungen
-			// mit dem Wechsel in einen anderen Konfigurationsektor wirklich verwerfen will.
-			// Wenn nicht, wird der Konfigurationssektor nicht gewechselt.
-			// Pruefung ob etwas geaendert wurde, kann einfacherweise
-			// ueber die Boolean-Variable tableChanged ermittelt werden.
-
-			@SuppressWarnings("unchecked")
-			JComboBox<String> cb = (JComboBox<String>) e.getSource();
-			String selectedSection = (String) cb.getSelectedItem();
-			propertiesConfiguration = propertiesConfigurations.get(selectedSection);
-			
-			// TODO: Die Tabellen sollen sich auf die ausgewaehlte Configuration hin aktualisieren.
+			if (propertiesConfiguration != null) {
+				propertiesConfigurationSections.put(selectedSection,(PropertiesConfiguration) propertiesConfiguration.clone());
+			}
+			selectedSection = (String) ((JComboBox<String>) e.getSource()).getSelectedItem();
+			propertiesConfiguration = (PropertiesConfiguration) propertiesConfigurationSections.get(selectedSection).clone();
+			insertConfigurationInBasicTypes();
+			insertConfigurationInClasses();
+			insertConfigurationInAttributes();
+			insertConfigurationInAssociations();
+			insertConfigurationInInvariantsOptions();
+			tableChanged = false;
+			classes.repaint();
+			System.out.println("Configuration loaded.");
 		}
 		
 	}
@@ -243,26 +248,29 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						break;
 					} else if (!isAssociationclass(model.getClass(className))) {
 						String [] values = preparStringForConfiguration((String) value);
-						if (values != null) 
-							propertiesConfiguration.setProperty(className, Integer.getInteger(values[0]));
-						else {
-							System.out.println(" done."); 
+						if (values != null) {
+							propertiesConfiguration.setProperty(className, values[0]);
+							System.out.println("Erster Wert: "+values[0]);
+						} else {
+							System.out.println(" is empty."); 
 							break;
 						}
-						for (int i=1; i < values.length-1; i++) {
+						for (int i=1; i < values.length; i++) {
 							propertiesConfiguration.addProperty(className, values[i]);
+							System.out.println("Folgender Wert: "+values[i]);
 						}
 						System.out.println(" done.");  
 						break;
 					} else {
 						String [] values = preparStringForConfiguration((String) value);
-						if (values != null) 
-							propertiesConfiguration.setProperty(className+"_ac", Integer.getInteger(values[0]));
-						else {
-							System.out.println(" done."); 
+						if (values != null)  {
+							propertiesConfiguration.setProperty(className+"_ac", values[0]);
+							System.out.println("Erster Wert: "+values[0]);
+						} else {
+							System.out.println(" is empty."); 
 							break;
 						}
-						for (int i=1; i < values.length-1; i++) {
+						for (int i=1; i < values.length; i++) {
 							propertiesConfiguration.addProperty(className+"_ac", values[i]);
 						}
 						System.out.println(" done.");  
@@ -414,6 +422,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 	
 	private class SwitchRenderer implements TableCellRenderer {
+		//TODO: Curser der Tastatureingabe soll sichtbar sein
 		public Component getTableCellRendererComponent(JTable table, Object value,
 				boolean isSelected, boolean hasFocus, int row, int column) {
 			if (value == null)
@@ -474,6 +483,13 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		options = new InvariantsOptionsTable(new InvariantsOptionsTableModel(new Object[2][3], optionsColNames));
 		invariants = new InvariantsOptionsTable(new InvariantsOptionsTableModel(
 				new Object[model.classInvariants().size()][4],invariantsColNames));
+		
+		basicTypes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		classes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		attributes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		associations.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		options.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		invariants.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		basicTypes.getModel().addTableModelListener(new BasicTypesTableListener());
 		classes.getModel().addTableModelListener(new ClassesTableListener());
@@ -487,7 +503,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		
 		
 		file = new File(model.filename().replaceAll("\\.use", "") + ".properties");
-		propertiesConfigurations = new Hashtable<String, PropertiesConfiguration>();
+		propertiesConfigurationSections = new Hashtable<String, PropertiesConfiguration>();
 		classAttributes = new Hashtable<String,ConfigurationTableModel>();
 		classAssociations = new Hashtable<String,ConfigurationTableModel>();
 		validatable = false;
@@ -520,15 +536,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
         		if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
         			file = fileChooser.getSelectedFile();
-        			//TODO: Sicherstellen, dass saemtliche Tabellen neu gemalt werden, als wuerde(oder auch genauso) die
-        			//GUI neugestartet sein
         			collectConfigurations(file);
         			insertConfigurationInBasicTypes();
         			insertConfigurationInClasses();
         			insertConfigurationInAttributes();
         			insertConfigurationInAssociations();
         			insertConfigurationInInvariantsOptions();
-        			collectConfigurations(file); //TODO: Zur Zeit notwendig, da chosenPropertiesConfiguration nicht genuegend gefuellt. Diese Zeile wegmachen, sobald alle Konfiguration aus allen Tabellen erfolgreich ausgelesen werden koennen
         			tableChanged = false;
         			classes.clearSelection();
         			System.out.println("File loaded.");
@@ -540,8 +553,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         saveConfigurationButton.addActionListener(new ActionListener() {
         	@Override
         	public void actionPerformed(ActionEvent e) {
-        		//TODO: Die Configuration muss in der .properties-Datei an der richtigen Position
-        		//gespeichert werden
+        		propertiesConfigurationSections.put(selectedSection,(PropertiesConfiguration) propertiesConfiguration.clone());
+        		saveConfigurationsToFile();
         	}
         });
         
@@ -554,6 +567,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         		setVisible(false);
         	}
         } );
+        
+        //TODO: Ein Button, um eine Konfiguration zu erstellen, wobei man dessen Namen auswaehlen kann, aber auch eine Standard-Vergabe bekommt
+        //TODO: Ein Button, um die aktuell gewaehlte Konfiguration umzubenennen
+        //TODO: Ein Button, um die aktuell gewaehlte Konfiguration zu loeschen
+        //TODO: Ein Label, der anzeigt, welche .properties-Datei gerade geladen ist
+        //TODO: VIELLEICHT: Ein Button, um eine neue .properties-Datei zu erstellen
         
         tabbedPane.add("Basic types", createBasicTypesTab());
         tabbedPane.add("Classes and associations", createClassesAndAssociationsTab());
@@ -575,7 +594,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         insertConfigurationInAssociations();
         insertConfigurationInInvariantsOptions();
         classes.setRowSelectionInterval(0,0);
-        collectConfigurations(file); //TODO: Diese Zeile wegmachen, sobald alle Konfiguration aus allen Tabellen erfolgreich ausgelesen werden koennen
+        //collectConfigurations(file); //FIXME: Diese Zeile wegmachen, sobald alle Konfiguration aus allen Tabellen erfolgreich ausgelesen werden koennen
     	
     	this.setContentPane(mainPanel);
     	this.setLocationRelativeTo(parent);
@@ -583,11 +602,18 @@ public class ModelValidatorConfigurationWindow extends JDialog {
     	this.setVisible(true);
 	}
 		
+	/**
+	 * extracts all configuration from a .properties-File and puts them in the
+	 * hashtable hierarchicalINIConfiguration and sets the first read configuration as
+	 * selected propertiesConfiguration
+	 * @param file
+	 */
 	@SuppressWarnings("unchecked")
 	private void collectConfigurations(File file) {
 		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 		sectionSelectionComboBox.removeAllItems();
-		propertiesConfigurations = new Hashtable<String, PropertiesConfiguration>();
+		HierarchicalINIConfiguration hierarchicalINIConfiguration;
+		propertiesConfigurationSections = new Hashtable<String, PropertiesConfiguration>();
 		try {
 			hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
 		} catch (ConfigurationException e) {
@@ -609,10 +635,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						propertiesConfiguration.addProperty(key, sectionConfigurations.getString(key));
 				}
 				if (isFirstConfiguration) {
+					selectedSection = section;
 					this.propertiesConfiguration = propertiesConfiguration;
 					isFirstConfiguration = false;
 				}
-				propertiesConfigurations.put(section.toString(), propertiesConfiguration);
+				propertiesConfigurationSections.put(section.toString(), propertiesConfiguration);
 				sectionSelectionComboBox.addItem(section.toString());
 			}
 		} else {
@@ -624,8 +651,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					if (!key.startsWith("--"))
 						propertiesConfiguration.addProperty(key, hierarchicalINIConfiguration.getString(key));
 				}
+				selectedSection = section;
 				this.propertiesConfiguration = propertiesConfiguration;
-				propertiesConfigurations.put(section, propertiesConfiguration);
+				propertiesConfigurationSections.put(section, propertiesConfiguration);
 				sectionSelectionComboBox.addItem(section);
 		}
 		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
@@ -640,6 +668,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private JPanel createBasicTypesTab() {
+		//TODO: String-Tabelle vom Rest trennen, da die min-max-Angaben, sich auf die mit werten belegten Objekte pro Klasse beziehen, und nicht auf Werte
 		basicTypes.getModel().setValueAt("Integer",0,0);
 		basicTypes.getModel().setValueAt("Real",1,0);
 		basicTypes.getModel().setValueAt("String",2,0);
@@ -675,6 +704,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 	
 	private JSplitPane createInvariantsAndOptionsTab() {
+		//TODO: Scrollleiste fuer Invariantentabelle
 		options.getModel().setValueAt(PropertyEntry.aggregationcyclefreeness,0,0);
 		options.getModel().setValueAt(new JRadioButton("On"),0,1);
 		options.getModel().setValueAt(new JRadioButton("Off"),0,2);
@@ -842,9 +872,13 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			if (!isAssociationclass(clazz)) {
 				if (propertiesConfiguration.containsKey(className+"_min")) {
 					classes.getModel().setValueAt(propertiesConfiguration.getInt(className+"_min"),row,1);
+				} else {
+					classes.getModel().setValueAt(null, row,1);
 				}
 				if (propertiesConfiguration.containsKey(className+"_max")) {
 					classes.getModel().setValueAt(propertiesConfiguration.getInt(className+"_max"),row,2);
+				} else {
+					classes.getModel().setValueAt(null, row,2);
 				}
 				if (propertiesConfiguration.containsKey(className)) {
 					if (propertiesConfiguration.getProperty(className) != null) {
@@ -852,6 +886,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					} else {
 						classes.getModel().setValueAt(null, row,3);
 					}
+				} else {
+					classes.getModel().setValueAt(null, row,3);
 				}
 			} else {
 				if (propertiesConfiguration.containsKey(className+"_ac")) {
@@ -860,6 +896,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					} else {
 						classes.getModel().setValueAt(null, row,3);
 					}
+				} else {
+					classes.getModel().setValueAt(null, row,3);
 				}
 				
 			}
@@ -901,11 +939,23 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				if (propertiesConfiguration.containsKey(attributeName+"_max")) {
 					attributesData[row][2] = propertiesConfiguration.getInt(attributeName+"_max");
 				}
-				if (propertiesConfiguration.containsKey(attributeName+"_minSize")) {
-					attributesData[row][3] = propertiesConfiguration.getInt(attributeName+"_minSize");
+				if (!(clazz instanceof MAssociationClass)) {
+					if (propertiesConfiguration.containsKey(attributeName+"_minSize")) {
+						attributesData[row][3] = propertiesConfiguration.getInt(attributeName+"_minSize");
+					} else {
+						attributesData[row][3] = null;
+					}
+				} else {
+					attributesData[row][3] = NON_EDITABLE;
 				}
-				if (propertiesConfiguration.containsKey(attributeName+"_maxSize")) {
-					attributesData[row][4] = propertiesConfiguration.getInt(attributeName+"_maxSize");
+				if (!(clazz instanceof MAssociationClass)) {
+					if (propertiesConfiguration.containsKey(attributeName+"_maxSize")) {
+						attributesData[row][4] = propertiesConfiguration.getInt(attributeName+"_maxSize");
+					} else {
+						attributesData[row][4] = null;
+					}
+				} else {
+					attributesData[row][4] = NON_EDITABLE;
 				}
 				if (propertiesConfiguration.containsKey(attributeName)) {
 					if (propertiesConfiguration.getProperty(attributeName) != null) {
@@ -961,6 +1011,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			if (propertiesConfiguration.containsKey(attributeName+"_max")) {
 				table.setValueAt(propertiesConfiguration.getInt(attributeName+"_max"), row, 2);
 			}
+			// TODO: Wenn ausgewaehlte Klasse eine Assoziationsklasse ist, dann sind min- und maxSize immer NON-EDITABLE
 			if (propertiesConfiguration.containsKey(attributeName+"_minSize")) {
 				table.setValueAt(propertiesConfiguration.getInt(attributeName+"_minSize"), row, 3);
 			}
@@ -1123,9 +1174,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					System.out.println("Wrong value for "+invNameOfRow+"; it must be \"active\", \"inactive\" or \"negate\".");
 				}
 			} else {
-				((JRadioButton) invariants.getModel().getValueAt(i, 2)).setSelected(true);
+				((JRadioButton) invariants.getModel().getValueAt(i, 1)).setSelected(true);
 			}
 		}
+		options.repaint();
+		invariants.repaint();
 	}
 	
 	private String html(String string) {
@@ -1156,6 +1209,15 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				return string.substring(0,string.indexOf(ASSOCIATIONCLASS_INDICATOR)).trim();
 		} else {
 				return string.trim();
+		}
+	}
+	
+	private void saveConfigurationsToFile() {
+		try {
+			PropertiesWriter.writeToFile(propertiesConfigurationSections, file, model);
+		} catch (Exception e) {
+			// TODO Exception behandeln
+			e.printStackTrace();
 		}
 	}
 
