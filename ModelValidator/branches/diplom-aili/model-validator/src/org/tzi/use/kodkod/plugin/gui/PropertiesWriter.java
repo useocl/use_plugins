@@ -117,10 +117,11 @@ public class PropertiesWriter {
 		String clsMin = cls + PropertyEntry.objMin;
 		String clsMax = cls + PropertyEntry.objMax;
 		if (!clazz.isAbstract() && pc.containsKey(cls) && pc.getProperty(cls) != null) {
+			if (clazz instanceof MAssociationClass) {
+				write(cls+"_ac", propertyToString(pc.getProperty(cls+"_ac")));
+				return;
+			}
 			write(cls, propertyToString(pc.getProperty(cls)));
-		}
-		if (clazz instanceof MAssociationClass) {
-			return;
 		}
 		if (pc.containsKey(clsMin)) {
 			write(clsMin, pc.getInt(clsMin,DefaultConfigurationValues.objectsPerClassMin));

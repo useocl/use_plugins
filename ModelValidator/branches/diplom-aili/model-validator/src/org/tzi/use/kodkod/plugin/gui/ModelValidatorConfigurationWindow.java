@@ -136,6 +136,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			insertConfigurationInInvariantsOptions();
 			tableChanged = false;
 			classes.repaint();
+			classes.clearSelection();
 			System.out.println("Configuration loaded.");
 		}
 		
