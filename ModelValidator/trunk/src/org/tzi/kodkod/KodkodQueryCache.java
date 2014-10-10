@@ -24,9 +24,9 @@ public enum KodkodQueryCache {
 		this.evaluator = evaluator;
 	}
 
-	public Evaluator getEvaluator() throws NullPointerException {
+	public Evaluator getEvaluator() throws Exception {
 		if (evaluator == null) {
-			throw new NullPointerException("No solution and therefore no evaluator available!");
+			throw new Exception("No solution and therefore no evaluator available!");
 		}
 
 		return evaluator;
