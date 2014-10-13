@@ -211,7 +211,7 @@ public class ObjectDiagramCreator {
 			// filter association relations without a linkobject
 			TupleSet validRelations = relations.get(relation).clone();
 			for (Iterator<Tuple> it = validRelations.iterator(); it.hasNext();) {
-				Tuple tuple = (Tuple) it.next();
+				Tuple tuple = it.next();
 				if(tuple.atom(0).equals(TypeConstants.UNDEFINED)){
 					it.remove();
 				}

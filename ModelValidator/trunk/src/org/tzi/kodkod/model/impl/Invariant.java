@@ -79,6 +79,7 @@ public class Invariant implements IInvariant {
 		negated = false;
 	}
 
+	@Override
 	public boolean isActivated() {
 		return activated;
 	}

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import kodkod.ast.Expression;
 import kodkod.ast.Node;
 import kodkod.ast.Variable;
 
@@ -62,7 +61,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 			sourceType = exp.type();
 
 			List<Object> arguments = new ArrayList<Object>();
-			arguments.add((Expression) object);
+			arguments.add(object);
 			arguments.add(attribute.relation());
 			arguments.add(set);
 
@@ -112,7 +111,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 			}
 
 			List<Object> arguments = new ArrayList<Object>();
-			arguments.add((Expression) object);
+			arguments.add(object);
 			arguments.add(association.relation());
 			arguments.add(fromRole);
 			arguments.add(toRole);
