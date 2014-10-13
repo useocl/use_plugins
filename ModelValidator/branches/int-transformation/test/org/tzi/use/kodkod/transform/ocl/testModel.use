@@ -1,0 +1,78 @@
+model TestModel
+
+enum Color {red, green, blue}
+
+class Person
+attributes
+  name:String
+  nicknames:Set(String)
+  bestFriend:Person
+  age:Integer
+  alive:Boolean
+  luckyNumbers:Set(Integer)
+  favoriteColor:Color
+end
+
+class Company
+end
+
+class Car
+end
+
+class Animal
+end
+
+class UndefinedFactory
+attributes
+  person:Person
+  company:Company
+  animal:Animal
+  job:Job_AC
+  parent:Parent_AC
+  buy:Buy_AC
+  exam:Exam_AC
+end
+
+association Job_A between
+Person[*] role employeeA
+Company[0..1] role employerA
+end
+
+associationclass Job_AC between
+Person[*] role employeeAC
+Company[0..1] role employerAC
+end
+
+association Parent_A between
+Person[0..2] role parentA
+Person[*] role childA
+end
+
+associationclass Parent_AC between
+Person[0..2] role parentAC
+Person[*] role childAC
+end
+
+association Buy_A between
+Person[0..1] role buyerA
+Company[0..1] role sellerA
+Animal[0..*] role petA
+end
+
+associationclass Buy_AC between
+Person[0..1] role buyerAC
+Company[0..1] role sellerAC
+Animal[0..*] role petAC
+end
+
+association Exam_A between
+  Person[0..*] role examineeA
+  Person[0..*] role examinerA
+  Person[0..1] role recorderA
+end
+
+associationclass Exam_AC between
+  Person[0..*] role examineeAC
+  Person[0..*] role examinerAC
+  Person[0..1] role recorderAC
+end

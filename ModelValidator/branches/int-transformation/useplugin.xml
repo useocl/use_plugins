@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?use version="3.0.5"?>
+<plugin name="KodkodPlugin" version="1.0" publisher="Hendrik Reitmann">
+	<actions>
+		<action label="Kodkod Property Plugin" icon="resources/kodkod.png"
+			class="org.tzi.use.kodkod.plugin.KodkodValidatePropertyAction" tooltip="KodkodValidatePropertyAction"
+			menu="Validation" menuitem="Kodkod" toolbaritem="plugins"
+			id="org.tzi.use.kodkod.plugin.KodkodValidatePropertyAction">
+		</action>
+	</actions>
+	<commands>
+		<command id="org.tzi.use.kodkod.plugin.KodkodValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodValidateCmd" help="Validates the model using the model validator. A path to a configuration file can be specified. If no path is given, a generic configuration file will be created in the directory of the current USE specification."
+			label="KodkodValidateCmd" shellcmd="kodkod -validate">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.InvariantIndepCmd"
+			class="org.tzi.use.kodkod.plugin.InvariantIndepCmd" help="Checks if each OCL invariant is independent. An optionally given invariant name restricts the check to the corresponding invariant."
+			label="InvariantIndepCmd" shellcmd="kodkod -invIndep">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.ConfigurationCmd"
+			class="org.tzi.use.kodkod.plugin.ConfigurationCmd" help="Configures basic Kodkod properties. Possible parameters (case sensitive): 'satsolver:=[DefaultSAT4J|LightSAT4J|MiniSat|MiniSatProver|ZChaffMincost|CryptoMiniSat|Lingeling]' selects the sat solver to be used; 'bitwidth:=i' sets the solver bitwidth; 'automaticDiagramExtraction:=[on|off]' determines if the current object diagram should be used as partial solution; 'save' saves the configuration"
+			label="ConfigurationCmd" shellcmd="kodkod -config">
+		</command>		
+		<command id="org.tzi.use.kodkod.plugin.ModelResetCmd"
+			class="org.tzi.use.kodkod.plugin.ModelResetCmd" help="Resets the configuration and partial solutions."
+			label="ModelResetCmd" shellcmd="kodkod -modelReset">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodScrollingValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodScrollingValidateCmd" help="Paging of all solutions for a configured search space. Parameters: 'next' or 'previous' for the next or previous solution; 'show(i)' selects the ith solution."
+			label="KodkodScrollingValidateCmd" shellcmd="kodkod -scrolling">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodScrollingAllValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodScrollingAllValidateCmd" help="Similar to -scrolling, but collects (and counts) all available solutions in advance."
+			label="KodkodScrollingAllValidateCmd" shellcmd="kodkod -scrollingAll">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodQueryCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodQueryCmd" help="internal (OCL expressions are evaluated in the context of the relational solution.)"
+			label="KodkodQueryCmd" shellcmd="kodkod ?">
+		</command>		
+	</commands>
+</plugin>
