@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import kodkod.ast.Expression;
+import kodkod.ast.IntConstant;
 import kodkod.ast.Node;
 import kodkod.ast.Relation;
 import kodkod.ast.Variable;
@@ -182,7 +183,8 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitConstInteger(ExpConstInteger exp) {
 		super.visitConstInteger(exp);
-		visitConstInteger(exp.value());
+//		visitConstInteger(exp.value());
+		object = IntConstant.constant(exp.value());
 	}
 
 	@Override
@@ -386,6 +388,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		if(requiredBitwidth > bitwidth){
 			LOG.error("Model contains number " + StringUtil.inQuotes(value) + " which is too big for configured bitwidth. Required bitwidth: " + requiredBitwidth + " or greater.");
 		}
+		//TODO Not necessary for new approach
 		
 		integerType.addTypeLiteral("" + value);
 		object = integerType.getTypeLiteral("" + value);

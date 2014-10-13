@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 
 import kodkod.ast.Expression;
 import kodkod.ast.Formula;
+import kodkod.ast.IntExpression;
 import kodkod.ast.Variable;
 
 import org.apache.log4j.Logger;
@@ -79,12 +80,14 @@ public class OCLOperationLoader {
 			if (currentArgument instanceof Variable) {
 				parameterTypes[i] = Variable.class;
 				variableIndexes.add(i);
-				 expressionIndexes.add(i);
+				expressionIndexes.add(i);
 			} else if (currentArgument instanceof Expression) {
 				parameterTypes[i] = Expression.class;
 				expressionIndexes.add(i);
 			} else if (currentArgument instanceof Formula) {
 				parameterTypes[i] = Formula.class;
+			} else if (currentArgument instanceof IntExpression) {
+				parameterTypes[i] = IntExpression.class;
 			} else {
 				parameterTypes[i] = currentArgument.getClass();
 			}

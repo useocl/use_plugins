@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import kodkod.ast.Expression;
+import kodkod.ast.IntExpression;
 import kodkod.ast.Variable;
 
 import org.tzi.use.kodkod.transform.TransformationException;
@@ -34,11 +35,21 @@ public class OCLMethodInvoker {
 		Method method = operationLoader.getOperationMethod(opName, arguments, setOperation);
 
 		if (method == null) {
-			arguments.add(new Boolean(object_type_nav));
+			for (int i = 0; i < arguments.size(); i++) {
+				Object o = arguments.get(i);
+				if(o instanceof IntExpression){
+					arguments.set(i, ((IntExpression) o).toExpression());
+				}
+			}
 			method = operationLoader.getOperationMethod(opName, arguments, setOperation);
-
-			if (method == null) {
-				throw new TransformationException("OCL operation " + opName + " is not supported.");
+			
+			if(method == null){
+				arguments.add(new Boolean(object_type_nav));
+				method = operationLoader.getOperationMethod(opName, arguments, setOperation);
+	
+				if (method == null) {
+					throw new TransformationException("OCL operation " + opName + " is not supported.");
+				}
 			}
 		}
 
