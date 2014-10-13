@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import kodkod.ast.IntExpression;
-import kodkod.ast.IntToExprCast;
 import kodkod.ast.Node;
 import kodkod.ast.Variable;
 
@@ -20,7 +18,7 @@ import org.tzi.use.uml.ocl.expr.ExpStdOp;
  * expressions.
  * 
  * @author Hendrik Reitmann
- * 
+ * @author Frank Hilken
  */
 public class StandardOperationVisitor extends DefaultExpressionVisitor {
 
@@ -49,32 +47,17 @@ public class StandardOperationVisitor extends DefaultExpressionVisitor {
 			object_type_nav = object_type_nav || visitor.isObject_type_nav();
 		}
 
-		if (exp.opname() == "-" && !set && arguments.size() == 1) {
-			handleMinus();
-		} else {
-			invokeMethod(exp.opname(), arguments, set);
-		}
+		invokeMethod(exp.opname(), arguments, set);
 	}
-
-	private void handleMinus() {
-		if (arguments.get(0) instanceof IntToExprCast) {
-			IntToExprCast intToExprCast = (IntToExprCast) arguments.get(0);
-
-			IntExpression negate = intToExprCast.intExpr().negate();
-			String stringValue = negate.toString();
-			stringValue = stringValue.substring(1).replace(")", "");
-			LOG.debug(id + " : " + stringValue);
-			if (!stringValue.startsWith("--")) {
-				Integer integerValue = Integer.parseInt(stringValue);
-
-				arguments.clear();
-				arguments.add(negate.toExpression());
-				visitConstInteger(integerValue);
-				return;
-			}
-
-		}
-
-		invokeMethod("negation", arguments, set);
-	}
+	
+//	private void handleMinus() {
+//		Object arg = arguments.get(0);
+//		
+//		if(arg instanceof IntConstant) {
+//			IntConstant expr = (IntConstant) arg;
+//			addIntegerRelation(-expr.value());
+//		}
+//
+//		invokeMethod("negation", arguments, set);
+//	}
 }

@@ -62,8 +62,8 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	private static final Logger LOG = Logger.getLogger(DefaultExpressionVisitor.class);
 	
 	protected IModel model;
-	protected Relation undefined;
-	protected Relation undefined_Set;
+	protected final Relation undefined;
+	protected final Relation undefined_Set;
 	protected Map<String, Node> variables;
 	protected List<String> collectionVariables;
 	protected Map<String, IClass> variableClasses;
@@ -84,7 +84,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 
 		undefined = model.typeFactory().undefinedType().relation();
 		undefined_Set = model.typeFactory().undefinedSetType().relation();
-
+		
 		set = false;
 		object_type_nav = false;
 	}
@@ -183,8 +183,9 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitConstInteger(ExpConstInteger exp) {
 		super.visitConstInteger(exp);
-//		visitConstInteger(exp.value());
 		object = IntConstant.constant(exp.value());
+
+		addIntegerRelation(exp.value());
 	}
 
 	@Override
@@ -192,9 +193,10 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		super.visitConstReal(exp);
 
 		Double value = new Double(exp.value());
+		object = IntConstant.constant(value.intValue());
 		LOG.warn(LogMessages.constRealWarning(value));
-
-		visitConstInteger(value.intValue());
+		
+		addIntegerRelation(value.intValue());
 	}
 
 	@Override
@@ -376,11 +378,12 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	}
 	
 	/**
-	 * Handle a constant int value.
+	 * Adds a constant int value to the integer relation bounds. This is
+	 * required if the integer value is eventually transformed into a relation.
 	 * 
 	 * @param value
 	 */
-	protected void visitConstInteger(int value) {
+	protected void addIntegerRelation(int value) {
 		TypeLiterals integerType = model.typeFactory().integerType();
 		
 		int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
@@ -388,10 +391,8 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		if(requiredBitwidth > bitwidth){
 			LOG.error("Model contains number " + StringUtil.inQuotes(value) + " which is too big for configured bitwidth. Required bitwidth: " + requiredBitwidth + " or greater.");
 		}
-		//TODO Not necessary for new approach
 		
 		integerType.addTypeLiteral("" + value);
-		object = integerType.getTypeLiteral("" + value);
 	}
 
 	/**
