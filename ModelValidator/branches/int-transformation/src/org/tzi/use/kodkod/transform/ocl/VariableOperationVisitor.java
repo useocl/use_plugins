@@ -184,22 +184,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 
 	@Override
 	public void visitVariable(ExpVariable exp) {
-		/*
-		 * if (variables.containsKey(exp.getVarname())) { object =
-		 * variables.get(exp.getVarname()); if
-		 * (collectionVariables.contains(exp.getVarname())) { set = true; }
-		 * getAttributeClass(exp.getVarname()); } else if
-		 * (replaceVariables.containsKey(exp.getVarname())) { object =
-		 * replaceVariables.get(exp.getVarname()).remove(0);
-		 * getAttributeClass(exp.getVarname()); } else if
-		 * (exp.type().isObjectType()) { IClass clazz =
-		 * model.getClass(exp.type().shortName()); TypeLiterals type =
-		 * clazz.objectType(); type.addTypeLiteral(exp.getVarname()); object =
-		 * type.getTypeLiteral(exp.getVarname()); attributeClass = clazz; } else
-		 * { throw new TransformationException("No variable " + exp.getVarname()
-		 * + "."); }
-		 */
-
+		
 		/*
 		 * approach due to the description in the method createVariables in the
 		 * class QueryExpressionVisitor. For this replacement it is necessary to
