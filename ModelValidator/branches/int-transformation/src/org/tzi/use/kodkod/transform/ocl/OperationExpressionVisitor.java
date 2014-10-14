@@ -62,9 +62,6 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 		if (!OperationStack.INSTANCE.contains(exp.getOperation())) {
 			OperationStack.INSTANCE.push(operation);
 			
-			//org.tzi.use.uml.ocl.expr.Expression[] arguments = exp.getArguments();
-			//visitOperationVariable(arguments[0]);
-			
 			visitParams(operation, arguments);
 
 			Node self = opVariables.get("self");
