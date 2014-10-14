@@ -12,7 +12,7 @@ import org.tzi.kodkod.ocl.OCLOperationGroup;
  * Transformation methods for collection constructors.
  * 
  * @author Hendrik Reitmann
- * 
+ * @author Frank Hilken
  */
 public class CollectionConstructorGroup extends OCLOperationGroup {
 
@@ -40,14 +40,15 @@ public class CollectionConstructorGroup extends OCLOperationGroup {
 	// expression
 
 	public Expression setLiteral(Expression... elem) {
-		Expression set = Expression.NONE;
 		if (elem.length == 0) {
-			return set;
-		}
-		for (Expression e : elem) {
-			set = set.union(e);
+			return Expression.NONE;
 		}
 
+		Expression set = elem[0];
+		for (int i = 1; i < elem.length; i++) {
+			set = set.union(elem[i]);
+		}
+		
 		return undefined_Set.in(set).thenElse(undefined_Set, set);
 	}
 

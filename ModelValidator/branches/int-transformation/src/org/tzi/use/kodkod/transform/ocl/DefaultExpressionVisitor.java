@@ -61,13 +61,13 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 
 	private static final Logger LOG = Logger.getLogger(DefaultExpressionVisitor.class);
 	
-	protected IModel model;
+	protected final IModel model;
 	protected final Relation undefined;
 	protected final Relation undefined_Set;
-	protected Map<String, Node> variables;
-	protected List<String> collectionVariables;
-	protected Map<String, IClass> variableClasses;
-	protected Map<String, Variable> replaceVariables;
+	protected final Map<String, Node> variables;
+	protected final List<String> collectionVariables;
+	protected final Map<String, IClass> variableClasses;
+	protected final Map<String, Variable> replaceVariables;
 
 	protected Object object;
 	protected boolean set;

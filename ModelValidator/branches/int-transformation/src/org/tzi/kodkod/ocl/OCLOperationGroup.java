@@ -17,12 +17,12 @@ import org.tzi.kodkod.model.type.TypeFactory;
  */
 public abstract class OCLOperationGroup {
 
-	protected TypeFactory typeFactory;
-	protected Relation undefined;
-	protected Relation undefined_Set;
-	protected Expression booleanTrue;
-	protected Expression booleanFalse;
-	protected Map<String, String> symbolOperationMapping;
+	protected final TypeFactory typeFactory;
+	protected final Relation undefined;
+	protected final Relation undefined_Set;
+	protected final Expression booleanTrue;
+	protected final Expression booleanFalse;
+	protected final Map<String, String> symbolOperationMapping;
 
 	public OCLOperationGroup(TypeFactory typeFactory) {
 		this.typeFactory = typeFactory;
