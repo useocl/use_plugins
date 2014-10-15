@@ -105,6 +105,15 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 		exp.getQueryExpression().processWithVisitor(visitor2);
 		arguments.add(1, visitor2.getObject());
 
+		/*
+		 * We go through the same expression again but rename the variable
+		 * first. This way we have the same expression twice with different
+		 * variable names to represent the expression isUnique using a forAll
+		 * expression with two variables:
+		 * 
+		 * src->isUnique( a | expr(a) ) becomes
+		 * src->forAll( a, b | a <> b implies expr(a) <> expr(b) )
+		 */
 		replacedVariables.addAll(createVariables(exp.getVariableDeclarations()));
 
 		visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
@@ -177,22 +186,19 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 			 * evaluation failures. So 'Set{1,2,3,4}->select(e| e=1)->select(e|
 			 * e=1)->notEmpty' is false and 'Set{1,2,3,4}->select(e|
 			 * e=1)->select(f| f=1)->notEmpty' is true. To correct this, one of
-			 * the variables is replaced by uuid, which is used instead of the
+			 * the variables is replaced by UUID, which is used instead of the
 			 * real variable name.
 			 */
 
 			String varName;
 			if (variables.containsKey(varDecl.name())) {
 				varName = UUID.randomUUID().toString();
-				// varName = varDecl.name()+"_"+(int) (Math.random() * (100 - 2)
-				// + 2);
 				Variable v = createKodkodVariable(varName);
 				replaceVariables.put(varDecl.name(), v);
 				replaced.add(varDecl.name());
 			} else {
 				varName = varDecl.name();
 				variables.put(varName, createKodkodVariable(varName));
-
 			}
 
 			objectVariable(varDecl, varName);

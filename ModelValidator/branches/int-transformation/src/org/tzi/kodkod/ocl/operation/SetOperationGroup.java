@@ -48,10 +48,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 
 	@Override
 	public boolean returnsSet(String opName) {
-		if (operationsReturningSet.contains(opName)) {
-			return true;
-		}
-		return false;
+		return operationsReturningSet.contains(opName);
 	}
 
 	// As the core translation does not support nested collections, the
@@ -256,6 +253,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 		AnyOperationGroup anyOperation = new AnyOperationGroup(typeFactory, false);
 		BooleanOperationGroup booleanOperation = new BooleanOperationGroup(typeFactory);
 
+		// attention: this implementation does only work for sets
 		return forAll(src, booleanOperation.implies(anyOperation.inequality(var1, var2), anyOperation.inequality(body1, body2)), var1, var2);
 	}
 
@@ -263,6 +261,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 		AnyOperationGroup anyOperation = new AnyOperationGroup(typeFactory, false);
 		BooleanOperationGroup booleanOperation = new BooleanOperationGroup(typeFactory);
 
+		// attention: this implementation does only work for sets
 		return forAll(src, booleanOperation.implies(anyOperation.inequality(var1, var2), anyOperation.inequality(body1, body2)), var1, var2);
 	}
 

@@ -134,7 +134,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 	 * @return
 	 */
 	private int associationClassEnd(MNavigableElement source, IAssociation association, int fromIndex, boolean fromRole) {
-		if (source.nameAsRolename().toLowerCase().equals(association.name().toLowerCase())) {
+		if (source.nameAsRolename().equalsIgnoreCase(association.name())) {
 			if (fromRole) {
 				set = false;
 			} else {

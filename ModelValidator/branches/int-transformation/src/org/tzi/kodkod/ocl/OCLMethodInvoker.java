@@ -1,5 +1,6 @@
 package org.tzi.kodkod.ocl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,7 @@ public class OCLMethodInvoker {
 			object = method.invoke(operationLoader.getOperationClass(), arguments.toArray());
 			this.set = operationLoader.returnsSet();
 
-		} catch (Exception e) {
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			throw new TransformationException("Error while invoking method for operation " + opName + ".", e);
 		}
 	}
