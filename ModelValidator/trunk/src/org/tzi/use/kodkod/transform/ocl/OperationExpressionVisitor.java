@@ -28,7 +28,7 @@ import org.tzi.use.uml.ocl.type.ObjectType;
  * expression.
  * 
  * @author Hendrik Reitmann
- * 
+ * @author Frank Hilken
  */
 public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 
@@ -76,7 +76,6 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 				Iterator<MClass> iterator = overiddenOperations.keySet().iterator();
 				object = handleOveriddenOperation(iterator, overiddenOperations, expression, getAsExpression(mainVisitor.getObject()));
 			}
-
 			
 			set = exp.getOperation().resultType().isCollection(true);
 			object_type_nav = mainVisitor.isObject_type_nav();
@@ -91,6 +90,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 
 			OperationStack.INSTANCE.pop();
 		} else {
+			OperationStack.INSTANCE.clear();
 			throw new TransformationException("Operation " + operation.name() + " is recursive!");
 		}
 

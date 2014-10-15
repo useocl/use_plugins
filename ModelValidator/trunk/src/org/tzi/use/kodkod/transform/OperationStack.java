@@ -31,4 +31,8 @@ public enum OperationStack {
 	public void pop(){
 		operationStack.pop();
 	}
+	
+	public void clear()	{
+		operationStack.clear();
+	}
 }
