@@ -68,7 +68,7 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 				if (evaluator.evaluate(invariant.formula())) {
 					invariant.activate();
 				} else {
-					String name = invariant.name().replaceFirst("::", "_");
+					String name = invariant.qualifiedName().replaceFirst("::", "_");
 					writer.append(name + " = inactive");
 					writer.newLine();
 					writer.newLine();

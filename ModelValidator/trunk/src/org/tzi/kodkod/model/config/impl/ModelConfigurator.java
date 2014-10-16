@@ -15,7 +15,6 @@ import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
-import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.SetType;
 import org.tzi.kodkod.model.type.Type;
@@ -34,13 +33,11 @@ public class ModelConfigurator extends Configurator<IModel> {
 	private static final Logger LOG = Logger.getLogger(ModelConfigurator.class);
 	
 	private IModel model;
-	private Map<String, IInvariant> invariants;
 	private Formula solutionFormula;
 	private boolean aggregationcyclefree;
 	private boolean forbiddensharing;
-
-	public ModelConfigurator(IModel model, Map<String, IInvariant> invariants) {
-		this.invariants = invariants;
+	
+	public ModelConfigurator(IModel model) {
 		this.model = model;
 		solutionFormula = Formula.TRUE;
 		aggregationcyclefree = DefaultConfigurationValues.aggregationcyclefreeness;
@@ -51,53 +48,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 	public Formula constraints(IModel model) {
 		Formula formula = super.constraints(model);
 
-		for (IInvariant invariant : invariants.values()) {
-			//TODO double check if next condition is necessary
-			if(invariant.isActivated()){
-				formula = formula.and(invariant.formula());
-			}
-		}
 		return formula.and(solutionFormula);
-	}
-
-	/**
-	 * Adds a temporary loaded invariant.
-	 * 
-	 * @param invariant
-	 * @return
-	 */
-	public boolean addInvariant(IInvariant invariant) {
-		if (invariants.containsKey(invariant.name())) {
-			return false;
-		}
-		invariants.put(invariant.name(), invariant);
-		return true;
-	}
-
-	/**
-	 * Removes a temporary invariant.
-	 * 
-	 * @param invariant
-	 * @return
-	 */
-	public boolean removeInvariant(String name) {
-		return invariants.remove(name) == null ? false : true;
-	}
-
-	/**
-	 * Returns all temporary invariants.
-	 * 
-	 * @return
-	 */
-	public Map<String, IInvariant> getInvariants() {
-		return invariants;
-	}
-
-	/**
-	 * Removes all temporary invariants.
-	 */
-	public void clear() {
-		invariants.clear();
 	}
 
 	/**

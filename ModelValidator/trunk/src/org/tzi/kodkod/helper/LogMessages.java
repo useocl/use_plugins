@@ -250,7 +250,7 @@ public final class LogMessages {
 		else {
 			message = "Invariant %s is not fulfilled in generated system state.";
 		}
-		return String.format(message, inQuotes(invariant.name()));
+		return String.format(message, inQuotes(invariant.qualifiedName()));
 	}
 
 	public static String flagChangeInfo(IInvariant inv, boolean didDisable) {
@@ -261,7 +261,7 @@ public final class LogMessages {
 		else {
 			message = "Overwrite property configuration with generator configuration negating invariant %s";
 		}
-		return String.format(message, inv.name());
+		return String.format(message, inv.qualifiedName());
 	}
 
 }

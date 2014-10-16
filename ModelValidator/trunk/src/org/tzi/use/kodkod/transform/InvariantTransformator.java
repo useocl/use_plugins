@@ -67,7 +67,7 @@ public class InvariantTransformator {
 				new ArrayList<String>());
 		mClassInvariant.bodyExpression().processWithVisitor(visitor);
 
-		IInvariant invariant = createInvariant(mClassInvariant.toString(), invariantClass, contextVariables.values(), visitor.getObject());
+		IInvariant invariant = createInvariant(mClassInvariant.name(), invariantClass, contextVariables.values(), visitor.getObject());
 		
 		return invariant;
 	}

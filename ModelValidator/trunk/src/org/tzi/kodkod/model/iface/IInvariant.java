@@ -16,6 +16,13 @@ public interface IInvariant extends IElement {
 	 * @return
 	 */
 	public String name();
+	
+	/**
+	 * Returns the qualified name (with class name) of this invariant.
+	 * 
+	 * @return
+	 */
+	public String qualifiedName();
 
 	/**
 	 * Returns the formula for this invariant.

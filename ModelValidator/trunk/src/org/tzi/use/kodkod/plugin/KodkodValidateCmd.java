@@ -101,7 +101,7 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 
 	private void configureInvariantSettingsFromGenerator() {
 		for(IInvariant inv : model().classInvariants()){
-			MClassInvariant srcInv = mModel.getClassInvariant(inv.name());
+			MClassInvariant srcInv = mModel.getClassInvariant(inv.qualifiedName());
 			if(!srcInv.isActive() && inv.isActivated()){
 				inv.deactivate();
 				LOG.info(LogMessages.flagChangeInfo(inv, true));

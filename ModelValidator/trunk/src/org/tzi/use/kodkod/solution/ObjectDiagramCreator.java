@@ -103,7 +103,7 @@ public class ObjectDiagramCreator {
 		boolean invariantError = false;
 		for (IInvariant invariant : model.classInvariants()) {
 			if (invariant.isActivated()) {
-				BooleanValue result = (BooleanValue) evaluator.eval(mModel.getClassInvariant(invariant.name()).expandedExpression(),
+				BooleanValue result = (BooleanValue) evaluator.eval(mModel.getClassInvariant(invariant.qualifiedName()).expandedExpression(),
 						mSystem.state());
 				if ((invariant.isNegated() && result.isTrue()) || (!invariant.isNegated() && result.isFalse())) {
 					LOG.info(LogMessages.unexpectedInvariantResult(invariant));
