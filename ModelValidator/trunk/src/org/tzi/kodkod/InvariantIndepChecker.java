@@ -57,7 +57,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 			LOG.error(LogMessages.noClassError(className));
 			return;
 		}
-		currentInvariant = clazz.getInvariant(invariantName);
+		currentInvariant = clazz.getInvariant(className + "::" + invariantName);
 		if (currentInvariant == null) {
 			LOG.error(LogMessages.noClassInvariantError(className, invariantName));
 			return;
