@@ -23,23 +23,9 @@ public class KodkodValidatePropertyAction extends KodkodValidateCmd implements I
 		}
 		
 		initialize(pluginAction.getSession(), pluginAction.getParent());
-
-		/*
-		JFileChooser fileChooser;
-		if (mModel.getModelDirectory() != null) {
-			fileChooser = new JFileChooser(mModel.getModelDirectory().getPath());
-		} else {
-			fileChooser = new JFileChooser();
-		}
-		fileChooser.setFileFilter(new ExtFileFilter("properties", "Property-Dateien"));
-
-		if (fileChooser.showOpenDialog(pluginAction.getParent()) == JFileChooser.APPROVE_OPTION) {
-			File file = fileChooser.getSelectedFile();
-			
-			extractConfigureAndValidate(file);
-		}
-		*/
 		
+		// TODO: Validation should also run in one thread with the GUI of the MV-Configuration
+		//for using the MV-GUI and USE-GUI and the same time.
 		getConfigurationOverGUIAndValidate(pluginAction);
 		
 	}

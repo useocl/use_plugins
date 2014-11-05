@@ -38,14 +38,11 @@ public class PropertiesWriter {
 			String section = sectionsIterator.next();
 			writeSection(section, pCs.get(section));
 		}
-		try {
-			writer.close();
-		} catch (IOException e) {
-			System.out.println(e.getMessage()); //TODO: Exceptionhandling
-		}
+		writer.close();
+		
 	}
 	
-	private static void writeSection(String section, PropertiesConfiguration pc) {
+	private static void writeSection(String section, PropertiesConfiguration pc) throws IOException {
 		writeDivideLine("["+section+"]");
 		writeNewLine();
 		writeBasicTypes(pc);
@@ -67,7 +64,7 @@ public class PropertiesWriter {
 		writeNewLine();
 	}
 	
-	private static void writeBasicTypes(PropertiesConfiguration pc) {
+	private static void writeBasicTypes(PropertiesConfiguration pc) throws IOException {
 		String real = "Real";
 		String realMin = real+PropertyEntry.realValueMin;
 		String realMax = real+PropertyEntry.realValueMax;
@@ -112,7 +109,7 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private static void writeClass(MClass clazz, PropertiesConfiguration pc) {
+	private static void writeClass(MClass clazz, PropertiesConfiguration pc) throws IOException {
 		String cls = clazz.name();
 		String clsMin = cls + PropertyEntry.objMin;
 		String clsMax = cls + PropertyEntry.objMax;
@@ -132,7 +129,7 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private static void writeAttributes(Iterator<MAttribute> iterator, PropertiesConfiguration pc) {
+	private static void writeAttributes(Iterator<MAttribute> iterator, PropertiesConfiguration pc) throws IOException {
 		while (iterator.hasNext()) {
 			MAttribute attribute = iterator.next();
 			String attr = attribute.owner().name() + "_" + attribute.name();
@@ -158,7 +155,7 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private static void writeAssociations(Iterator<MAssociation> iterator, PropertiesConfiguration pc) {
+	private static void writeAssociations(Iterator<MAssociation> iterator, PropertiesConfiguration pc) throws IOException {
 		while (iterator.hasNext()) {
 			MAssociation association = iterator.next();
 			String assoc = association.name();
@@ -180,7 +177,7 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private static void writeInvariants(Iterator<MClassInvariant> iterator, PropertiesConfiguration pc) {
+	private static void writeInvariants(Iterator<MClassInvariant> iterator, PropertiesConfiguration pc) throws IOException {
 		while (iterator.hasNext()) {
 			MClassInvariant invariant = iterator.next();
 			//String invKey = invariant.name().replaceFirst("::", "_");
@@ -191,7 +188,7 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private static void writeOptions(PropertiesConfiguration pc) {
+	private static void writeOptions(PropertiesConfiguration pc) throws IOException {
 		if (pc.containsKey("aggregationcyclefreeness")) {
 			write("aggregationcyclefreeness", pc.getString("aggregationcyclefreeness"));
 		}
@@ -212,54 +209,31 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private static void writeNewLine() {
-		try {
+	private static void writeNewLine() throws IOException {
 			writer.newLine();
-		} catch (IOException e) {
-			System.out.println(e.getMessage()); //TODO: Exceptionhandling
-		}
 	}
 	
-	private static void writeDivideLine(String line) {
-		try {
+	private static void writeDivideLine(String line) throws IOException {
 			writer.write(line);
 			writer.newLine();
-		} catch (IOException e) {
-			System.out.println(e.getMessage()); //TODO: Exceptionhandling
-		}
 	}
 	
-	private static void write(String name, double value) {
-		try {
+	private static void write(String name, double value) throws IOException {
 			writer.write(name + " = " + value);
 			writer.newLine();
-			//writer.newLine();
-		} catch (IOException e) {
-			System.out.println(e.getMessage()); //TODO: Exceptionhandling
-		}
 	}
 	
-	private static void write(String name, int value) {
-		try {
+	private static void write(String name, int value) throws IOException {
 			writer.write(name + " = " + value);
 			writer.newLine();
-			//writer.newLine();
-		} catch (IOException e) {
-			System.out.println(e.getMessage()); //TODO: Exceptionhandling
-		}
 	}
 	
-	private static void write(String name, String value) {
-		try {
+	private static void write(String name, String value) throws IOException {
 			writer.write(name + " = " + value);
 			writer.newLine();
-			//writer.newLine();
-		} catch (IOException e) {
-			System.out.println(e.getMessage()); //TODO: Exceptionhandling
-		}
 	}
 	
-	private static void writeAssociationLine(MAssociation association) {
+	private static void writeAssociationLine(MAssociation association) throws IOException {
 		String writerString = "";
 		Iterator<MAssociationEnd> aes = association.associationEnds().iterator();
 		writerString = writerString + "-- ";
@@ -279,11 +253,8 @@ public class PropertiesWriter {
 				writerString = writerString + "-";
 			}
 		}
-		try {
-			writer.write(writerString);
-		} catch (IOException e) {
-			System.out.println(e.getMessage()); //TODO: Exceptionhandling
-		}
+		
+		writer.write(writerString);
 	}
 
 }

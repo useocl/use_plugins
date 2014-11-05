@@ -3,6 +3,9 @@ package org.tzi.use.kodkod.plugin;
 import java.io.File;
 import java.util.Iterator;
 
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -100,8 +103,6 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * Opens the GUI for configuration of the Model Validator
 	 */
 	protected final void getConfigurationOverGUIAndValidate(IPluginAction pluginAction) {
-		// TODO: Diesen ganzen Prozess in eine Thread packen, damit man die GUI benutzen und validieren kann, und gleichzeitig
-		// die Diagramme in USE weiter anschauen und nutzen kann. 
 		try {
 			configureModel(pluginAction);
 			if (shouldValidate) {
@@ -110,7 +111,8 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 				configurationVisitor.printWarnings();
 			}
 		} catch (Exception e) {
-			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(pluginAction.getParent(), new JLabel("Error reading default properties file([Modelname].properties)! Please correct the file or delete it!"));
 		}
 	}
 
@@ -163,8 +165,6 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
         if (!file.exists()) {
         	model().accept(new DefaultConfigurationVisitor(mModel.filename()));
         }
-        //TODO: Wenn es keinen uebergrossen Umstand macht: Alles so anpassen, dass man statt des MModels das IModel von Reitmann benutzt:
-        //ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = new ModelValidatorConfigurationWindow(MainWindow.instance(), model(), filedirectory, filename);
         ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
         		new ModelValidatorConfigurationWindow(MainWindow.instance(), pluginAction.getSession().system().model());
         if (modelValidatorConfigurationWindow.getChosenPropertiesConfiguration() != null) {
@@ -181,9 +181,9 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
         		shouldValidate = false;
         		System.out.println("Validation aborted.");
         	}
-        } else System.out.println("No Configuration loaded"); //TODO: In die LOG schreiben? Frank fragen
-
-
+        } else {
+        	JOptionPane.showMessageDialog(pluginAction.getParent(), new JLabel("No Configuration loaded!"));
+        }
 	}
 	
 	@SuppressWarnings("unchecked")

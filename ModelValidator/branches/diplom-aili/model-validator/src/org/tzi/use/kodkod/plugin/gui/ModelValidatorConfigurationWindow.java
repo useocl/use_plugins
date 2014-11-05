@@ -1,6 +1,7 @@
 package org.tzi.use.kodkod.plugin.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -14,6 +15,8 @@ import java.util.Iterator;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -23,6 +26,7 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -84,8 +88,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private String[] classesColumns = new String[]{"Classes", "Min", "Max", "Values"};;
 	private JTable classes;
 
-	private String[] basicTypesColumns = new String[]{"Typ", "Min", "Max", "Step", "Values"};
-	private JTable basicTypes;
+	/*private String[] basicTypesColumns = new String[]{"Typ", "Min", "Max", "Step", "Values"};
+	private JTable basicTypes;*/
+	private String[] intTypeColumns = new String[]{"Type", "Mininum", "Maximum", "Values"};
+	private String[] realTypeColumns = new String[]{"Type", "Mininum", "Maximum", "Step", "Values"};
+	private String[] stringTypeColumns = new String[]{"Type", "MinPresent", "MaxPresent", "PresentStrings"};
+	private JTable intConf;
+	private JTable realConf;
+	private JTable stringConf;
 
 	private MModel model;
 	private File file;
@@ -143,70 +153,90 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 	
 	/*
-	 * Listens for every change made in the basic types table
+	 * Listens for every change made in the int type table
 	 */
-	private class BasicTypesTableListener implements TableModelListener {
+	private class IntTypeTableListener implements TableModelListener {
 		@Override
 		public void tableChanged(TableModelEvent e) {
-			String basictype = (String)basicTypes.getValueAt(e.getFirstRow(), 0);
 			int col = e.getColumn();
 			int row = e.getFirstRow();
-			Object value = basicTypes.getValueAt(row, col);
-			System.out.print("Fuer "+basictype
-					+" in Zeile "+row+" und Spalte "+col
-					+" soll der Wert "+value+" hinzugefuegt werden!");
-			if (basictype.equals("Integer")) {
-				switch (col) {
-					case 1: propertiesConfiguration.setProperty("Integer_min", value); System.out.println("Geschafft!"); break;
-					case 2: propertiesConfiguration.setProperty("Integer_max", value); System.out.println("Geschafft!"); break;
-					case 4: 
-						String [] values = preparStringForConfiguration((String) value);
-						if (values != null) 
-							propertiesConfiguration.setProperty("Integer", Integer.getInteger(values[0]));
-						else {
-							System.out.println("Geschafft!"); break;
-						}
-						for (int i=1; i < values.length; i++) {
-							propertiesConfiguration.addProperty("Integer", Integer.getInteger(values[i]));
-						}
-						System.out.println("Geschafft!"); break;
+			Object value = intConf.getValueAt(row, col);
+			
+			switch (col) {
+			case 1: propertiesConfiguration.setProperty("Integer_min", value); break;
+			case 2: propertiesConfiguration.setProperty("Integer_max", value); break;
+			case 3: 
+				String [] values = preparStringForConfiguration((String) value);
+				if (values != null) 
+					propertiesConfiguration.setProperty("Integer", Integer.getInteger(values[0]));
+				else {
+					break;
 				}
-			} else
-			if (basictype.equals("Real")) {
-				switch (col) {
-				case 1: propertiesConfiguration.setProperty("Real_min", value); System.out.println("Geschafft!"); break;
-				case 2: propertiesConfiguration.setProperty("Real_max", value); System.out.println("Geschafft!"); break;
-				case 3: propertiesConfiguration.setProperty("Real_step", value); System.out.println("Geschafft!"); break;
-				case 4: 
-					String [] values = preparStringForConfiguration((String) value);
-					if (values != null) 
-						propertiesConfiguration.setProperty("Real", Integer.getInteger(values[0]));
-					else {
-						System.out.println("Geschafft!"); break;
-					}
-					for (int i=1; i < values.length; i++) {
-						propertiesConfiguration.addProperty("Real", Integer.getInteger(values[i]));
-					}
-					System.out.println("Geschafft!"); break;
+				for (int i=1; i < values.length; i++) {
+					propertiesConfiguration.addProperty("Integer", Integer.getInteger(values[i]));
 				}
-			} else
-			if (basictype.equals("String")) {
-				switch (col) {
-					case 1: propertiesConfiguration.setProperty("String_min", value); System.out.println("Geschafft!"); break;
-					case 2: propertiesConfiguration.setProperty("String_max", value); System.out.println("Geschafft!"); break;
-					case 4: 
-						String [] values = preparStringForConfiguration((String) value);
-						if (values != null) 
-							propertiesConfiguration.setProperty("String", Integer.getInteger(values[0]));
-						else {
-							System.out.println("Geschafft!"); break;
-						}
-						for (int i=1; i < values.length; i++) {
-							propertiesConfiguration.addProperty("String", Integer.getInteger(values[i]));
-						}
-						System.out.println("Geschafft!"); break;
-				}
+				break;
 			}
+			tableChanged = true;
+		}
+	}
+	
+	/*
+	 * Listens for every change made in the real type table
+	 */
+	private class RealTypeTableListener implements TableModelListener {
+		@Override
+		public void tableChanged(TableModelEvent e) {
+			int col = e.getColumn();
+			int row = e.getFirstRow();
+			Object value = realConf.getValueAt(row, col);
+			
+			switch (col) {
+			case 1: propertiesConfiguration.setProperty("Real_min", value); break;
+			case 2: propertiesConfiguration.setProperty("Real_max", value); break;
+			case 3: propertiesConfiguration.setProperty("Real_step", value); break;
+			case 4: 
+				String [] values = preparStringForConfiguration((String) value);
+				if (values != null) 
+					propertiesConfiguration.setProperty("Real", Integer.getInteger(values[0]));
+				else {
+					break;
+				}
+				for (int i=1; i < values.length; i++) {
+					propertiesConfiguration.addProperty("Real", Integer.getInteger(values[i]));
+				}
+				break;
+			}
+			tableChanged = true;
+		}
+	}
+	
+	/*
+	 * Listens for every change made in the string type table
+	 */
+	private class StringTypeTableListener implements TableModelListener {
+		@Override
+		public void tableChanged(TableModelEvent e) {
+			int col = e.getColumn();
+			int row = e.getFirstRow();
+			Object value = stringConf.getValueAt(row, col);
+			
+			switch (col) {
+			case 1: propertiesConfiguration.setProperty("String_min", value); break;
+			case 2: propertiesConfiguration.setProperty("String_max", value); break;
+			case 3: 
+				String [] values = preparStringForConfiguration((String) value);
+				if (values != null) 
+					propertiesConfiguration.setProperty("String", Integer.getInteger(values[0]));
+				else {
+					break;
+				}
+				for (int i=1; i < values.length; i++) {
+					propertiesConfiguration.addProperty("String", Integer.getInteger(values[i]));
+				}
+				break;
+			}
+			
 			tableChanged = true;
 		}
 	}
@@ -469,8 +499,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		//TODO: Design durch bessers als das hier verbessern
 		this.getRootPane().setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, getRootPane().getBackground()));
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		//TODO: USE soll weiterhin verwendbar bleiben, waehrrend die MV-GUI weiterlaeuft.
-		//Vielleicht durch Einkapselung des ganzen Kodkod-Validationsverfahren als ein Thread?
+		//TODO: USE soll weiterhin verwendbar bleiben, waehrrend die MV-GUI weiterlaeuft. Dies soll geschehen, indem die Validierung
+		// im Thread der MV-GUI mit ausgefuehrt wird.
 		this.setModalityType(ModalityType.APPLICATION_MODAL);
 		this.setResizable(true);
 		this.setSize(800,300);
@@ -480,19 +510,24 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		associations = new JTable(new ConfigurationTableModel(associationsColumns, new Object[1][4]));
 		attributes = new JTable(new ConfigurationTableModel(attributesColumns, new Object[1][6]));
 		classes = new JTable(new ConfigurationTableModel(classesColumns, new Object[model.classes().size()][4]));
-		basicTypes = new JTable(new ConfigurationTableModel(basicTypesColumns, new Object[3][5]));
+		intConf = new JTable(new ConfigurationTableModel(intTypeColumns, new Object[1][4]));
+		realConf = new JTable(new ConfigurationTableModel(realTypeColumns, new Object[1][5]));
+		stringConf = new JTable(new ConfigurationTableModel(stringTypeColumns, new Object[1][4]));
 		options = new InvariantsOptionsTable(new InvariantsOptionsTableModel(new Object[2][3], optionsColNames));
 		invariants = new InvariantsOptionsTable(new InvariantsOptionsTableModel(
 				new Object[model.classInvariants().size()][4],invariantsColNames));
 		
-		basicTypes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		//TODO: ist das noch zu verwenden? basicTypes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		classes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		attributes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		associations.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		options.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		invariants.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		basicTypes.getModel().addTableModelListener(new BasicTypesTableListener());
+		intConf.getModel().addTableModelListener(new IntTypeTableListener());
+		realConf.getModel().addTableModelListener(new RealTypeTableListener());
+		stringConf.getModel().addTableModelListener(new StringTypeTableListener());
+		
 		classes.getModel().addTableModelListener(new ClassesTableListener());
 		classTableSelectionListener = classes.getSelectionModel();
 		classTableSelectionListener.addListSelectionListener(new ClassTableSelectionHandler());
@@ -561,6 +596,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         
         //TODO: Warnung ausgeben dass, falls die Konfiguration nicht abgespeichert(Save-Button gedrueckt) wurde,
         //diese in der folgenden Validierung zwar verwendet wird, danach aber verworfen ist.
+        //Das hier entfernen, wenn die Validierung in einem Thread mit der GUI ausgefuert wird.
         validateButton.addActionListener( new ActionListener() {
         	@Override 
         	public void actionPerformed( ActionEvent e ) {
@@ -585,6 +621,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         mainPanel.setLayout(new BorderLayout());
         mainPanel.add(mainUpperPanel, BorderLayout.NORTH);
         mainPanel.add(tabbedPane, BorderLayout.CENTER); 
+        //TODO: mainLowerPanel in drei weitere Panels unterteilen: west, center: westCenter, centerCenter(oder JSplitPane dafuer nutzen)
         mainPanel.add(mainLowerPanel, BorderLayout.SOUTH);
 
         collectConfigurations(file);
@@ -595,7 +632,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         insertConfigurationInAssociations();
         insertConfigurationInInvariantsOptions();
         classes.setRowSelectionInterval(0,0);
-        //collectConfigurations(file); //FIXME: Diese Zeile wegmachen, sobald alle Konfiguration aus allen Tabellen erfolgreich ausgelesen werden koennen
     	
     	this.setContentPane(mainPanel);
     	this.setLocationRelativeTo(parent);
@@ -618,8 +654,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		try {
 			hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
 		} catch (ConfigurationException e) {
-			// TODO Exception-Message in einem Dialog-Fenster wiedergeben(bei allen anderen auch so machen wie folgend geloest)
 			e.printStackTrace();
+			JOptionPane.showMessageDialog(getParent(), new JLabel("Error while loading properties file!"), "Error!", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		if (!hierarchicalINIConfiguration.getSections().isEmpty()) {
@@ -668,15 +704,42 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		return validatable;
 	}
 
-	private JPanel createBasicTypesTab() {
-		//TODO: String-Tabelle vom Rest trennen, da die min-max-Angaben, sich auf die mit werten belegten Objekte pro Klasse beziehen, und nicht auf Werte
-		basicTypes.getModel().setValueAt("Integer",0,0);
-		basicTypes.getModel().setValueAt("Real",1,0);
-		basicTypes.getModel().setValueAt("String",2,0);
-		JScrollPane basicTypesScrollPane = new JScrollPane(basicTypes);
-		JPanel basicTypesPanel = new JPanel(new BorderLayout());
-		basicTypesPanel.add(new JLabel("Basic Types"), BorderLayout.NORTH);
-		basicTypesPanel.add(basicTypesScrollPane, BorderLayout.CENTER);
+	private JSplitPane createBasicTypesTab() {
+		JSplitPane basicTypesPanel;
+		
+		JPanel upperLeft = new JPanel();
+		upperLeft.setLayout(new BoxLayout(upperLeft,BoxLayout.PAGE_AXIS));
+
+		intConf.getModel().setValueAt("<html><b>Integer</b></html>",0,0);
+		intConf.setPreferredScrollableViewportSize(new Dimension(intConf.getWidth(),intConf.getRowHeight()*intConf.getRowCount()));
+		intConf.setSelectionBackground(Color.white);
+		realConf.getModel().setValueAt("<html><b>Real</b></html>",0,0);
+		realConf.setPreferredScrollableViewportSize(new Dimension(realConf.getWidth(),realConf.getRowHeight()*realConf.getRowCount()));
+		realConf.setSelectionBackground(Color.white);
+		stringConf.getModel().setValueAt("<html><b>String</b></html>",0,0);
+		stringConf.setPreferredScrollableViewportSize(new Dimension(stringConf.getWidth(),stringConf.getRowHeight()*stringConf.getRowCount()));
+		stringConf.setSelectionBackground(Color.white);
+		
+		JScrollPane intScroll = new JScrollPane(intConf);
+		JScrollPane realScroll = new JScrollPane(realConf);
+		JScrollPane stringScroll = new JScrollPane(stringConf);
+		
+		Dimension space = new Dimension(0,10);
+		
+		upperLeft.add(intScroll);
+		upperLeft.add(Box.createRigidArea(space));
+		upperLeft.add(realScroll);
+		upperLeft.add(Box.createRigidArea(space));
+		upperLeft.add(stringScroll);
+		
+		JPanel right = new JPanel(); // Reserviert fuer neue Ideen
+		JPanel lowerLeft = new JPanel(); // Reserviert fuer neue Ideen
+		
+		JSplitPane left = new JSplitPane(JSplitPane.VERTICAL_SPLIT, upperLeft, lowerLeft);
+		
+		basicTypesPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+		basicTypesPanel.setDividerLocation(400);
+		
 		return basicTypesPanel;
 	}
 
@@ -705,7 +768,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 	
 	private JSplitPane createInvariantsAndOptionsTab() {
-		//TODO: Scrollleiste fuer Invariantentabelle
+		JScrollPane invariantsScrollPane = new JScrollPane(invariants);
+		
 		options.getModel().setValueAt(PropertyEntry.aggregationcyclefreeness,0,0);
 		options.getModel().setValueAt(new JRadioButton("On"),0,1);
 		options.getModel().setValueAt(new JRadioButton("Off"),0,2);
@@ -719,7 +783,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		ButtonGroup aCFButtonsB = new ButtonGroup();
 		aCFButtonsB.add((JRadioButton) options.getModel().getValueAt(1, 1));
 		aCFButtonsB.add((JRadioButton) options.getModel().getValueAt(1, 2));
-		
 
 		Iterator<MClassInvariant> allInvariantsIterator = model.classInvariants().iterator();
 		Hashtable<String,ButtonGroup> buttonGroups = new Hashtable<String,ButtonGroup>();
@@ -757,13 +820,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		options.getColumnModel().getColumn(0).setPreferredWidth(200);
 		invariants.setPreferredScrollableViewportSize(new Dimension(800,invariants.getRowHeight()*invariants.getRowCount()));
 		invariants.getColumnModel().getColumn(0).setPreferredWidth(400);
+		invariantsScrollPane.setPreferredSize(new Dimension(this.getWidth()/2,this.getHeight()));
 		
 		JPanel optionsPanel = new JPanel();
-		JPanel invariantsPanel = new JPanel();
+		JPanel invariantsPanel = new JPanel(new BorderLayout());
 		JSplitPane ioPane;
 		
 		optionsPanel.add(new JScrollPane(options));
-		invariantsPanel.add(new JScrollPane(invariants));
+		invariantsPanel.add(invariantsScrollPane, BorderLayout.CENTER);
 		ioPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, optionsPanel, invariantsPanel);
 		ioPane.setDividerLocation(OPTIONS_TABLE_HEIGHT);
 		ioPane.setDividerSize(OPTIONS_TABLE_DIVIDER_HEIGHT);
@@ -799,26 +863,27 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	
 	/**
 	 * fills gui table for basic types with the values from the chosen propertiesConfiguration
-	 * @param pc
 	 */
 	private void insertConfigurationInBasicTypes() {
-		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("Integer_min"), 0, 1);
-		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("Integer_max"), 0, 2);
+		intConf.getModel().setValueAt(propertiesConfiguration.getInt("Integer_min"), 0, 1);
+		intConf.getModel().setValueAt(propertiesConfiguration.getInt("Integer_max"), 0, 2);
 		if (!(propertiesConfiguration.getProperty("Integer") == null)) {
-			basicTypes.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("Integer")), 0, 4);
-		} else basicTypes.getModel().setValueAt(null, 0, 4);
-		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("Real_min"), 1, 1);
-		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("Real_max"), 1, 2);
-		basicTypes.getModel().setValueAt(propertiesConfiguration.getDouble("Real_step"), 1, 3);
+			intConf.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("Integer")), 0, 3);
+		} else intConf.getModel().setValueAt(null, 0, 3);
+		realConf.getModel().setValueAt(propertiesConfiguration.getInt("Real_min"), 0, 1);
+		realConf.getModel().setValueAt(propertiesConfiguration.getInt("Real_max"), 0, 2);
+		if (propertiesConfiguration.containsKey("Real_step")) {
+			realConf.getModel().setValueAt(propertiesConfiguration.getDouble("Real_step"), 0, 3);
+		}
 		if (!(propertiesConfiguration.getProperty("Real") == null)) {
-			basicTypes.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("Real")), 1, 4);
-		} else basicTypes.getModel().setValueAt(null, 1, 4);
-		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("String_min"), 2, 1);
-		basicTypes.getModel().setValueAt(propertiesConfiguration.getInt("String_max"), 2, 2);
+			realConf.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("Real")), 0, 3);
+		} else realConf.getModel().setValueAt(null, 0, 3);
+		stringConf.getModel().setValueAt(propertiesConfiguration.getInt("String_min"), 0, 1);
+		stringConf.getModel().setValueAt(propertiesConfiguration.getInt("String_max"), 0, 2);
 		if (!(propertiesConfiguration.getProperty("String") == null)) {
-			basicTypes.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("String")), 2, 4);
+			stringConf.getModel().setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty("String")), 0, 3);
 		} else {
-			basicTypes.getModel().setValueAt(null, 2, 4);
+			stringConf.getModel().setValueAt(null, 0, 3);
 		}
 	}
 	
@@ -1012,7 +1077,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			if (propertiesConfiguration.containsKey(attributeName+"_max")) {
 				table.setValueAt(propertiesConfiguration.getInt(attributeName+"_max"), row, 2);
 			}
-			// TODO: Wenn ausgewaehlte Klasse eine Assoziationsklasse ist, dann sind min- und maxSize immer NON-EDITABLE
 			if (propertiesConfiguration.containsKey(attributeName+"_minSize")) {
 				table.setValueAt(propertiesConfiguration.getInt(attributeName+"_minSize"), row, 3);
 			}
@@ -1144,7 +1208,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			} else if (propertiesConfiguration.getString(PropertyEntry.aggregationcyclefreeness).equalsIgnoreCase("off")) {
 				((JRadioButton) options.getModel().getValueAt(0,2)).setSelected(true);
 			} else {
-				System.out.println("Wrong value for aggregationcyclefreeness; it must be \"on\" or \"off\""); //TODO: Exception ausgeben? Fehler loggen?
+				((JRadioButton) options.getModel().getValueAt(0,2)).setSelected(true);
 			}
 		} else {
 			((JRadioButton) options.getModel().getValueAt(0,2)).setSelected(true);
@@ -1155,7 +1219,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			} else if (propertiesConfiguration.getString(PropertyEntry.forbiddensharing).equalsIgnoreCase("off")) {
 				((JRadioButton) options.getModel().getValueAt(1,2)).setSelected(true);
 			} else {
-				System.out.println("Wrong value for forbiddensharing; it must be \"on\" or \"off\"."); //TODO: Exception ausgeben? Fehler loggen?
+				((JRadioButton) options.getModel().getValueAt(1,1)).setSelected(true);
 			}
 		} else {
 			((JRadioButton) options.getModel().getValueAt(1,1)).setSelected(true);
@@ -1217,8 +1281,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		try {
 			PropertiesWriter.writeToFile(propertiesConfigurationSections, file, model);
 		} catch (Exception e) {
-			// TODO Exception behandeln
 			e.printStackTrace();
+			JOptionPane.showMessageDialog(getParent(), new JLabel("Error while saving configuration to file!"), "Error!", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
