@@ -34,6 +34,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -78,6 +79,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	InvariantsOptionsTable invariants;
 	InvariantsOptionsTable options;
 	String selectedButton;
+	JLabel currentFileLabel;
 	
 	private String[] associationsColumns = new String[]{"Associations", "Min", "Max", "Values"};
 	private JTable associations;
@@ -107,14 +109,22 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private Boolean validatable;
 	private Boolean tableChanged;
 	
-	private JTabbedPane tabbedPane;
-	private JPanel mainPanel;
+	private JTabbedPane center;
+	private JPanel main;
 	private FlowLayout upperLowerPanelLayout;
-	private JPanel mainUpperPanel;
-	private JPanel mainLowerPanel;
+	private JPanel northNorth;
+	private JPanel southNorth;
+	private JPanel north;
+	private JPanel westSouth;
+	private JPanel centerSouth;
+	private JPanel eastSouth;
+	private JPanel south;
     
 	private JButton openFileButton;
 	private JButton saveConfigurationButton;
+	private JButton renameConfigurationButton;
+	private JButton deleteConfigurationButton;
+	private JButton newConfigurationButton;
 	private JButton validateButton;
 	
 	private JComboBox<String> sectionSelectionComboBox;
@@ -123,6 +133,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private ListSelectionModel classTableSelectionListener;
 	private AttributesTableListener attributesTableListener;
 	private AssociationsTableListener associationsTableListener;
+
 	
 	/*
 	 * Listens for changed selection in the drop down menu, puts previous propertiesConfiguration
@@ -539,23 +550,34 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		
 		
 		file = new File(model.filename().replaceAll("\\.use", "") + ".properties");
+		currentFileLabel = new JLabel(file.getAbsolutePath());
 		propertiesConfigurationSections = new Hashtable<String, PropertiesConfiguration>();
 		classAttributes = new Hashtable<String,ConfigurationTableModel>();
 		classAssociations = new Hashtable<String,ConfigurationTableModel>();
 		validatable = false;
 
     	
-    	tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-    	mainPanel = new JPanel();
+    	center = new JTabbedPane(JTabbedPane.TOP);
+    	main = new JPanel();
         upperLowerPanelLayout = new FlowLayout(FlowLayout.LEFT);
-        mainUpperPanel = new JPanel(upperLowerPanelLayout);
-        mainLowerPanel = new JPanel(upperLowerPanelLayout);
+        northNorth = new JPanel(upperLowerPanelLayout);
+        southNorth = new JPanel(upperLowerPanelLayout);
+        north = new JPanel(new BorderLayout());
+        westSouth = new JPanel(upperLowerPanelLayout);
+        centerSouth = new JPanel();
+        centerSouth.setBorder(new BevelBorder(BevelBorder.LOWERED));
+        eastSouth = new JPanel();
+        south = new JPanel(new BorderLayout());
         
-        openFileButton = new JButton("Open configuration file");
-        saveConfigurationButton = new JButton("Save Configuration");
-        validateButton = new JButton("Close and validate");
-        
+
+        openFileButton = new JButton("Open");
         sectionSelectionComboBox = new JComboBox<String>();
+        saveConfigurationButton = new JButton("Save");
+        renameConfigurationButton = new JButton("Rename");
+        deleteConfigurationButton = new JButton("Delete");
+        newConfigurationButton = new JButton("New");
+        validateButton = new JButton("Close and validate");
+
         comboBoxActionListener = new ComboBoxActionListener();  
         sectionSelectionComboBox.addActionListener(comboBoxActionListener);
         
@@ -568,7 +590,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         		} else {
         			fileChooser = new JFileChooser();
         		}
-        		fileChooser.setFileFilter(new ExtFileFilter("properties", "Property Files"));
+        		fileChooser.setFileFilter(new ExtFileFilter("properties", "Properties files"));
 
         		if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
         			file = fileChooser.getSelectedFile();
@@ -580,8 +602,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         			insertConfigurationInInvariantsOptions();
         			tableChanged = false;
         			classes.clearSelection();
-        			System.out.println("File loaded.");
-        		} else {System.out.println("Loading file failed.");}
+        			currentFileLabel.setText(file.getAbsolutePath());
+        		} else {
+        			JOptionPane.showMessageDialog(getParent(), new JLabel("Error while loading properties file!"), "Error!", JOptionPane.ERROR_MESSAGE);
+        		}
         		
         	}
         } );
@@ -591,6 +615,27 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         	public void actionPerformed(ActionEvent e) {
         		propertiesConfigurationSections.put(selectedSection,(PropertiesConfiguration) propertiesConfiguration.clone());
         		saveConfigurationsToFile();
+        	}
+        });
+        
+        renameConfigurationButton.addActionListener(new ActionListener() {
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		//TODO: Ein Button, um die aktuell gewaehlte Konfiguration umzubenennen
+        	}
+        });
+        
+        deleteConfigurationButton.addActionListener(new ActionListener() {
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		//TODO: Ein Button, um die aktuell gewaehlte Konfiguration zu loeschen
+        	}
+        });
+        
+        newConfigurationButton.addActionListener(new ActionListener() {
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		//TODO: Ein Button, um eine Konfiguration zu erstellen, wobei man dessen Namen auswaehlen kann, aber auch eine Standard-Vergabe bekommt
         	}
         });
         
@@ -605,24 +650,33 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         	}
         } );
         
-        //TODO: Ein Button, um eine Konfiguration zu erstellen, wobei man dessen Namen auswaehlen kann, aber auch eine Standard-Vergabe bekommt
-        //TODO: Ein Button, um die aktuell gewaehlte Konfiguration umzubenennen
-        //TODO: Ein Button, um die aktuell gewaehlte Konfiguration zu loeschen
-        //TODO: Ein Label, der anzeigt, welche .properties-Datei gerade geladen ist
         //TODO: VIELLEICHT: Ein Button, um eine neue .properties-Datei zu erstellen
         
-        tabbedPane.add("Basic types", createBasicTypesTab());
-        tabbedPane.add("Classes and associations", createClassesAndAssociationsTab());
-        tabbedPane.add("Invariants and options", createInvariantsAndOptionsTab());
-        mainUpperPanel.add(openFileButton);
-        mainUpperPanel.add(sectionSelectionComboBox);
-        mainUpperPanel.add(saveConfigurationButton);
-        mainLowerPanel.add(validateButton);
-        mainPanel.setLayout(new BorderLayout());
-        mainPanel.add(mainUpperPanel, BorderLayout.NORTH);
-        mainPanel.add(tabbedPane, BorderLayout.CENTER); 
-        //TODO: mainLowerPanel in drei weitere Panels unterteilen: west, center: westCenter, centerCenter(oder JSplitPane dafuer nutzen)
-        mainPanel.add(mainLowerPanel, BorderLayout.SOUTH);
+        center.add("Basic types", createBasicTypesTab());
+        center.add("Classes and associations", createClassesAndAssociationsTab());
+        center.add("Invariants and options", createInvariantsAndOptionsTab());
+        northNorth.add(openFileButton);
+        northNorth.add(sectionSelectionComboBox);
+        northNorth.add(saveConfigurationButton);
+        northNorth.add(renameConfigurationButton);
+        northNorth.add(deleteConfigurationButton);
+        northNorth.add(newConfigurationButton);
+        southNorth.add(new JLabel("Properties file loaded: "));
+        southNorth.add(currentFileLabel);
+        north.add(northNorth, BorderLayout.NORTH);
+        north.add(southNorth, BorderLayout.SOUTH);
+        westSouth.add(validateButton);
+        //TODO: in centerSouth eine Legende einfuegen oder Erklaerungen einfuegen
+        centerSouth.add(new JLabel("Hier kommt die Legende hin!"));
+        //TODO: vielleicht in eastSouth eine Legende einfuegen oder contextspezifische Erklaerungen
+        eastSouth.add(new JLabel("Hier kommt irgendwas anderes hin!"));
+        south.add(westSouth, BorderLayout.WEST);
+        south.add(centerSouth, BorderLayout.CENTER);
+        //south.add(eastSouth, BorderLayout.EAST);
+        main.setLayout(new BorderLayout());
+        main.add(north, BorderLayout.NORTH);
+        main.add(center, BorderLayout.CENTER); 
+        main.add(south, BorderLayout.SOUTH);
 
         collectConfigurations(file);
         tableChanged = false;
@@ -632,8 +686,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         insertConfigurationInAssociations();
         insertConfigurationInInvariantsOptions();
         classes.setRowSelectionInterval(0,0);
-    	
-    	this.setContentPane(mainPanel);
+        
+    	this.setContentPane(main);
     	this.setLocationRelativeTo(parent);
     	this.pack();
     	this.setVisible(true);
