@@ -9,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -33,6 +35,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -40,6 +43,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -63,7 +67,7 @@ import org.tzi.use.uml.mm.MModel;
  * @author Subi Aili
  *
  */
-public class ModelValidatorConfigurationWindow extends JDialog {
+public class ModelValidatorConfigurationWindow extends JDialog implements MouseMotionListener {
 	
 
 	private static final long serialVersionUID = 1L;
@@ -73,6 +77,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private static final int OPTIONS_TABLE_DIVIDER_HEIGHT = 2;
 	private static final int OPTIONS_TABLE_HEIGHT = 64;
 	
+	int defaultNameCount = 0;
+	
 	String selectedSection;
 	String [] optionsColNames = new String[]{"Options","On","Off"};
 	String [] invariantsColNames = new String[]{"Invariants","Active","Inactive","Negate"};
@@ -80,21 +86,20 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	InvariantsOptionsTable options;
 	String selectedButton;
 	JLabel currentFileLabel;
+	JTextArea explainArea;
 	
-	private String[] associationsColumns = new String[]{"Associations", "Min", "Max", "Values"};
+	private String[] associationsColumns = new String[]{ConfigurationConversion.ASSOCIATIONS, ConfigurationConversion.ASSOCIATIONS_MIN, ConfigurationConversion.ASSOCIATIONS_MAX, ConfigurationConversion.ASSOCIATIONS_VALUES};
 	private JTable associations;
 
-	private String[] attributesColumns = new String[]{"Attributes", "Min", "Max", "MinSize", "MaxSize", "Values"};
+	private String[] attributesColumns = new String[]{ConfigurationConversion.ATTRIBUTES, ConfigurationConversion.ATTRIBUTES_MIN, ConfigurationConversion.ATTRIBUTES_MAX, ConfigurationConversion.ATTRIBUTES_MINSIZE, ConfigurationConversion.ATTRIBUTES_MAXSIZE, ConfigurationConversion.ATTRIBUTES_VALUES};
 	private JTable attributes;
 
-	private String[] classesColumns = new String[]{"Classes", "Min", "Max", "Values"};;
+	private String[] classesColumns = new String[]{ConfigurationConversion.CLASSES, ConfigurationConversion.CLASSES_MIN, ConfigurationConversion.CLASSES_MAX, ConfigurationConversion.CLASSES_VALUES};;
 	private JTable classes;
 
-	/*private String[] basicTypesColumns = new String[]{"Typ", "Min", "Max", "Step", "Values"};
-	private JTable basicTypes;*/
-	private String[] intTypeColumns = new String[]{"Type", "Mininum", "Maximum", "Values"};
-	private String[] realTypeColumns = new String[]{"Type", "Mininum", "Maximum", "Step", "Values"};
-	private String[] stringTypeColumns = new String[]{"Type", "MinPresent", "MaxPresent", "PresentStrings"};
+	private String[] intTypeColumns = new String[]{ConfigurationConversion.BASIC_TYPE, ConfigurationConversion.INTEGER_MIN, ConfigurationConversion.INTEGER_MAX, ConfigurationConversion.INTEGER_VALUES};
+	private String[] realTypeColumns = new String[]{ConfigurationConversion.BASIC_TYPE, ConfigurationConversion.REAL_MIN, ConfigurationConversion.REAL_MAX, ConfigurationConversion.REAL_STEP, ConfigurationConversion.REAL_VALUES};
+	private String[] stringTypeColumns = new String[]{ConfigurationConversion.BASIC_TYPE, ConfigurationConversion.STRING_MIN, ConfigurationConversion.STRING_MAX, ConfigurationConversion.STRING_VALUES};
 	private JTable intConf;
 	private JTable realConf;
 	private JTable stringConf;
@@ -107,7 +112,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private Hashtable<String, ConfigurationTableModel> classAssociations;
 	private String selectedClass;
 	private Boolean validatable;
-	private Boolean tableChanged;
+	private Boolean configurationChanged;
 	
 	private JTabbedPane center;
 	private JPanel main;
@@ -155,7 +160,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			insertConfigurationInAttributes();
 			insertConfigurationInAssociations();
 			insertConfigurationInInvariantsOptions();
-			tableChanged = false;
+			configurationChanged = false;
 			classes.repaint();
 			classes.clearSelection();
 			System.out.println("Configuration loaded.");
@@ -188,7 +193,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 				break;
 			}
-			tableChanged = true;
+			configurationChanged = true;
 		}
 	}
 	
@@ -218,7 +223,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 				break;
 			}
-			tableChanged = true;
+			configurationChanged = true;
 		}
 	}
 	
@@ -248,7 +253,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				break;
 			}
 			
-			tableChanged = true;
+			configurationChanged = true;
 		}
 	}
 	
@@ -320,7 +325,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						
 					}
 				}
-				tableChanged = true;
+				configurationChanged = true;
 			}
 		}
 		
@@ -358,7 +363,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 				break;
 			}
-			tableChanged = true;
+			configurationChanged = true;
 		}
 		
 	}
@@ -392,7 +397,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 				System.out.println(" done."); break;
 			}
-			tableChanged = true;
+			configurationChanged = true;
 		}
 		
 	}
@@ -412,7 +417,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	                	selectedRow = i;
 	                }
 	            }
-	            if (tableChanged) {
+	            if (configurationChanged) {
 	            	updateClassAttributes(selectedClass);
 		            updateClassAssociations(selectedClass);
 	            }
@@ -464,7 +469,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 	
 	private class SwitchRenderer implements TableCellRenderer {
-		//TODO: Curser der Tastatureingabe soll sichtbar sein
+		//TODO: Franks Wunsch: Curser der Tastatureingabe soll sichtbar sein
 		public Component getTableCellRendererComponent(JTable table, Object value,
 				boolean isSelected, boolean hasFocus, int row, int column) {
 			if (value == null)
@@ -518,6 +523,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 		this.model = model;
 		
+		explainArea = new JTextArea();
 		associations = new JTable(new ConfigurationTableModel(associationsColumns, new Object[1][4]));
 		attributes = new JTable(new ConfigurationTableModel(attributesColumns, new Object[1][6]));
 		classes = new JTable(new ConfigurationTableModel(classesColumns, new Object[model.classes().size()][4]));
@@ -528,7 +534,13 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		invariants = new InvariantsOptionsTable(new InvariantsOptionsTableModel(
 				new Object[model.classInvariants().size()][4],invariantsColNames));
 		
-		//TODO: ist das noch zu verwenden? basicTypes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		intConf.setName("intConf");
+		realConf.setName("realConf");
+		stringConf.setName("stringConf");
+		classes.setName("classes");
+		attributes.setName("attributes");
+		associations.setName("associations");
+		
 		classes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		attributes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		associations.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -548,6 +560,21 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		associationsTableListener = new AssociationsTableListener();
 		associations.getModel().addTableModelListener(associationsTableListener);
 		
+		this.addMouseMotionListener(this);
+		intConf.addMouseMotionListener(this);
+		intConf.getTableHeader().addMouseMotionListener(this);
+		realConf.addMouseMotionListener(this);
+		realConf.getTableHeader().addMouseMotionListener(this);
+		stringConf.addMouseMotionListener(this);
+		stringConf.getTableHeader().addMouseMotionListener(this);
+		classes.addMouseMotionListener(this);
+		classes.getTableHeader().addMouseMotionListener(this);
+		attributes.addMouseMotionListener(this);
+		attributes.getTableHeader().addMouseMotionListener(this);
+		associations.addMouseMotionListener(this);
+		associations.getTableHeader().addMouseMotionListener(this);
+		options.addMouseMotionListener(this);
+		invariants.addMouseMotionListener(this);
 		
 		file = new File(model.filename().replaceAll("\\.use", "") + ".properties");
 		currentFileLabel = new JLabel(file.getAbsolutePath());
@@ -555,7 +582,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		classAttributes = new Hashtable<String,ConfigurationTableModel>();
 		classAssociations = new Hashtable<String,ConfigurationTableModel>();
 		validatable = false;
-
     	
     	center = new JTabbedPane(JTabbedPane.TOP);
     	main = new JPanel();
@@ -564,11 +590,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         southNorth = new JPanel(upperLowerPanelLayout);
         north = new JPanel(new BorderLayout());
         westSouth = new JPanel(upperLowerPanelLayout);
-        centerSouth = new JPanel();
+        centerSouth = new JPanel(new BorderLayout());
         centerSouth.setBorder(new BevelBorder(BevelBorder.LOWERED));
         eastSouth = new JPanel();
         south = new JPanel(new BorderLayout());
-        
 
         openFileButton = new JButton("Open");
         sectionSelectionComboBox = new JComboBox<String>();
@@ -600,7 +625,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         			insertConfigurationInAttributes();
         			insertConfigurationInAssociations();
         			insertConfigurationInInvariantsOptions();
-        			tableChanged = false;
+        			configurationChanged = false;
         			classes.clearSelection();
         			currentFileLabel.setText(file.getAbsolutePath());
         		} else {
@@ -621,21 +646,49 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         renameConfigurationButton.addActionListener(new ActionListener() {
         	@Override
         	public void actionPerformed(ActionEvent e) {
-        		//TODO: Ein Button, um die aktuell gewaehlte Konfiguration umzubenennen
+        		String sectionToDelete = selectedSection;
+        		String newName = JOptionPane.showInputDialog("Please input the new name of this configuration:", selectedSection);
+        		propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
+        		propertiesConfigurationSections.remove(sectionToDelete);
+        		selectedSection = newName;
+        		configurationChanged = true;
+        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.addItem(newName);
+        		sectionSelectionComboBox.removeItem(sectionToDelete);
+        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.setSelectedItem(newName);
         	}
         });
         
         deleteConfigurationButton.addActionListener(new ActionListener() {
         	@Override
         	public void actionPerformed(ActionEvent e) {
-        		//TODO: Ein Button, um die aktuell gewaehlte Konfiguration zu loeschen
+        		String sectionToDelete = selectedSection;
+        		propertiesConfigurationSections.remove(sectionToDelete);
+        		configurationChanged = true;
+        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.removeItem(sectionToDelete);
+        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.setSelectedIndex(0);
         	}
         });
         
         newConfigurationButton.addActionListener(new ActionListener() {
         	@Override
         	public void actionPerformed(ActionEvent e) {
-        		//TODO: Ein Button, um eine Konfiguration zu erstellen, wobei man dessen Namen auswaehlen kann, aber auch eine Standard-Vergabe bekommt
+        		String newName = JOptionPane.showInputDialog("Please input the name of the new configuration:", "config"+defaultNameCount);
+        		defaultNameCount++;
+        		if (newName != null) {
+        			propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
+        		} else {
+        			return;
+        		}
+        		selectedSection = newName;
+        		configurationChanged = true;
+        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.addItem(newName);
+        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.setSelectedItem(newName);
         	}
         });
         
@@ -666,9 +719,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         north.add(northNorth, BorderLayout.NORTH);
         north.add(southNorth, BorderLayout.SOUTH);
         westSouth.add(validateButton);
-        //TODO: in centerSouth eine Legende einfuegen oder Erklaerungen einfuegen
-        centerSouth.add(new JLabel("Hier kommt die Legende hin!"));
-        //TODO: vielleicht in eastSouth eine Legende einfuegen oder contextspezifische Erklaerungen
+        centerSouth.add(explainArea, BorderLayout.CENTER);
         eastSouth.add(new JLabel("Hier kommt irgendwas anderes hin!"));
         south.add(westSouth, BorderLayout.WEST);
         south.add(centerSouth, BorderLayout.CENTER);
@@ -677,9 +728,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         main.add(north, BorderLayout.NORTH);
         main.add(center, BorderLayout.CENTER); 
         main.add(south, BorderLayout.SOUTH);
-
+        
         collectConfigurations(file);
-        tableChanged = false;
+        configurationChanged = false;
         insertConfigurationInBasicTypes();
         insertConfigurationInClasses();
         insertConfigurationInAttributes();
@@ -687,7 +738,13 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         insertConfigurationInInvariantsOptions();
         classes.setRowSelectionInterval(0,0);
         
-    	this.setContentPane(main);
+        explainArea.setSize(this.getParent().getSize());
+        explainArea.setEditable(false);
+        explainArea.setBackground(getParent().getBackground());
+        explainArea.setLineWrap(true);
+        explainArea.setWrapStyleWord(true);
+
+        this.setContentPane(main);
     	this.setLocationRelativeTo(parent);
     	this.pack();
     	this.setVisible(true);
@@ -1340,4 +1397,258 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		}
 	}
 
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		// this should do nothing
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		Component component = e.getComponent();
+		if ((component instanceof JTable) && component.getName() != null) {
+			JTable table = (JTable) component;
+			int column = table.columnAtPoint(e.getPoint());
+			switch (table.getName()) {
+			case ("intConf"): {
+				switch (table.getColumnName(column)) {
+				case (ConfigurationConversion.INTEGER_MIN): {
+					explainArea.setText(LegendEntry.INT_MINIMUM);
+					break;
+				}
+				case (ConfigurationConversion.INTEGER_MAX): {
+					explainArea.setText(LegendEntry.INT_MAXIMUM);
+					break;
+				}
+				case (ConfigurationConversion.INTEGER_VALUES): {
+					explainArea.setText(LegendEntry.INT_VALUES);
+					break;
+				}
+				}
+				break;
+			}
+			case ("realConf"): {
+				switch (table.getColumnName(column)) {
+				case (ConfigurationConversion.REAL_MIN): {
+					explainArea.setText(LegendEntry.REAL_MINIMUM);
+					break;
+				}
+				case (ConfigurationConversion.REAL_MAX): {
+					explainArea.setText(LegendEntry.REAL_MAXIMUM);
+					break;
+				}
+				case (ConfigurationConversion.REAL_STEP): {
+					explainArea.setText(LegendEntry.REAL_STEP);
+					break;
+				}
+				case (ConfigurationConversion.REAL_VALUES): {
+					explainArea.setText(LegendEntry.REAL_VALUES);
+					break;
+				}
+				}
+				break;
+			}
+			case ("stringConf"): {
+				switch (table.getColumnName(column)) {
+				case (ConfigurationConversion.STRING_MIN): {
+					explainArea.setText(LegendEntry.STRING_MINPRESENT);
+					break;
+				}
+				case (ConfigurationConversion.STRING_MAX): {
+					explainArea.setText(LegendEntry.STRING_MAXPRESENT);
+					break;
+				}
+				case (ConfigurationConversion.STRING_VALUES): {
+					explainArea.setText(LegendEntry.STRING_PRESENTSTRINGS);
+					break;
+				}
+				}
+				break;
+			}
+			case ("classes"): {
+				switch (table.getColumnName(column)) {
+				case (ConfigurationConversion.CLASSES_MIN): {
+					explainArea.setText(LegendEntry.CLASS_MININSTANCES);
+					break;
+				}
+				case (ConfigurationConversion.CLASSES_MAX): {
+					explainArea.setText(LegendEntry.CLASS_MAXINSTANCES);
+					break;
+				}
+				case (ConfigurationConversion.CLASSES_VALUES): {
+					explainArea.setText(LegendEntry.CLASS_INSTANCENAMES);
+					break;
+				}
+				}
+				break;
+			}
+			case ("attributes"): {
+				switch (table.getColumnName(column)) {
+				case (ConfigurationConversion.ATTRIBUTES_MIN): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_MINDEFINED);
+					break;
+				}
+				case (ConfigurationConversion.ATTRIBUTES_MAX): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_MAXDEFINED);
+					break;
+				}
+				case (ConfigurationConversion.ATTRIBUTES_MINSIZE): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_MINELEMENTS);
+					break;
+				}
+				case (ConfigurationConversion.ATTRIBUTES_MAXSIZE): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_MAXELEMENTS);
+					break;
+				}
+				case (ConfigurationConversion.ATTRIBUTES_VALUES): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_ATTRIBUTEVALUES);
+					break;
+				}
+				}
+				break;
+			}
+			case ("associations"): {
+				switch (table.getColumnName(column)) {
+				case (ConfigurationConversion.ASSOCIATIONS_MIN): {
+					explainArea.setText(LegendEntry.ASSOCIATIONS_MINLINKS);
+					break;
+				}
+				case (ConfigurationConversion.ASSOCIATIONS_MAX): {
+					explainArea.setText(LegendEntry.ASSOCIATIONS_MAXLINKS);
+					break;
+				}
+				case (ConfigurationConversion.ASSOCIATIONS_VALUES): {
+					explainArea.setText(LegendEntry.ASSOCIATIONS_PRESENTLINKS);
+					break;
+				}
+				}
+				break;
+			}
+			}
+
+		} else if (component instanceof JTableHeader) {
+			JTableHeader tableheader = (JTableHeader) component;
+			int column = tableheader.columnAtPoint(e.getPoint());
+			String tableName = tableheader.getTable().getName();
+			String columnName = tableheader.getTable().getColumnName(column);
+			switch (tableName) {
+			case ("intConf"): {
+				switch (columnName) {
+				case (ConfigurationConversion.INTEGER_MIN): {
+					explainArea.setText(LegendEntry.INT_MINIMUM);
+					break;
+				}
+				case (ConfigurationConversion.INTEGER_MAX): {
+					explainArea.setText(LegendEntry.INT_MAXIMUM);
+					break;
+				}
+				case (ConfigurationConversion.INTEGER_VALUES): {
+					explainArea.setText(LegendEntry.INT_VALUES);
+					break;
+				}
+				}
+				break;
+			}
+			case ("realConf"): {
+				switch (columnName) {
+				case (ConfigurationConversion.REAL_MIN): {
+					explainArea.setText(LegendEntry.REAL_MINIMUM);
+					break;
+				}
+				case (ConfigurationConversion.REAL_MAX): {
+					explainArea.setText(LegendEntry.REAL_MAXIMUM);
+					break;
+				}
+				case (ConfigurationConversion.REAL_STEP): {
+					explainArea.setText(LegendEntry.REAL_STEP);
+					break;
+				}
+				case (ConfigurationConversion.REAL_VALUES): {
+					explainArea.setText(LegendEntry.REAL_VALUES);
+					break;
+				}
+				}
+				break;
+			}
+			case ("stringConf"): {
+				switch (columnName) {
+				case (ConfigurationConversion.STRING_MIN): {
+					explainArea.setText(LegendEntry.STRING_MINPRESENT);
+					break;
+				}
+				case (ConfigurationConversion.STRING_MAX): {
+					explainArea.setText(LegendEntry.STRING_MAXPRESENT);
+					break;
+				}
+				case (ConfigurationConversion.STRING_VALUES): {
+					explainArea.setText(LegendEntry.STRING_PRESENTSTRINGS);
+					break;
+				}
+				}
+				break;
+			}
+			case ("classes"): {
+				switch (columnName) {
+				case (ConfigurationConversion.CLASSES_MIN): {
+					explainArea.setText(LegendEntry.CLASS_MININSTANCES);
+					break;
+				}
+				case (ConfigurationConversion.CLASSES_MAX): {
+					explainArea.setText(LegendEntry.CLASS_MAXINSTANCES);
+					break;
+				}
+				case (ConfigurationConversion.CLASSES_VALUES): {
+					explainArea.setText(LegendEntry.CLASS_INSTANCENAMES);
+					break;
+				}
+				}
+				break;
+			}
+			case ("attributes"): {
+				switch (columnName) {
+				case (ConfigurationConversion.ATTRIBUTES_MIN): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_MINDEFINED);
+					break;
+				}
+				case (ConfigurationConversion.ATTRIBUTES_MAX): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_MAXDEFINED);
+					break;
+				}
+				case (ConfigurationConversion.ATTRIBUTES_MINSIZE): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_MINELEMENTS);
+					break;
+				}
+				case (ConfigurationConversion.ATTRIBUTES_MAXSIZE): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_MAXELEMENTS);
+					break;
+				}
+				case (ConfigurationConversion.ATTRIBUTES_VALUES): {
+					explainArea.setText(LegendEntry.ATTRIBUTES_ATTRIBUTEVALUES);
+					break;
+				}
+				}
+				break;
+			}
+			case ("associations"): {
+				switch (columnName) {
+				case (ConfigurationConversion.ASSOCIATIONS_MIN): {
+					explainArea.setText(LegendEntry.ASSOCIATIONS_MINLINKS);
+					break;
+				}
+				case (ConfigurationConversion.ASSOCIATIONS_MAX): {
+					explainArea.setText(LegendEntry.ASSOCIATIONS_MAXLINKS);
+					break;
+				}
+				case (ConfigurationConversion.ASSOCIATIONS_VALUES): {
+					explainArea.setText(LegendEntry.ASSOCIATIONS_PRESENTLINKS);
+					break;
+				}
+				}
+				break;
+			}
+			}
+		} else {
+			explainArea.setText("");
+		}
+	}
+	
 }
