@@ -12,8 +12,10 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -73,6 +75,7 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ASSOCIATIONCLASS_INDICATOR = " [AC]";
+	//TODO: Alle nicht editierbaren Tabellenzellen ausgrauen, statt nur "non-editable" zu schreiben
 	private static final String NON_EDITABLE = "non-editable";
 	private static final int OPTIONS_TABLE_DIVIDER_HEIGHT = 2;
 	private static final int OPTIONS_TABLE_HEIGHT = 64;
@@ -118,11 +121,10 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 	private JPanel main;
 	private FlowLayout upperLowerPanelLayout;
 	private JPanel northNorth;
-	private JPanel southNorth;
+	private JPanel northSouth;
 	private JPanel north;
-	private JPanel westSouth;
-	private JPanel centerSouth;
-	private JPanel eastSouth;
+	private JPanel southWest;
+	private JPanel southCenter;
 	private JPanel south;
     
 	private JButton openFileButton;
@@ -469,7 +471,6 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 	}
 	
 	private class SwitchRenderer implements TableCellRenderer {
-		//TODO: Franks Wunsch: Curser der Tastatureingabe soll sichtbar sein
 		public Component getTableCellRendererComponent(JTable table, Object value,
 				boolean isSelected, boolean hasFocus, int row, int column) {
 			if (value == null)
@@ -512,7 +513,6 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 	public ModelValidatorConfigurationWindow(final JFrame parent, final MModel model) {
 		super(parent, "Model-Validator Configuration");
 		
-		//TODO: Design durch bessers als das hier verbessern
 		this.getRootPane().setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, getRootPane().getBackground()));
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		//TODO: USE soll weiterhin verwendbar bleiben, waehrrend die MV-GUI weiterlaeuft. Dies soll geschehen, indem die Validierung
@@ -587,12 +587,11 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
     	main = new JPanel();
         upperLowerPanelLayout = new FlowLayout(FlowLayout.LEFT);
         northNorth = new JPanel(upperLowerPanelLayout);
-        southNorth = new JPanel(upperLowerPanelLayout);
+        northSouth = new JPanel(upperLowerPanelLayout);
         north = new JPanel(new BorderLayout());
-        westSouth = new JPanel(upperLowerPanelLayout);
-        centerSouth = new JPanel(new BorderLayout());
-        centerSouth.setBorder(new BevelBorder(BevelBorder.LOWERED));
-        eastSouth = new JPanel();
+        southWest = new JPanel(upperLowerPanelLayout);
+        southCenter = new JPanel(new BorderLayout());
+        southCenter.setBorder(new BevelBorder(BevelBorder.LOWERED));
         south = new JPanel(new BorderLayout());
 
         openFileButton = new JButton("Open");
@@ -703,27 +702,23 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
         	}
         } );
         
-        //TODO: VIELLEICHT: Ein Button, um eine neue .properties-Datei zu erstellen
-        
-        center.add("Basic types", createBasicTypesTab());
-        center.add("Classes and associations", createClassesAndAssociationsTab());
-        center.add("Invariants and options", createInvariantsAndOptionsTab());
         northNorth.add(openFileButton);
         northNorth.add(sectionSelectionComboBox);
         northNorth.add(saveConfigurationButton);
         northNorth.add(renameConfigurationButton);
         northNorth.add(deleteConfigurationButton);
         northNorth.add(newConfigurationButton);
-        southNorth.add(new JLabel("Properties file loaded: "));
-        southNorth.add(currentFileLabel);
+        northSouth.add(new JLabel("Properties file loaded: "));
+        northSouth.add(currentFileLabel);
         north.add(northNorth, BorderLayout.NORTH);
-        north.add(southNorth, BorderLayout.SOUTH);
-        westSouth.add(validateButton);
-        centerSouth.add(explainArea, BorderLayout.CENTER);
-        eastSouth.add(new JLabel("Hier kommt irgendwas anderes hin!"));
-        south.add(westSouth, BorderLayout.WEST);
-        south.add(centerSouth, BorderLayout.CENTER);
-        //south.add(eastSouth, BorderLayout.EAST);
+        north.add(northSouth, BorderLayout.SOUTH);
+        center.add("Basic types", createBasicTypesAndOptionsTab());
+        center.add("Classes and associations", createClassesAndAssociationsTab());
+        center.add("Invariants and options", createInvariantsTab());
+        southWest.add(validateButton);
+        southCenter.add(explainArea, BorderLayout.CENTER);
+        south.add(southWest, BorderLayout.WEST);
+        south.add(southCenter, BorderLayout.CENTER);
         main.setLayout(new BorderLayout());
         main.add(north, BorderLayout.NORTH);
         main.add(center, BorderLayout.CENTER); 
@@ -738,7 +733,6 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
         insertConfigurationInInvariantsOptions();
         classes.setRowSelectionInterval(0,0);
         
-        explainArea.setSize(this.getParent().getSize());
         explainArea.setEditable(false);
         explainArea.setBackground(getParent().getBackground());
         explainArea.setLineWrap(true);
@@ -815,12 +809,12 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 		return validatable;
 	}
 
-	private JSplitPane createBasicTypesTab() {
-		JSplitPane basicTypesPanel;
+	private JSplitPane createBasicTypesAndOptionsTab() {
+		//TODO: Slider neben Zahlenwerten einsetzen
+		JSplitPane basicTypesAndOptionsPanel;
 		
-		JPanel upperLeft = new JPanel();
-		upperLeft.setLayout(new BoxLayout(upperLeft,BoxLayout.PAGE_AXIS));
-
+		JPanel leftUpper = new JPanel();
+		leftUpper.setLayout(new BoxLayout(leftUpper,BoxLayout.PAGE_AXIS));
 		intConf.getModel().setValueAt("<html><b>Integer</b></html>",0,0);
 		intConf.setPreferredScrollableViewportSize(new Dimension(intConf.getWidth(),intConf.getRowHeight()*intConf.getRowCount()));
 		intConf.setSelectionBackground(Color.white);
@@ -830,31 +824,65 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 		stringConf.getModel().setValueAt("<html><b>String</b></html>",0,0);
 		stringConf.setPreferredScrollableViewportSize(new Dimension(stringConf.getWidth(),stringConf.getRowHeight()*stringConf.getRowCount()));
 		stringConf.setSelectionBackground(Color.white);
-		
 		JScrollPane intScroll = new JScrollPane(intConf);
 		JScrollPane realScroll = new JScrollPane(realConf);
 		JScrollPane stringScroll = new JScrollPane(stringConf);
-		
 		Dimension space = new Dimension(0,10);
+		leftUpper.add(intScroll);
+		leftUpper.add(Box.createRigidArea(space));
+		leftUpper.add(realScroll);
+		leftUpper.add(Box.createRigidArea(space));
+		leftUpper.add(stringScroll);
+
+		JPanel leftLower = new JPanel(new BorderLayout()); 
+		JTextArea abstractClassesText = new JTextArea();
+		abstractClassesText.setBackground(this.getBackground());
+		abstractClassesText.setText(abstractClassesChildren());
+		leftLower.add(abstractClassesText, BorderLayout.CENTER);
 		
-		upperLeft.add(intScroll);
-		upperLeft.add(Box.createRigidArea(space));
-		upperLeft.add(realScroll);
-		upperLeft.add(Box.createRigidArea(space));
-		upperLeft.add(stringScroll);
+		JPanel rightUpper = new JPanel(new BorderLayout());
+		options.getModel().setValueAt(PropertyEntry.aggregationcyclefreeness,0,0);
+		options.getModel().setValueAt(new JRadioButton("On"),0,1);
+		options.getModel().setValueAt(new JRadioButton("Off"),0,2);
+		options.getModel().setValueAt(PropertyEntry.forbiddensharing,1,0);
+		options.getModel().setValueAt(new JRadioButton("On"),1,1);
+		options.getModel().setValueAt(new JRadioButton("Off"),1,2);
+		ButtonGroup aCFButtonsA = new ButtonGroup();
+		aCFButtonsA.add((JRadioButton) options.getModel().getValueAt(0, 1));
+		aCFButtonsA.add((JRadioButton) options.getModel().getValueAt(0, 2));
+		ButtonGroup aCFButtonsB = new ButtonGroup();
+		aCFButtonsB.add((JRadioButton) options.getModel().getValueAt(1, 1));
+		aCFButtonsB.add((JRadioButton) options.getModel().getValueAt(1, 2));
+		options.getColumn("On").setCellRenderer(new SwitchRenderer());
+		options.getColumn("Off").setCellRenderer(new SwitchRenderer());
+		options.getColumn("On").setCellEditor(new SwitchEditor(new JCheckBox()));
+		options.getColumn("Off").setCellEditor(new SwitchEditor(new JCheckBox()));
+		options.setPreferredScrollableViewportSize(new Dimension(350,options.getRowHeight()*options.getRowCount()));
+		options.getColumnModel().getColumn(0).setPreferredWidth(200);
+		rightUpper.add(new JScrollPane(options), BorderLayout.CENTER);
+
+		JPanel rightLower = new JPanel(new BorderLayout());
+		JTextArea legendText = new JTextArea(LegendEntry.LEGEND);
+		legendText.setEditable(false);
+        legendText.setBackground(getParent().getBackground());
+        legendText.setLineWrap(true);
+        legendText.setWrapStyleWord(true);
+        JScrollPane legenScroll = new JScrollPane(legendText);
+		rightLower.add(legenScroll, BorderLayout.CENTER);
+
+		JSplitPane left = new JSplitPane(JSplitPane.VERTICAL_SPLIT, leftUpper, leftLower);
+		JSplitPane right = new JSplitPane(JSplitPane.VERTICAL_SPLIT, rightUpper, rightLower);
+		right.setDividerLocation(OPTIONS_TABLE_HEIGHT);
+		right.setDividerSize(OPTIONS_TABLE_DIVIDER_HEIGHT);
+	
+		basicTypesAndOptionsPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+		basicTypesAndOptionsPanel.setDividerLocation(400);
 		
-		JPanel right = new JPanel(); // Reserviert fuer neue Ideen
-		JPanel lowerLeft = new JPanel(); // Reserviert fuer neue Ideen
-		
-		JSplitPane left = new JSplitPane(JSplitPane.VERTICAL_SPLIT, upperLeft, lowerLeft);
-		
-		basicTypesPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
-		basicTypesPanel.setDividerLocation(400);
-		
-		return basicTypesPanel;
+		return basicTypesAndOptionsPanel;
 	}
 
 	private JSplitPane createClassesAndAssociationsTab() {
+		//TODO: Slider neben Zahlenwerten einsetzen
 		JScrollPane classesScrollPane = new JScrollPane(classes);
         JScrollPane attributesScrollPane = new JScrollPane(attributes);
         JScrollPane associationsScrollPane = new JScrollPane(associations);
@@ -878,23 +906,9 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 		return caaTabLeftSplitPane;
 	}
 	
-	private JSplitPane createInvariantsAndOptionsTab() {
+	private JPanel createInvariantsTab() {
 		JScrollPane invariantsScrollPane = new JScrollPane(invariants);
 		
-		options.getModel().setValueAt(PropertyEntry.aggregationcyclefreeness,0,0);
-		options.getModel().setValueAt(new JRadioButton("On"),0,1);
-		options.getModel().setValueAt(new JRadioButton("Off"),0,2);
-		options.getModel().setValueAt(PropertyEntry.forbiddensharing,1,0);
-		options.getModel().setValueAt(new JRadioButton("On"),1,1);
-		options.getModel().setValueAt(new JRadioButton("Off"),1,2);
-		
-		ButtonGroup aCFButtonsA = new ButtonGroup();
-		aCFButtonsA.add((JRadioButton) options.getModel().getValueAt(0, 1));
-		aCFButtonsA.add((JRadioButton) options.getModel().getValueAt(0, 2));
-		ButtonGroup aCFButtonsB = new ButtonGroup();
-		aCFButtonsB.add((JRadioButton) options.getModel().getValueAt(1, 1));
-		aCFButtonsB.add((JRadioButton) options.getModel().getValueAt(1, 2));
-
 		Iterator<MClassInvariant> allInvariantsIterator = model.classInvariants().iterator();
 		Hashtable<String,ButtonGroup> buttonGroups = new Hashtable<String,ButtonGroup>();
 		int i = 0;
@@ -915,35 +929,22 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 			i++;
 		}	
 		
-		options.getColumn("On").setCellRenderer(new SwitchRenderer());
-		options.getColumn("Off").setCellRenderer(new SwitchRenderer());
 		invariants.getColumn("Active").setCellRenderer(new SwitchRenderer());
 		invariants.getColumn("Inactive").setCellRenderer(new SwitchRenderer());
 		invariants.getColumn("Negate").setCellRenderer(new SwitchRenderer());
 		
-		options.getColumn("On").setCellEditor(new SwitchEditor(new JCheckBox()));
-		options.getColumn("Off").setCellEditor(new SwitchEditor(new JCheckBox()));
 		invariants.getColumn("Active").setCellEditor(new SwitchEditor(new JCheckBox()));
 		invariants.getColumn("Inactive").setCellEditor(new SwitchEditor(new JCheckBox()));
 		invariants.getColumn("Negate").setCellEditor(new SwitchEditor(new JCheckBox()));
 		
-		options.setPreferredScrollableViewportSize(new Dimension(350,options.getRowHeight()*options.getRowCount()));
-		options.getColumnModel().getColumn(0).setPreferredWidth(200);
 		invariants.setPreferredScrollableViewportSize(new Dimension(800,invariants.getRowHeight()*invariants.getRowCount()));
 		invariants.getColumnModel().getColumn(0).setPreferredWidth(400);
 		invariantsScrollPane.setPreferredSize(new Dimension(this.getWidth()/2,this.getHeight()));
 		
-		JPanel optionsPanel = new JPanel();
 		JPanel invariantsPanel = new JPanel(new BorderLayout());
-		JSplitPane ioPane;
-		
-		optionsPanel.add(new JScrollPane(options));
 		invariantsPanel.add(invariantsScrollPane, BorderLayout.CENTER);
-		ioPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, optionsPanel, invariantsPanel);
-		ioPane.setDividerLocation(OPTIONS_TABLE_HEIGHT);
-		ioPane.setDividerSize(OPTIONS_TABLE_DIVIDER_HEIGHT);
 		
-		return ioPane;
+		return invariantsPanel;
 	}
 	
 	private String [] preparStringForConfiguration(String values) {
@@ -1649,6 +1650,58 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 		} else {
 			explainArea.setText("");
 		}
+	}
+	
+	private Set<MClass> getAbstractClasses(MModel model) {
+		Iterator<MClass> classIterator = model.classes().iterator();
+		Set<MClass> abstractClasses = new HashSet<MClass>();
+		while (classIterator.hasNext()) {
+			MClass clazz = classIterator.next();
+			if (clazz.isAbstract()) {
+				abstractClasses.add(clazz);
+			}
+		}
+		return abstractClasses;
+	}
+	
+	private String abstractClassesChildren() {
+		/*
+		 * "Abstract Classes: \n Base_Named \n\n"
+						+ "Inheriting Classes:\n"
+						+ "Base_Named > Base_DataType \n"
+						+ "Base_Named > Base_Attribute \n"
+						+ "Base_Named > ErSyn_ErSchema \n"
+						+ "Base_Named > ErSyn_Entity \n"
+						+ "Base_Named > ErSyn_Relship \n"
+						+ "Base_Named > ErSyn_Relend \n"
+						+ "Base_Named > RelSyn_RelDBSchema \n"
+						+ "Base_Named > RelSyn_RelSchema");
+		 */
+		String abstractText = "Abstract Classes: \n";
+		Iterator<MClass> abstractClasses = getAbstractClasses(model).iterator();
+		while (abstractClasses.hasNext()) {
+			MClass abstractClass = abstractClasses.next();
+			abstractText += abstractClass.name();
+			if (abstractClasses.hasNext()) {
+				abstractText += ", ";
+			} else {
+				abstractText += "\n\n";
+			}
+		}
+		abstractClasses = getAbstractClasses(model).iterator();
+		if (abstractClasses.hasNext()) {
+			abstractText += "Inheriting Classes:\n";
+		}
+		while (abstractClasses.hasNext()) {
+			MClass abstractClass = abstractClasses.next();
+			Set<? extends MClass> inheritingClasses = abstractClass.allChildren();
+			Iterator<? extends MClass> inheritingClassesIterator = inheritingClasses.iterator();
+			while (inheritingClassesIterator.hasNext()) {
+				abstractText += abstractClass.name()+" > "+inheritingClassesIterator.next().name()+"\n";
+			}
+		}
+		
+		return abstractText;
 	}
 	
 }

@@ -29,4 +29,22 @@ public class LegendEntry {
 	public static final String ASSOCIATIONS_MAXLINKS = ConfigurationConversion.ASSOCIATIONS_MAX+": "+"Maximum number of links for the association. Concrete links override this setting.";
 	public static final String ASSOCIATIONS_PRESENTLINKS = ConfigurationConversion.ASSOCIATIONS_VALUES+": "+"Concrete links  that need to be present in the solution.";
 	
+	public static final String LEGEND = 
+			"Legend:\n"
+			+"\n"
+			+ConfigurationConversion.INTEGER_MIN+": Lower bound of integer or real values. \n\n"
+			+ConfigurationConversion.INTEGER_MAX+": Upper bound of integer or real values. \n\n"
+			+ConfigurationConversion.INTEGER_VALUES+": Concrete values of type integer or real that are need to be present in the solution."+"\n\n"
+			+CLASS_MININSTANCES+"\n\n"
+			+CLASS_MAXINSTANCES+"\n\n"
+			+CLASS_INSTANCENAMES+"\n\n"
+			+ATTRIBUTES_MINDEFINED+"\n\n"
+			+ATTRIBUTES_MAXDEFINED+"\n\n"
+			+ATTRIBUTES_MINELEMENTS+"\n\n"
+			+ATTRIBUTES_MAXELEMENTS+"\n\n"
+			+ATTRIBUTES_ATTRIBUTEVALUES+"\n\n"
+			+ASSOCIATIONS_MINLINKS+"\n\n"
+			+ASSOCIATIONS_MAXLINKS+"\n\n"
+			+ASSOCIATIONS_PRESENTLINKS;
+	
 }
