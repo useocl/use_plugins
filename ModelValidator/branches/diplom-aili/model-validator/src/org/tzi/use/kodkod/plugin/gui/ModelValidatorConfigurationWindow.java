@@ -94,7 +94,6 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 	private String[] associationsColumns = new String[]{ConfigurationConversion.ASSOCIATIONS, ConfigurationConversion.ASSOCIATIONS_MIN, ConfigurationConversion.ASSOCIATIONS_MAX, ConfigurationConversion.ASSOCIATIONS_VALUES};
 	private JTable associations;
 
-	private String[] attributesColumns = new String[]{ConfigurationConversion.ATTRIBUTES, ConfigurationConversion.ATTRIBUTES_MIN, ConfigurationConversion.ATTRIBUTES_MAX, ConfigurationConversion.ATTRIBUTES_MINSIZE, ConfigurationConversion.ATTRIBUTES_MAXSIZE, ConfigurationConversion.ATTRIBUTES_VALUES};
 	private JTable attributes;
 
 	private String[] classesColumns = new String[]{ConfigurationConversion.CLASSES, ConfigurationConversion.CLASSES_MIN, ConfigurationConversion.CLASSES_MAX, ConfigurationConversion.CLASSES_VALUES};;
@@ -141,6 +140,8 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 	private AttributesTableListener attributesTableListener;
 	private AssociationsTableListener associationsTableListener;
 
+	
+	private ValidationConfiguration config;
 	
 	/*
 	 * Listens for changed selection in the drop down menu, puts previous propertiesConfiguration
@@ -424,7 +425,7 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 		            updateClassAssociations(selectedClass);
 	            }
 	            selectedClass = clearString((String) classes.getValueAt(selectedRow, 0));
-	            fillAttributeTable(selectedClass);
+	            updateClassAttributes(selectedClass);
 	            fillAssociationTable(selectedClass);
 	        }
         }
@@ -522,10 +523,11 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 		this.setSize(800,300);
 
 		this.model = model;
+		this.config = new ValidationConfiguration(model);
 		
 		explainArea = new JTextArea();
 		associations = new JTable(new ConfigurationTableModel(associationsColumns, new Object[1][4]));
-		attributes = new JTable(new ConfigurationTableModel(attributesColumns, new Object[1][6]));
+		attributes = new JTable(new AttributeTableModel());
 		classes = new JTable(new ConfigurationTableModel(classesColumns, new Object[model.classes().size()][4]));
 		intConf = new JTable(new ConfigurationTableModel(intTypeColumns, new Object[1][4]));
 		realConf = new JTable(new ConfigurationTableModel(realTypeColumns, new Object[1][5]));
@@ -553,7 +555,9 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 		
 		classes.getModel().addTableModelListener(new ClassesTableListener());
 		classTableSelectionListener = classes.getSelectionModel();
+		
 		classTableSelectionListener.addListSelectionListener(new ClassTableSelectionHandler());
+		
 		classes.setSelectionModel(classTableSelectionListener);
 		attributesTableListener = new AttributesTableListener();
 		attributes.getModel().addTableModelListener(attributesTableListener);
@@ -1144,35 +1148,7 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 				}
 				row++;
 			}
-
-			classAttributes.put(className, new ConfigurationTableModel(attributesColumns,attributesData));
-			if (isFirstClass) {
-				selectedClass = className;
-				fillAttributeTable(className);
-				isFirstClass = false;
-			}
 		}
-	}
-	
-	/**
-	 * fills the gui table for attributes with values mapped with passed className
-	 * @param className
-	 */
-	private void fillAttributeTable(String className) {
-		attributes.getModel().removeTableModelListener(attributesTableListener);
-		ConfigurationTableModel table = classAttributes.get(className);
-		int rowCount = attributes.getModel().getRowCount();
-		for (int row = 0; row < rowCount; row++) {
-			((ConfigurationTableModel) attributes.getModel()).removeRow(0);
-		}
-		for (int row = 0; row < table.getRowCount(); row++) {
-			Object[] tempRow = new Object[table.getColumnCount()];
-			for (int col = 0; col < table.getColumnCount(); col++) {
-				tempRow[col] = table.getValueAt(row, col);
-			}
-			((ConfigurationTableModel) attributes.getModel()).addRow(tempRow);
-		}
-		attributes.getModel().addTableModelListener(attributesTableListener);
 	}
 	
 	/**
@@ -1180,29 +1156,8 @@ public class ModelValidatorConfigurationWindow extends JDialog implements MouseM
 	 * @param className
 	 */
 	private void updateClassAttributes(String className) {
-		ConfigurationTableModel table = classAttributes.get(className);
-		for (int row = 0; row < table.getRowCount(); row++) {
-			String attributeName = (String)table.getValueAt(row, 0);
-			if (propertiesConfiguration.containsKey(attributeName+"_min")) {
-				table.setValueAt(propertiesConfiguration.getInt(attributeName+"_min"), row, 1);
-			}
-			if (propertiesConfiguration.containsKey(attributeName+"_max")) {
-				table.setValueAt(propertiesConfiguration.getInt(attributeName+"_max"), row, 2);
-			}
-			if (propertiesConfiguration.containsKey(attributeName+"_minSize")) {
-				table.setValueAt(propertiesConfiguration.getInt(attributeName+"_minSize"), row, 3);
-			}
-			if (propertiesConfiguration.containsKey(attributeName+"_maxSize")) {
-				table.setValueAt(propertiesConfiguration.getInt(attributeName+"_maxSize"), row, 4);
-			}
-			if (propertiesConfiguration.containsKey(attributeName)) {
-				if (propertiesConfiguration.getProperty(attributeName) != null) {
-					table.setValueAt(prepareConfigurationValuesForTable(propertiesConfiguration.getProperty(attributeName)), row, 5);
-				} else {
-					table.setValueAt(null, row, 5);
-				}
-			}
-		}
+		AttributeTableModel tableModel = (AttributeTableModel)this.attributes.getModel();
+		tableModel.setClass(this.config.getClassSettings(className));
 	}
 	
 	/**
