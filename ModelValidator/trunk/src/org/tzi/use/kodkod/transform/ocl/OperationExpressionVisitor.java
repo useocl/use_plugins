@@ -59,16 +59,22 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 		org.tzi.use.uml.ocl.expr.Expression[] arguments = exp.getArguments();
 		visitOperationVariable(arguments[0]);
 		
-		if (!OperationStack.INSTANCE.contains(exp.getOperation())) {
-			OperationStack.INSTANCE.push(operation);
-			
+		// recursion detection
+		//TODO remove singleton pattern usage
+		if (OperationStack.INSTANCE.contains(exp.getOperation())) {
+			OperationStack.INSTANCE.clear();
+			throw new TransformationException("Operation " + operation.name() + " is recursive!");
+		}
+		
+		OperationStack.INSTANCE.push(operation);
+		try {
 			visitParams(operation, arguments);
-
+			
 			Node self = opVariables.get("self");
 			Expression expression = getAsExpression(self);
-
+			
 			Map<MClass, MOperation> overiddenOperations = getOverriddenOperations(operation.cls(), operation.name());
-
+			
 			DefaultExpressionVisitor mainVisitor = visitOperation(operation);
 			if (overiddenOperations.isEmpty()) {
 				object = mainVisitor.getObject();
@@ -79,20 +85,19 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 			
 			set = exp.getOperation().resultType().isCollection(true);
 			object_type_nav = mainVisitor.isObject_type_nav();
-
+			
 			object = expression.in(undefined).thenElse(undefined, getAsExpression(object));
-
+			
 			opVariables.remove("self");
 			opVariableClasses.remove("self");
-
+			
 			//variables.putAll(opVariables);
 			//variableClasses.putAll(opVariableClasses);
-
-			OperationStack.INSTANCE.pop();
-		} else {
-			OperationStack.INSTANCE.clear();
-			throw new TransformationException("Operation " + operation.name() + " is recursive!");
 		}
+		finally {
+			OperationStack.INSTANCE.pop();
+		}
+		
 
 	}
 
