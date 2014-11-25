@@ -41,6 +41,13 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		super(model, variables, variableClasses, replaceVariables, collectionVariables);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * <b>Note:</b> This method is only reachable from inside the
+	 * {@code VariableOperationVisitor}. Other {@code any} expressions are
+	 * handled by {@link QueryExpressionVisitor#visitAny(ExpAny)}.
+	 */
 	@Override
 	public void visitAny(ExpAny exp) {
 		super.visitAny(exp);
@@ -208,7 +215,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		sourceType = exp.type();
 		
 		if (replaceVariables.containsKey(exp.getVarname())) {
-			object = replaceVariables.get(exp.getVarname());		
+			object = replaceVariables.get(exp.getVarname());
 			getAttributeClass(replaceVariables.get(exp.getVarname()).name());
 
 		} else if (variables.containsKey(exp.getVarname())) {
@@ -233,7 +240,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		super.visitObjOp(exp);
 		MOperation operation = exp.getOperation();
 		if (operation.hasResultType() && operation.resultType().isObjectType()) {
-			attributeClass = model.getClass(operation.resultType().shortName());
+			attributeClass = model.getClass(((ObjectType) operation.resultType()).cls().name());
 		}
 	}
 

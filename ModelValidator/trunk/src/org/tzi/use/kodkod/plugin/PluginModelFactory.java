@@ -117,7 +117,7 @@ public enum PluginModelFactory implements ChangeListener {
 	
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		if(system.get() != null && ((Session) e.getSource()).system() != system.get()){
+		if(((Session) e.getSource()).hasSystem() && ((Session) e.getSource()).system() != system.get()){
 			reTransform = true;
 		}
 	}
