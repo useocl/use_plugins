@@ -48,7 +48,16 @@ public class AssociationConfigurator extends Configurator<IAssociation> {
 		for (String[] specific : specificValues) {
 			atoms = new ArrayList<String>();
 			for (int i = 0; i < arity; i++) {
-				atoms.add(allAssociationEnds.get(i).associatedClass().name() + "_" + specific[i]);
+				/*
+				 * FIXME Automatic Diagram Extraction and properties file create different models.
+				 * One adds the class name for links and the other does not. There might also be
+				 * further clashes regarding attribute definitions and so on.
+				 */
+				if(tupleFactory.universe().contains(allAssociationEnds.get(i).associatedClass().name() + "_" + specific[i])){
+					atoms.add(allAssociationEnds.get(i).associatedClass().name() + "_" + specific[i]);
+				} else {
+					atoms.add(specific[i]);
+				}
 			}
 			lower.add(tupleFactory.tuple(atoms));
 		}
