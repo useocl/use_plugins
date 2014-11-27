@@ -2,18 +2,18 @@
 
 	<property name="compiler" value="1.7" />
 	<property name="use.path" value="../use" />
+	<property name="use.classes" value="${use.path}/build/classes" />
 	<property name="filename_thin" value="ModelValidatorPlugin_thin.jar" />
 	<property name="filename_fat" value="ModelValidator_fat.jar" />
 
 	<path id="classpath">
 		<fileset dir="lib" includes="*.jar" />
-		<fileset dir="${use.path}/build/lib" includes="*.jar" />
+		<fileset dir="${use.path}/lib" includes="*.jar" excludes="use*" />
+		<pathelement location="${use.classes}"/>
 	</path>
 
 	<target name="use-jar">
-		<subant target="jar-use">
-			<fileset dir="${use.path}" includes="build.xml" />
-		</subant>
+		<subant target="compile-use" buildpath="${use.path}" />
 	</target>
 
 	<target name="clean">
