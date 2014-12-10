@@ -12,6 +12,7 @@ public class UseScrollingAllKodkodModelValidator extends UseScrollingKodkodModel
 	protected void handleSolution() {
 		boolean errors = createObjectDiagram(solution.instance().relationTuples());
 		if (!errors) {
+			readSolutionTerm();
 			solutions.add(solution.instance().relationTuples());
 		} else {
 			session.reset();
