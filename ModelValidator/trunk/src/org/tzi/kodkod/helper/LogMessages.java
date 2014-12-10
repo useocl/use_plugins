@@ -206,19 +206,18 @@ public final class LogMessages {
 
 	public static String aggregationcyclefreenessInfo() {
 		String status = DefaultConfigurationValues.aggregationcyclefreeness ? "on" : "off";
-		return "Only on and off are possible values of aggregationcyclefreeness! Use default: " + status;
+		return "Only on and off are possible values of aggregationcyclefreeness! Using default " + inQuotes(status) + ".";
 	}
 
 	public static String forbiddensharingInfo() {
 		String status = DefaultConfigurationValues.forbiddensharing ? "on" : "off";
-		return "Only on and off are possible values of forbiddensharing! Use default: " + status;
+		return "Only on and off are possible values of forbiddensharing! Using default " + inQuotes(status) + ".";
 	}
 	
 	public static String invariantConfigWarning(String state) {
 		return state + " is not possible for an invariant. Possible states for an invariant are "
 				+ inQuotes("active") + ", " + inQuotes("inactive") + " and "
-				+ inQuotes("negate") + ". Use " + inQuotes("active")
-				+ " as default.";
+				+ inQuotes("negate") + ". Using default " + inQuotes("active") + ".";
 	}
 
 	public static String showSolution(int index) {
@@ -256,12 +255,12 @@ public final class LogMessages {
 	public static String flagChangeInfo(IInvariant inv, boolean didDisable) {
 		String message;
 		if(didDisable){
-			message = "Overwrite property configuration with generator configuration disabling invariant %s";
+			message = "Overwrite property configuration with generator configuration disabling invariant %s.";
 		}
 		else {
-			message = "Overwrite property configuration with generator configuration negating invariant %s";
+			message = "Overwrite property configuration with generator configuration negating invariant %s.";
 		}
-		return String.format(message, inv.qualifiedName());
+		return String.format(message, inQuotes(inv.qualifiedName()));
 	}
 
 }
