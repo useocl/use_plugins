@@ -242,7 +242,8 @@ public class ModelConfigurator extends Configurator<IModel> {
 	}
 
 	/**
-	 * Searches for a class in the model that prefixes the object atom.
+	 * Searches for a class in the model that prefixes (by string comparison)
+	 * the object atom.
 	 * <p>
 	 * This process is not deterministic, i. e. classes can hide other classes
 	 * if they contain underscores and share prefixes. Example: Class
@@ -250,7 +251,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 	 * 
 	 * @return class of the object atom, null if no class could be determined
 	 */
-	protected IClass extractClassFromAtom(String objectAtom) {
+	private IClass extractClassFromAtom(String objectAtom) {
 		String[] split = objectAtom.toString().split("_");
 		
 		if(split.length <= 1){
@@ -267,7 +268,6 @@ public class ModelConfigurator extends Configurator<IModel> {
 				return cls;
 			}
 		}
-
 		return null;
 	}
 
