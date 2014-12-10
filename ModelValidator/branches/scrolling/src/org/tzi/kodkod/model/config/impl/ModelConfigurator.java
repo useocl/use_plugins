@@ -258,12 +258,16 @@ public class ModelConfigurator extends Configurator<IModel> {
 			return model.getClass(objectAtom);
 		}
 		
-		String className = split[0];
-		
-		for(int i = 1; i < split.length; i++){
-			className += "_" + split[i];
+		StringBuilder className = new StringBuilder();
+		boolean first = true;
+		for(int i = 0; i < split.length; i++){
+			if(!first){
+				className.append("_");
+			}
+			className.append(split[i]);
+			first = false;
 			
-			IClass cls = model.getClass(className);
+			IClass cls = model.getClass(className.toString());
 			if(cls != null){
 				return cls;
 			}
