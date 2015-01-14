@@ -201,7 +201,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	}
 
 	/**
-	 * Stores the class of an object variable for futher use.
+	 * Stores the class of an object variable for further use.
 	 * 
 	 * @param varDecl
 	 */

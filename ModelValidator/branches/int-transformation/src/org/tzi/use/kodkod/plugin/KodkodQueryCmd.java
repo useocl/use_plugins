@@ -80,34 +80,36 @@ public class KodkodQueryCmd extends AbstractPlugin implements IPluginShellCmdDel
 	}
 
 	private void evaluateQuery(Object object) {
-		if (object != null) {
-			Evaluator evaluator = null;
-			
-			// get evaluator of last result
-			try {
-				evaluator = KodkodQueryCache.INSTANCE.getEvaluator();
+		if (object == null) {
+			return;
+		}
+		
+		// get evaluator of last result
+		Evaluator evaluator;
+		try {
+			evaluator = KodkodQueryCache.INSTANCE.getEvaluator();
+		}
+		catch(Exception e){
+			LOG.error(LogMessages.queryEvaluatorNotFound);
+			LOG.error(e.getMessage());
+			return;
+		}
+		
+		// evaluate query
+		try {
+			if(object instanceof kodkod.ast.Expression){
+				LOG.info(evaluator.evaluate((kodkod.ast.Expression) object));
+			} else if(object instanceof Formula){
+				LOG.info(evaluator.evaluate((Formula) object));
+			} else if(object instanceof IntExpression){
+				LOG.info(evaluator.evaluate((IntExpression) object));
+			} else {
+				LOG.error(LogMessages.unsupportedQueryType);
 			}
-			catch(Exception e){
-				LOG.error(LogMessages.queryEvaluatorNotFound);
-				LOG.error(e.getMessage());
-				return;
-			}
-			
-			// evaluate query
-			try {
-				if(object instanceof kodkod.ast.Expression){
-					LOG.info(evaluator.evaluate((kodkod.ast.Expression) object));
-				} else if(object instanceof Formula){
-					LOG.info(evaluator.evaluate((Formula) object));
-				} else if(object instanceof IntExpression){
-					LOG.info(evaluator.evaluate((IntExpression) object));
-				} else {
-					LOG.error(LogMessages.unsupportedQueryType);
-				}
-			} catch (Exception e) {
-				LOG.error(LogMessages.queryEvaluationError);
-				e.printStackTrace();
-			}
+		} catch (Exception e) {
+			LOG.error(LogMessages.queryEvaluationError);
+			e.printStackTrace();
+			return;
 		}
 	}
 
