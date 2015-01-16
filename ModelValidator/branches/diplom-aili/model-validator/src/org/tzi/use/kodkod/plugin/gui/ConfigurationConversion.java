@@ -2,7 +2,9 @@ package org.tzi.use.kodkod.plugin.gui;
 
 public class ConfigurationConversion {
 	
-	public static final String BASIC_TYPE = "Type";
+	public static final String INTEGER = "Integer";
+	public static final String REAL = "Real";
+	public static final String STRING = "String";
 	public static final String CLASSES = "Classes";
 	public static final String ATTRIBUTES = "Attributes";
 	public static final String ASSOCIATIONS = "Associations";
@@ -33,5 +35,13 @@ public class ConfigurationConversion {
 	public static final String ASSOCIATIONS_MIN = "MinLinks";
 	public static final String ASSOCIATIONS_MAX = "MaxLinks";
 	public static final String ASSOCIATIONS_VALUES = "PresentLinks";
+	
+	//public static final String OPTION = "Option";
+	public static final String OPTION_FORBIDDENSHARING = "Forbidden Sharing";
+	public static final String OPTION_AGGREGATIONCYCLEFREENESS = "Aggregation Cycle Freeness";
+	
+	//public static final String INVARIANTS = "Invariants";
+	public static final String INVARIANTS_ACTIVE = "Active";
+	public static final String INVARIANTS_NEGATE = "Negate";
 	
 }

@@ -160,13 +160,14 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	}
 	
 	private void configureModel(IPluginAction pluginAction) throws Exception {
+		//TODO: Diese Methode in eine GUI-Methode extrahieren
 		model().reset();
 		File file = new File(mModel.filename().replaceAll("\\.use", "") + ".properties");
         if (!file.exists()) {
         	model().accept(new DefaultConfigurationVisitor(mModel.filename()));
         }
         ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
-        		new ModelValidatorConfigurationWindow(MainWindow.instance(), pluginAction.getSession().system().model());
+        		new ModelValidatorConfigurationWindow(MainWindow.instance(), mModel);
         if (modelValidatorConfigurationWindow.getChosenPropertiesConfiguration() != null) {
         	if (modelValidatorConfigurationWindow.isValidatable()) {
 	        	configurationVisitor = new PropertyConfigurationVisitor(modelValidatorConfigurationWindow.getChosenPropertiesConfiguration());
@@ -182,7 +183,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
         		System.out.println("Validation aborted.");
         	}
         } else {
-        	JOptionPane.showMessageDialog(pluginAction.getParent(), new JLabel("No Configuration loaded!"));
+        	JOptionPane.showMessageDialog(MainWindow.instance(), new JLabel("No Configuration loaded!"));
         }
 	}
 	

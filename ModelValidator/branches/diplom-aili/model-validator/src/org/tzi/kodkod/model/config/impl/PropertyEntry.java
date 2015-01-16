@@ -1,5 +1,7 @@
 package org.tzi.kodkod.model.config.impl;
 
+import java.util.HashSet;
+
 /**
  * Contains the names for the configuration file.
  * 
@@ -60,4 +62,26 @@ public class PropertyEntry {
 	public static final String STRONG_DIVIDE_LINE = "------------------------------------------------------------------------";
 	public static final String LIGHT_DIVIDE_LINE = "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
 	public static final String DEFAULT_SECTION = "[default]";
+	
+	public static final String ASSOCIATIONCLASS = "_ac";
+	
+	public static final HashSet<String> allEndings = new HashSet<String>(){
+		private static final long serialVersionUID = 1L;
+	{
+		add(stringValuesMin);
+		add(stringValuesMax);
+		add(realValueMin);
+		add(realValueMax);
+		add(realStep);
+		add(integerValueMin);
+		add(integerValueMax);
+		add(objMin);
+		add(objMax);
+		add(linksMin);
+		add(linksMax);
+		add(attributeDefValuesMin);
+		add(attributeDefValuesMax);
+		add(attributeColSizeMin);
+		add(attributeColSizeMax);
+	}};
 }
