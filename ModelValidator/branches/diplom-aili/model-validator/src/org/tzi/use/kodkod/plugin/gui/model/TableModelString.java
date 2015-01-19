@@ -2,7 +2,7 @@ package org.tzi.use.kodkod.plugin.gui.model;
 
 import javax.swing.table.DefaultTableModel;
 
-import org.tzi.use.kodkod.plugin.gui.ConfigurationConversion;
+import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsString;
 
 public class TableModelString extends DefaultTableModel {
@@ -11,10 +11,10 @@ public class TableModelString extends DefaultTableModel {
 	private SettingsString settings = new SettingsString();
 	
 	private static String[] columnNames = new String[] {
-			"Type",
-			ConfigurationConversion.STRING_MIN,
-			ConfigurationConversion.STRING_MAX,
-			ConfigurationConversion.STRING_VALUES };
+		ConfigurationTerms.BASIC_TYPE,
+		ConfigurationTerms.STRING_MIN,
+		ConfigurationTerms.STRING_MAX,
+		ConfigurationTerms.STRING_VALUES };
 	
 	public TableModelString(SettingsString settings) {
 		super();

@@ -12,6 +12,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.JTableHeader;
 
 import org.tzi.kodkod.model.config.impl.PropertyEntry;
+import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAssociation;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAttribute;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelClass;
@@ -33,8 +34,8 @@ public class TableBuilder {
 	}
 	
 	public JTable integer(){
-		JTable table = new JTable(new TableModelInteger(allSettings.getIntegerTypeSettings()));
-		table.setName(ConfigurationConversion.INTEGER);
+		JTable table = new MVTable(new TableModelInteger(allSettings.getIntegerTypeSettings()));
+		table.setName(TypeConstants.INTEGER);
 		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
 			private static final long serialVersionUID = 1L;
 			public String getToolTipText(MouseEvent e) {
@@ -52,8 +53,8 @@ public class TableBuilder {
 	}
 	
 	public JTable real(){
-		JTable table = new JTable(new TableModelReal(allSettings.getRealTypeSettings()));
-		table.setName(ConfigurationConversion.REAL);
+		JTable table = new MVTable(new TableModelReal(allSettings.getRealTypeSettings()));
+		table.setName(TypeConstants.REAL);
 		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
 			private static final long serialVersionUID = 1L;
 			public String getToolTipText(MouseEvent e) {
@@ -71,8 +72,8 @@ public class TableBuilder {
 	}
 	
 	public JTable string(){
-		JTable table = new JTable(new TableModelString(allSettings.getStringTypeSettings()));
-		table.setName(ConfigurationConversion.STRING);
+		JTable table = new MVTable(new TableModelString(allSettings.getStringTypeSettings()));
+		table.setName(TypeConstants.STRING);
 		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
 			private static final long serialVersionUID = 1L;
 			public String getToolTipText(MouseEvent e) {
@@ -90,8 +91,8 @@ public class TableBuilder {
 	}
 	
 	public JTable classes(){
-		JTable table = new JTable(new TableModelClass(allSettings.getAllClassesSettings()));
-		table.setName(ConfigurationConversion.CLASSES);
+		JTable table = new MVTable(new TableModelClass(allSettings.getAllClassesSettings()));
+		table.setName(ConfigurationTerms.CLASSES);
 		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
 			private static final long serialVersionUID = 1L;
 			public String getToolTipText(MouseEvent e) {
@@ -101,6 +102,7 @@ public class TableBuilder {
                         return getToolTipBy(table.getName(), columnName);
             }
 		};
+		
 		table.setTableHeader(tableHeader);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		return table;
@@ -110,8 +112,8 @@ public class TableBuilder {
 		//TODO: Bei spaeterem ein und ausblenden, muessen irgendwie die Tooltips an die wechselnden TableHeader angepasst werden
 		List<SettingsAttribute> attributes = 
 					new ArrayList<>(allSettings.getAllClassesSettings().get(0).getAttributeSettings().values());
-		JTable table = new JTable(new TableModelAttribute(attributes));
-		table.setName(ConfigurationConversion.ATTRIBUTES);
+		JTable table = new MVTable(new TableModelAttribute(attributes));
+		table.setName(ConfigurationTerms.ATTRIBUTES);
 		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
 			private static final long serialVersionUID = 1L;
 			public String getToolTipText(MouseEvent e) {
@@ -129,8 +131,8 @@ public class TableBuilder {
 	public JTable associations(){
 		List<SettingsAssociation> associations = 
 					new ArrayList<>(allSettings.getAllClassesSettings().get(0).getAssociationSettings().values());
-		JTable table = new JTable(new TableModelAssociation(associations));
-		table.setName(ConfigurationConversion.ASSOCIATIONS);
+		JTable table = new MVTable(new TableModelAssociation(associations));
+		table.setName(ConfigurationTerms.ASSOCIATIONS);
 		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
 			private static final long serialVersionUID = 1L;
 			public String getToolTipText(MouseEvent e) {
@@ -146,7 +148,7 @@ public class TableBuilder {
 	}
 	
 	public JTable options(){
-		JTable table = new JTable(new TableModelOption(allSettings.getOptionSettings()));
+		JTable table = new MVTable(new TableModelOption(allSettings.getOptionSettings()));
 		table.getModel().setValueAt(PropertyEntry.aggregationcyclefreeness,0,0);
 		table.getModel().setValueAt(PropertyEntry.forbiddensharing,1,0);
 		table.setPreferredScrollableViewportSize(new Dimension(350,table.getRowHeight()*table.getRowCount()));
@@ -156,7 +158,7 @@ public class TableBuilder {
 	}
 	
 	public JTable invariants(){
-		JTable table = new JTable(new TableModelInvariant(allSettings.getAllInvariantsSettings()));
+		JTable table = new MVTable(new TableModelInvariant(allSettings.getAllInvariantsSettings()));
 		table.setPreferredScrollableViewportSize(new Dimension(800,table.getRowHeight()*table.getRowCount()));
 		table.getColumnModel().getColumn(0).setPreferredWidth(400);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -168,94 +170,94 @@ public class TableBuilder {
 			return null;
 		}
 		switch (tableName) {
-			case (ConfigurationConversion.INTEGER): {
+			case (TypeConstants.INTEGER): {
 				switch (columnName) {
-				case (ConfigurationConversion.INTEGER_MIN): {
+				case (ConfigurationTerms.INTEGER_MIN): {
 					return LegendEntry.INT_MINIMUM;
 				}
-				case (ConfigurationConversion.INTEGER_MAX): {
+				case (ConfigurationTerms.INTEGER_MAX): {
 					return LegendEntry.INT_MAXIMUM;
 				}
-				case (ConfigurationConversion.INTEGER_VALUES): {
+				case (ConfigurationTerms.INTEGER_VALUES): {
 					return LegendEntry.INT_VALUES;
 				}
 				}
 				break;
 			}
-			case (ConfigurationConversion.REAL): {
+			case (TypeConstants.REAL): {
 				switch (columnName) {
-				case (ConfigurationConversion.REAL_MIN): {
+				case (ConfigurationTerms.REAL_MIN): {
 					return LegendEntry.REAL_MINIMUM;
 				}
-				case (ConfigurationConversion.REAL_MAX): {
+				case (ConfigurationTerms.REAL_MAX): {
 					return LegendEntry.REAL_MAXIMUM;
 				}
-				case (ConfigurationConversion.REAL_STEP): {
+				case (ConfigurationTerms.REAL_STEP): {
 					return LegendEntry.REAL_STEP;
 				}
-				case (ConfigurationConversion.REAL_VALUES): {
+				case (ConfigurationTerms.REAL_VALUES): {
 					return LegendEntry.REAL_VALUES;
 				}
 				}
 				break;
 			}
-			case (ConfigurationConversion.STRING): {
+			case (TypeConstants.STRING): {
 				switch (columnName) {
-				case (ConfigurationConversion.STRING_MIN): {
+				case (ConfigurationTerms.STRING_MIN): {
 					return LegendEntry.STRING_MINPRESENT;
 				}
-				case (ConfigurationConversion.STRING_MAX): {
+				case (ConfigurationTerms.STRING_MAX): {
 					return LegendEntry.STRING_MAXPRESENT;
 				}
-				case (ConfigurationConversion.STRING_VALUES): {
+				case (ConfigurationTerms.STRING_VALUES): {
 					return LegendEntry.STRING_PRESENTSTRINGS;
 				}
 				}
 				break;
 			}
-			case (ConfigurationConversion.CLASSES): {
+			case (ConfigurationTerms.CLASSES): {
 				switch (columnName) {
-				case (ConfigurationConversion.CLASSES_MIN): {
+				case (ConfigurationTerms.CLASSES_MIN): {
 					return LegendEntry.CLASS_MININSTANCES;
 				}
-				case (ConfigurationConversion.CLASSES_MAX): {
+				case (ConfigurationTerms.CLASSES_MAX): {
 					return LegendEntry.CLASS_MAXINSTANCES;
 				}
-				case (ConfigurationConversion.CLASSES_VALUES): {
+				case (ConfigurationTerms.CLASSES_VALUES): {
 					return LegendEntry.CLASS_INSTANCENAMES;
 				}
 				}
 				break;
 			}
-			case (ConfigurationConversion.ATTRIBUTES): {
+			case (ConfigurationTerms.ATTRIBUTES): {
 				switch (columnName) {
-				case (ConfigurationConversion.ATTRIBUTES_MIN): {
+				case (ConfigurationTerms.ATTRIBUTES_MIN): {
 					return LegendEntry.ATTRIBUTES_MINDEFINED;
 				}
-				case (ConfigurationConversion.ATTRIBUTES_MAX): {
+				case (ConfigurationTerms.ATTRIBUTES_MAX): {
 					return LegendEntry.ATTRIBUTES_MAXDEFINED;
 				}
-				case (ConfigurationConversion.ATTRIBUTES_MINSIZE): {
+				case (ConfigurationTerms.ATTRIBUTES_MINSIZE): {
 					return LegendEntry.ATTRIBUTES_MINELEMENTS;
 				}
-				case (ConfigurationConversion.ATTRIBUTES_MAXSIZE): {
+				case (ConfigurationTerms.ATTRIBUTES_MAXSIZE): {
 					return LegendEntry.ATTRIBUTES_MAXELEMENTS;
 				}
-				case (ConfigurationConversion.ATTRIBUTES_VALUES): {
+				case (ConfigurationTerms.ATTRIBUTES_VALUES): {
 					return LegendEntry.ATTRIBUTES_ATTRIBUTEVALUES;
 				}
 				}
 				break;
 			}
-			case (ConfigurationConversion.ASSOCIATIONS): {
+			case (ConfigurationTerms.ASSOCIATIONS): {
 				switch (columnName) {
-				case (ConfigurationConversion.ASSOCIATIONS_MIN): {
+				case (ConfigurationTerms.ASSOCIATIONS_MIN): {
 					return LegendEntry.ASSOCIATIONS_MINLINKS;
 				}
-				case (ConfigurationConversion.ASSOCIATIONS_MAX): {
+				case (ConfigurationTerms.ASSOCIATIONS_MAX): {
 					return LegendEntry.ASSOCIATIONS_MAXLINKS;
 				}
-				case (ConfigurationConversion.ASSOCIATIONS_VALUES): {
+				case (ConfigurationTerms.ASSOCIATIONS_VALUES): {
 					return LegendEntry.ASSOCIATIONS_PRESENTLINKS;
 				}
 				}

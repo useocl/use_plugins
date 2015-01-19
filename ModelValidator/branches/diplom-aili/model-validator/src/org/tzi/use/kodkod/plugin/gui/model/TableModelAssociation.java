@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
 
-import org.tzi.use.kodkod.plugin.gui.ConfigurationConversion;
+import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAssociation;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
 
@@ -16,10 +16,10 @@ public class TableModelAssociation extends DefaultTableModel {
 	private List<SettingsAssociation> associationsSettings = Collections.emptyList();
 	
 	private static String[] columnNames = new String[] {
-			"Association",
-			ConfigurationConversion.ASSOCIATIONS_MIN,
-			ConfigurationConversion.ASSOCIATIONS_MAX,
-			ConfigurationConversion.ASSOCIATIONS_VALUES };
+			ConfigurationTerms.ASSOCIATIONS,
+			ConfigurationTerms.ASSOCIATIONS_MIN,
+			ConfigurationTerms.ASSOCIATIONS_MAX,
+			ConfigurationTerms.ASSOCIATIONS_VALUES };
 	
 	public TableModelAssociation(List<SettingsAssociation> settings) {
 		super();

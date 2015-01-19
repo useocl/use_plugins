@@ -101,7 +101,7 @@ final public class ConfigurationChange {
 		Iterator<SettingsClass> classesIterator = classesSettings.iterator();
 		while (classesIterator.hasNext()) {
 			SettingsClass classSettings = classesIterator.next();
-			if (!classSettings.getIsAssociationClass()) {
+			if (!classSettings.isAssociationClass()) {
 				pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMin, classSettings.getBounds().getLower());
 				pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMax, classSettings.getBounds().getUpper());
 				if (!classSettings.getValuesForProperties().isEmpty()) {

@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
 
-import org.tzi.use.kodkod.plugin.gui.ConfigurationConversion;
+import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAttribute;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
 
@@ -16,15 +16,18 @@ public class TableModelAttribute extends DefaultTableModel {
 	//MinElements, MaxElements standardmaessig weggeblendet sein, mit einer Checkbox, um sie wieder einzublenden.
 	//Min-/MaxDefined und Min-/MaxElements sollen wie auch bei Min-/Maximum als Ranges dargestellt werden
 	
+	//TODO: Vielleicht koennte bei den Attributsnamen dahinter der zugehoerige abstrakte Klassenname stehen
+	//sofern vorhanden.
+	
 	private List<SettingsAttribute> attributesSettings = Collections.emptyList();
 	
 	private static String[] columnNames = new String[] {
-			"Attribute",
-			ConfigurationConversion.ATTRIBUTES_MIN,
-			ConfigurationConversion.ATTRIBUTES_MAX,
-			ConfigurationConversion.ATTRIBUTES_MINSIZE,
-			ConfigurationConversion.ATTRIBUTES_MAXSIZE,
-			ConfigurationConversion.ATTRIBUTES_VALUES 
+			ConfigurationTerms.ATTRIBUTES,
+			ConfigurationTerms.ATTRIBUTES_MIN,
+			ConfigurationTerms.ATTRIBUTES_MAX,
+			ConfigurationTerms.ATTRIBUTES_MINSIZE,
+			ConfigurationTerms.ATTRIBUTES_MAXSIZE,
+			ConfigurationTerms.ATTRIBUTES_VALUES 
 	};
 	
 	public TableModelAttribute(List<SettingsAttribute> settings) {
@@ -53,7 +56,12 @@ public class TableModelAttribute extends DefaultTableModel {
 
 	@Override
 	public boolean isCellEditable(int row, int column) {
-		if (column > 0) {
+		SettingsAttribute set = attributesSettings.get(row); 
+		if ((set.getClassSettings().isAssociationClass()) && (column == 3 || column == 4)) {
+			return false;
+		} else if (set.isInherited()) {
+			return false;
+		} else if (column > 0) {
 			return true;
 		} else {
 			return false;

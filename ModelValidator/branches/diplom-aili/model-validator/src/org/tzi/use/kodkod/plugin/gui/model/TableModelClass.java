@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
 
-import org.tzi.use.kodkod.plugin.gui.ConfigurationConversion;
+import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
 
 public class TableModelClass extends DefaultTableModel {
@@ -14,10 +14,10 @@ public class TableModelClass extends DefaultTableModel {
 	private List<SettingsClass> classesSettings = Collections.emptyList();
 	
 	private static String[] columnNames = new String[] {
-			"Class",
-			ConfigurationConversion.CLASSES_MIN,
-			ConfigurationConversion.CLASSES_MAX,
-			ConfigurationConversion.CLASSES_VALUES };
+			ConfigurationTerms.CLASSES,
+			ConfigurationTerms.CLASSES_MIN,
+			ConfigurationTerms.CLASSES_MAX,
+			ConfigurationTerms.CLASSES_VALUES };
 	
 	public TableModelClass(List<SettingsClass> classesSettings) {
 		super();
@@ -47,7 +47,11 @@ public class TableModelClass extends DefaultTableModel {
 
 	@Override
 	public boolean isCellEditable(int row, int column) {
-		if (column > 0) {
+		if ((classesSettings.get(row).isAssociationClass()) && (column == 1 || column == 2)) {
+			return false;
+		} else if (classesSettings.get(row).getCls().isAbstract()) {
+			return false;
+		} else if (column > 0) {
 			return true;
 		} else {
 			return false;

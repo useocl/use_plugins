@@ -2,7 +2,7 @@ package org.tzi.use.kodkod.plugin.gui.model;
 
 import javax.swing.table.DefaultTableModel;
 
-import org.tzi.use.kodkod.plugin.gui.ConfigurationConversion;
+import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsOption;
 
 public class TableModelOption extends DefaultTableModel {
@@ -11,7 +11,7 @@ public class TableModelOption extends DefaultTableModel {
 	private SettingsOption settings = new SettingsOption();
 	
 	private static String[] columnNames = new String[] {
-		"Option",
+		ConfigurationTerms.OPTION,
 		"" };
 	
 	public TableModelOption(SettingsOption settings) {
@@ -39,9 +39,9 @@ public class TableModelOption extends DefaultTableModel {
 		case 0: 
 			switch(row) {
 			case 0:
-				return ConfigurationConversion.OPTION_AGGREGATIONCYCLEFREENESS;
+				return ConfigurationTerms.OPTION_AGGREGATIONCYCLEFREENESS;
 			case 1:
-				return ConfigurationConversion.OPTION_FORBIDDENSHARING;
+				return ConfigurationTerms.OPTION_FORBIDDENSHARING;
 			}
 		case 1:
 			switch(row) {

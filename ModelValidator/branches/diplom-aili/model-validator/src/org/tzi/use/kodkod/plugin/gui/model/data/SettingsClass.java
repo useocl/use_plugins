@@ -21,7 +21,7 @@ public class SettingsClass extends Settings {
 		this.isAssociationClass = cls instanceof MAssociationClassImpl;
 		
 		for (MAttribute attr : cls.allAttributes()) {
-			attributeSettings.put(attr, new SettingsAttribute(attr));
+			attributeSettings.put(attr, new SettingsAttribute(attr, this, !clazz.attributes().contains(attr)));
 		}
 		
 		for (MAssociation assoc : cls.allAssociations()) {
@@ -37,7 +37,7 @@ public class SettingsClass extends Settings {
 		}
 	}
 
-	public Boolean getIsAssociationClass() {
+	public Boolean isAssociationClass() {
 		return isAssociationClass;
 	}
 

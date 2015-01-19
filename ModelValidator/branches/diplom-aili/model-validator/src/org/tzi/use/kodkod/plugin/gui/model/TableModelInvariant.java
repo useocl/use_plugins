@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
 
+import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsInvariant;
 
 public class TableModelInvariant extends DefaultTableModel {
@@ -13,7 +14,9 @@ public class TableModelInvariant extends DefaultTableModel {
 	private List<SettingsInvariant> settings = new ArrayList<>();
 	
 	private static String[] columnNames = new String[] {
-		"Invariant", "Active", "Negate" 
+		ConfigurationTerms.INVARIANTS, 
+		ConfigurationTerms.INVARIANTS_ACTIVE, 
+		ConfigurationTerms.INVARIANTS_NEGATE 
 	};
 	
 	public TableModelInvariant(List<SettingsInvariant> settings) {

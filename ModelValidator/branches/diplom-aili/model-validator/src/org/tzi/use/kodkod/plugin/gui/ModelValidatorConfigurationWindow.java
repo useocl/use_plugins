@@ -36,18 +36,12 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
-import org.tzi.kodkod.model.config.impl.PropertyEntry;
 import org.tzi.use.gui.util.ExtFileFilter;
 import org.tzi.use.kodkod.plugin.PropertiesWriter;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAssociation;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAttribute;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
 import org.tzi.use.kodkod.plugin.gui.util.ConfigurationChange;
-import org.tzi.use.kodkod.plugin.gui.util.StringChange;
-import org.tzi.use.uml.mm.MAssociation;
-import org.tzi.use.uml.mm.MAssociationClass;
-import org.tzi.use.uml.mm.MAssociationClassImpl;
-import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
 
@@ -64,8 +58,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ASSOCIATIONCLASS_INDICATOR = " [AC]";
-	//TODO: Alle nicht editierbaren Tabellenzellen ausgrauen, statt nur "non-editable" zu schreiben
-	private static final String NON_EDITABLE = "non-editable";
 	private static final int OPTIONS_TABLE_DIVIDER_HEIGHT = 2;
 	private static final int OPTIONS_TABLE_HEIGHT = 64;
 	
@@ -188,7 +180,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		settingsConfiguration = new SettingsConfiguration(model);
 		tableBuilder = new TableBuilder(settingsConfiguration);
 		
-		//TODO: Hier kommen vielleicht noch Benachrichtigungen aus dem Validierungsprozess herein
 		statusArea = new JTextArea();
 		
 		//building all tables and adding them to a HashSet for repainting alltogether purposes
@@ -345,7 +336,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         statusArea.setBackground(getParent().getBackground());
         statusArea.setLineWrap(true);
         statusArea.setWrapStyleWord(true);
-        statusArea.setText("Test Jo");
+      //TODO: Hier kommen spaeter die Benachrichtigungen aus dem Validierungsprozess herein
+        statusArea.setText("");
         
         //TODO: Die Buttons "Open", "Save", "New configuration", "Rename", "New", "Delete",(spaeter auch: "Save as", "New file")
         //sollen als zu Menu-Punkten umgewandelt werden, statt der jetzigen Toolbar-Form
@@ -375,13 +367,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         settingsConfiguration = ConfigurationChange.toSettings(model, propertiesConfiguration, settingsConfiguration);
         TableBuilder.repaintAllTables(tables.iterator());
         configurationChanged = false;
-        /* TODO: Entfernen oder andere Methode finden, um die Tabellen mit aus der
-         * Konfiguration extrahierten Daten zu fuellen
-        insertConfigurationInBasicTypes();
-        insertConfigurationInClasses();
-        insertConfigurationInAttributes();
-        insertConfigurationInAssociations();
-        insertConfigurationInInvariantsOptions();*/
         classes.setRowSelectionInterval(0,0);
         
 
@@ -540,182 +525,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 	
 	/**
-	 * fills gui table for basic types with the values from the chosen propertiesConfiguration
-	 */
-	private void insertConfigurationInBasicTypes() {
-		integer.getModel().setValueAt(propertiesConfiguration.getInt("Integer_min"), 0, 1);
-		integer.getModel().setValueAt(propertiesConfiguration.getInt("Integer_max"), 0, 2);
-		if (!(propertiesConfiguration.getProperty("Integer") == null)) {
-			integer.getModel().setValueAt(StringChange.prepareForTable(propertiesConfiguration.getProperty("Integer")), 0, 3);
-		} else integer.getModel().setValueAt(null, 0, 3);
-		real.getModel().setValueAt(propertiesConfiguration.getInt("Real_min"), 0, 1);
-		real.getModel().setValueAt(propertiesConfiguration.getInt("Real_max"), 0, 2);
-		if (propertiesConfiguration.containsKey("Real_step")) {
-			real.getModel().setValueAt(propertiesConfiguration.getDouble("Real_step"), 0, 3);
-		}
-		if (!(propertiesConfiguration.getProperty("Real") == null)) {
-			real.getModel().setValueAt(StringChange.prepareForTable(propertiesConfiguration.getProperty("Real")), 0, 3);
-		} else real.getModel().setValueAt(null, 0, 3);
-		string.getModel().setValueAt(propertiesConfiguration.getInt("String_min"), 0, 1);
-		string.getModel().setValueAt(propertiesConfiguration.getInt("String_max"), 0, 2);
-		if (!(propertiesConfiguration.getProperty("String") == null)) {
-			string.getModel().setValueAt(StringChange.prepareForTable(propertiesConfiguration.getProperty("String")), 0, 3);
-		} else {
-			string.getModel().setValueAt(null, 0, 3);
-		}
-	}
-	
-	private Boolean isAssociationclass(MClass clazz) {
-		if (clazz.getClass().equals(MAssociationClassImpl.class)) {
-			return true;
-		}
-		return false;
-	}
-	
-	private Boolean isAssociationclass(MAssociation association) {
-		//FIXME: Probieren, ob auch (association instanceof MAssociationClassImpl)
-		//als Bedingung geht ODER ob nicht auch (model.associations().contains(clazz))
-		//noch besser waere
-		if (association.getClass().equals(MAssociationClassImpl.class)) {
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * fills gui table for classes with the classnames and their referenced values
-	 * and formats the classnames appropriately
-	 * @param pc
-	 * @param model
-	 */
-	private void insertConfigurationInClasses() {
-		Iterator<MClass> classesIterator = model.classes().iterator();
-		int row = 0;
-		while (classesIterator.hasNext()) {
-			MClass clazz = classesIterator.next();
-			String className = clazz.toString();
-			if (isAssociationclass(clazz)) {
-				if (clazz.isAbstract()) {
-					classes.getModel().setValueAt( StringChange.html(StringChange.italic(className+StringChange.bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
-				} else {
-					classes.getModel().setValueAt( StringChange.html(className+StringChange.italic(StringChange.bold(ASSOCIATIONCLASS_INDICATOR))) ,row,0);
-					classes.getModel().setValueAt(NON_EDITABLE,row,1);
-					classes.getModel().setValueAt(NON_EDITABLE,row,2);
-				}
-			} else {
-				if (clazz.isAbstract()) {
-					classes.getModel().setValueAt( StringChange.html(StringChange.italic(className)) ,row,0);
-				} else {
-					classes.getModel().setValueAt(className,row,0);
-				}
-			}
-			if (clazz.isAbstract()) {
-				classes.getModel().setValueAt(NON_EDITABLE,row,1);
-				classes.getModel().setValueAt(NON_EDITABLE,row,2);
-				classes.getModel().setValueAt(NON_EDITABLE,row,3);
-				row++;
-				continue;
-			}
-			if (!isAssociationclass(clazz)) {
-				if (propertiesConfiguration.containsKey(className+"_min")) {
-					classes.getModel().setValueAt(propertiesConfiguration.getInt(className+"_min"),row,1);
-				} else {
-					classes.getModel().setValueAt(null, row,1);
-				}
-				if (propertiesConfiguration.containsKey(className+"_max")) {
-					classes.getModel().setValueAt(propertiesConfiguration.getInt(className+"_max"),row,2);
-				} else {
-					classes.getModel().setValueAt(null, row,2);
-				}
-				if (propertiesConfiguration.containsKey(className)) {
-					if (propertiesConfiguration.getProperty(className) != null) {
-						classes.getModel().setValueAt(StringChange.prepareForTable(propertiesConfiguration.getProperty(className)),row,3);
-					} else {
-						classes.getModel().setValueAt(null, row,3);
-					}
-				} else {
-					classes.getModel().setValueAt(null, row,3);
-				}
-			} else {
-				if (propertiesConfiguration.containsKey(className+"_ac")) {
-					if (propertiesConfiguration.getProperty(className) != null) {
-						classes.getModel().setValueAt(StringChange.prepareForTable(propertiesConfiguration.getProperty(className+"_ac")),row,3);
-					} else {
-						classes.getModel().setValueAt(null, row,3);
-					}
-				} else {
-					classes.getModel().setValueAt(null, row,3);
-				}
-				
-			}
-			row++;
-		}
-	}
-	
-	/**
-	 * fills the hashtable classAttributes with attributes mapped to their referenced classes
-	 * @param pc
-	 * @param model
-	 */
-	private void insertConfigurationInAttributes() {
-		Iterator<MClass> classes = model.classes().iterator();
-
-		while (classes.hasNext()) {
-			MClass clazz = classes.next();
-			String className = clazz.toString().trim();
-			Iterator<MAttribute> attributesIterator = clazz.attributes().iterator();
-			int attributesCount = 0;
-			for (MAttribute attribute : clazz.attributes()) {
-				if (!attribute.isDerived()) {
-					attributesCount++;
-				}
-			}
-			Object[][] attributesData = new Object[attributesCount][6];
-			int row = 0;
-			for(MAttribute attribute : clazz.attributes()){
-				if(attribute.isDerived()){
-					continue;
-				}
-				attribute = attributesIterator.next();
-				String attributeName = className+"_"+attribute.toString().substring(0, (attribute.toString().indexOf(':')-1)).trim();
-				attributesData[row][0] = attributeName;
-				if (propertiesConfiguration.containsKey(attributeName+"_min")) {
-					attributesData[row][1] = propertiesConfiguration.getInt(attributeName+"_min");
-				}
-				if (propertiesConfiguration.containsKey(attributeName+"_max")) {
-					attributesData[row][2] = propertiesConfiguration.getInt(attributeName+"_max");
-				}
-				if (!(clazz instanceof MAssociationClass)) {
-					if (propertiesConfiguration.containsKey(attributeName+"_minSize")) {
-						attributesData[row][3] = propertiesConfiguration.getInt(attributeName+"_minSize");
-					} else {
-						attributesData[row][3] = null;
-					}
-				} else {
-					attributesData[row][3] = NON_EDITABLE;
-				}
-				if (!(clazz instanceof MAssociationClass)) {
-					if (propertiesConfiguration.containsKey(attributeName+"_maxSize")) {
-						attributesData[row][4] = propertiesConfiguration.getInt(attributeName+"_maxSize");
-					} else {
-						attributesData[row][4] = null;
-					}
-				} else {
-					attributesData[row][4] = NON_EDITABLE;
-				}
-				if (propertiesConfiguration.containsKey(attributeName)) {
-					if (propertiesConfiguration.getProperty(attributeName) != null) {
-						attributesData[row][5] = StringChange.prepareForTable(propertiesConfiguration.getProperty(attributeName));
-					} else {
-						attributesData[row][5] = null;
-					}
-				}
-				row++;
-			}
-		}
-	}
-	
-	/**
 	 * updates the attributes table refering to given className and gets them from the SettingsConfiguration
 	 * @param className
 	 */
@@ -727,113 +536,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private void updateClassAssociations(String className) {
 		TableModelAssociation associationModel = (TableModelAssociation)this.associations.getModel();
 		associationModel.setClass(this.settingsConfiguration.getClassSettings(className));
-	}
-	
-	/**
-	 * fills the hashtable classAssociations with associations referenced to their
-	 * first association end
-	 * @param pc
-	 * @param model
-	 */
-	//FIXME: Aendern oder entfernen, wenn spaeter Tabelle auch ohne das hier geht
-	private void insertConfigurationInAssociations() {
-		Iterator<MClass> classes = model.classes().iterator();
-
-		while (classes.hasNext()) {
-			MClass clazz = classes.next();
-			String className = clearString(clazz.toString());
-			int classAssociationsCount = 0;
-			Iterator<MAssociation> associationsIterator = model.associations().iterator();
-			while (associationsIterator.hasNext()) {
-				MAssociation association = associationsIterator.next();
-				if (association.associationEnds().iterator().next().cls().equals(clazz) || clazz.equals(association)) {
-					classAssociationsCount++;
-				}
-			}
-			Object[][] associationsData = new Object[classAssociationsCount][4];
-			String associationName;
-			associationsIterator = model.associations().iterator();
-			int row = 0;
-			while (associationsIterator.hasNext() && (row < classAssociationsCount)) {
-				MAssociation association = associationsIterator.next();
-				if ((association.associationEnds().iterator().next().cls().equals(clazz))
-						|| isAssociationclass(clazz)) {
-					associationName = association.toString().trim();
-					if (isAssociationclass(association) && association.isAbstract()) {
-						associationsData[row][0] = StringChange.html(StringChange.italic(associationName+StringChange.bold(ASSOCIATIONCLASS_INDICATOR)));
-					} else if (isAssociationclass(association) && !association.isAbstract()) {
-						associationsData[row][0] = StringChange.html(associationName+StringChange.italic(StringChange.bold(ASSOCIATIONCLASS_INDICATOR)));
-					} else if (!isAssociationclass(association) && association.isAbstract()) {
-						associationsData[row][0] = StringChange.html(StringChange.italic(associationName));
-					} else {
-						associationsData[row][0] = associationName;
-					}
-					if (propertiesConfiguration.containsKey(associationName+"_min")) {
-						associationsData[row][1] = propertiesConfiguration.getInt(associationName+"_min");
-					}
-					if (propertiesConfiguration.containsKey(associationName+"_max")) {
-						associationsData[row][2] = propertiesConfiguration.getInt(associationName+"_max");
-					}
-					if (propertiesConfiguration.containsKey(associationName)) {
-						if (propertiesConfiguration.getProperty(associationName) != null) {
-							associationsData[row][3] = StringChange.prepareForTable(propertiesConfiguration.getProperty(associationName));
-						} else {
-							associationsData[row][3] = null;
-						}
-					}
-					row++;
-				}
-			}
-		}
-	}
-	
-	// FIXME: Aendern oder entfernen, wenn Tabelle nicht mehr benoetigt
-	private void insertConfigurationInInvariantsOptions() {
-		if ((propertiesConfiguration.containsKey(PropertyEntry.aggregationcyclefreeness)) && (propertiesConfiguration.getString(PropertyEntry.aggregationcyclefreeness) != null)) {
-			if (propertiesConfiguration.getString(PropertyEntry.aggregationcyclefreeness).equalsIgnoreCase("on")) {
-				options.getModel().setValueAt(true,0,1);
-			} else if (propertiesConfiguration.getString(PropertyEntry.aggregationcyclefreeness).equalsIgnoreCase("off")) {
-				options.getModel().setValueAt(false,0,1);
-			} else {
-				options.getModel().setValueAt(false,0,1);
-			}
-		} else {
-			options.getModel().setValueAt(false,0,1);
-		}
-		if ((propertiesConfiguration.containsKey(PropertyEntry.forbiddensharing)) && (propertiesConfiguration.getString(PropertyEntry.forbiddensharing) != null)) {
-			if (propertiesConfiguration.getString(PropertyEntry.forbiddensharing).equalsIgnoreCase("on")) {
-				options.getModel().setValueAt(true,1,1);
-			} else if (propertiesConfiguration.getString(PropertyEntry.forbiddensharing).equalsIgnoreCase("off")) {
-				options.getModel().setValueAt(false,1,1);
-			} else {
-				options.getModel().setValueAt(true,1,1);
-			}
-		} else {
-			options.getModel().setValueAt(true,1,1);
-		}
-		
-		int invCount = model.classInvariants().size();
-		for (int i = 0; i < invCount; i++) {
-			String invNameOfRow = (String) invariants.getModel().getValueAt(i, 0);
-			if ((propertiesConfiguration.containsKey(invNameOfRow)) && (propertiesConfiguration.getString(invNameOfRow) != null) ) {
-				if (propertiesConfiguration.getString(invNameOfRow).equalsIgnoreCase("active")) {
-					invariants.getModel().setValueAt(true, i, 1);
-					invariants.getModel().setValueAt(false, i, 2);
-				} else if (propertiesConfiguration.getString(invNameOfRow).equalsIgnoreCase("inactive")) {
-					invariants.getModel().setValueAt(false, i, 1);
-					invariants.getModel().setValueAt(false, i, 2);
-				} else if (propertiesConfiguration.getString(invNameOfRow).equalsIgnoreCase("negate")) {
-					invariants.getModel().setValueAt(true, i, 1);
-					invariants.getModel().setValueAt(true, i, 2);
-				} else {
-					//TODO: Fehlermeldung hier rausbringen
-					System.out.println("Wrong value for "+invNameOfRow+"; it must be \"active\", \"inactive\" or \"negate\".");
-				}
-			} else {
-				invariants.getModel().setValueAt(true, i, 1);
-				invariants.getModel().setValueAt(false, i, 2);
-			}
-		}
 	}
 	
 	/**
