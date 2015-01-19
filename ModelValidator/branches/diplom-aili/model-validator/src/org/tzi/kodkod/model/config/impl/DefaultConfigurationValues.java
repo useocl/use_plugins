@@ -30,7 +30,9 @@ public class DefaultConfigurationValues {
 	public static final int realMax = 2;
 	public static final double realStep = 0.5;
 	
-	public static final boolean aggregationcyclefreeness = false;
+	public static final boolean AGGREGATIONCYCLEFREENESS = false;
+	public static final boolean FORBIDDENSHARING = true;
 	
-	public static final boolean forbiddensharing=true;
+	public static final boolean INVARIANT_ACTIVE = true;
+	public static final boolean INVARIANT_NEGATE = false;
 }

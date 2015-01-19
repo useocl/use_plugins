@@ -201,12 +201,12 @@ public final class LogMessages {
 	}
 
 	public static String aggregationcyclefreenessInfo() {
-		String status = DefaultConfigurationValues.aggregationcyclefreeness ? "on" : "off";
+		String status = DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS ? "on" : "off";
 		return "Only on and off are possible values of aggregationcyclefreeness! Use default: " + status;
 	}
 
 	public static String forbiddensharingInfo() {
-		String status = DefaultConfigurationValues.forbiddensharing ? "on" : "off";
+		String status = DefaultConfigurationValues.FORBIDDENSHARING ? "on" : "off";
 		return "Only on and off are possible values of forbiddensharing! Use default: " + status;
 	}
 	

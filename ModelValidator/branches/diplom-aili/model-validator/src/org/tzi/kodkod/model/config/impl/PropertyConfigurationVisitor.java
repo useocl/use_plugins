@@ -280,7 +280,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 				configurator.setAggregationCycleFreeness(false);
 			} else {
 				LOG.info(LogMessages.aggregationcyclefreenessInfo());
-				configurator.setAggregationCycleFreeness(DefaultConfigurationValues.aggregationcyclefreeness);
+				configurator.setAggregationCycleFreeness(DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS);
 			}
 		}
 		
@@ -292,7 +292,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 				configurator.setForbiddensharing(false);
 			} else {
 				LOG.info(LogMessages.forbiddensharingInfo());
-				configurator.setForbiddensharing(DefaultConfigurationValues.forbiddensharing);
+				configurator.setForbiddensharing(DefaultConfigurationValues.FORBIDDENSHARING);
 			}
 		}
 	}

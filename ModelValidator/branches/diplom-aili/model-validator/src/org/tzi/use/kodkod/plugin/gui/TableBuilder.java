@@ -109,7 +109,6 @@ public class TableBuilder {
 	}
 	
 	public JTable attributes(){
-		//TODO: Bei spaeterem ein und ausblenden, muessen irgendwie die Tooltips an die wechselnden TableHeader angepasst werden
 		List<SettingsAttribute> attributes = 
 					new ArrayList<>(allSettings.getAllClassesSettings().get(0).getAttributeSettings().values());
 		JTable table = new MVTable(new TableModelAttribute(attributes));

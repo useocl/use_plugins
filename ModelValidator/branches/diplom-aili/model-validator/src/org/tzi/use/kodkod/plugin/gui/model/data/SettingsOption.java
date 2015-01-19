@@ -1,9 +1,11 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
+
 public class SettingsOption {
 	
-	private Boolean aggregationcyclefreeness = false;
-	private Boolean forbiddensharing = true;
+	private Boolean aggregationcyclefreeness = DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS;
+	private Boolean forbiddensharing = DefaultConfigurationValues.FORBIDDENSHARING;
 	
 	public SettingsOption() {
 		super();

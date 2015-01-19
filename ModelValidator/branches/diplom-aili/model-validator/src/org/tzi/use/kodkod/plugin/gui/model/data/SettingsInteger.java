@@ -1,5 +1,6 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.type.TypeConstants;
 
 public class SettingsInteger extends Settings {
@@ -8,6 +9,8 @@ public class SettingsInteger extends Settings {
 	
 	public SettingsInteger() {
 		super();
+		this.getBounds().setLower(DefaultConfigurationValues.integerMin);
+		this.getBounds().setUpper(DefaultConfigurationValues.integerMax);
 	}
 	
 	public String name() {
