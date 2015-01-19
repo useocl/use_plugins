@@ -392,45 +392,45 @@ final public class ConfigurationChange {
 				case PropertyEntry.forbiddensharing:
 					settings.getOptionSettings().setForbiddensharing(pc.getBoolean(propertiesKey));
 					break;
-				case "Integer":
+				case TypeConstants.INTEGER:
 					if (pc.getProperty(propertiesKey) != null) {
 						settings.getIntegerTypeSettings().setValues(StringChange.prepareForTable(pc.getProperty(propertiesKey)));
 					}
 					break;
-				case "Integer" + PropertyEntry.integerValueMin:
+				case TypeConstants.INTEGER + PropertyEntry.integerValueMin:
 					settings.getIntegerTypeSettings().getBounds().setLower(pc.getInt(propertiesKey));
 					break;
-				case "Integer" + PropertyEntry.integerValueMax:
+				case TypeConstants.INTEGER + PropertyEntry.integerValueMax:
 					settings.getIntegerTypeSettings().getBounds().setUpper(pc.getInt(propertiesKey));
 					break;
-				case "Real":
+				case TypeConstants.REAL:
 					if (pc.getProperty(propertiesKey) != null) {
 						settings.getRealTypeSettings().setValues(StringChange.prepareForTable(pc.getProperty(propertiesKey)));
 					}
 					break;
-				case "Real" + PropertyEntry.realValueMin:
+				case TypeConstants.REAL + PropertyEntry.realValueMin:
 					settings.getRealTypeSettings().getBounds()
 							.setLower(pc.getInt(propertiesKey));
 					break;
-				case "Real" + PropertyEntry.realValueMax:
+				case TypeConstants.REAL + PropertyEntry.realValueMax:
 					settings.getRealTypeSettings().getBounds()
-							.setLower(pc.getInt(propertiesKey));
+							.setUpper(pc.getInt(propertiesKey));
 					break;
-				case "Real" + PropertyEntry.realStep:
+				case TypeConstants.REAL + PropertyEntry.realStep:
 					settings.getRealTypeSettings().setStep(pc.getDouble(propertiesKey));
 					break;
-				case "String":
+				case TypeConstants.STRING:
 					if (pc.getProperty(propertiesKey) != null) {
 						settings.getStringTypeSettings().setValues(StringChange.prepareForTable(pc.getProperty(propertiesKey)));
 					}
 					break;
-				case "String" + PropertyEntry.stringValuesMin:
+				case TypeConstants.STRING + PropertyEntry.stringValuesMin:
 					settings.getStringTypeSettings().getBounds()
 							.setLower(pc.getInt(propertiesKey));
 					break;
-				case "String" + PropertyEntry.stringValuesMax:
+				case TypeConstants.STRING + PropertyEntry.stringValuesMax:
 					settings.getStringTypeSettings().getBounds()
-							.setLower(pc.getInt(propertiesKey));
+							.setUpper(pc.getInt(propertiesKey));
 				}
 			}
 		}

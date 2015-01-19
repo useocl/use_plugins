@@ -1,8 +1,10 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
+import org.tzi.kodkod.model.type.TypeConstants;
+
 public class SettingsReal extends Settings{
 	
-	private String name = "Real";
+	private String name = TypeConstants.REAL;
 	private Double realStep = 0.5;
 	
 	public SettingsReal() {

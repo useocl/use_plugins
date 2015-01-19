@@ -26,13 +26,8 @@ import org.tzi.use.kodkod.plugin.PropertiesWriter;
  * 
  */
 public class DefaultConfigurationVisitor extends SimpleVisitor {
-	//TODO: Die Methode writeToFile des PropertiesWriter nutzen, um .properties-Datei zu schreiben, um
-	//nicht spaeter bei beiden Aenderungen vornehmen zu muessen, wenn Anpassungen der Formartierung
-	//der .properties-Datei gewuenscht wird
-
+	
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
-
-	//private BufferedWriter writer;
 	private PropertiesConfiguration pc;
 	private File file;
 
@@ -41,8 +36,6 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		file = new File(fileName + ".properties");
 		file.createNewFile();
 		pc = new PropertiesConfiguration();
-
-		//writer = new BufferedWriter(new FileWriter(file));
 	}
 
 	public File getFile() {
@@ -59,69 +52,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		iterate(model.associations().iterator());
 		
 		PropertiesWriter.writeToFile(file, pc, model);
-		
-		/*
-		writeDivideLine(PropertyEntry.DEFAULT_SECTION);
-		writeNewLine();
-		iterate(model.typeFactory().configurableTypes().iterator());
-		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
-		int i = 0;
-		for (IClass clazz : model.classes()) {
-			clazz.accept(this);
-			writeNewLine();
-			iterate(clazz.attributes().iterator());
-			i++;
-			if (!(i >= model.classes().size())) writeDivideLine(PropertyEntry.LIGHT_DIVIDE_LINE);
-		}
-		iterate(model.associations().iterator());
-		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
-		try {
-			writer.close();
-		} catch (IOException e) {
-			LOG.error(LogMessages.propertiesConfigurationCloseError + ". " + e.getMessage());
-		}
-		*/
 	}
-
-	/*private void writeNewLine() {
-		try {
-			writer.newLine();
-		} catch (IOException e) {
-			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
-		}
-	}*/
-	
-	/*private void writeDivideLine(String line) {
-		try {
-			writer.write(line);
-			writer.newLine();
-		} catch (IOException e) {
-			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
-		}
-	}*/
-	
-	/*private void writeAssociationLine(IAssociation association) {
-		String writerString = "";
-		Iterator<IAssociationEnd> aes = association.associationEnds().iterator();
-		writerString = writerString + "-- ";
-		writerString = writerString + association.name();
-		writerString = writerString + "(";
-		IAssociationEnd ae = aes.next();
-		writerString = writerString + ae.name() + ":" + ae.associatedClass() + ",";
-		ae = aes.next();
-		writerString = writerString + ae.name() + ":" + ae.associatedClass() + ") ";
-		int writerStringLength = writerString.length();
-		if (writerStringLength < PropertyEntry.PUNCHED_CARD_LENGTH) {
-			for (int i=0; i < (PropertyEntry.PUNCHED_CARD_LENGTH - writerStringLength); i++) {
-				writerString = writerString + "-";
-			}
-		}
-		try {
-			writer.write(writerString);
-		} catch (Exception e) {
-			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
-		}
-	}*/
 
 	@Override
 	public void visitClass(IClass clazz) {
@@ -153,8 +84,6 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		configurator.setLimits(DefaultConfigurationValues.linksPerAssocMin, DefaultConfigurationValues.linksPerAssocMax);
 		association.setConfigurator(configurator);
 		if (association.associationClass() == null) {
-			//writeAssociationLine(association);
-			//writeNewLine();
 			write(association.name() + PropertyEntry.linksMin, DefaultConfigurationValues.linksPerAssocMin);
 			write(association.name() + PropertyEntry.linksMax, DefaultConfigurationValues.linksPerAssocMax);
 		}
@@ -207,9 +136,6 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	 */
 	private void write(String name, int value) {
 		try {
-			//writer.write(name + " = " + value);
-			//writer.newLine();
-			//writer.newLine();
 			pc.addProperty(name, value);
 		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
@@ -225,9 +151,6 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	 */
 	private void write(String name, double value) {
 		try {
-			//writer.write(name + " = " + value);
-			//writer.newLine();
-			//writer.newLine();
 			pc.addProperty(name, value);
 		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());

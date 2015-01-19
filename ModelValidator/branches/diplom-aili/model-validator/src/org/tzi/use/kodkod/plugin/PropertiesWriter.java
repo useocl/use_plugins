@@ -166,7 +166,6 @@ public class PropertiesWriter {
 	}
 	
 	private static void writeClass(MClass clazz, PropertiesConfiguration pc) throws IOException {
-		//FIXME: InstanceNames von AssociationClass werden nicht(oder nicht ordentlich?) geschrieben
 		String cls = clazz.name();
 		String clsMin = cls + PropertyEntry.objMin;
 		String clsMax = cls + PropertyEntry.objMax;
@@ -265,7 +264,6 @@ public class PropertiesWriter {
 	}
 	
 	private static void writeAssociations(Iterator<MAssociation> iterator, PropertiesConfiguration pc) throws IOException {
-		//FIXME: AssociationClass werden nicht ordentlich(oder gar nicht?) geschrieben
 		while (iterator.hasNext()) {
 			MAssociation association = iterator.next();
 			String assoc = association.name();
