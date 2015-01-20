@@ -30,18 +30,6 @@ final public class ConfigurationChange {
 	}
 	
 	public static PropertiesConfiguration toProperties(SettingsConfiguration settings, MModel model) {
-		//TODO extract all data from ConfigurationSettings object and put them into PropertiesConfiguration object
-		//and return it
-		//Do it with help of:
-		//the values of getValues() are prepared for adding easily through iteration into a PropertiesConfiguration object, like:
-		//if (values.hasNext()) propertiesConfiguration.setProperty(key, values.next());
-		//while (values.hasNext()) {
-		//  propertiesConfiguration.addProperty(key, values.next());
-		//}
-		
-		//TODO NICHT VERGESSEN: Die Namen muessen in PropertiesConfiguration gerechter Form zurueck
-		//gewechselt werden: Klasse::invariante -> Klasse_invariante
-		//mit: string.replaceFirst("::", "_");
 		PropertiesConfiguration pc = new PropertiesConfiguration();
 		SettingsInteger integerSettings = settings.getIntegerTypeSettings();
 		SettingsReal realSettings = settings.getRealTypeSettings();
@@ -52,8 +40,8 @@ final public class ConfigurationChange {
 		
 		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMin, integerSettings.getBounds().getLower());
 		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMax, integerSettings.getBounds().getUpper());
-		if (!integerSettings.getValuesForProperties().isEmpty()) {
-			Iterator<String> integerValues = integerSettings.getValuesForProperties().iterator();
+		if (!integerSettings.getValues().isEmpty()) {
+			Iterator<String> integerValues = StringChange.formatSettingValuesForProperty(integerSettings.getValues()).iterator();
 			if (integerValues.hasNext()) {
 				pc.setProperty(integerSettings.name(), integerValues.next().toString());
 			}
@@ -65,8 +53,8 @@ final public class ConfigurationChange {
 		pc.setProperty(realSettings.name()+PropertyEntry.realValueMin,  realSettings.getBounds().getLower());
 		pc.setProperty(realSettings.name()+PropertyEntry.realValueMax,  realSettings.getBounds().getUpper());
 		pc.setProperty(realSettings.name()+PropertyEntry.realStep,  realSettings.getStep());
-		if (!realSettings.getValuesForProperties().isEmpty()) {
-			Iterator<String> realValues = realSettings.getValuesForProperties().iterator();
+		if (!realSettings.getValues().isEmpty()) {
+			Iterator<String> realValues = StringChange.formatSettingValuesForProperty(realSettings.getValues()).iterator();
 			if (realValues.hasNext()) {
 				pc.setProperty(realSettings.name(), realValues.next().toString());
 			}
@@ -77,8 +65,8 @@ final public class ConfigurationChange {
 		
 		pc.setProperty(stringSettings.name()+PropertyEntry.stringValuesMin, stringSettings.getBounds().getLower());
 		pc.setProperty(stringSettings.name()+PropertyEntry.stringValuesMax, stringSettings.getBounds().getUpper());
-		if (!stringSettings.getValuesForProperties().isEmpty()) {
-			Iterator<String> stringValues = stringSettings.getValuesForProperties().iterator();
+		if (!stringSettings.getValues().isEmpty()) {
+			Iterator<String> stringValues = StringChange.formatSettingValuesForProperty(stringSettings.getValues()).iterator();
 			if (stringValues.hasNext()) {
 				pc.setProperty(stringSettings.name(), stringValues.next().toString());
 			}
@@ -104,8 +92,8 @@ final public class ConfigurationChange {
 			if (!classSettings.isAssociationClass()) {
 				pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMin, classSettings.getBounds().getLower());
 				pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMax, classSettings.getBounds().getUpper());
-				if (!classSettings.getValuesForProperties().isEmpty()) {
-					Iterator<String> classValues = classSettings.getValuesForProperties().iterator();
+				if (!classSettings.getValues().isEmpty()) {
+					Iterator<String> classValues = StringChange.formatSettingValuesForProperty(classSettings.getValues()).iterator();
 					if (classValues.hasNext()) {
 						pc.setProperty(classSettings.getCls().name(), classValues.next().toString());
 					}
@@ -114,8 +102,8 @@ final public class ConfigurationChange {
 					}
 				}
 			} else {
-				if (!classSettings.getValuesForProperties().isEmpty()) {
-					Iterator<String> classValues = classSettings.getValuesForProperties().iterator();
+				if (!classSettings.getValues().isEmpty()) {
+					Iterator<String> classValues = StringChange.formatSettingValuesForProperty(classSettings.getValues()).iterator();
 					if (classValues.hasNext()) {
 						pc.setProperty(classSettings.getCls().name()+PropertyEntry.ASSOCIATIONCLASS, classValues.next().toString());
 					}
@@ -132,8 +120,8 @@ final public class ConfigurationChange {
 				pc.setProperty(attribute+PropertyEntry.attributeDefValuesMax, attributeSettings.getBounds().getUpper());
 				pc.setProperty(attribute+PropertyEntry.attributeColSizeMin, attributeSettings.getCollectionSize().getLower());
 				pc.setProperty(attribute+PropertyEntry.attributeColSizeMax, attributeSettings.getCollectionSize().getUpper());
-				if (!attributeSettings.getValuesForProperties().isEmpty()) {
-					Iterator<String> attributeValues = attributeSettings.getValuesForProperties().iterator();
+				if (!attributeSettings.getValues().isEmpty()) {
+					Iterator<String> attributeValues = StringChange.formatSettingValuesForProperty(attributeSettings.getValues()).iterator();
 					if (attributeValues.hasNext()) {
 						pc.setProperty(attribute, attributeValues.next().toString());
 					}
@@ -148,8 +136,8 @@ final public class ConfigurationChange {
 				String association = associationSettings.getAssociation().name();
 				pc.setProperty(association+PropertyEntry.linksMin, associationSettings.getBounds().getLower());
 				pc.setProperty(association+PropertyEntry.linksMax, associationSettings.getBounds().getUpper());
-				if (!associationSettings.getValuesForProperties().isEmpty()) {
-					Iterator<String> associationValues = associationSettings.getValuesForProperties().iterator();
+				if (!associationSettings.getValues().isEmpty()) {
+					Iterator<String> associationValues = StringChange.formatSettingValuesForProperty(associationSettings.getValues()).iterator();
 					if (associationValues.hasNext()) {
 						pc.setProperty(association, associationValues.next().toString());
 					}
@@ -163,11 +151,11 @@ final public class ConfigurationChange {
 		Iterator<SettingsInvariant> invariantsIterator = invariantsSettings.iterator();
 		while (invariantsIterator.hasNext()) {
 			SettingsInvariant invariantSettings = invariantsIterator.next();
-			String set = "inactive";
+			String set = PropertyEntry.INVARIANT_INACTIVE;
 			if (invariantSettings.getActive() && invariantSettings.getNegate()){
-				set = "negate";
+				set = PropertyEntry.INVARIANT_NEGATE;
 			} else if (invariantSettings.getActive() && !invariantSettings.getNegate()) {
-				set = "active";
+				set = PropertyEntry.INVARIANT_ACTIVE;
 			}
 			pc.setProperty(invariantSettings.getInvariant().cls().name()+"_"+invariantSettings.getInvariant().name(), set);
 		}
@@ -190,7 +178,7 @@ final public class ConfigurationChange {
 			MClass clazz = (MClass) classesIterator.next();
 			String cls = clazz.name();
 			if (model.associations().contains(clazz)) {
-				classes.add(cls+"_ac");
+				classes.add(cls+PropertyEntry.ASSOCIATIONCLASS);
 			} else {
 				classes.add(cls);
 				classes.add(cls+PropertyEntry.objMin);
@@ -232,7 +220,7 @@ final public class ConfigurationChange {
 		}
 		
 		//from this point on the keys from the given PropertiesConfiguration are compared with the
-		//possible keys collected before 
+		//possible keys collected from the model, and than their values are added to the settings
 		Iterator<?> keys = pc.getKeys();
 		while (keys.hasNext()) {
 			String propertiesKey = keys.next().toString();
@@ -255,7 +243,7 @@ final public class ConfigurationChange {
 					|| propertiesKey.equals(PropertyEntry.forbiddensharing)
 					|| propertiesKey.equals(TypeConstants.INTEGER) || propertiesKey.equals(TypeConstants.REAL) 
 					|| propertiesKey.equals(TypeConstants.STRING) || propertiesKey.equals(TypeConstants.BOOLEAN)
-					|| propertiesKey.endsWith("_ac")) {
+					|| propertiesKey.endsWith(PropertyEntry.ASSOCIATIONCLASS)) {
 				first = propertiesKey;
 			} else {
 				Iterator<String> allEndings = PropertyEntry.allEndings.iterator();
@@ -281,7 +269,6 @@ final public class ConfigurationChange {
 					}
 				}
 			}
-			
 			String switchKey = first+"::"+second+third;
 			if (second.equals("")) {
 				switchKey = first+third;
@@ -306,12 +293,12 @@ final public class ConfigurationChange {
 					settings.getClassSettings(clazz).getBounds().setUpper(pc.getInt(propertiesKey));
 				} else {
 					if (pc.getProperty(propertiesKey) != null) {
-						if (propertiesKey.endsWith("_ac")) {
-							settings.getClassSettings(propertiesKey.substring(0, propertiesKey.indexOf("_ac")))
-								.setValues(StringChange.prepareForTable(pc.getProperty(propertiesKey)));
+						if (propertiesKey.endsWith(PropertyEntry.ASSOCIATIONCLASS)) {
+							settings.getClassSettings(propertiesKey.substring(0, propertiesKey.indexOf(PropertyEntry.ASSOCIATIONCLASS)))
+								.setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 						} else {
 							settings.getClassSettings(propertiesKey)
-								.setValues(StringChange.prepareForTable(pc.getProperty(propertiesKey)));
+								.setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 						}
 					}
 				}
@@ -342,7 +329,7 @@ final public class ConfigurationChange {
 						String attr = second;
 						MAttribute attribute = model.getClass(clazz).attribute(attr, true);
 						settings.getClassSettings(clazz).getAttributeSettings().get(attribute)
-							.setValues(StringChange.prepareForTable(pc.getProperty(propertiesKey)));
+							.setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 					}
 				}
 			} else if (associations.contains(switchKey)) {
@@ -364,20 +351,20 @@ final public class ConfigurationChange {
 						String assoc = second;
 						MAssociation association = model.getAssociation(assoc);
 						settings.getClassSettings(clazz).getAssociationSettings().get(association)
-							.setValues(StringChange.prepareForTable(pc.getProperty(assoc)));
+							.setValues(StringChange.formatPropertyListForSetting(pc.getProperty(assoc)));
 					}
 				}
 			} else if (invariants.contains(switchKey)) {
 				String invKey = first+"_"+second;
 				Boolean active = true;
 				Boolean negate = false;
-				if (pc.getString(invKey).equalsIgnoreCase("active")) {
+				if (pc.getString(invKey).equalsIgnoreCase(PropertyEntry.INVARIANT_ACTIVE)) {
 					active = true;
 					negate = false;
-				} else if (pc.getString(invKey).equalsIgnoreCase("inactive")) {
+				} else if (pc.getString(invKey).equalsIgnoreCase(PropertyEntry.INVARIANT_INACTIVE)) {
 					active = false;
 					negate = false;
-				} else if (pc.getString(invKey).equalsIgnoreCase("negate")) {
+				} else if (pc.getString(invKey).equalsIgnoreCase(PropertyEntry.INVARIANT_NEGATE)) {
 					active = true;
 					negate = true;
 				}
@@ -394,7 +381,7 @@ final public class ConfigurationChange {
 					break;
 				case TypeConstants.INTEGER:
 					if (pc.getProperty(propertiesKey) != null) {
-						settings.getIntegerTypeSettings().setValues(StringChange.prepareForTable(pc.getProperty(propertiesKey)));
+						settings.getIntegerTypeSettings().setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 					}
 					break;
 				case TypeConstants.INTEGER + PropertyEntry.integerValueMin:
@@ -405,7 +392,7 @@ final public class ConfigurationChange {
 					break;
 				case TypeConstants.REAL:
 					if (pc.getProperty(propertiesKey) != null) {
-						settings.getRealTypeSettings().setValues(StringChange.prepareForTable(pc.getProperty(propertiesKey)));
+						settings.getRealTypeSettings().setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 					}
 					break;
 				case TypeConstants.REAL + PropertyEntry.realValueMin:
@@ -421,7 +408,7 @@ final public class ConfigurationChange {
 					break;
 				case TypeConstants.STRING:
 					if (pc.getProperty(propertiesKey) != null) {
-						settings.getStringTypeSettings().setValues(StringChange.prepareForTable(pc.getProperty(propertiesKey)));
+						settings.getStringTypeSettings().setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 					}
 					break;
 				case TypeConstants.STRING + PropertyEntry.stringValuesMin:

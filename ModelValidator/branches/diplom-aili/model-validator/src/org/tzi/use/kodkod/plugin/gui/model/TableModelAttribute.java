@@ -9,6 +9,7 @@ import javax.swing.table.DefaultTableModel;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAttribute;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
+import org.tzi.use.util.StringUtil;
 
 public class TableModelAttribute extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
@@ -84,7 +85,7 @@ public class TableModelAttribute extends DefaultTableModel {
 		case 4:
 			return set.getCollectionSize().getUpper();
 		case 5:
-			return set.getValues();
+			return StringUtil.fmtSeq(set.getValues(), ",");
 		default:
 			return null;
 		}
@@ -108,7 +109,7 @@ public class TableModelAttribute extends DefaultTableModel {
 			set.getCollectionSize().setUpper(aValue);
 			break;
 		case 5:
-			set.setValues(aValue);
+			set.setValues((String) aValue);
 			break;
 		default:
 			break;

@@ -65,6 +65,10 @@ public class PropertyEntry {
 	
 	public static final String ASSOCIATIONCLASS = "_ac";
 	
+	public static final String INVARIANT_ACTIVE = "active";
+	public static final String INVARIANT_INACTIVE = "inactive";
+	public static final String INVARIANT_NEGATE = "negate";
+	
 	public static final HashSet<String> allEndings = new HashSet<String>(){
 		private static final long serialVersionUID = 1L;
 	{

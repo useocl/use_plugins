@@ -9,9 +9,30 @@ final public class StringChange {
 	}
 	
 	/**
+	 * @param values must be seperated with "," to function properly
+	 * @return an ArrayList with the elements from the given string
+	 */
+	public static List<String> toArrayList(String values) {
+		if (values != null) {
+			String [] sepValues = values.split("[,]");
+			sepValues[0] = sepValues[0].trim();
+			for (int i = 1; i < sepValues.length-1; i++) {
+				sepValues[i] = sepValues[i].trim();
+			}
+			List<String> listValues = new ArrayList<>();
+			for (String value : sepValues) {
+				listValues.add(value);
+			}
+			return listValues;
+		} else { 
+			return null;
+		}
+	}
+	
+/*	*//**
 	 * @param values in the String must be splitted through ","
 	 * @return an ArrayList with every element of the given String listed
-	 */
+	 *//*
 	public static List<String> prepareForSettings(String values) {
 		if (values != null) {
 			String [] sepValues = values.split("[,]");
@@ -28,9 +49,9 @@ final public class StringChange {
 		} else { 
 			return null;
 		}
-	}
+	}*/
 	
-	public static String prepareForTable(Object arrayList) {
+	/*public static String prepareForTable(Object arrayList) {
 		String string;
 		if (!(arrayList instanceof String)) {
 			if (arrayList == null) {
@@ -47,10 +68,9 @@ final public class StringChange {
 			string = string.trim();
 			return string.substring(4,string.length()-1);
 		}
-	}
+	}*/
 	
 	public static List<String> formatPropertyListForSetting(Object arrayList) {
-		//TODO: Testen, danach einsetzen
 		String string;
 		if (!(arrayList instanceof String)) {
 			if (arrayList == null) {
@@ -83,7 +103,6 @@ final public class StringChange {
 	}
 	
 	public static List<String> formatSettingValuesForProperty(Object arrayList) {
-		//TODO: Testen, danach einsetzen
 		String string;
 		if (!(arrayList instanceof String)) {
 			if (arrayList == null) {
@@ -102,19 +121,17 @@ final public class StringChange {
 		}
 		
 		String [] sepValues = string.split("[,]");
-		sepValues[0] = sepValues[0].trim();
+		sepValues[0] = "Set{"+sepValues[0].trim();
 		for (int i = 1; i < sepValues.length-1; i++) {
 			sepValues[i] = sepValues[i].trim();
 		}
-		sepValues[sepValues.length-1] = sepValues[sepValues.length-1].trim(); 
+		sepValues[sepValues.length-1] = (sepValues[sepValues.length-1]+"}").trim(); 
 		List<String> listValues = new ArrayList<>();
 		for (String value : sepValues) {
 			listValues.add(value);
 		}
 		return listValues;
 	}
-	
-	
 	
 	public static boolean isInteger(String s) {
 	    try { 

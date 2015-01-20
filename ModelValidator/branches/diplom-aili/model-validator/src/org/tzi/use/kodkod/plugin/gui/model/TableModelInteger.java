@@ -4,6 +4,7 @@ import javax.swing.table.DefaultTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsInteger;
+import org.tzi.use.util.StringUtil;
 
 public class TableModelInteger extends DefaultTableModel{
 	private static final long serialVersionUID = 1L;
@@ -55,7 +56,7 @@ public class TableModelInteger extends DefaultTableModel{
 		case 2:
 			return settings.getBounds().getUpper();
 		case 3:
-			return settings.getValues();
+			return StringUtil.fmtSeq(settings.getValues(), ",");
 		default:
 			return null;
 		}
@@ -73,7 +74,7 @@ public class TableModelInteger extends DefaultTableModel{
 			fireTableCellUpdated(row, column);
 			break;
 		case 3:
-			settings.setValues(aValue);
+			settings.setValues((String) aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		default:

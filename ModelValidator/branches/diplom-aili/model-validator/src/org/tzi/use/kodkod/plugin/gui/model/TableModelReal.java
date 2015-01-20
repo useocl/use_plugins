@@ -4,6 +4,7 @@ import javax.swing.table.DefaultTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsReal;
+import org.tzi.use.util.StringUtil;
 
 public class TableModelReal extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
@@ -58,7 +59,7 @@ public class TableModelReal extends DefaultTableModel {
 		case 3:
 			return settings.getStep();
 		case 4:
-			return settings.getValues();
+			return StringUtil.fmtSeq(settings.getValues(), ",");
 		default:
 			return null;
 		}
@@ -80,7 +81,7 @@ public class TableModelReal extends DefaultTableModel {
 			fireTableCellUpdated(row, column);
 			break;
 		case 4:
-			settings.setValues(aValue);
+			settings.setValues((String) aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		default:
