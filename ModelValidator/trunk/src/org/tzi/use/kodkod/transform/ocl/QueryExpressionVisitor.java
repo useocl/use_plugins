@@ -13,6 +13,7 @@ import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.use.kodkod.transform.TransformationException;
+import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.expr.ExpAny;
 import org.tzi.use.uml.ocl.expr.ExpClosure;
 import org.tzi.use.uml.ocl.expr.ExpCollect;
@@ -27,7 +28,7 @@ import org.tzi.use.uml.ocl.expr.ExpSelect;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.CollectionType;
-import org.tzi.use.uml.ocl.type.ObjectType;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
 /**
  * Extension of DefaultExpressionVisitor to visit the queries of an expression.
@@ -54,10 +55,10 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	public void visitClosure(ExpClosure expClosure) {
 		visitQuery(expClosure);
 
-		if (sourceType.isCollection(true)) {
-			if (((CollectionType) sourceType).elemType().isObjectType()) {
-				ObjectType type = (ObjectType) ((CollectionType) sourceType).elemType();
-				IClass clazz = model.getClass(type.cls().name());
+		if (sourceType.isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
+			if (((CollectionType) sourceType).elemType().isTypeOfClass()) {
+				MClass type = (MClass) ((CollectionType) sourceType).elemType();
+				IClass clazz = model.getClass(type.name());
 				Relation relation = clazz.relation();
 				if (clazz.existsInheritance()) {
 					relation = clazz.inheritanceRelation();
@@ -206,7 +207,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	 * @param varDecl
 	 */
 	private void objectVariable(VarDecl varDecl, String name) {
-		if (varDecl.type().isObjectType()) {
+		if (varDecl.type().isTypeOfClass()) {
 			variableClasses.put(name, model.getClass(varDecl.type().shortName()));
 		}
 	}

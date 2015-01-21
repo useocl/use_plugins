@@ -21,7 +21,7 @@ import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
-import org.tzi.use.uml.ocl.type.ObjectType;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
 /**
  * Extension of DefaultExpressionVisitor to visit the operations of an
@@ -83,7 +83,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 				object = handleOveriddenOperation(iterator, overiddenOperations, expression, getAsExpression(mainVisitor.getObject()));
 			}
 			
-			set = exp.getOperation().resultType().isCollection(true);
+			set = exp.getOperation().resultType().isKindOfCollection(VoidHandling.EXCLUDE_VOID);
 			object_type_nav = mainVisitor.isObject_type_nav();
 			
 			object = expression.in(undefined).thenElse(undefined, getAsExpression(object));
@@ -177,12 +177,12 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 				
 				opVariables.put(currentParam.name(), (Node) visitor.getObject());
 				
-				if(currentParam.type().isObjectType()){
-					ObjectType type = (ObjectType) currentParam.type();
-					opVariableClasses.put(currentParam.name(),model.getClass(type.cls().name()));
+				if(currentParam.type().isTypeOfClass()){
+					MClass type = (MClass) currentParam.type();
+					opVariableClasses.put(currentParam.name(),model.getClass(type.name()));
 				}
 
-				if (currentParam.type().isCollection(true)) {
+				if (currentParam.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
 					opCollectionVariables.add(currentParam.name());
 				}
 			}

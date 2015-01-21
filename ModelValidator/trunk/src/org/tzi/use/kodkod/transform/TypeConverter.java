@@ -9,6 +9,7 @@ import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeFactory;
 import org.tzi.use.uml.ocl.type.CollectionType;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
 /**
  * Convert a type of the use model in a representing type of the model
@@ -56,17 +57,17 @@ public class TypeConverter {
 	 * @return
 	 */
 	public Type convert(org.tzi.use.uml.ocl.type.Type type) {
-		if (type.isVoidType()) {
+		if (type.isTypeOfVoidType()) {
 			return typeFactory.undefinedType();
-		} else if (type.isString() || type.isBoolean() || type.isInteger() || type.isReal()) {
+		} else if (type.isTypeOfString() || type.isTypeOfBoolean() || type.isTypeOfInteger() || type.isTypeOfReal()) {
 			return typeFactory.buildInType(type.shortName());
-		} else if (type.isEnum()) {
+		} else if (type.isTypeOfEnum()) {
 			return model.getEnumType(type.shortName());
-		} else if (type.isObjectType()) {
+		} else if (type.isTypeOfClass()) {
 			return typeFactory.objectType(model.getClass(type.shortName()));
-		} else if (type.isTrueOclAny()) {
+		} else if (type.isTypeOfOclAny()) {
 			return typeFactory.anyType();
-		} else if (type.isCollection(true)) {
+		} else if (type.isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
 			return convertCollection(type);
 		}
 
@@ -80,13 +81,13 @@ public class TypeConverter {
 		Type elemType = convert(collectionType.elemType());
 
 		if (elemType != null) {
-			if (type.isSet()) {
+			if (type.isTypeOfSet()) {
 				return typeFactory.setType(elemType);
-			} else if (type.isBag()) {
+			} else if (type.isTypeOfBag()) {
 				return typeFactory.bagType(elemType);
-			} else if (type.isSequence()) {
+			} else if (type.isTypeOfSequence()) {
 				return typeFactory.sequenceType(elemType);
-			} else if (type.isOrderedSet()) {
+			} else if (type.isTypeOfOrderedSet()) {
 				return typeFactory.orderedSetType(elemType);
 			}
 		}
