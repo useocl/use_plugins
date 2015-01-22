@@ -11,7 +11,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -20,6 +19,9 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -41,7 +43,7 @@ import org.tzi.use.kodkod.plugin.PropertiesWriter;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAssociation;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAttribute;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
-import org.tzi.use.kodkod.plugin.gui.util.ConfigurationChange;
+import org.tzi.use.kodkod.plugin.gui.util.ChangeConfiguration;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
 
@@ -57,7 +59,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	
-	private static final String ASSOCIATIONCLASS_INDICATOR = " [AC]";
 	private static final int OPTIONS_TABLE_DIVIDER_HEIGHT = 2;
 	private static final int OPTIONS_TABLE_HEIGHT = 64;
 	
@@ -86,23 +87,17 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 	private String selectedClass;
 	private Boolean validatable;
-	private Boolean configurationChanged;
+	private Boolean configurationChanged; //TODO: checken, wo es wie gesetzt werden kann, um sinnvoll zu sein
 	
 	private JTabbedPane center;
 	private JPanel main;
-	private FlowLayout upperLowerPanelLayout;
+	private FlowLayout leftFlowLayout;
 	private JPanel northNorth;
 	private JPanel northSouth;
 	private JPanel north;
 	private JPanel southWest;
 	private JPanel southCenter;
 	private JPanel south;
-    
-	private JButton openFileButton;
-	private JButton saveConfigurationButton;
-	private JButton renameConfigurationButton;
-	private JButton deleteConfigurationButton;
-	private JButton newConfigurationButton;
 	private JButton validateButton;
 	
 	private JComboBox<String> sectionSelectionComboBox;
@@ -117,21 +112,19 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * into the tables.
 	 */
 	private class ComboBoxActionListener implements ActionListener {
-		@SuppressWarnings("unchecked")
+		//FIXME: Hier oder irgendwo anders werden die Settings nicht ordentlich gespeichert, bevor die
+		//Konfiguration gewechselt wird
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (propertiesConfiguration != null) {
-				propertiesConfiguration = ConfigurationChange.toProperties(settingsConfiguration, model);
+				propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
 				propertiesConfigurationSections.put(selectedSection,(PropertiesConfiguration) propertiesConfiguration.clone());
 			}
-			selectedSection = (String) ((JComboBox<String>) e.getSource()).getSelectedItem();
+			selectedSection = (String) ((JComboBox<?>) e.getSource()).getSelectedItem();
 			propertiesConfiguration = (PropertiesConfiguration) propertiesConfigurationSections.get(selectedSection).clone();
-			settingsConfiguration = ConfigurationChange.toSettings(model, propertiesConfiguration, settingsConfiguration);
+			settingsConfiguration = ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
 			TableBuilder.repaintAllTables(tables.iterator());
 			configurationChanged = false;
-			classes.repaint();
-			classes.clearSelection();
-			System.out.println("Configuration loaded.");
 		}
 		
 	}
@@ -155,7 +148,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	            	updateClassAttributes(selectedClass);
 		            updateClassAssociations(selectedClass);
 	            }
-	            selectedClass = clearString((String) classes.getValueAt(selectedRow, 0));
+	            selectedClass = (String) classes.getValueAt(selectedRow, 0);
 	            updateClassAttributes(selectedClass);
 	            updateClassAssociations(selectedClass);
 	        }
@@ -165,7 +158,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	public ModelValidatorConfigurationWindow(final JFrame parent, final MModel model) {
 		super(parent, "Model-Validator Configuration");
 		
-		this.getRootPane().setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, getRootPane().getBackground()));
+		//this.getRootPane().setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, getRootPane().getBackground()));
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		//TODO: USE soll weiterhin verwendbar bleiben, waehrrend die MV-GUI weiterlaeuft. Dies soll geschehen, indem die Validierung
 		// im Thread der MV-GUI mit ausgefuehrt wird.
@@ -174,7 +167,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		this.setSize(800,300);
 		//TODO: Probieren, ob this.setUndecorated hier geimplementiert werden kann, um die windows nativen Minimize/Maximize Buttons
 		//zu bekommen
-		//this.setUndecorated
+		//this.setUndecorated(true);
 
 		this.model = model;
 		settingsConfiguration = new SettingsConfiguration(model);
@@ -212,121 +205,26 @@ public class ModelValidatorConfigurationWindow extends JDialog {
     	
     	center = new JTabbedPane(JTabbedPane.TOP);
     	main = new JPanel();
-        upperLowerPanelLayout = new FlowLayout(FlowLayout.LEFT);
-        northNorth = new JPanel(upperLowerPanelLayout);
-        northSouth = new JPanel(upperLowerPanelLayout);
+        leftFlowLayout = new FlowLayout(FlowLayout.LEFT);
+        northNorth = new JPanel(leftFlowLayout);
+        northSouth = new JPanel(leftFlowLayout);
         north = new JPanel(new BorderLayout());
-        southWest = new JPanel(upperLowerPanelLayout);
+        southWest = new JPanel(leftFlowLayout);
         southCenter = new JPanel(new BorderLayout());
         southCenter.setBorder(new BevelBorder(BevelBorder.LOWERED));
         south = new JPanel(new BorderLayout());
 
-        openFileButton = new JButton("Open");
         sectionSelectionComboBox = new JComboBox<String>();
-        saveConfigurationButton = new JButton("Save");
-        renameConfigurationButton = new JButton("Rename");
-        deleteConfigurationButton = new JButton("Delete");
-        newConfigurationButton = new JButton("New");
-        validateButton = new JButton("Close and validate");
+
+        validateButton = new JButton("Validate");
 
         comboBoxActionListener = new ComboBoxActionListener();  
         sectionSelectionComboBox.addActionListener(comboBoxActionListener);
         
-        openFileButton.addActionListener( new ActionListener() {
+       validateButton.addActionListener( new ActionListener() {
         	@Override 
         	public void actionPerformed( ActionEvent e ) {
-        		JFileChooser fileChooser = new JFileChooser();
-        		if (model.getModelDirectory() != null) {
-        			fileChooser = new JFileChooser(model.getModelDirectory().getPath());
-        		} else {
-        			fileChooser = new JFileChooser();
-        		}
-        		fileChooser.setFileFilter(new ExtFileFilter("properties", "Properties files"));
-
-        		if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
-        			file = fileChooser.getSelectedFile();
-        			extractConfigurations(file);
-        			settingsConfiguration = ConfigurationChange.toSettings(model, propertiesConfiguration, settingsConfiguration);
-        			TableBuilder.repaintAllTables(tables.iterator());
-        			configurationChanged = false;
-        			classes.clearSelection();
-        			currentFileLabel.setText(file.getAbsolutePath());
-        		} else {
-        			JOptionPane.showMessageDialog(getParent(), new JLabel("Error while loading properties file!"), "Error!", JOptionPane.ERROR_MESSAGE);
-        		}
-        		
-        	}
-        } );
-        
-        saveConfigurationButton.addActionListener(new ActionListener() {
-        	@Override
-        	public void actionPerformed(ActionEvent e) {
-        		propertiesConfiguration = ConfigurationChange.toProperties(settingsConfiguration, model);
-        		propertiesConfigurationSections.put(selectedSection,(PropertiesConfiguration) propertiesConfiguration.clone());
-        		saveConfigurationsToFile();
-        		configurationChanged = false;
-        	}
-        });
-        
-        renameConfigurationButton.addActionListener(new ActionListener() {
-        	@Override
-        	public void actionPerformed(ActionEvent e) {
-        		String sectionToDelete = selectedSection;
-        		String newName = JOptionPane.showInputDialog("Please input the new name of this configuration:", selectedSection);
-        		propertiesConfiguration = ConfigurationChange.toProperties(settingsConfiguration, model);
-        		propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
-        		propertiesConfigurationSections.remove(sectionToDelete);
-        		selectedSection = newName;
-        		configurationChanged = true;
-        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
-        		sectionSelectionComboBox.addItem(newName);
-        		sectionSelectionComboBox.removeItem(sectionToDelete);
-        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
-        		sectionSelectionComboBox.setSelectedItem(newName);
-        	}
-        });
-        
-        deleteConfigurationButton.addActionListener(new ActionListener() {
-        	@Override
-        	public void actionPerformed(ActionEvent e) {
-        		String sectionToDelete = selectedSection;
-        		propertiesConfigurationSections.remove(sectionToDelete);
-        		configurationChanged = true;
-        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
-        		sectionSelectionComboBox.removeItem(sectionToDelete);
-        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
-        		sectionSelectionComboBox.setSelectedIndex(0);
-        	}
-        });
-        
-        newConfigurationButton.addActionListener(new ActionListener() {
-        	@Override
-        	public void actionPerformed(ActionEvent e) {
-        		String newName = JOptionPane.showInputDialog("Please input the name of the new configuration:", "config"+defaultNameCount);
-        		defaultNameCount++;
-        		if (newName != null) {
-        			propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
-        		} else {
-        			return;
-        		}
-        		selectedSection = newName;
-        		configurationChanged = true;
-        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
-        		sectionSelectionComboBox.addItem(newName);
-        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
-        		sectionSelectionComboBox.setSelectedItem(newName);
-        	}
-        });
-        
-        //TODO: "Speichern unter..."-Button und -Funktion machen
-        
-        //TODO: Warnung ausgeben dass, falls die Konfiguration nicht abgespeichert(Save-Button gedrueckt) wurde,
-        //diese in der folgenden Validierung zwar verwendet wird, danach aber verworfen ist.
-        //Das hier entfernen, wenn die Validierung in einem Thread mit der GUI ausgefuert wird.
-        validateButton.addActionListener( new ActionListener() {
-        	@Override 
-        	public void actionPerformed( ActionEvent e ) {
-        		propertiesConfiguration = ConfigurationChange.toProperties(settingsConfiguration, model);
+        		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
         		validatable = true;
         		setVisible(false);
         	}
@@ -336,19 +234,13 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         statusArea.setBackground(getParent().getBackground());
         statusArea.setLineWrap(true);
         statusArea.setWrapStyleWord(true);
-      //TODO: Hier kommen spaeter die Benachrichtigungen aus dem Validierungsprozess herein
+        //TODO: Hier kommen spaeter die Benachrichtigungen aus dem Validierungsprozess herein
         statusArea.setText("");
         
-        //TODO: Die Buttons "Open", "Save", "New configuration", "Rename", "New", "Delete",(spaeter auch: "Save as", "New file")
-        //sollen als zu Menu-Punkten umgewandelt werden, statt der jetzigen Toolbar-Form
-        northNorth.add(openFileButton);
-        northNorth.add(sectionSelectionComboBox);
-        northNorth.add(saveConfigurationButton);
-        northNorth.add(renameConfigurationButton);
-        northNorth.add(deleteConfigurationButton);
-        northNorth.add(newConfigurationButton);
-        northSouth.add(new JLabel("Properties file loaded: "));
-        northSouth.add(currentFileLabel);
+        northNorth.add(new JLabel("Loaded properties file: "));
+        northNorth.add(currentFileLabel);
+        northSouth.add(new JLabel("Loaded configuration: "));
+        northSouth.add(sectionSelectionComboBox);
         north.add(northNorth, BorderLayout.NORTH);
         north.add(northSouth, BorderLayout.SOUTH);
         center.add("Basic types", buildBasicTypesAndOptionsTab());
@@ -363,13 +255,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         main.add(center, BorderLayout.CENTER); 
         main.add(south, BorderLayout.SOUTH);
         
+        //TODO wenn keine standard properties-File vorhanden ist, soll auch keine erstellt werden
         extractConfigurations(file);
-        settingsConfiguration = ConfigurationChange.toSettings(model, propertiesConfiguration, settingsConfiguration);
+        settingsConfiguration = ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
         TableBuilder.repaintAllTables(tables.iterator());
         configurationChanged = false;
         classes.setRowSelectionInterval(0,0);
         
-
+        this.setJMenuBar(buildMenuBar(parent));
         this.setContentPane(main);
     	this.setLocationRelativeTo(parent);
     	this.pack();
@@ -383,17 +276,17 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * @param file
 	 */
 	private void extractConfigurations(File file) {
-		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
-		sectionSelectionComboBox.removeAllItems();
 		HierarchicalINIConfiguration hierarchicalINIConfiguration;
-		propertiesConfigurationSections = new Hashtable<String, PropertiesConfiguration>();
 		try {
 			hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
 		} catch (ConfigurationException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(getParent(), new JLabel("Error while loading properties file!"), "Error!", JOptionPane.ERROR_MESSAGE);
+			//e.printStackTrace();
+			//JOptionPane.showMessageDialog(getParent(), new JLabel("Error while loading properties file!"), "Error!", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+		sectionSelectionComboBox.removeAllItems();
+		propertiesConfigurationSections = new Hashtable<String, PropertiesConfiguration>();
 		if (!hierarchicalINIConfiguration.getSections().isEmpty()) {
 			Iterator<?> sectionsIterator = hierarchicalINIConfiguration.getSections().iterator();
 			Boolean isFirstConfiguration = true;
@@ -442,6 +335,154 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	
 	public Boolean isValidatable() {
 		return validatable;
+	}
+	
+	private JMenuBar buildMenuBar(final JFrame parent) {
+		JMenuBar menuBar = new JMenuBar();
+		JMenu fileMenu = new JMenu("File");
+		JMenuItem openMenuItem = new JMenuItem("Open");
+		JMenuItem saveMenuItem = new JMenuItem("Save");
+		JMenuItem saveAsMenuItem = new JMenuItem("Save as..."); //TODO
+		JMenu configurationMenu = new JMenu("Configuration");
+		JMenuItem renameMenuItem = new JMenuItem("Rename");
+		JMenuItem deleteMenuItem = new JMenuItem("Delete");
+		JMenuItem newMenuItem = new JMenuItem("New"); //TODO
+		JMenuItem cloneMenuItem = new JMenuItem("Clone");
+		JMenuItem validateMenuItem = new JMenuItem("Validate"); //TODO
+		
+		openMenuItem.addActionListener( new ActionListener() {
+        	@Override 
+        	public void actionPerformed( ActionEvent e ) {
+        		JFileChooser fileChooser = new JFileChooser();
+        		if (model.getModelDirectory() != null) {
+        			fileChooser = new JFileChooser(model.getModelDirectory().getPath());
+        		} else {
+        			fileChooser = new JFileChooser();
+        		}
+        		fileChooser.setFileFilter(new ExtFileFilter("properties", "Properties files"));
+
+        		if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+        			file = fileChooser.getSelectedFile();
+        			extractConfigurations(file);
+        			settingsConfiguration = ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
+        			TableBuilder.repaintAllTables(tables.iterator());
+        			configurationChanged = false;
+        			classes.clearSelection();
+        			currentFileLabel.setText(file.getAbsolutePath());
+        		} else {
+        			JOptionPane.showMessageDialog(getParent(), new JLabel("Error while loading properties file!"), "Error!", JOptionPane.ERROR_MESSAGE);
+        		}
+        		
+        	};
+		});
+		
+		renameMenuItem.addActionListener(new ActionListener() {
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		String sectionToDelete = selectedSection;
+        		String newName = JOptionPane.showInputDialog("Please input the new name of this configuration:", selectedSection);
+        		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
+        		propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
+        		propertiesConfigurationSections.remove(sectionToDelete);
+        		selectedSection = newName;
+        		configurationChanged = true;
+        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.addItem(newName);
+        		sectionSelectionComboBox.removeItem(sectionToDelete);
+        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.setSelectedItem(newName);
+        	}
+        });
+		
+		saveMenuItem.addActionListener(new ActionListener() {
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
+        		propertiesConfigurationSections.put(selectedSection,(PropertiesConfiguration) propertiesConfiguration.clone());
+        		saveConfigurationsToFile();
+        		configurationChanged = false;
+        	}
+        });
+		
+		renameMenuItem.addActionListener(new ActionListener() {
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		String sectionToDelete = selectedSection;
+        		String newName = JOptionPane.showInputDialog("Please input the new name of this configuration:", selectedSection);
+        		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
+        		propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
+        		propertiesConfigurationSections.remove(sectionToDelete);
+        		selectedSection = newName;
+        		configurationChanged = true;
+        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.addItem(newName);
+        		sectionSelectionComboBox.removeItem(sectionToDelete);
+        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.setSelectedItem(newName);
+        	}
+        });
+		
+		deleteMenuItem.addActionListener(new ActionListener() {
+        	//TODO: Falls die letzte section geloescht wird, einfach eine default sektion mit default-Werten(quasi new)
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		String sectionToDelete = selectedSection;
+        		propertiesConfigurationSections.remove(sectionToDelete);
+        		configurationChanged = true;
+        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.removeItem(sectionToDelete);
+        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.setSelectedIndex(0);
+        	}
+        });
+		
+		cloneMenuItem.addActionListener(new ActionListener() {
+        	//TODO: dieser Button klont nur. einen zusaetzlichen Button, der 
+        	//default Wert in der neuen Konfiguration erzeugt, diesen dann "new" nennen und das hier "clone"
+        	@Override
+        	public void actionPerformed(ActionEvent e) {
+        		String newName = JOptionPane.showInputDialog("Please input the name of the new configuration:", "config"+defaultNameCount);
+        		defaultNameCount++;
+        		if (newName != null) {
+        			propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
+        		} else {
+        			return;
+        		}
+        		selectedSection = newName;
+        		configurationChanged = true;
+        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.addItem(newName);
+        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+        		sectionSelectionComboBox.setSelectedItem(newName);
+        	}
+        });
+		
+		//TODO: Warnung ausgeben dass, falls die Konfiguration nicht abgespeichert(Save-Button gedrueckt) wurde,
+        //diese in der folgenden Validierung zwar verwendet wird, danach aber verworfen ist.
+        //Das hier entfernen, wenn die Validierung in einem Thread mit der GUI ausgefuert wird.
+		validateMenuItem.addActionListener( new ActionListener() {
+        	@Override 
+        	public void actionPerformed( ActionEvent e ) {
+        		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
+        		validatable = true;
+        		setVisible(false);
+        	}
+        } );
+		
+		
+		
+		fileMenu.add(openMenuItem);
+		fileMenu.add(saveMenuItem);
+		fileMenu.add(saveAsMenuItem);
+		configurationMenu.add(renameMenuItem);
+		configurationMenu.add(deleteMenuItem);
+		configurationMenu.add(cloneMenuItem);
+		configurationMenu.add(newMenuItem);
+		configurationMenu.add(validateMenuItem);
+		menuBar.add(fileMenu);
+		menuBar.add(configurationMenu);
+		
+		return menuBar;
 	}
 
 	private JSplitPane buildBasicTypesAndOptionsTab() {
@@ -538,25 +579,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		associationModel.setClass(this.settingsConfiguration.getClassSettings(className));
 	}
 	
-	/**
-	 * @param string
-	 * @return string cleaned from html-tags and a specified string ending 
-	 */
-	private String clearString(String string) {
-		if (string.contains("<html>")) {
-			String temp = string.replaceAll("\\<[^>]*>","");
-			if (temp.contains(ASSOCIATIONCLASS_INDICATOR)) {
-				return temp.substring(0,temp.indexOf(ASSOCIATIONCLASS_INDICATOR)).trim();
-			} else {
-				return temp.trim();
-			}
-		} else if (string.contains(ASSOCIATIONCLASS_INDICATOR)) {
-				return string.substring(0,string.indexOf(ASSOCIATIONCLASS_INDICATOR)).trim();
-		} else {
-				return string.trim();
-		}
-	}
-	
 	private void saveConfigurationsToFile() {
 		try {
 			PropertiesWriter.writeToFile(propertiesConfigurationSections, file, model);
@@ -579,18 +601,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 	
 	private String abstractClassesChildren(MModel model) {
-		/*
-		 * "Abstract Classes: \n Base_Named \n\n"
-						+ "Inheriting Classes:\n"
-						+ "Base_Named > Base_DataType \n"
-						+ "Base_Named > Base_Attribute \n"
-						+ "Base_Named > ErSyn_ErSchema \n"
-						+ "Base_Named > ErSyn_Entity \n"
-						+ "Base_Named > ErSyn_Relship \n"
-						+ "Base_Named > ErSyn_Relend \n"
-						+ "Base_Named > RelSyn_RelDBSchema \n"
-						+ "Base_Named > RelSyn_RelSchema");
-		 */
 		String abstractText = "Abstract Classes: \n";
 		Iterator<MClass> abstractClasses = getAbstractClasses(model).iterator();
 		while (abstractClasses.hasNext()) {

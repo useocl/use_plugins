@@ -1,6 +1,6 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import org.tzi.use.kodkod.plugin.gui.util.StringChange;
+import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 
 public class Bounds {
 	
@@ -35,7 +35,7 @@ public class Bounds {
 	 */
 	public void setLower(Object lower) {
 		if (lower instanceof String) {
-			if (StringChange.isInteger((String)lower)) {
+			if (ChangeString.isInteger((String)lower)) {
 				this.lower = Integer.parseInt((String) lower);
 			}
 		} else if (lower instanceof Integer) {
@@ -55,7 +55,7 @@ public class Bounds {
 	 */
 	public void setUpper(Object upper) {
 		if (upper instanceof String) {
-			if (StringChange.isInteger((String)upper)) {
+			if (ChangeString.isInteger((String)upper)) {
 				this.upper = Integer.parseInt((String) upper);
 			}
 		} else if (upper instanceof Integer) {

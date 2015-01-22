@@ -17,9 +17,6 @@ public class TableModelAttribute extends DefaultTableModel {
 	//MinElements, MaxElements standardmaessig weggeblendet sein, mit einer Checkbox, um sie wieder einzublenden.
 	//Min-/MaxDefined und Min-/MaxElements sollen wie auch bei Min-/Maximum als Ranges dargestellt werden
 	
-	//TODO: Vielleicht koennte bei den Attributsnamen dahinter der zugehoerige abstrakte Klassenname stehen
-	//sofern vorhanden.
-	
 	private List<SettingsAttribute> attributesSettings = Collections.emptyList();
 	
 	private static String[] columnNames = new String[] {

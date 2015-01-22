@@ -46,6 +46,8 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 		initialize(pluginCommand.getSession());
 
 		String arguments = pluginCommand.getCmdArguments();
+		//TODO: use pluginCommand.getCmdArgumentsList() to use the second argument as 
+		//sector name of the properties file to be used
 		if (arguments.length() > 1) {
 			handleArguments(arguments);
 		} else {

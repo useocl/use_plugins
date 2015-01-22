@@ -3,9 +3,9 @@ package org.tzi.use.kodkod.plugin.gui.util;
 import java.util.ArrayList;
 import java.util.List;
 
-final public class StringChange {
+final public class ChangeString {
 	
-	private StringChange() {
+	private ChangeString() {
 	}
 	
 	/**

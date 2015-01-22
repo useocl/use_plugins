@@ -85,7 +85,7 @@ public final class LogMessages {
 	public static final String closureObjectMessage = "Closure is only available for collections with objects.";
 
 	public static final String closureCollectionMessage = "Source type is not a collection.";
-
+	
 	public static String startModelTransform(String name) {
 		return "Start model transformation for " + inQuotes(name);
 	}

@@ -6,10 +6,10 @@ import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
-public class NonEditableRenderer extends JLabel implements TableCellRenderer {
+public class RendererNonEditable extends JLabel implements TableCellRenderer {
 	private static final long serialVersionUID = 1L;
 
-	public NonEditableRenderer() {
+	public RendererNonEditable() {
 		setOpaque(true);
 	}
 

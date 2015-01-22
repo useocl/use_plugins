@@ -3,7 +3,7 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.tzi.use.kodkod.plugin.gui.util.StringChange;
+import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 
 public abstract class Settings {
 	
@@ -24,7 +24,7 @@ public abstract class Settings {
 	}
 	
 	public void setValues(String values) {
-		this.values = StringChange.toArrayList((String)values);
+		this.values = ChangeString.toArrayList((String)values);
 	}
 	
 	public void setValues(List<String> values) {

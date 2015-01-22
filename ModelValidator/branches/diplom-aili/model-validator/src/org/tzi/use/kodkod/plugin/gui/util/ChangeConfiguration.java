@@ -24,9 +24,9 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MModel;
 
-final public class ConfigurationChange {
+final public class ChangeConfiguration {
 	
-	private ConfigurationChange(){
+	private ChangeConfiguration(){
 	}
 	
 	public static PropertiesConfiguration toProperties(SettingsConfiguration settings, MModel model) {
@@ -41,7 +41,7 @@ final public class ConfigurationChange {
 		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMin, integerSettings.getBounds().getLower());
 		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMax, integerSettings.getBounds().getUpper());
 		if (!integerSettings.getValues().isEmpty()) {
-			Iterator<String> integerValues = StringChange.formatSettingValuesForProperty(integerSettings.getValues()).iterator();
+			Iterator<String> integerValues = ChangeString.formatSettingValuesForProperty(integerSettings.getValues()).iterator();
 			if (integerValues.hasNext()) {
 				pc.setProperty(integerSettings.name(), integerValues.next().toString());
 			}
@@ -54,7 +54,7 @@ final public class ConfigurationChange {
 		pc.setProperty(realSettings.name()+PropertyEntry.realValueMax,  realSettings.getBounds().getUpper());
 		pc.setProperty(realSettings.name()+PropertyEntry.realStep,  realSettings.getStep());
 		if (!realSettings.getValues().isEmpty()) {
-			Iterator<String> realValues = StringChange.formatSettingValuesForProperty(realSettings.getValues()).iterator();
+			Iterator<String> realValues = ChangeString.formatSettingValuesForProperty(realSettings.getValues()).iterator();
 			if (realValues.hasNext()) {
 				pc.setProperty(realSettings.name(), realValues.next().toString());
 			}
@@ -66,7 +66,7 @@ final public class ConfigurationChange {
 		pc.setProperty(stringSettings.name()+PropertyEntry.stringValuesMin, stringSettings.getBounds().getLower());
 		pc.setProperty(stringSettings.name()+PropertyEntry.stringValuesMax, stringSettings.getBounds().getUpper());
 		if (!stringSettings.getValues().isEmpty()) {
-			Iterator<String> stringValues = StringChange.formatSettingValuesForProperty(stringSettings.getValues()).iterator();
+			Iterator<String> stringValues = ChangeString.formatSettingValuesForProperty(stringSettings.getValues()).iterator();
 			if (stringValues.hasNext()) {
 				pc.setProperty(stringSettings.name(), stringValues.next().toString());
 			}
@@ -93,7 +93,7 @@ final public class ConfigurationChange {
 				pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMin, classSettings.getBounds().getLower());
 				pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMax, classSettings.getBounds().getUpper());
 				if (!classSettings.getValues().isEmpty()) {
-					Iterator<String> classValues = StringChange.formatSettingValuesForProperty(classSettings.getValues()).iterator();
+					Iterator<String> classValues = ChangeString.formatSettingValuesForProperty(classSettings.getValues()).iterator();
 					if (classValues.hasNext()) {
 						pc.setProperty(classSettings.getCls().name(), classValues.next().toString());
 					}
@@ -103,7 +103,7 @@ final public class ConfigurationChange {
 				}
 			} else {
 				if (!classSettings.getValues().isEmpty()) {
-					Iterator<String> classValues = StringChange.formatSettingValuesForProperty(classSettings.getValues()).iterator();
+					Iterator<String> classValues = ChangeString.formatSettingValuesForProperty(classSettings.getValues()).iterator();
 					if (classValues.hasNext()) {
 						pc.setProperty(classSettings.getCls().name()+PropertyEntry.ASSOCIATIONCLASS, classValues.next().toString());
 					}
@@ -121,7 +121,7 @@ final public class ConfigurationChange {
 				pc.setProperty(attribute+PropertyEntry.attributeColSizeMin, attributeSettings.getCollectionSize().getLower());
 				pc.setProperty(attribute+PropertyEntry.attributeColSizeMax, attributeSettings.getCollectionSize().getUpper());
 				if (!attributeSettings.getValues().isEmpty()) {
-					Iterator<String> attributeValues = StringChange.formatSettingValuesForProperty(attributeSettings.getValues()).iterator();
+					Iterator<String> attributeValues = ChangeString.formatSettingValuesForProperty(attributeSettings.getValues()).iterator();
 					if (attributeValues.hasNext()) {
 						pc.setProperty(attribute, attributeValues.next().toString());
 					}
@@ -137,7 +137,7 @@ final public class ConfigurationChange {
 				pc.setProperty(association+PropertyEntry.linksMin, associationSettings.getBounds().getLower());
 				pc.setProperty(association+PropertyEntry.linksMax, associationSettings.getBounds().getUpper());
 				if (!associationSettings.getValues().isEmpty()) {
-					Iterator<String> associationValues = StringChange.formatSettingValuesForProperty(associationSettings.getValues()).iterator();
+					Iterator<String> associationValues = ChangeString.formatSettingValuesForProperty(associationSettings.getValues()).iterator();
 					if (associationValues.hasNext()) {
 						pc.setProperty(association, associationValues.next().toString());
 					}
@@ -295,10 +295,10 @@ final public class ConfigurationChange {
 					if (pc.getProperty(propertiesKey) != null) {
 						if (propertiesKey.endsWith(PropertyEntry.ASSOCIATIONCLASS)) {
 							settings.getClassSettings(propertiesKey.substring(0, propertiesKey.indexOf(PropertyEntry.ASSOCIATIONCLASS)))
-								.setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
+								.setValues(ChangeString.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 						} else {
 							settings.getClassSettings(propertiesKey)
-								.setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
+								.setValues(ChangeString.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 						}
 					}
 				}
@@ -329,7 +329,7 @@ final public class ConfigurationChange {
 						String attr = second;
 						MAttribute attribute = model.getClass(clazz).attribute(attr, true);
 						settings.getClassSettings(clazz).getAttributeSettings().get(attribute)
-							.setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
+							.setValues(ChangeString.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 					}
 				}
 			} else if (associations.contains(switchKey)) {
@@ -351,7 +351,7 @@ final public class ConfigurationChange {
 						String assoc = second;
 						MAssociation association = model.getAssociation(assoc);
 						settings.getClassSettings(clazz).getAssociationSettings().get(association)
-							.setValues(StringChange.formatPropertyListForSetting(pc.getProperty(assoc)));
+							.setValues(ChangeString.formatPropertyListForSetting(pc.getProperty(assoc)));
 					}
 				}
 			} else if (invariants.contains(switchKey)) {
@@ -381,7 +381,7 @@ final public class ConfigurationChange {
 					break;
 				case TypeConstants.INTEGER:
 					if (pc.getProperty(propertiesKey) != null) {
-						settings.getIntegerTypeSettings().setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
+						settings.getIntegerTypeSettings().setValues(ChangeString.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 					}
 					break;
 				case TypeConstants.INTEGER + PropertyEntry.integerValueMin:
@@ -392,7 +392,7 @@ final public class ConfigurationChange {
 					break;
 				case TypeConstants.REAL:
 					if (pc.getProperty(propertiesKey) != null) {
-						settings.getRealTypeSettings().setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
+						settings.getRealTypeSettings().setValues(ChangeString.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 					}
 					break;
 				case TypeConstants.REAL + PropertyEntry.realValueMin:
@@ -408,7 +408,7 @@ final public class ConfigurationChange {
 					break;
 				case TypeConstants.STRING:
 					if (pc.getProperty(propertiesKey) != null) {
-						settings.getStringTypeSettings().setValues(StringChange.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
+						settings.getStringTypeSettings().setValues(ChangeString.formatPropertyListForSetting(pc.getProperty(propertiesKey)));
 					}
 					break;
 				case TypeConstants.STRING + PropertyEntry.stringValuesMin:
