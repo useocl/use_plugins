@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
+import org.tzi.use.config.Options;
 import org.tzi.use.kodkod.UseScrollingKodkodModelValidator;
 import org.tzi.use.main.shell.Shell;
 
@@ -46,7 +47,9 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 					validator.showSolution(index);
 				}
 			} else {
-				File file = new File(Shell.getInstance().getFilenameToOpen(arguments, false));
+				String fileToOpen = Shell.getInstance().getFilenameToOpen(arguments, false);
+				fileToOpen = Options.getFilenameToOpen(fileToOpen);
+				File file = new File(fileToOpen);
 	
 				if (file.exists() && file.canRead() && !file.isDirectory()) {
 					extractConfigureAndValidate(file);
