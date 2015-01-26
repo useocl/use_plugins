@@ -23,6 +23,7 @@ public class MVTable extends JTable {
 		super(model);
 	}
 
+	@Override
 	public TableCellRenderer getCellRenderer(int row, int column) {
 		if (column == 0) {
 			if (this.getName() != null) {

@@ -7,8 +7,8 @@ public class SettingsInteger extends Settings {
 	
 	private String name = TypeConstants.INTEGER;
 	
-	public SettingsInteger() {
-		super();
+	public SettingsInteger(SettingsConfiguration configurationSettings) {
+		super(configurationSettings);
 		this.getBounds().setLower(DefaultConfigurationValues.integerMin);
 		this.getBounds().setUpper(DefaultConfigurationValues.integerMax);
 	}

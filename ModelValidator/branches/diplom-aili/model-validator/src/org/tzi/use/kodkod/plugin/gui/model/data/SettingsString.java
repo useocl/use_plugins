@@ -7,8 +7,8 @@ public class SettingsString extends Settings {
 	
 	private String name = TypeConstants.STRING;
 	
-	public SettingsString() {
-		super();
+	public SettingsString(SettingsConfiguration configurationSettings) {
+		super(configurationSettings);
 		this.getBounds().setLower(DefaultConfigurationValues.stringMin);
 		this.getBounds().setUpper(DefaultConfigurationValues.stringMax);
 	}

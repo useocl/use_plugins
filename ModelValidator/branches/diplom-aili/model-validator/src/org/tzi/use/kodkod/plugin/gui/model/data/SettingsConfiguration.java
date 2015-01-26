@@ -12,23 +12,32 @@ public class SettingsConfiguration {
 
 	private final MModel model;
 	
-	private SettingsInteger integerTypeSettings = new SettingsInteger();
-	private SettingsReal realTypeSettings = new SettingsReal();
-	private SettingsString stringTypeSettings = new SettingsString();
-	private SettingsOption optionSettings = new SettingsOption();
+	private SettingsInteger integerTypeSettings = new SettingsInteger(this);
+	private SettingsReal realTypeSettings = new SettingsReal(this);
+	private SettingsString stringTypeSettings = new SettingsString(this);
+	private SettingsOption optionSettings = new SettingsOption(this);
 	private Map<MClass,SettingsClass> classSettingsMap = new HashMap<>();
 	private Map<MClassInvariant, SettingsInvariant> invariantSettingsMap = new HashMap<>();
+	private boolean changed = false;
+
+	public boolean isChanged() {
+		return changed;
+	}
+
+	public void setChanged(boolean changed) {
+		this.changed = changed;
+	}
 
 	public SettingsConfiguration(MModel model) {
 		super();
 		this.model = model;
 		
 		for (MClass cls : model.classes()) {
-			classSettingsMap.put(cls, new SettingsClass(cls));
+			classSettingsMap.put(cls, new SettingsClass(cls, this));
 		}
 		
 		for (MClassInvariant inv : model.classInvariants()) {
-			invariantSettingsMap.put(inv, new SettingsInvariant(inv));
+			invariantSettingsMap.put(inv, new SettingsInvariant(inv, this));
 		}
 	}
 

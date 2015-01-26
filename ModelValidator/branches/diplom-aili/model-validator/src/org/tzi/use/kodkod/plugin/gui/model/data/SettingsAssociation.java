@@ -8,8 +8,8 @@ public class SettingsAssociation extends Settings {
 	private final MAssociation association;
 	public final Boolean isAssociationClass;
 	
-	public SettingsAssociation(MAssociation association, Boolean isAC) {
-		super();
+	public SettingsAssociation(MAssociation association, Boolean isAC, SettingsConfiguration settingsConfiguration) {
+		super(settingsConfiguration);
 		this.getBounds().setLower(DefaultConfigurationValues.linksPerAssocMin);
 		this.getBounds().setUpper(DefaultConfigurationValues.linksPerAssocMax);
 		this.association = association;

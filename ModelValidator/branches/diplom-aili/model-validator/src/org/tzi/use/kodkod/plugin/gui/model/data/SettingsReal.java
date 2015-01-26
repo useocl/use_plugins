@@ -8,8 +8,8 @@ public class SettingsReal extends Settings{
 	private String name = TypeConstants.REAL;
 	private Double realStep = DefaultConfigurationValues.realStep;
 	
-	public SettingsReal() {
-		super();
+	public SettingsReal(SettingsConfiguration configurationSettings) {
+		super(configurationSettings);
 		this.getBounds().setLower(DefaultConfigurationValues.realMin);
 		this.getBounds().setUpper(DefaultConfigurationValues.realMax);
 	}
@@ -25,6 +25,7 @@ public class SettingsReal extends Settings{
 	public void setStep(Object realStep) {
 		if (realStep instanceof String) {
 			this.realStep = Double.parseDouble((String)realStep);
+			this.configurationSettings.setChanged(true);
 		}
 	}
 

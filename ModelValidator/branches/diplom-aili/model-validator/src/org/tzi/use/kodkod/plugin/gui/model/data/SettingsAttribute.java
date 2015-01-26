@@ -10,8 +10,8 @@ public class SettingsAttribute extends Settings {
 	private final Boolean inherited;
 	private Bounds collectionSize = new Bounds();
 
-	public SettingsAttribute(MAttribute attribute, SettingsClass classSettings, Boolean inherited) {
-		super();
+	public SettingsAttribute(MAttribute attribute, SettingsClass classSettings, Boolean inherited, SettingsConfiguration configurationSettings) {
+		super(configurationSettings);
 		this.getBounds().setLower(DefaultConfigurationValues.attributesPerClassMin);
 		this.getBounds().setUpper(DefaultConfigurationValues.attributesPerClassMax);
 		this.getCollectionSize().setLower(DefaultConfigurationValues.attributesColSizeMin);
@@ -20,7 +20,7 @@ public class SettingsAttribute extends Settings {
 		this.classSettings = classSettings;
 		this.inherited = inherited;
 	}
-	
+
 	public SettingsClass getClassSettings() {
 		return classSettings;
 	}

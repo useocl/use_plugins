@@ -37,9 +37,24 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		file.createNewFile();
 		pc = new PropertiesConfiguration();
 	}
+	
+	public DefaultConfigurationVisitor() {
+		pc = new PropertiesConfiguration();
+	}
 
 	public File getFile() {
 		return file;
+	}
+	
+	public PropertiesConfiguration createDefaultProperties(IModel model) {
+		iterate(model.typeFactory().configurableTypes().iterator());
+		for (IClass clazz : model.classes()) {
+			clazz.accept(this);
+			iterate(clazz.attributes().iterator());
+		}
+		iterate(model.associations().iterator());
+		
+		return pc;
 	}
 
 	@Override
@@ -136,7 +151,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	 */
 	private void write(String name, int value) {
 		try {
-			pc.addProperty(name, value);
+			pc.setProperty(name, value);
 		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
@@ -151,7 +166,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	 */
 	private void write(String name, double value) {
 		try {
-			pc.addProperty(name, value);
+			pc.setProperty(name, value);
 		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}

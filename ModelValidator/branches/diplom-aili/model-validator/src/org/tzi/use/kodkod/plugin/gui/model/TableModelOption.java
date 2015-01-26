@@ -8,7 +8,7 @@ import org.tzi.use.kodkod.plugin.gui.model.data.SettingsOption;
 public class TableModelOption extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	private SettingsOption settings = new SettingsOption();
+	private SettingsOption settings;
 	
 	private static String[] columnNames = new String[] {
 		ConfigurationTerms.OPTION,

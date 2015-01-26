@@ -164,10 +164,6 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	private void configureModel(IPluginAction pluginAction) throws Exception {
 		//TODO: Diese Methode in eine GUI-Methode extrahieren
 		model().reset();
-		File file = new File(mModel.filename().replaceAll("\\.use", "") + ".properties");
-        if (!file.exists()) {
-        	model().accept(new DefaultConfigurationVisitor(mModel.filename()));
-        }
         ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
         		new ModelValidatorConfigurationWindow(MainWindow.instance(), mModel);
         if (modelValidatorConfigurationWindow.getChosenPropertiesConfiguration() != null) {

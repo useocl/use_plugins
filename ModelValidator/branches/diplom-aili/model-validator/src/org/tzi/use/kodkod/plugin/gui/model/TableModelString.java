@@ -9,7 +9,7 @@ import org.tzi.use.util.StringUtil;
 public class TableModelString extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	private SettingsString settings = new SettingsString();
+	private SettingsString settings;
 	
 	private static String[] columnNames = new String[] {
 		ConfigurationTerms.BASIC_TYPE,

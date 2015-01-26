@@ -29,7 +29,7 @@ public class TableBuilder {
 	
 	private SettingsConfiguration allSettings;
 	
-	public TableBuilder(SettingsConfiguration allSettings){
+	public TableBuilder(final SettingsConfiguration allSettings){
 		this.allSettings = allSettings;
 	}
 	

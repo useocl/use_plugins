@@ -16,27 +16,27 @@ public class SettingsClass extends Settings {
 	private final Map<MAssociation,SettingsAssociation> associationSettings = new HashMap<>();
 	private final Boolean isAssociationClass;
 
-	public SettingsClass(MClass cls) {
-		super();
+	public SettingsClass(MClass cls, SettingsConfiguration configurationSettings) {
+		super(configurationSettings);
 		this.getBounds().setLower(DefaultConfigurationValues.objectsPerClassMin);
 		this.getBounds().setUpper(DefaultConfigurationValues.objectsPerClassMax);
 		this.clazz = cls;
 		this.isAssociationClass = cls instanceof MAssociationClassImpl;
 		
 		for (MAttribute attr : cls.allAttributes()) {
-			attributeSettings.put(attr, new SettingsAttribute(attr, this, !clazz.attributes().contains(attr)));
+			attributeSettings.put(attr, new SettingsAttribute(attr, this, !clazz.attributes().contains(attr), configurationSettings));
 		}
 		
 		for (MAssociation assoc : cls.allAssociations()) {
 			if (!(assoc instanceof MAssociationClassImpl)) {
 				if (assoc.associationEnds().iterator().next().cls().equals(this.clazz)) {
-					associationSettings.put(assoc,  new SettingsAssociation(assoc, false));
+					associationSettings.put(assoc,  new SettingsAssociation(assoc, false, configurationSettings));
 				}
 			}
 		}
 		
 		if (this.isAssociationClass) {
-			associationSettings.put((MAssociation) this.clazz, new SettingsAssociation((MAssociation) this.clazz, true));
+			associationSettings.put((MAssociation) this.clazz, new SettingsAssociation((MAssociation) this.clazz, true, configurationSettings));
 		}
 	}
 

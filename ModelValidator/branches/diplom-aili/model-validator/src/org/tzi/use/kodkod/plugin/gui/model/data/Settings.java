@@ -8,13 +8,17 @@ import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 public abstract class Settings {
 	
 	private Bounds bounds = new Bounds();
-	//the values are prepared for adding easily through iteration into a PropertiesConfiguration object, like:
-	//if (values.hasNext()) propertiesConfiguration.setProperty(key, values.next());
-	//while (values.hasNext()) {
-	//  propertiesConfiguration.addProperty(key, values.next());
-	//}
 	private List<String> values = new ArrayList<>();
+	protected SettingsConfiguration configurationSettings;
 	
+	public Settings(SettingsConfiguration configurationSettings) {
+		this.configurationSettings = configurationSettings;
+	}
+	
+	public SettingsConfiguration getConfigurationSettings() {
+		return configurationSettings;
+	}
+
 	public Bounds getBounds() {
 		return bounds;
 	}
@@ -25,10 +29,16 @@ public abstract class Settings {
 	
 	public void setValues(String values) {
 		this.values = ChangeString.toArrayList((String)values);
+		this.configurationSettings.setChanged(true);
 	}
 	
 	public void setValues(List<String> values) {
 		this.values = values;
+		this.configurationSettings.setChanged(true);
+	}
+	
+	public void deleteValues() {
+		values.clear();
 	}
 
 }
