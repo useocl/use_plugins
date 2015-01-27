@@ -108,6 +108,11 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 
 	/**
 	 * Evaluation of the inactive invariants.
+	 * 
+	 * Probably for the generation of default properties file. If a normal run
+	 * fails with that, all invariants are deactivated and another run is tried.
+	 * If it succeeds, all invariants that are valid in the found solution are
+	 * enabled in the properties file.
 	 */
 	private void evaluateInactiveInvariants() {
 		boolean info = false;
@@ -119,7 +124,7 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 						info = true;
 					}
 
-					LOG.debug("Invariant " + invariant.name() + ": " + evaluator.evaluate(invariant.formula()));
+					LOG.debug("Invariant " + invariant.qualifiedName() + ": " + evaluator.evaluate(invariant.formula()));
 				}
 			}
 		}

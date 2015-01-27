@@ -1,7 +1,6 @@
 package org.tzi.kodkod.model.impl;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
@@ -28,7 +27,7 @@ import org.tzi.kodkod.model.visitor.Visitor;
  * @author Hendrik Reitmann
  * 
  */
-public final class Model implements IModel{
+public final class Model implements IModel {
 	
 	private static final Logger LOG = Logger.getLogger(Model.class);
 	
@@ -142,11 +141,7 @@ public final class Model implements IModel{
 	
 	@Override
 	public void resetConfigurator() {
-		Map<String, IInvariant> temporaryInvariants = new HashMap<String, IInvariant>();
-		if(configurator instanceof ModelConfigurator){
-			temporaryInvariants = ((ModelConfigurator) configurator).getInvariants();
-		}
-		configurator = new ModelConfigurator(this,temporaryInvariants);
+		configurator = new ModelConfigurator(this);
 	}
 
 	@Override

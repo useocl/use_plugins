@@ -18,65 +18,65 @@ public final class LogMessages {
 
 	public static final String modelConfigurationSuccessful = "Model configuration successful";
 
-	public static String letNotReachableWarning = "This state should not be reachable!";
+	public static final String letNotReachableWarning = "This state should not be reachable!";
 
-	public static String invTransformSuccessful = "Invariant transformation successful";
+	public static final String invTransformSuccessful = "Invariant transformation successful";
 
-	public static String modelTransformError = "Model transformation was not successful.";
+	public static final String modelTransformError = "Model transformation was not successful.";
 
-	public static String modelTransformSuccessful = "Model transformation successful";
+	public static final String modelTransformSuccessful = "Model transformation successful";
 
-	public static String solverConfigBitwidthError = "Bitwidth has to be an int value.";
+	public static final String solverConfigBitwidthError = "Bitwidth has to be an int value.";
 
-	public static String configDiagramExtractionError = "Possible values for AutomaticObjectDiagramExtraction are only " + inQuotes("on") + " or " + inQuotes("off") + ".";
+	public static final String configDiagramExtractionError = "Possible values for AutomaticObjectDiagramExtraction are only " + inQuotes("on") + " or " + inQuotes("off") + ".";
 
-	public static String objDiagramCreation = "Create object diagram";
+	public static final String objDiagramCreation = "Create object diagram";
 
-	public static String objDiagramCreationError = "Error during object diagram creation";
+	public static final String objDiagramCreationError = "Error during object diagram creation";
 
-	public static String propertiesConfigurationReadError = "Error while reading .properties file";
+	public static final String propertiesConfigurationReadError = "Error while reading .properties file";
 
-	public static String propertiesConfigurationCreateError = "Error while creating .properties file";
+	public static final String propertiesConfigurationCreateError = "Error while creating .properties file";
 
-	public static String propertiesConfigurationWriteError = "Error while writing .properties file";
+	public static final String propertiesConfigurationWriteError = "Error while writing .properties file";
 
-	public static String propertiesConfigurationCloseError = "Error while closing .properties file";
+	public static final String propertiesConfigurationCloseError = "Error while closing .properties file";
 
-	public static String className$Error = "Class names starting with a " + inQuotes("$") + " are not allowed!";
+	public static final String className$Error = "Class names starting with a " + inQuotes("$") + " are not allowed!";
 
-	public static String solverConfigSaveError = "Error while saving KodkodSolver configuration";
+	public static final String solverConfigSaveError = "Error while saving KodkodSolver configuration";
 
-	public static String solverConfigSaved = "Saved KodkodSolver configuration";
+	public static final String solverConfigSaved = "Saved KodkodSolver configuration";
 
-	public static String modelResetSuccessful = "Reset successful";
+	public static final String modelResetSuccessful = "Reset successful";
 
-	public static String validationException = "Error while model validation! Please check your configuration.";
+	public static final String validationException = "Error while model validation! Please check your configuration.";
 
-	public static String valueConversionNestedCollections = "Nested collections not supported!";
+	public static final String valueConversionNestedCollections = "Nested collections not supported!";
 
-	public static String objDiagramExtractionError = "Error while extracting information from the object diagram.";
+	public static final String objDiagramExtractionError = "Error while extracting information from the object diagram.";
 
-	public static String objDiagramExtractionSuccessful = "Object diagram extraction successful.";
+	public static final String objDiagramExtractionSuccessful = "Object diagram extraction successful.";
 
-	public static String pagingNext = inQuotes("next") + " to search a new solution";
+	public static final String pagingNext = inQuotes("next") + " to search a new solution";
 
-	public static String pagingPrevious = inQuotes("previous") + " to get the last solution";
+	public static final String pagingPrevious = inQuotes("previous") + " to get the last solution";
 
-	public static String pagingFirst = "First solution reached";
+	public static final String pagingFirst = "First solution reached";
 
-	public static String pagingCmdError = "Set a configuration file or enter next for a new solution respectively previous for the last solution.";
+	public static final String pagingCmdError = "Set a configuration file or enter next for a new solution respectively previous for the last solution.";
 
-	public static String pagingCmdFileFirst = "Set a configuration file first!";
+	public static final String pagingCmdFileFirst = "Set a configuration file first!";
 
-	public static String enrichWithLoadedInvariants = "Enrich the model with loaded invariants";
+	public static final String enrichWithLoadedInvariants = "Enrich the model with loaded invariants";
 
-	public static String errorWithLoadedInvariants = "Error while enriching the model with loaded invariants";
+	public static final String errorWithLoadedInvariants = "Error while enriching the model with loaded invariants";
 
-	public static String inactiveInvariantEval = "Evaluation of inactive invariants";
+	public static final String inactiveInvariantEval = "Evaluation of inactive invariants";
 
-	public static String noSuchMethodError = "Please read the Readme file";
+	public static final String noSuchMethodError = "Please read the Readme file";
 
-	public static String solutionForbidError = "Error while creating the formula to forbid the last solution!";
+	public static final String solutionForbidError = "Error while creating the formula to forbid the last solution!";
 
 	public static final String showSolutionIndexToSmall = "Please enter an index greater 0.";
 
@@ -206,19 +206,18 @@ public final class LogMessages {
 
 	public static String aggregationcyclefreenessInfo() {
 		String status = DefaultConfigurationValues.aggregationcyclefreeness ? "on" : "off";
-		return "Only on and off are possible values of aggregationcyclefreeness! Use default: " + status;
+		return "Only on and off are possible values of aggregationcyclefreeness! Using default " + inQuotes(status) + ".";
 	}
 
 	public static String forbiddensharingInfo() {
 		String status = DefaultConfigurationValues.forbiddensharing ? "on" : "off";
-		return "Only on and off are possible values of forbiddensharing! Use default: " + status;
+		return "Only on and off are possible values of forbiddensharing! Using default " + inQuotes(status) + ".";
 	}
 	
 	public static String invariantConfigWarning(String state) {
 		return state + " is not possible for an invariant. Possible states for an invariant are "
 				+ inQuotes("active") + ", " + inQuotes("inactive") + " and "
-				+ inQuotes("negate") + ". Use " + inQuotes("active")
-				+ " as default.";
+				+ inQuotes("negate") + ". Using default " + inQuotes("active") + ".";
 	}
 
 	public static String showSolution(int index) {
@@ -250,18 +249,18 @@ public final class LogMessages {
 		else {
 			message = "Invariant %s is not fulfilled in generated system state.";
 		}
-		return String.format(message, inQuotes(invariant.name()));
+		return String.format(message, inQuotes(invariant.qualifiedName()));
 	}
 
 	public static String flagChangeInfo(IInvariant inv, boolean didDisable) {
 		String message;
 		if(didDisable){
-			message = "Overwrite property configuration with generator configuration disabling invariant %s";
+			message = "Overwrite property configuration with generator configuration disabling invariant %s.";
 		}
 		else {
-			message = "Overwrite property configuration with generator configuration negating invariant %s";
+			message = "Overwrite property configuration with generator configuration negating invariant %s.";
 		}
-		return String.format(message, inv.name());
+		return String.format(message, inQuotes(inv.qualifiedName()));
 	}
 
 }

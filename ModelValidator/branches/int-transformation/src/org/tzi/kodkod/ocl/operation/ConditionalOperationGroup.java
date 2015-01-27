@@ -48,6 +48,6 @@ public class ConditionalOperationGroup extends OCLOperationGroup {
 	}
 
 	public final Formula if_then_else(Formula cond, Formula l, Formula r) {
-		return cond.implies(l).and(cond.not().implies(r));
+		return cond.and(l).or(cond.not().and(r));
 	}
 }
