@@ -11,7 +11,7 @@ public class TableModelOption extends DefaultTableModel {
 	private SettingsOption settings;
 	
 	private static String[] columnNames = new String[] {
-		ConfigurationTerms.OPTION,
+		ConfigurationTerms.OPTIONS,
 		"" };
 	
 	public TableModelOption(SettingsOption settings) {

@@ -6,14 +6,17 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -33,6 +36,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableColumn;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
@@ -77,6 +81,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private JTable real;
 	private JTable string;
 	private Set<JTable> tables;
+	private JCheckBox attributeCheckBox;
 
 	private MModel model;
 	private File file;
@@ -84,6 +89,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private PropertiesConfiguration propertiesConfiguration;
 	private SettingsConfiguration settingsConfiguration;
 	private TableBuilder tableBuilder;
+	private List<TableColumn> attributeColumnsToHide;
 
 	private String selectedClass;
 	private Boolean validatable;
@@ -149,16 +155,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	public ModelValidatorConfigurationWindow(final JFrame parent, final MModel model) {
 		super(parent, "Model-Validator Configuration");
 		
-		//this.getRootPane().setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, getRootPane().getBackground()));
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		//TODO: USE soll weiterhin verwendbar bleiben, waehrrend die MV-GUI weiterlaeuft. Dies soll geschehen, indem die Validierung
 		// im Thread der MV-GUI mit ausgefuehrt wird.
 		this.setModalityType(ModalityType.APPLICATION_MODAL);
 		this.setResizable(true);
-		this.setSize(800,300);
-		//TODO: Probieren, ob this.setUndecorated hier geimplementiert werden kann, um die windows nativen Minimize/Maximize Buttons
-		//zu bekommen
-		//this.setUndecorated(true);
+		this.setSize(1024,300);
 
 		this.model = model;
 		settingsConfiguration = new SettingsConfiguration(model);
@@ -181,7 +183,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		tables.add(attributes);
 		tables.add(associations);
 		tables.add(invariants);
-
+		
+		attributeColumnsToHide = new ArrayList<>();
+		for (int i = 1; i < 5; i++) {
+			attributeColumnsToHide.add( attributes.getColumnModel().getColumn(i));
+		}
+		
 		classTableSelectionListener = classes.getSelectionModel();
 		classTableSelectionListener.addListSelectionListener(new ClassTableSelectionHandler());
 		classes.setSelectionModel(classTableSelectionListener);
@@ -210,10 +217,34 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         comboBoxActionListener = new ComboBoxActionListener();  
         sectionSelectionComboBox.addActionListener(comboBoxActionListener);
         
+        attributeCheckBox = new JCheckBox("Hide defined and collection bounds", true);
+		attributeCheckBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed( ActionEvent e ) {
+				if (!attributeCheckBox.isSelected()) {
+					if (attributes.getColumnCount() < 6) {
+						TableColumn tempColumn = attributes.getColumnModel().getColumn(1);
+						attributes.removeColumn(tempColumn);
+						for (int i = 0; i < 4; i++) {
+							attributes.addColumn(attributeColumnsToHide.get(i));
+						}
+						attributes.addColumn(tempColumn);
+					}
+				} else {
+					if (attributes.getColumnCount() > 2) {
+						for (int i = 0; i < 4; i++) {
+							attributes.removeColumn(attributeColumnsToHide.get(i));
+						}
+					}
+				}
+        	}
+		});
+        
         validateButton = new JButton("Validate");
         validateButton.addActionListener( new ActionListener() {
         	@Override 
         	public void actionPerformed( ActionEvent e ) {
+        		//TODO: pruefen, ob settings veraendert wurden, wenn nicht dann openSaveDialog(this)
         		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
         		validatable = true;
         		setVisible(false);
@@ -256,7 +287,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         }
         ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
         TableBuilder.repaintAllTables(tables.iterator());
-        //classes.setRowSelectionInterval(0,0);
+
+        //Hiding the min-/maxDefined and min-/maxElements of the attributes table
+        for (int i = 0; i < 4; i++) {
+			attributes.removeColumn(attributeColumnsToHide.get(i));
+		}
         
         this.setJMenuBar(buildMenuBar(parent));
         this.setContentPane(main);
@@ -560,7 +595,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private JSplitPane buildBasicTypesAndOptionsTab() {
-		//TODO: Slider neben Zahlenwerten einsetzen
+		//TODO: Spinner neben Zahlenwerten einsetzen
 		JSplitPane basicTypesAndOptionsPanel;
 		
 		JPanel leftUpper = new JPanel();
@@ -606,13 +641,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private JSplitPane buildClassesAndAssociationsTab() {
-		//TODO: Slider neben Zahlenwerten einsetzen
+		//TODO: Spinner neben Zahlenwerten einsetzen
 		JScrollPane classesScrollPane = new JScrollPane(classes);
         JScrollPane attributesScrollPane = new JScrollPane(attributes);
         JScrollPane associationsScrollPane = new JScrollPane(associations);
         JPanel classesPanel = new JPanel(new BorderLayout());
         JPanel attributesPanel = new JPanel(new BorderLayout());
         JPanel associationsPanel = new JPanel(new BorderLayout());
+        JPanel attributeLabelPanel = new JPanel();
         JSplitPane caaTabLeftSplitPane;
         JSplitPane caaTabRightSplitPane;
         
@@ -621,7 +657,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         associationsScrollPane.setPreferredSize(new Dimension(this.getWidth()/2,this.getHeight()/2));
         classesPanel.add(new JLabel("Classes"), BorderLayout.NORTH);
         classesPanel.add(classesScrollPane, BorderLayout.CENTER);
-        attributesPanel.add(new JLabel("Attributes"), BorderLayout.NORTH);
+        attributeLabelPanel.setLayout(new BoxLayout(attributeLabelPanel, BoxLayout.LINE_AXIS));
+        attributeLabelPanel.add(new JLabel("Attributes"));
+        attributeLabelPanel.add(Box.createHorizontalGlue());
+        attributeLabelPanel.add(attributeCheckBox);
+        attributesPanel.add(attributeLabelPanel, BorderLayout.NORTH);
         attributesPanel.add(attributesScrollPane, BorderLayout.CENTER);
         associationsPanel.add(new JLabel("Associations"), BorderLayout.NORTH);
         associationsPanel.add(associationsScrollPane, BorderLayout.CENTER);

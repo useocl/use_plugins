@@ -6,6 +6,8 @@ public class ConfigurationTerms {
 	public static final String ATTRIBUTES = "Attributes";
 	public static final String ASSOCIATIONS = "Associations";
 	public static final String BASIC_TYPE = "Type";
+	public static final String OPTIONS = "Options";
+	public static final String INVARIANTS = "Invariants";
 	
 	public static final String INTEGER_MIN = "Minimum";
 	public static final String INTEGER_MAX = "Maximum";
@@ -34,11 +36,9 @@ public class ConfigurationTerms {
 	public static final String ASSOCIATIONS_MAX = "MaxLinks";
 	public static final String ASSOCIATIONS_VALUES = "PresentLinks";
 	
-	public static final String OPTION = "Option";
 	public static final String OPTION_FORBIDDENSHARING = "Forbidden Sharing";
 	public static final String OPTION_AGGREGATIONCYCLEFREENESS = "Aggregation Cycle Freeness";
 	
-	public static final String INVARIANTS = "Invariants";
 	public static final String INVARIANTS_ACTIVE = "Active";
 	public static final String INVARIANTS_NEGATE = "Negate";
 	

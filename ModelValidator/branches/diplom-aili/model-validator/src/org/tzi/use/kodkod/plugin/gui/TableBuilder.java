@@ -7,9 +7,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 
 import org.tzi.kodkod.model.config.impl.PropertyEntry;
 import org.tzi.kodkod.model.type.TypeConstants;
@@ -23,9 +27,24 @@ import org.tzi.use.kodkod.plugin.gui.model.TableModelReal;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelString;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAssociation;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAttribute;
+import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
+import org.tzi.use.kodkod.plugin.gui.view.RendererInteger;
+import org.tzi.use.kodkod.plugin.gui.view.RendererNameAbstractAssociationClass;
+import org.tzi.use.kodkod.plugin.gui.view.RendererNameAbstractClass;
+import org.tzi.use.kodkod.plugin.gui.view.RendererNameAssociation;
+import org.tzi.use.kodkod.plugin.gui.view.RendererNameAssociationClass;
+import org.tzi.use.kodkod.plugin.gui.view.RendererNameDerivedAttribute;
+import org.tzi.use.kodkod.plugin.gui.view.RendererNameInheritedAttribute;
+import org.tzi.use.kodkod.plugin.gui.view.RendererNonEditable;
+import org.tzi.use.kodkod.plugin.gui.view.RendererValues;
 
 public class TableBuilder {
+	//TODO: Alle Columnen mit ganzen Zahlen, sollen einen eigenen Renderer bekommen, der
+	//1. rechtbuendig ist
+	//2. bei einem Wert von -1 einen Stern(*), statt der -1 anzeigen soll
+	//   wenn man -1 manuell eingibt, soll daraus bei Enter ein Stern vom Renderer wiedergegeben gegeben werden, aber in den Settings -1 eintragen
+	//   wenn man ein Stern eingibt, soll da zwar auch ein Stern abgebildet werden, aber intern in den Settings als -1 gespeichert werden
 	
 	private SettingsConfiguration allSettings;
 	
@@ -33,141 +52,154 @@ public class TableBuilder {
 		this.allSettings = allSettings;
 	}
 	
-	public JTable integer(){
-		JTable table = new MVTable(new TableModelInteger(allSettings.getIntegerTypeSettings()));
-		table.setName(TypeConstants.INTEGER);
-		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
+	private JTable createBaseTable(TableModel model) {
+		JTable t = new JTable(model) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public TableCellRenderer getCellRenderer(int row, int column) {
+				if (column == 0) {
+					if (this.getName() != null) {
+						String tableName = this.getName();
+						switch (tableName) {
+						case ConfigurationTerms.CLASSES: 
+							TableModelClass classModel = (TableModelClass) this.getModel();
+							SettingsClass clsSettings = classModel.getClassesSettings().get(row);
+							if (clsSettings.getCls().isAbstract()) {
+								if (clsSettings.isAssociationClass()) {
+									return new RendererNameAbstractAssociationClass();
+								}
+								return new RendererNameAbstractClass();
+							}
+							if (clsSettings.isAssociationClass()) {
+								return new RendererNameAssociationClass();
+							}
+							break;
+						case ConfigurationTerms.ATTRIBUTES:
+							TableModelAttribute attributeModel = (TableModelAttribute) this.getModel();
+							SettingsAttribute attrSettings = attributeModel.getAttributesSettings().get(row);
+							if (attrSettings.isInherited()) {
+								return new RendererNameInheritedAttribute();
+							}
+							if (attrSettings.getAttribute().isDerived()) {
+								return new RendererNameDerivedAttribute();
+							}
+							break;
+						case ConfigurationTerms.ASSOCIATIONS:
+							return new RendererNameAssociation();
+						}
+					}
+					return super.getCellRenderer(row, column);
+				} else if (!isCellEditable(row, column)) {
+					return new RendererNonEditable();
+				} else if ((column != getColumnCount()-1) && (getValueAt(row, column) instanceof Integer)){
+					return new RendererInteger();
+				} else if ((column == getColumnCount()-1) 
+						&& this.getName() != ConfigurationTerms.OPTIONS 
+						&& this.getName() != ConfigurationTerms.INVARIANTS) {
+					return new RendererValues();
+				} else {
+					return super.getCellRenderer(row, column);
+				}
+			}
+		};
+		
+		t.setRowHeight((int) (t.getRowHeight()*1.2));
+		t.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		t.getTableHeader().setReorderingAllowed(false);
+		return t;
+	}
+	
+	private JTable createConfigurationTable(TableModel m){
+		JTable t = createBaseTable(m);
+		final JTableHeader tableHeader = new JTableHeader(t.getColumnModel()) {
 			private static final long serialVersionUID = 1L;
 			public String getToolTipText(MouseEvent e) {
-                        java.awt.Point p = e.getPoint();
-                        int index = columnModel.getColumnIndexAtX(p.x);
-                        String columnName = (String) columnModel.getColumn(index).getHeaderValue();
-                        return getToolTipBy(table.getName(), columnName);
-            }
+				java.awt.Point p = e.getPoint();
+				int index = columnModel.getColumnIndexAtX(p.x);
+				String columnName = (String) columnModel.getColumn(index).getHeaderValue();
+				return getToolTipBy(table.getName(), columnName);
+			}
 		};
-		table.setTableHeader(tableHeader);
-		table.getModel().setValueAt("<html><b>Integer</b></html>",0,0);
+		tableHeader.setReorderingAllowed(false);
+		t.setTableHeader(tableHeader);
+		return t;
+	}
+	
+	public JTable integer(){
+		JTable table = createConfigurationTable(new TableModelInteger(allSettings.getIntegerTypeSettings()));
+		table.setName(TypeConstants.INTEGER);
+		
 		table.setPreferredScrollableViewportSize(new Dimension(table.getWidth(),table.getRowHeight()*table.getRowCount()));
 		table.setSelectionBackground(Color.white);
 		return table;
 	}
 	
 	public JTable real(){
-		JTable table = new MVTable(new TableModelReal(allSettings.getRealTypeSettings()));
+		JTable table = createConfigurationTable(new TableModelReal(allSettings.getRealTypeSettings()));
 		table.setName(TypeConstants.REAL);
-		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
-			private static final long serialVersionUID = 1L;
-			public String getToolTipText(MouseEvent e) {
-                        java.awt.Point p = e.getPoint();
-                        int index = columnModel.getColumnIndexAtX(p.x);
-                        String columnName = (String) columnModel.getColumn(index).getHeaderValue();
-                        return getToolTipBy(table.getName(), columnName);
-            }
-		};
-		table.setTableHeader(tableHeader);
-		table.getModel().setValueAt("<html><b>Real</b></html>",0,0);
+		
 		table.setPreferredScrollableViewportSize(new Dimension(table.getWidth(),table.getRowHeight()*table.getRowCount()));
 		table.setSelectionBackground(Color.white);
 		return table;
 	}
 	
 	public JTable string(){
-		JTable table = new MVTable(new TableModelString(allSettings.getStringTypeSettings()));
+		JTable table = createConfigurationTable(new TableModelString(allSettings.getStringTypeSettings()));
 		table.setName(TypeConstants.STRING);
-		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
-			private static final long serialVersionUID = 1L;
-			public String getToolTipText(MouseEvent e) {
-                        java.awt.Point p = e.getPoint();
-                        int index = columnModel.getColumnIndexAtX(p.x);
-                        String columnName = (String) columnModel.getColumn(index).getHeaderValue();
-                        return getToolTipBy(table.getName(), columnName);
-            }
-		};
-		table.setTableHeader(tableHeader);
-		table.getModel().setValueAt("<html><b>String</b></html>",0,0);
+		
 		table.setPreferredScrollableViewportSize(new Dimension(table.getWidth(),table.getRowHeight()*table.getRowCount()));
 		table.setSelectionBackground(Color.white);
 		return table;
 	}
 	
 	public JTable classes(){
-		JTable table = new MVTable(new TableModelClass(allSettings.getAllClassesSettings()));
+		JTable table = createConfigurationTable(new TableModelClass(allSettings.getAllClassesSettings()));
 		table.setName(ConfigurationTerms.CLASSES);
-		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
-			private static final long serialVersionUID = 1L;
-			public String getToolTipText(MouseEvent e) {
-                        java.awt.Point p = e.getPoint();
-                        int index = columnModel.getColumnIndexAtX(p.x);
-                        String columnName = (String) columnModel.getColumn(index).getHeaderValue();
-                        return getToolTipBy(table.getName(), columnName);
-            }
-		};
 		
-		table.setTableHeader(tableHeader);
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		return table;
 	}
 	
 	public JTable attributes(){
 		List<SettingsAttribute> attributes = 
 					new ArrayList<>(allSettings.getAllClassesSettings().get(0).getAttributeSettings().values());
-		JTable table = new MVTable(new TableModelAttribute(attributes));
+		JTable table = createConfigurationTable(new TableModelAttribute(attributes));
 		table.setName(ConfigurationTerms.ATTRIBUTES);
-		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
-			private static final long serialVersionUID = 1L;
-			public String getToolTipText(MouseEvent e) {
-                        java.awt.Point p = e.getPoint();
-                        int index = columnModel.getColumnIndexAtX(p.x);
-                        String columnName = (String) columnModel.getColumn(index).getHeaderValue();
-                        return getToolTipBy(table.getName(), columnName);
-            }
-		};
-		table.setTableHeader(tableHeader);
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		DefaultTableCellRenderer rightAlignment = new DefaultTableCellRenderer();
+		rightAlignment.setHorizontalAlignment( JLabel.RIGHT );
+		table.getColumnModel().getColumn(5).setCellRenderer(rightAlignment);
+		
 		return table;
 	}
 	
 	public JTable associations(){
 		List<SettingsAssociation> associations = 
 					new ArrayList<>(allSettings.getAllClassesSettings().get(0).getAssociationSettings().values());
-		JTable table = new MVTable(new TableModelAssociation(associations));
+		JTable table = createConfigurationTable(new TableModelAssociation(associations));
 		table.setName(ConfigurationTerms.ASSOCIATIONS);
-		final JTableHeader tableHeader = new JTableHeader(table.getColumnModel()) {
-			private static final long serialVersionUID = 1L;
-			public String getToolTipText(MouseEvent e) {
-                        java.awt.Point p = e.getPoint();
-                        int index = columnModel.getColumnIndexAtX(p.x);
-                        String columnName = (String) columnModel.getColumn(index).getHeaderValue();
-                        return getToolTipBy(table.getName(), columnName);
-            }
-		};
-		table.setTableHeader(tableHeader);
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
 		return table;
 	}
 	
 	public JTable options(){
-		JTable table = new MVTable(new TableModelOption(allSettings.getOptionSettings()));
+		JTable table = createBaseTable(new TableModelOption(allSettings.getOptionSettings()));
 		table.getModel().setValueAt(PropertyEntry.aggregationcyclefreeness,0,0);
 		table.getModel().setValueAt(PropertyEntry.forbiddensharing,1,0);
 		table.setPreferredScrollableViewportSize(new Dimension(350,table.getRowHeight()*table.getRowCount()));
 		table.getColumnModel().getColumn(0).setPreferredWidth(200);
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setName(ConfigurationTerms.OPTIONS);
 		return table;
 	}
 	
 	public JTable invariants(){
-		JTable table = new MVTable(new TableModelInvariant(allSettings.getAllInvariantsSettings()));
+		JTable table = createBaseTable(new TableModelInvariant(allSettings.getAllInvariantsSettings()));
 		table.setPreferredScrollableViewportSize(new Dimension(800,table.getRowHeight()*table.getRowCount()));
 		table.getColumnModel().getColumn(0).setPreferredWidth(400);
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setName(ConfigurationTerms.INVARIANTS);
 		return table;
 	}
 	
 	private String getToolTipBy(String tableName, String columnName) {
-		if (tableName == null || columnName == null) {
-			return null;
-		}
 		switch (tableName) {
 			case (TypeConstants.INTEGER): {
 				switch (columnName) {
