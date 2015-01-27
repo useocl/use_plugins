@@ -39,8 +39,8 @@ final public class ChangeConfiguration {
 		List<SettingsClass> classesSettings = settings.getAllClassesSettings();
 		List<SettingsInvariant> invariantsSettings = settings.getAllInvariantsSettings();
 		
-		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMin, integerSettings.getBounds().getLower());
-		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMax, integerSettings.getBounds().getUpper());
+		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMin, integerSettings.getMinimum());
+		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMax, integerSettings.getMaximum());
 		if (!integerSettings.getValues().isEmpty()) {
 			Iterator<String> integerValues = ChangeString.formatSettingValuesForProperty(integerSettings.getValues()).iterator();
 			if (integerValues.hasNext()) {
@@ -53,8 +53,8 @@ final public class ChangeConfiguration {
 			pc.clearProperty(integerSettings.name());
 		}
 		
-		pc.setProperty(realSettings.name()+PropertyEntry.realValueMin,  realSettings.getBounds().getLower());
-		pc.setProperty(realSettings.name()+PropertyEntry.realValueMax,  realSettings.getBounds().getUpper());
+		pc.setProperty(realSettings.name()+PropertyEntry.realValueMin,  realSettings.getMinimum());
+		pc.setProperty(realSettings.name()+PropertyEntry.realValueMax,  realSettings.getMaximum());
 		pc.setProperty(realSettings.name()+PropertyEntry.realStep,  realSettings.getStep());
 		if (!realSettings.getValues().isEmpty()) {
 			Iterator<String> realValues = ChangeString.formatSettingValuesForProperty(realSettings.getValues()).iterator();
@@ -432,10 +432,10 @@ final public class ChangeConfiguration {
 					}
 					break;
 				case TypeConstants.INTEGER + PropertyEntry.integerValueMin:
-					settings.getIntegerTypeSettings().getBounds().setLower(pc.getInt(propertiesKey));
+					settings.getIntegerTypeSettings().setMinimum(pc.getInt(propertiesKey));
 					break;
 				case TypeConstants.INTEGER + PropertyEntry.integerValueMax:
-					settings.getIntegerTypeSettings().getBounds().setUpper(pc.getInt(propertiesKey));
+					settings.getIntegerTypeSettings().setMaximum(pc.getInt(propertiesKey));
 					break;
 				case TypeConstants.REAL:
 					if (pc.getProperty(propertiesKey) != null) {
@@ -443,12 +443,10 @@ final public class ChangeConfiguration {
 					}
 					break;
 				case TypeConstants.REAL + PropertyEntry.realValueMin:
-					settings.getRealTypeSettings().getBounds()
-							.setLower(pc.getInt(propertiesKey));
+					settings.getRealTypeSettings().setMinimum(pc.getDouble(propertiesKey));
 					break;
 				case TypeConstants.REAL + PropertyEntry.realValueMax:
-					settings.getRealTypeSettings().getBounds()
-							.setUpper(pc.getInt(propertiesKey));
+					settings.getRealTypeSettings().setMaximum(pc.getDouble(propertiesKey));
 					break;
 				case TypeConstants.REAL + PropertyEntry.realStep:
 					settings.getRealTypeSettings().setStep(pc.getDouble(propertiesKey));
@@ -471,11 +469,11 @@ final public class ChangeConfiguration {
 	}
 	
 	public static void clearSettings(SettingsConfiguration settings) {
-		settings.getIntegerTypeSettings().getBounds().setLower(DefaultConfigurationValues.integerMin);
-		settings.getIntegerTypeSettings().getBounds().setUpper(DefaultConfigurationValues.integerMax);
+		settings.getIntegerTypeSettings().setMinimum(DefaultConfigurationValues.integerMin);
+		settings.getIntegerTypeSettings().setMaximum(DefaultConfigurationValues.integerMax);
 		settings.getIntegerTypeSettings().deleteValues();;
-		settings.getRealTypeSettings().getBounds().setLower(DefaultConfigurationValues.realMin);
-		settings.getRealTypeSettings().getBounds().setUpper(DefaultConfigurationValues.realMax);
+		settings.getRealTypeSettings().setMinimum(1.0*DefaultConfigurationValues.realMin);
+		settings.getRealTypeSettings().setMaximum(1.0*DefaultConfigurationValues.realMax);
 		settings.getRealTypeSettings().setStep(DefaultConfigurationValues.realStep);
 		settings.getRealTypeSettings().deleteValues();;
 		settings.getStringTypeSettings().getBounds().setLower(DefaultConfigurationValues.stringMin);

@@ -32,6 +32,15 @@ public class TableModelOption extends DefaultTableModel {
 	public String getColumnName(int column) {
 		return columnNames[column];
 	}
+	
+	@Override
+	public boolean isCellEditable(int row, int column) {
+		if (column > 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	@Override
 	public Object getValueAt(int row, int col) {

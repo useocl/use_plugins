@@ -52,9 +52,9 @@ public class TableModelInteger extends DefaultTableModel{
 		case 0: 
 			return settings.name();
 		case 1:
-			return settings.getBounds().getLower();
+			return settings.getMinimum();
 		case 2:
-			return settings.getBounds().getUpper();
+			return settings.getMaximum();
 		case 3:
 			return StringUtil.fmtSeq(settings.getValues(), ",");
 		default:
@@ -66,11 +66,11 @@ public class TableModelInteger extends DefaultTableModel{
 	public void setValueAt(Object aValue, int row, int column) {
 		switch (column) {
 		case 1:
-			settings.getBounds().setLower(aValue);
+			settings.setMinimum((Integer) aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			settings.getBounds().setUpper(aValue);
+			settings.setMaximum((Integer) aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		case 3:

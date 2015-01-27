@@ -8,10 +8,10 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 
-public class RendererInteger extends DefaultTableCellRenderer {
+public class RendererReal extends DefaultTableCellRenderer {
 	private static final long serialVersionUID = 1L;
 
-	public RendererInteger() {
+	public RendererReal() {
 		setOpaque(true);
 	}
 
@@ -29,15 +29,9 @@ public class RendererInteger extends DefaultTableCellRenderer {
 			setBackground(table.getBackground());
 		}
 		
+		Double value = (Double) table.getValueAt(row, column);
+		this.setText(""+value);
 		this.setHorizontalAlignment(RIGHT);
-		
-		Integer value = (Integer) table.getValueAt(row, column);
-		
-		if (value.equals(Integer.valueOf(-1))) {
-			this.setText("*");
-		} else {
-			this.setText(""+value);
-		}
 		
 		return this;
 	}

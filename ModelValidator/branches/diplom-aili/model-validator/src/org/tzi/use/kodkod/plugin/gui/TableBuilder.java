@@ -12,6 +12,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
@@ -29,6 +30,11 @@ import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAssociation;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAttribute;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
+import org.tzi.use.kodkod.plugin.gui.view.EditorBounds;
+import org.tzi.use.kodkod.plugin.gui.view.EditorInteger;
+import org.tzi.use.kodkod.plugin.gui.view.EditorReal;
+import org.tzi.use.kodkod.plugin.gui.view.EditorRealStep;
+import org.tzi.use.kodkod.plugin.gui.view.EditorString;
 import org.tzi.use.kodkod.plugin.gui.view.RendererInteger;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameAbstractAssociationClass;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameAbstractClass;
@@ -37,7 +43,8 @@ import org.tzi.use.kodkod.plugin.gui.view.RendererNameAssociationClass;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameDerivedAttribute;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameInheritedAttribute;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNonEditable;
-import org.tzi.use.kodkod.plugin.gui.view.RendererValues;
+import org.tzi.use.kodkod.plugin.gui.view.RendererReal;
+import org.tzi.use.kodkod.plugin.gui.view.RendererString;
 
 public class TableBuilder {
 	//TODO: Alle Columnen mit ganzen Zahlen, sollen einen eigenen Renderer bekommen, der
@@ -53,7 +60,7 @@ public class TableBuilder {
 	}
 	
 	private JTable createBaseTable(TableModel model) {
-		JTable t = new JTable(model) {
+		JTable table = new JTable(model) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -92,22 +99,47 @@ public class TableBuilder {
 					return super.getCellRenderer(row, column);
 				} else if (!isCellEditable(row, column)) {
 					return new RendererNonEditable();
-				} else if ((column != getColumnCount()-1) && (getValueAt(row, column) instanceof Integer)){
+				} else if ((column != getColumnCount()-1) && getName().equals(TypeConstants.INTEGER)) {
 					return new RendererInteger();
+				} else if ((column != getColumnCount()-1) && getName().equals(TypeConstants.REAL)) {
+					return new RendererReal();
 				} else if ((column == getColumnCount()-1) 
 						&& this.getName() != ConfigurationTerms.OPTIONS 
 						&& this.getName() != ConfigurationTerms.INVARIANTS) {
-					return new RendererValues();
+					return new RendererString();
 				} else {
 					return super.getCellRenderer(row, column);
 				}
 			}
+		
+			@Override
+			public TableCellEditor getCellEditor(int row, int column) {
+				if ((column == getColumnCount()-1) 
+						&& this.getName() != ConfigurationTerms.OPTIONS
+						&& this.getName() != ConfigurationTerms.INVARIANTS) {
+					return new EditorString();
+				} else if (getName().equals(TypeConstants.REAL)) {
+					if (column > 0 && column < getColumnCount()-2) {
+						return new EditorReal();
+					} else if (getColumnModel().getColumn(column).getHeaderValue().equals(ConfigurationTerms.REAL_STEP)) {
+						return new EditorRealStep();
+					}
+				} else if (getName().equals(TypeConstants.INTEGER) && column > 0) {
+					return new EditorInteger();
+				} else if (column > 0 && column < getColumnCount()-1) {
+					return new EditorBounds();
+				}
+				return super.getCellEditor(row, column);
+			}
 		};
 		
-		t.setRowHeight((int) (t.getRowHeight()*1.2));
-		t.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		t.getTableHeader().setReorderingAllowed(false);
-		return t;
+		table.setRowHeight((int) (table.getRowHeight()*1.2));
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.getTableHeader().setReorderingAllowed(false);
+		//if table losts focus, editing will be stopped
+		table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE); 
+		
+		return table;
 	}
 	
 	private JTable createConfigurationTable(TableModel m){
@@ -129,27 +161,27 @@ public class TableBuilder {
 	public JTable integer(){
 		JTable table = createConfigurationTable(new TableModelInteger(allSettings.getIntegerTypeSettings()));
 		table.setName(TypeConstants.INTEGER);
-		
 		table.setPreferredScrollableViewportSize(new Dimension(table.getWidth(),table.getRowHeight()*table.getRowCount()));
 		table.setSelectionBackground(Color.white);
+
 		return table;
 	}
 	
 	public JTable real(){
 		JTable table = createConfigurationTable(new TableModelReal(allSettings.getRealTypeSettings()));
 		table.setName(TypeConstants.REAL);
-		
 		table.setPreferredScrollableViewportSize(new Dimension(table.getWidth(),table.getRowHeight()*table.getRowCount()));
 		table.setSelectionBackground(Color.white);
+
 		return table;
 	}
 	
 	public JTable string(){
 		JTable table = createConfigurationTable(new TableModelString(allSettings.getStringTypeSettings()));
 		table.setName(TypeConstants.STRING);
-		
 		table.setPreferredScrollableViewportSize(new Dimension(table.getWidth(),table.getRowHeight()*table.getRowCount()));
 		table.setSelectionBackground(Color.white);
+
 		return table;
 	}
 	

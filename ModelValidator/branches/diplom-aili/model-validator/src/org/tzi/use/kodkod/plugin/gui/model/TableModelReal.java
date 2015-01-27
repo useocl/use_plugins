@@ -53,9 +53,9 @@ public class TableModelReal extends DefaultTableModel {
 		case 0: 
 			return settings.name();
 		case 1:
-			return settings.getBounds().getLower();
+			return settings.getMinimum();
 		case 2:
-			return settings.getBounds().getUpper();
+			return settings.getMaximum();
 		case 3:
 			return settings.getStep();
 		case 4:
@@ -69,11 +69,11 @@ public class TableModelReal extends DefaultTableModel {
 	public void setValueAt(Object aValue, int row, int column) {
 		switch (column) {
 		case 1:
-			settings.getBounds().setLower(aValue);
+			settings.setMinimum((Double) aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			settings.getBounds().setUpper(aValue);
+			settings.setMaximum((Double) aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		case 3:

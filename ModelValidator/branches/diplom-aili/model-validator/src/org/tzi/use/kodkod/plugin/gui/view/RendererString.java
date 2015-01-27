@@ -6,18 +6,25 @@ import java.awt.Component;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-public class RendererValues extends DefaultTableCellRenderer {
+import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
+
+public class RendererString extends DefaultTableCellRenderer {
 	private static final long serialVersionUID = 1L;
 
-	public RendererValues() {
+	public RendererString() {
 		setOpaque(true);
 	}
 
+	@Override
 	public Component getTableCellRendererComponent(JTable table, Object color,
 			boolean isSelected, boolean hasFocus, int row, int column) {
 		
 		if (isSelected) {
-			setBackground(new Color(204,204,255));
+			if (!table.getColumnModel().getColumn(0).getHeaderValue().equals(ConfigurationTerms.BASIC_TYPE)) {
+				setBackground(new Color(204,204,255));
+			} else {
+				setBackground(Color.white);
+			}
 		} else {
 			setBackground(table.getBackground());
 		}
