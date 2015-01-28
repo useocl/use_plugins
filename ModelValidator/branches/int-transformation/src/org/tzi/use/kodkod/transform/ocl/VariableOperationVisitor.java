@@ -65,7 +65,6 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		
 		if (attribute != null) {
 			set = attribute.type().isSet();
-			sourceType = exp.type();
 
 			List<Object> arguments = new ArrayList<Object>();
 			arguments.add(object);
@@ -110,7 +109,6 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 			}
 
 			object_type_nav = !set;
-			sourceType = exp.type();
 
 			if (fromRole == -1 || toRole == -1 || fromRole == toRole) {
 				throw new TransformationException("Cannot find correct associationEnd indexes for navigation from " + source.nameAsRolename()
@@ -197,8 +195,6 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		 * class QueryExpressionVisitor. For this replacement it is necessary to
 		 * use check the replaceVariables before the normal variables.
 		 */
-		sourceType = exp.type();
-		
 		if (replaceVariables.containsKey(exp.getVarname())) {
 			object = replaceVariables.get(exp.getVarname());
 			getAttributeClass(replaceVariables.get(exp.getVarname()).name());

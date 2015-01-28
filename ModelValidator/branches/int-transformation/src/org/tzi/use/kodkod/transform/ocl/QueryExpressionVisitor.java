@@ -28,6 +28,7 @@ import org.tzi.use.uml.ocl.expr.ExpSelect;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.CollectionType;
+import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
 /**
@@ -55,6 +56,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	public void visitClosure(ExpClosure expClosure) {
 		visitQuery(expClosure);
 
+		Type sourceType = expClosure.getRangeExpression().type();
 		if (sourceType.isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
 			if (((CollectionType) sourceType).elemType().isTypeOfClass()) {
 				MClass type = (MClass) ((CollectionType) sourceType).elemType();
@@ -145,7 +147,6 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	public void visitQuery(ExpQuery exp) {
 		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getRangeExpression().processWithVisitor(visitor);
-		sourceType = exp.getRangeExpression().type();
 		arguments.add(0, visitor.getObject());
 
 		List<String> replacedVariables = createVariables(exp.getVariableDeclarations());

@@ -73,7 +73,6 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	protected Object object;
 	protected boolean set;
 	protected boolean object_type_nav;
-	protected Type sourceType;
 
 	public DefaultExpressionVisitor(IModel model, Map<String, Node> variables, Map<String, IClass> variableClasses,
 			Map<String, Variable> replaceVariables, List<String> collectionVariables) {
@@ -106,10 +105,6 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	 */
 	public boolean isSet() {
 		return set;
-	}
-
-	public Type getSourceType() {
-		return sourceType;
 	}
 	
 	/**
@@ -405,8 +400,6 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	private void visitCollectionLiteral(ExpCollectionLiteral exp, String literal) {
 		List<Object> arguments = new ArrayList<Object>();
 
-		sourceType = exp.type();
-		
 		DefaultExpressionVisitor visitor;
 		for (org.tzi.use.uml.ocl.expr.Expression expression : exp.getElemExpr()) {
 			visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
@@ -428,7 +421,6 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		object = visitor.getObject();
 		set = visitor.isSet();
 		object_type_nav = visitor.isObject_type_nav();
-		sourceType = visitor.getSourceType();
 	}
 
 	/**
