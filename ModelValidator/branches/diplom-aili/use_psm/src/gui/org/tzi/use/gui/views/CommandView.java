@@ -31,10 +31,12 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
+import org.tzi.use.uml.sys.events.StatementExecutedEvent;
 import org.tzi.use.uml.sys.soil.MEnterOperationStatement;
 import org.tzi.use.uml.sys.soil.MExitOperationStatement;
 import org.tzi.use.uml.sys.soil.MStatement;
+
+import com.google.common.eventbus.Subscribe;
 
 /** 
  * A CommandView shows the sequence of executed state manipulation
@@ -57,8 +59,9 @@ public class CommandView extends JPanel implements View {
         fList = new JList<String>(fListModel);
         add(fList, BorderLayout.CENTER);
 
-        fSystem.addChangeListener(this);
         update();
+        
+        fSystem.getEventBus().register(this);
     }
 
     private void update() {
@@ -104,7 +107,8 @@ public class CommandView extends JPanel implements View {
         repaint();
     }
 
-    public void stateChanged(StateChangeEvent e) {
+    @Subscribe
+    public void onStatementExecuted(StatementExecutedEvent e) {
         update();
     }
 
@@ -112,7 +116,7 @@ public class CommandView extends JPanel implements View {
      * Detaches the view from its model.
      */
     public void detachModel() {
-        fSystem.removeChangeListener(this);
+        fSystem.getEventBus().unregister(this);
     }
 
 }

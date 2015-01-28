@@ -34,7 +34,7 @@ import com.google.common.hash.Hashing;
  * @author Lars Hamann
  *
  */
-public class MessageType extends Type {
+public class MessageType extends TypeImpl {
 
 	private final MSignal referredSignal;
 	
@@ -74,8 +74,8 @@ public class MessageType extends Type {
 	}
 	
 	@Override
-	public boolean isSubtypeOf(Type t) {
-		if (t.isTrueOclAny()) {
+	public boolean conformsTo(Type t) {
+		if (t.isTypeOfOclAny()) {
 			return true;
 		}
 		

@@ -121,7 +121,7 @@ public class SelectedClassPathView extends ClassSelectionView {
 		LinkedList<MClass> buffer = new LinkedList<MClass>();
 		
 		buffer.addLast(mc);
-		result.put(mc, new Integer(0));
+		result.put(mc, Integer.valueOf(0));
 		
 		MClass currentClass;
 		Set<? extends MClassifier> relatedClasses;
@@ -162,7 +162,7 @@ public class SelectedClassPathView extends ClassSelectionView {
 				if (!(cls instanceof MClass)) continue;
 				
 				if (!result.containsKey(cls)) {
-					result.put((MClass)cls, new Integer(depth));
+					result.put((MClass)cls, Integer.valueOf(depth));
 					buffer.add((MClass)cls);
 				}
 			}

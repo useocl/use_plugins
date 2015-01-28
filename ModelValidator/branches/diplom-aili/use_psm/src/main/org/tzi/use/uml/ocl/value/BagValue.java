@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.collections.Bag;
@@ -225,7 +226,7 @@ public class BagValue extends CollectionValue {
      * Returns a new "flattened" bag. This bag must have collection elements.
      */
     public BagValue flatten(Type resultType) {
-        if (!elemType().isCollection(true))
+        if (!elemType().isKindOfCollection(VoidHandling.EXCLUDE_VOID))
            return this;
 
         List<Value> res = new ArrayList<Value>();

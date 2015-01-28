@@ -19,36 +19,28 @@
 
 package org.tzi.use.uml.mm.commonbehavior.communications;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.tzi.use.uml.mm.MAttribute;
+import org.tzi.use.uml.mm.MClassifierImpl;
 import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MMVisitor;
-import org.tzi.use.uml.mm.MModel;
-import org.tzi.use.uml.mm.MModelElementImpl;
+import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.ocl.type.MessageType;
 import org.tzi.use.util.StringUtil;
+import org.tzi.use.util.collections.CollectionUtil;
 
 /**
  * Meta class for signals
  * UML-SS 2.4.1 p. 465 
  * @author Lars Hamann
  */
-public class MSignalImpl extends MModelElementImpl implements MSignal {
+public class MSignalImpl extends MClassifierImpl implements MSignal {
 
-	private boolean isAbstract;
-	
-	/**
-	 * To get access to the inheritance hierarchy.
-	 */
-	private MModel model;
-
-	private int position;
-	
 	/**
 	 * UML 2.4.1 p. 466
 	 * The attributes owned by the signal. (Subsets Classifier::attribute, Namespace::ownedMember). 
@@ -61,34 +53,7 @@ public class MSignalImpl extends MModelElementImpl implements MSignal {
 	 * @param name
 	 */
 	public MSignalImpl(String name, boolean isAbstract) {
-		super(name);
-		this.isAbstract = isAbstract;
-	}
-
-	@Override
-	public boolean isAbstract() {
-		return isAbstract;
-	}
-
-	/**
-	 * @param isAbstract the isAbstract to set
-	 */
-	public void setAbstract(boolean isAbstract) {
-		this.isAbstract = isAbstract;
-	}
-	
-	/**
-	 * @return the model
-	 */
-	public MModel getModel() {
-		return model;
-	}
-
-	/**
-	 * @param model the model to set
-	 */
-	public void setModel(MModel model) {
-		this.model = model;
+		super(name, isAbstract);
 	}
 
 	public void addAttribute(MAttribute attr) throws MInvalidModelException {		
@@ -116,59 +81,39 @@ public class MSignalImpl extends MModelElementImpl implements MSignal {
 	
 	@Override
 	public Set<MSignal> parents() {
-		return model.generalizationGraph().targetNodeSet(MSignal.class, this);
+		return CollectionUtil.downCastUnsafe(super.parents());
 	}
 
 	@Override
 	public Set<MSignal> allParents() {
-		return model.generalizationGraph().targetNodeClosureSet(MSignal.class, this);
+		return CollectionUtil.downCastUnsafe(super.allParents());
 	}
 
 	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" }) // Signals only inherit from other signals
 	public Iterable<MSignal> generalizationHierachie(final boolean includeThis) {
-		return new Iterable<MSignal>() {
-			@SuppressWarnings({ "rawtypes", "unchecked" }) // Signals only inherit from other signals
-			@Override
-			public Iterator<MSignal> iterator() {
-				return (Iterator)model.generalizationGraph().targetNodeClosureSetIterator(MSignalImpl.this, includeThis);
-			}
-		};
+		return (Iterable)super.generalizationHierachie(includeThis);
 	}
 
 	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" }) // Signals only inherit from other signals
 	public Iterable<MSignal> specializationHierachie(final boolean includeThis) {
-		return new Iterable<MSignal>() {
-			@SuppressWarnings({ "rawtypes", "unchecked" }) // Signals only inherit from other signals
-			@Override
-			public Iterator<MSignal> iterator() {
-				return (Iterator)model.generalizationGraph().sourceNodeClosureSetIterator(MSignalImpl.this, includeThis);
-			}
-		};
+		return (Iterable)super.specializationHierachie(includeThis);
 	}
 
 	@Override
 	public Set<MSignal> allChildren() {
-		return model.generalizationGraph().sourceNodeClosureSet(MSignal.class, this);
+		return CollectionUtil.downCastUnsafe(super.allChildren());
 	}
 
 	@Override
 	public Set<MSignal> children() {
-		return model.generalizationGraph().sourceNodeSet(MSignal.class, this);
+		return CollectionUtil.downCastUnsafe(super.children());
 	}
 
 	@Override
 	public void processWithVisitor(MMVisitor v) {
 		v.visitSignal(this);
-	}
-
-	@Override
-	public int getPositionInModel() {
-		return position;
-	}
-
-	@Override
-	public void setPositionInModel(int line) {
-		this.position = line;		
 	}
 
 	@Override
@@ -184,5 +129,15 @@ public class MSignalImpl extends MModelElementImpl implements MSignal {
 		}
 		
 		return attrs;
+	}
+
+	@Override
+	public MNavigableElement navigableEnd(String rolename) {
+		return null;
+	}
+
+	@Override
+	public Map<String, MNavigableElement> navigableEnds() {
+		return Collections.emptyMap();
 	}
 }

@@ -22,6 +22,8 @@
 package org.tzi.use.uml.sys.events;
 
 import org.tzi.use.uml.sys.MObject;
+import org.tzi.use.uml.sys.events.tags.EventContext;
+import org.tzi.use.uml.sys.events.tags.SystemStructureChangedEvent;
 
 /**
  * Information about the event of an object creation.
@@ -29,7 +31,7 @@ import org.tzi.use.uml.sys.MObject;
  * @author Lars Hamann
  *
  */
-public class ObjectCreatedEvent extends Event {
+public class ObjectCreatedEvent extends Event implements SystemStructureChangedEvent {
 	/** The created object */
 	private MObject fCreatedObject;
 	
@@ -38,9 +40,8 @@ public class ObjectCreatedEvent extends Event {
 	 * Constructs a new object creation event.
 	 * @param createdObject The created object
 	 */
-	public ObjectCreatedEvent(
-			MObject createdObject) {
-		
+	public ObjectCreatedEvent(EventContext ctx, MObject createdObject) {
+		super(ctx);
 		fCreatedObject = createdObject;
 	}
 	

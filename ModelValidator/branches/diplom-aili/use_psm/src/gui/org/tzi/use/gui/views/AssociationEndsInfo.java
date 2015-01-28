@@ -46,7 +46,6 @@ import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
 
 /**
  * View for informations about associations, e.g., subsetting, redefined etc.
@@ -144,17 +143,12 @@ public class AssociationEndsInfo extends JPanel implements View {
 		// We do nothing because USE closes all windows
 		// after new model is loaded
 	}
-
-	@Override
-	public void stateChanged(StateChangeEvent e) {
-		// Nothing to do
-	}
 	
 	protected void showAssociationInfo() {
 		this.model.initEntries();
 	}
 	
-	private static int[] columnWidth = new int[] {
+	private static final int[] columnWidth = new int[] {
 		153,
 		104,
 		31,
@@ -172,7 +166,7 @@ public class AssociationEndsInfo extends JPanel implements View {
 		153
 	};
 	
-	private static String[] columnNames = new String[] {
+	private static final String[] columnNames = new String[] {
 		"Rolename",
 		"Type",
 		"Mul.",

@@ -39,7 +39,6 @@ import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MNavigableElement;
-import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.IntegerValue;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.SetValue;
@@ -94,8 +93,7 @@ public class ExprNavigationTest extends TestCase {
 
         try {
 
-            Expression srcExpr = new ExpVariable( "p1", TypeFactory.mkObjectType(
-                    system.model().getClass( "Person" ) ) );
+            Expression srcExpr = new ExpVariable( "p1", system.model().getClass( "Person" ) );
 
             ExpNavigation nav = new ExpNavigation( srcExpr, personEnd, companyEnd, Collections.<Expression>emptyList() );
             Value val = nav.eval( new EvalContext( null, system.state(),
@@ -126,8 +124,7 @@ public class ExprNavigationTest extends TestCase {
 
         try {
 
-            Expression srcExpr = new ExpVariable( "p1", TypeFactory.mkObjectType(
-                    system.model().getClass( "Person" ) ) );
+            Expression srcExpr = new ExpVariable( "p1", system.model().getClass( "Person" ) );
 
             ExpNavigation nav = new ExpNavigation( srcExpr, personEnd, companyEnd, Collections.<Expression>emptyList() );
             Value val = nav.eval( new EvalContext( null, system.state(),
@@ -168,8 +165,7 @@ public class ExprNavigationTest extends TestCase {
 
         try {
 
-            Expression srcExpr = new ExpVariable( "p1", TypeFactory.mkObjectType(
-                    system.model().getClass( "Person" ) ) );
+            Expression srcExpr = new ExpVariable( "p1", system.model().getClass( "Person" ) );
 
             ExpNavigation nav = new ExpNavigation( srcExpr, personEnd, job, Collections.<Expression>emptyList() );
             Value val = nav.eval( new EvalContext( null, system.state(),
@@ -338,7 +334,7 @@ public class ExprNavigationTest extends TestCase {
             
             while (it.hasNext() ) {
                 MObject obj =  system.state().objectByName( (String) it.next() );
-                exprs.add(new MRValueExpression(new ExpVariable( obj.name(), obj.type() )));
+                exprs.add(new MRValueExpression(new ExpVariable( obj.name(), obj.cls() )));
             }
             MAssociation assoc = model.getAssociation( "Job" );
             

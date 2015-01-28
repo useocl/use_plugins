@@ -39,10 +39,10 @@ import java.net.Socket;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,17 +62,15 @@ import org.tzi.use.gen.tool.GNoResultException;
 import org.tzi.use.main.MonitorAspectGenerator;
 import org.tzi.use.main.Session;
 import org.tzi.use.main.runtime.IRuntime;
-import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.main.shell.runtime.IPluginShellExtensionPoint;
 import org.tzi.use.parser.ocl.OCLCompiler;
 import org.tzi.use.parser.shell.ShellCommandCompiler;
 import org.tzi.use.parser.testsuite.TestSuiteCompiler;
 import org.tzi.use.parser.use.USECompiler;
-import org.tzi.use.runtime.shell.impl.PluginShellCmdProxy;
+import org.tzi.use.runtime.shell.impl.PluginShellCmdFactory.PluginShellCmdContainer;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MClassInvariant;
-import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MMInstanceGenerator;
 import org.tzi.use.uml.mm.MMPrintVisitor;
 import org.tzi.use.uml.mm.MMVisitor;
@@ -164,7 +162,7 @@ public final class Shell implements Runnable, PPCHandler {
 
 	private IPluginShellExtensionPoint shellExtensionPoint;
 
-	private Map<Map<String, String>, PluginShellCmdProxy> pluginCommands = new HashMap<Map<String, String>, PluginShellCmdProxy>();
+	private final List<PluginShellCmdContainer> pluginCommands;
 
 	private IRuntime fPluginRuntime;
 
@@ -190,8 +188,10 @@ public final class Shell implements Runnable, PPCHandler {
 			this.shellExtensionPoint = (IPluginShellExtensionPoint) this.fPluginRuntime
 					.getExtensionPoint("shell");
 
-			this.pluginCommands = this.shellExtensionPoint.createPluginCmds(
-					this.fSession, this);
+			this.pluginCommands = this.shellExtensionPoint.createPluginCmds(this.fSession, this);
+		}
+		else {
+			pluginCommands = Collections.emptyList();
 		}
 	}
 
@@ -463,24 +463,23 @@ public final class Shell implements Runnable, PPCHandler {
 			}
 			Options.setDebug(value);
 		} else if (Options.doPLUGIN) {
-			Set<Entry<Map<String, String>, PluginShellCmdProxy>> cmdEntrySet = this.pluginCommands.entrySet();
-			boolean cmdFound = false;
-			
-			for (Entry<Map<String, String>, PluginShellCmdProxy> currentCmdMapEntry : cmdEntrySet) {
-				Map<String, String> currentCmdDescMap = currentCmdMapEntry.getKey();
+			PluginShellCmdContainer cmd = null;
 
-				if (line.startsWith(currentCmdDescMap.get("cmd"))
-						|| line.equals(currentCmdDescMap.get("cmd"))) {
-					IPluginShellCmd currentCmd = currentCmdMapEntry.getValue();
-					currentCmd.executeCmd(currentCmdDescMap.get("cmd"), 
-							line.substring(currentCmdDescMap.get("cmd").length()));
-					cmdFound = true;
+			for (PluginShellCmdContainer currentCmdMapEntry : pluginCommands) {
+				if (line.startsWith(currentCmdMapEntry.getCmd())
+						|| line.equals(currentCmdMapEntry.getCmd())) {
+					cmd = currentCmdMapEntry;
 					break;
 				}
 			}
 
-			if (!cmdFound)
+			if(cmd == null){
 				Log.error("Unknown command `" + line + "'. Try `help'.");
+			} else {
+				String arguments = line.substring(cmd.getCmd().length());
+				cmd.getProxy().executeCmd(cmd.getCmd(), arguments, ShellUtil.parseArgumentList(arguments));
+			}
+			
 		} else
 			Log.error("Unknown command `" + line + "'. Try `help'.");
 	}
@@ -488,10 +487,8 @@ public final class Shell implements Runnable, PPCHandler {
 	private void cmdShowPlugins() {
 		System.out.println("================== Plugin commands available ====================");
 		
-		for (Entry<Map<String, String>, PluginShellCmdProxy> currentCmdMapEntry : this.pluginCommands.entrySet()) {
-			Map<String, String> currentCmdDescMap = currentCmdMapEntry.getKey();
-			System.out.println(currentCmdDescMap.get("cmd") + " : "
-					+ currentCmdDescMap.get("help"));
+		for (PluginShellCmdContainer currentCmdMapEntry : this.pluginCommands) {
+			System.out.println(currentCmdMapEntry.getCmd() + " : " + currentCmdMapEntry.getHelp());
 		}
 		
 		System.out.println("=================================================================");
@@ -1091,7 +1088,6 @@ public final class Shell implements Runnable, PPCHandler {
 			}
     	} else {
     		if (openFiles.isEmpty()) {
-    			f = new File(filename);
     			result = filename;
     			if (useAsCurrentFile) {
     				relativeNames.push(getPathWithoutFile(result));
@@ -1237,7 +1233,7 @@ public final class Shell implements Runnable, PPCHandler {
             		opened = this.openFiles.peek().toString();
 
         		Options.getRecentFiles().push(opened);
-        		Options.setLastDirectory(Paths.get(opened));
+        		Options.setLastDirectory(Paths.get(opened).getParent());
         	}
         } catch (NoSystemException e) {
             Log.error("No System available. Please load a model before "
@@ -1265,7 +1261,7 @@ public final class Shell implements Runnable, PPCHandler {
     			return;
     		}
 
-    		int length = (int) Math.log10((double) recentFiles.size()) + 1;
+    		int length = (int) Math.log10(recentFiles.size()) + 1;
     		for (int index = 0; index < recentFiles.size(); ++index) {
     			Log.println(String.format("%" + length + "d: %s", index+1, recentFiles.get(index)));
     		}
@@ -1565,9 +1561,6 @@ public final class Shell implements Runnable, PPCHandler {
 		}
     }
     
-    
-    
-
     /**
      * Prints commands executed so far.
      */
@@ -1576,14 +1569,12 @@ public final class Shell implements Runnable, PPCHandler {
         PrintWriter out = null;
         try {
             if (filename == null)
-                out = new PrintWriter(System.out);
+                out = new PrintWriter(getOut());
             else {
                 out = new PrintWriter(new BufferedWriter(new FileWriter(
                         filename)));
             }
-            out
-                    .println("-- Script generated by USE "
-                            + Options.RELEASE_VERSION);
+			out.println("-- Script generated by USE " + Options.RELEASE_VERSION);
             out.println();
             system.writeSoilStatements(out);
         } catch (IOException ex) {
@@ -1620,9 +1611,6 @@ public final class Shell implements Runnable, PPCHandler {
 				return;
 			} catch (IOException e) {
 				Log.error("Error accessing file " + StringUtil.inQuotes(filename) + ": " + e.getMessage());
-				return;
-			} catch (MInvalidModelException e) {
-				Log.error("Error adding class invariant(s).");
 				return;
 			} finally {
 				if (in != null) {
@@ -1677,9 +1665,6 @@ public final class Shell implements Runnable, PPCHandler {
         }
     }
 
-    /**
-     *  
-     */
     private void cmdGenInvariantFlags(String str, MSystem system) {
         // Syntax: gen flags (invariant)* [+d|-d] [+n|-n]
         StringTokenizer st = new StringTokenizer(str);
@@ -1693,10 +1678,11 @@ public final class Shell implements Runnable, PPCHandler {
         try {
             while (st.hasMoreTokens() && !optionDetected) {
                 tok = st.nextToken();
-                if (tok.startsWith("+") || tok.startsWith("-"))
-                    optionDetected = true;
-                else
+                if (tok.startsWith("+") || tok.startsWith("-")) {
+                	optionDetected = true;
+                } else {
                     names.add(tok);
+                }
             }
             while (optionDetected && !error) {
                 if (tok.equals("+d") || tok.equals("-d")) {
@@ -1725,19 +1711,27 @@ public final class Shell implements Runnable, PPCHandler {
             error = true;
         }
         
-        Set<MClassInvariant> invs = new HashSet<MClassInvariant>();
-        for(String invName : names){
-        	MClassInvariant inv = system.model().getClassInvariant(invName);
-        	if(inv == null){
-        		Log.error("Invariant " + StringUtil.inQuotes(invName) + " does not exist. " + 
-                        "Ignoring " + StringUtil.inQuotes(invName) + ".");
-        		continue;
-        	}
-        	invs.add(inv);
+        Collection<MClassInvariant> invs;
+        
+        if (names.isEmpty()) {
+        	invs = system.model().classInvariants();
+        } else {
+        	invs = new HashSet<MClassInvariant>();
+        
+	        for(String invName : names){
+	        	MClassInvariant inv = system.model().getClassInvariant(invName);
+	        	if(inv == null){
+	        		Log.error("Invariant " + StringUtil.inQuotes(invName) + " does not exist. " + 
+	                        "Ignoring " + StringUtil.inQuotes(invName) + ".");
+	        		error = true;
+	        		continue;
+	        	}
+	        	invs.add(inv);
+	        }
         }
         
         if (error){
-        	Log.error("syntax is `flags [invnames] ((+d|-d) | (+n|-n))'");
+        	Log.error("syntax is `flags (-all|[invnames]) ((+d|-d) | (+n|-n))'");
         }
         else if (disabled == null && negated == null){
         	system.generator().printInvariantFlags(invs);
@@ -1942,7 +1936,9 @@ public final class Shell implements Runnable, PPCHandler {
     		StringUtil.inQuotes("c") + 
     		" continues the evaluation (i.e. unwinds the stack).\n";
     	
-    	system.updateListeners();
+    	//FIXME: Required?
+    	// system.updateListeners();
+    	
     	if (!Options.testMode) {
     	output.println();
     	output.println("+------------------------------------------------------------------+");

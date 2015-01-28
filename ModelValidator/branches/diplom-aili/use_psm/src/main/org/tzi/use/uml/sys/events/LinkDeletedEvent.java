@@ -26,6 +26,8 @@ import java.util.List;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.sys.MLink;
 import org.tzi.use.uml.sys.MObject;
+import org.tzi.use.uml.sys.events.tags.EventContext;
+import org.tzi.use.uml.sys.events.tags.SystemStructureChangedEvent;
 
 
 /**
@@ -34,18 +36,18 @@ import org.tzi.use.uml.sys.MObject;
  * @author Lars Hamann
  *
  */
-public class LinkDeletedEvent extends Event {
+public class LinkDeletedEvent extends Event implements SystemStructureChangedEvent {
 	
 	/** The deleted link */
 	private MLink fLink;
 
 	/**
 	 * Constructs a new LinkDeleteEvent. 
-	 * @param creator
-	 * @param association
-	 * @param participants
+	 * @param ctx
+	 * @param link
 	 */
-	public LinkDeletedEvent(MLink link) {
+	public LinkDeletedEvent(EventContext ctx, MLink link) {
+		super(ctx);
 		fLink = link;
 	}
 	

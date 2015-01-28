@@ -47,7 +47,7 @@ public final class ExpLet extends Expression {
         fVarType = varType;
         fVarExpr = varExpr;
         fInExpr = inExpr;
-        if (! fVarExpr.type().isSubtypeOf(fVarType) )
+        if (! fVarExpr.type().conformsTo(fVarType) )
             throw new ExpInvalidException(
                                           "Type of variable expression `" + fVarExpr.type() +
                                           "' does not match declared type `" + fVarType + "'.");

@@ -55,7 +55,7 @@ public class ASTWhileStatement extends ASTStatement {
 	protected MStatement generateStatement() throws CompilationFailedException {
 		
 		Expression condition = generateExpression(fCondition);
-		if (!condition.type().isBoolean()) {
+		if (!condition.type().isTypeOfBoolean()) {
 			throw new CompilationFailedException(this, "Condition expression must be of Boolean type");
 		}
 		

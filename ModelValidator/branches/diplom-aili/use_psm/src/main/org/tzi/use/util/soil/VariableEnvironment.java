@@ -429,7 +429,7 @@ public class VariableEnvironment {
 				sb.append(VAR_INDENT);
 				sb.append(objectName);
 				sb.append(COLON);
-				sb.append(object.type());
+				sb.append(object.cls());
 				sb.append(EQUAL);
 				sb.append(object.value());
 				sb.append(NEWLN);

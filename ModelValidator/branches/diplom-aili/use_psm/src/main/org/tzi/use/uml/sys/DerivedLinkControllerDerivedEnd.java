@@ -98,6 +98,7 @@ public class DerivedLinkControllerDerivedEnd extends DerivedLinkController {
 				Log.error("Derive expression of association end " + StringUtil.inQuotes(associationEnd) + " let to a runtime exception: " + e1.getMessage());
 				continue;
 			}
+			
 			for (int index = 0; index < numEnds - 1; ++index) {
 				linkObjects[endIndices[index]] = objects[index];
 			}

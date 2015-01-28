@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.BagValue;
 import org.tzi.use.uml.ocl.value.BooleanValue;
@@ -76,7 +77,7 @@ public abstract class ExpQuery extends Expression {
 
         // type of rangeExp must be a subtype of Collection, i.e. Set,
         // Sequence or Bag
-        if (!fRangeExp.type().isCollection(false))
+        if (!fRangeExp.type().isKindOfCollection(VoidHandling.INCLUDE_VOID))
             throw new ExpInvalidException("Range expression must be of type "
                     + "`Collection', found `" + fRangeExp.type() + "'.");
 
@@ -84,7 +85,7 @@ public abstract class ExpQuery extends Expression {
         
         // assert that declared element variables are equal or
         // supertypes of range element type
-        if (fRangeExp.type().isVoidType()) {
+        if (fRangeExp.type().isTypeOfVoidType()) {
         	rangeElemType = TypeFactory.mkVoidType();
         } else {
         	rangeElemType = ((CollectionType) fRangeExp.type()).elemType();
@@ -92,7 +93,7 @@ public abstract class ExpQuery extends Expression {
 
         for (int i = 0; i < fElemVarDecls.size(); i++) {
             VarDecl vd = fElemVarDecls.varDecl(i);
-            if (!rangeElemType.isSubtypeOf(vd.type()))
+            if (!rangeElemType.conformsTo(vd.type()))
                 throw new ExpInvalidException("Type `" + vd.type()
                         + "' of range variable `" + vd.name()
                         + "' does not match type `" + rangeElemType
@@ -107,7 +108,7 @@ public abstract class ExpQuery extends Expression {
 	
     protected void assertBooleanQuery() throws ExpInvalidException {
         // queryExp must be a boolean expression
-        if (!fQueryExp.type().isBoolean())
+        if (!fQueryExp.type().isTypeOfBoolean())
             throw new ExpInvalidException("Argument expression of `" + name()
                     + "' must have boolean type, found `" + fQueryExp.type()
                     + "'.");
@@ -276,7 +277,7 @@ public abstract class ExpQuery extends Expression {
         }
         
         // result is collection with mapped values
-        if (v.type().isSequence() || v.type().isOrderedSet())
+        if (v.type().isTypeOfSequence() || v.type().isTypeOfOrderedSet())
             return new SequenceValue(fQueryExp.type(), resValues);
         else
             return new BagValue(fQueryExp.type(), resValues);
@@ -326,7 +327,7 @@ public abstract class ExpQuery extends Expression {
         }
         
         // result is collection with mapped values
-        if (v.type().isSequence() || v.type().isOrderedSet())
+        if (v.type().isTypeOfSequence() || v.type().isTypeOfOrderedSet())
             return new SequenceValue(fQueryExp.type(), resValues);
         else
             return new BagValue(fQueryExp.type(), resValues);    	
@@ -380,7 +381,7 @@ public abstract class ExpQuery extends Expression {
         }
         
         // result is collection with mapped values
-        if (v.type().isSequence() || v.type().isOrderedSet())
+        if (v.type().isTypeOfSequence() || v.type().isTypeOfOrderedSet())
             return new SequenceValue(((CollectionType)fQueryExp.type()).elemType(), resValues);
         else
             return new BagValue(((CollectionType)fQueryExp.type()).elemType(), resValues);

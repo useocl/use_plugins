@@ -707,7 +707,7 @@ public class NewObjectDiagram extends DiagramViewWithObjectNode
         if (link instanceof MLinkObject) {
         	EdgeBase e = source.fLinkObjectToNodeEdge.get(link);
             if (show)
-            	fGraph.addEdge(e);
+            	fGraph.addInitializedEdge(e);
             else
             	fGraph.removeEdge(e);
             
@@ -1015,7 +1015,7 @@ public class NewObjectDiagram extends DiagramViewWithObjectNode
         	}
         	
         	// A single object or multiple objects can be deleted.
-        	popupMenu.insert( new ActionDelete("Delete " + selectedObjectsText, 
+        	popupMenu.insert( new ActionDelete("Destroy " + selectedObjectsText, 
                 selectedObjectsSet),
                 pos++ );
         	popupMenu.insert(new JSeparator(), pos++);
@@ -1632,5 +1632,5 @@ public class NewObjectDiagram extends DiagramViewWithObjectNode
 		for (ObjectNode n : this.visibleData.fObjectToNodeMap.values()) {
 			n.stateChanged(e);
 		}
-	};
+	}
 }

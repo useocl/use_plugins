@@ -45,38 +45,39 @@ public final class OrderedSetType extends CollectionType {
     }
 
     public String shortName() {
-        if (elemType().isCollection(true) )
+        if (elemType().isKindOfCollection(VoidHandling.EXCLUDE_VOID) )
             return "OrderedSet(...)";
         else 
             return "OrderedSet(" + elemType() + ")";
     }
 
-    public boolean isTrueCollection() {
+    @Override
+    public boolean isTypeOfCollection() {
     	return false;
     }
     
-    public boolean isSequence() {
-    	return false;
-    }
-    
-    public boolean isOrderedSet() {
+    @Override
+    public boolean isTypeOfOrderedSet() {
     	return true;
     }
     
-    public boolean isTrueOrderedSet() {
+    @Override
+    public boolean isKindOfOrderedSet(VoidHandling h) {
     	return true;
     }
     
+    @Override
     public boolean isInstantiableCollection() {
     	return true;
     }
     
+    @Override
     public Type getLeastCommonSupertype(Type type)
     {
-    	if (!type.isCollection(false))
+    	if (!type.isKindOfCollection(VoidHandling.INCLUDE_VOID))
     		return null;
     	
-    	if (type.isVoidType())
+    	if (type.isTypeOfVoidType())
     		return this;
     	
     	CollectionType cType = (CollectionType)type;
@@ -85,7 +86,7 @@ public final class OrderedSetType extends CollectionType {
     	if (commonElementType == null)
     		return null;
     	
-    	if (type.isOrderedSet())
+    	if (type.isTypeOfOrderedSet())
     		return TypeFactory.mkOrderedSet(commonElementType);
     	else
     		return TypeFactory.mkCollection(commonElementType);
@@ -94,13 +95,15 @@ public final class OrderedSetType extends CollectionType {
     /** 
      * Returns true if this type is a subtype of <code>t</code>. 
      */
-    public boolean isSubtypeOf(Type t) {
-        if (! t.isTrueCollection() && ! t.isTrueOrderedSet() )
+    @Override
+    public boolean conformsTo(Type t) {
+        if (!t.isTypeOfCollection() && !t.isTypeOfOrderedSet())
             return false;
 
         CollectionType t2 = (CollectionType) t;
-        if (elemType().isSubtypeOf(t2.elemType()) )
+        if (elemType().conformsTo(t2.elemType()) )
             return true;
+        
         return false;
     }
 
@@ -112,8 +115,8 @@ public final class OrderedSetType extends CollectionType {
     public Set<Type> allSupertypes() {
         Set<Type> res = new HashSet<Type>();
         res.addAll(super.allSupertypes());
-        Set<Type> elemSuper = elemType().allSupertypes();
-        Iterator<Type> typeIter = elemSuper.iterator();
+        Set<? extends Type> elemSuper = elemType().allSupertypes();
+        Iterator<? extends Type> typeIter = elemSuper.iterator();
         
         while (typeIter.hasNext() ) {
             Type t = typeIter.next();
@@ -129,6 +132,11 @@ public final class OrderedSetType extends CollectionType {
     
     @Override
     public CollectionValue createCollectionValue(List<Value> values) {
+    	return new OrderedSetValue(elemType(), values);
+    }
+    
+    @Override
+    public CollectionValue createCollectionValue(Value[] values) {
     	return new OrderedSetValue(elemType(), values);
     }
     

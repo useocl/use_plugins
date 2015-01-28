@@ -42,7 +42,6 @@ import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.commonbehavior.communications.MSignal;
 import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
 
 /**
  * A graph showing an class diagram with all elements in the
@@ -163,9 +162,6 @@ public class ClassDiagramView extends JPanel
     	fClassDiagram.paint(g);
     	fClassDiagram.setDoubleBuffered(oldDb);
     }
-    
-    @Override
-	public void stateChanged( StateChangeEvent e ) {}
 
     @Override
 	public void detachModel () {}

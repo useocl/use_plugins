@@ -28,6 +28,7 @@ import org.tzi.use.parser.ocl.ASTExpression;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.sys.soil.MEmptyStatement;
 import org.tzi.use.uml.sys.soil.MIterationStatement;
 import org.tzi.use.uml.sys.soil.MStatement;
@@ -98,7 +99,7 @@ public class ASTIterationStatement extends ASTStatement {
 	protected MStatement generateStatement() throws CompilationFailedException {
 		
 		Expression range = generateExpression(fRange);
-		if (!range.type().isCollection(false)) {
+		if (!range.type().isKindOfCollection(VoidHandling.INCLUDE_VOID)) {
 			throw new CompilationFailedException(this, "Expression "
 					+ StringUtil.inQuotes(fRange.getStringRep())
 					+ " is expected to be of type "
@@ -127,7 +128,7 @@ public class ASTIterationStatement extends ASTStatement {
 		}
 		
 		// range is empty!
-		if (iterVarType.isVoidType()) {
+		if (iterVarType.isTypeOfVoidType()) {
 			return MEmptyStatement.getInstance();
 		} else {
 			return new MIterationStatement(fIterVarName, range, body);

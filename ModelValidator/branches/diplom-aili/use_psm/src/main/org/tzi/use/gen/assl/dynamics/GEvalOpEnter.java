@@ -9,7 +9,6 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.ExpressionWithValue;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MSystemException;
@@ -49,10 +48,10 @@ public class GEvalOpEnter extends GEvalInstruction  implements IGCaller {
 			Expression expr = new ExpressionWithValue( value );
 
 			Type t = expr.type();
-			if (! t.isObjectType() ) throw new GEvaluationException();
-			MClass cls = ((ObjectType) t).cls();
-			MOperation op = cls.operation
-			(fInstr.opname(), true);
+			if (!t.isTypeOfClass() ) throw new GEvaluationException();
+			
+			MClass cls = (MClass)t;
+			MOperation op = cls.operation(fInstr.opname(), true);
 
 			// get Parameter and transform them into expressions
 			Iterator<GValueInstruction> paramIter = fInstr.parameter().iterator();

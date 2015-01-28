@@ -24,6 +24,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -79,18 +81,27 @@ class EvalOCLDialog extends JDialog {
     
     private final JButton btnEval;
     
-    EvalOCLDialog(Session session, JFrame parent) {
+    private final ChangeListener sessionChangeListener = new ChangeListener() {
+		@Override
+		public void stateChanged(ChangeEvent e) {
+			Session session = (Session)e.getSource();
+			fSystem = getSystem(session);
+		}
+	};
+    
+    EvalOCLDialog(final Session session, JFrame parent) {
         super(parent, "Evaluate OCL expression");
     	fSystem = getSystem(session);
-        session.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				Session session = (Session)e.getSource();
-				fSystem = getSystem(session);
-			}
-		});
+        session.addChangeListener(sessionChangeListener);
         
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        // unregister from session on close
+        addWindowListener(new WindowAdapter() {
+        	@Override
+        	public void windowClosing(WindowEvent e) {
+        		session.removeChangeListener(sessionChangeListener);
+        	}
+		});
 
         // Use font specified in the settings 
         Font evalFont = Font.getFont("use.gui.evalFont", getFont());

@@ -55,7 +55,6 @@ import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.EnumType;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.VarBindings;
@@ -423,7 +422,7 @@ public class UseModelApi {
 		
 		Symtable symTable = new Symtable();
 		try {
-			symTable.add("self", op.cls().type(), null);
+			symTable.add("self", op.cls(), null);
 		} catch (SemanticException e) {
 			throw new UseApiException("Could not create query operation.", e);
 		}
@@ -528,7 +527,7 @@ public class UseModelApi {
 		
 		Symtable symTable = new Symtable();
 		try {
-			symTable.add("self", cls.type(), null);
+			symTable.add("self", cls, null);
 			for(VarDecl var : op.paramList()){
 				symTable.add(var.name(), var.type(), null);
 			}
@@ -675,15 +674,11 @@ public class UseModelApi {
 	public MClassInvariant createInvariant(String invName, String contextName,
 			String invBody, boolean isExistential) throws UseApiException {
 
-		Type contextType = getType(contextName);
-		if (!contextType.isObjectType()) {
-			throw new UseApiException("An invariant must be defined on a class!");
-		}
-		
-		ObjectType oType = (ObjectType) contextType;
+		MClass cls = getClassSafe(contextName);
+
 		Symtable vars = new Symtable();
 		try {
-			vars.add("self", oType, new SrcPos("self", 1, 1));
+			vars.add("self", cls, new SrcPos("self", 1, 1));
 		} catch (SemanticException e1) {
 			e1.printStackTrace();
 		}
@@ -700,7 +695,7 @@ public class UseModelApi {
 		MClassInvariant mClassInvariant = null;
 		try {
 			mClassInvariant = mFactory.createClassInvariant(invName, null,
-					oType.cls(), invExp, isExistential);
+					cls, invExp, isExistential);
 			
 			mModel.addClassInvariant(mClassInvariant);
 		} catch (ExpInvalidException e) {

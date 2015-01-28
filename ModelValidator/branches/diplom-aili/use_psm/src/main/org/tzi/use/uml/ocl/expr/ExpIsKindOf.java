@@ -22,6 +22,7 @@
 package org.tzi.use.uml.ocl.expr;
 
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.ocl.value.CollectionValue;
@@ -79,7 +80,7 @@ public final class ExpIsKindOf extends Expression {
         
         // Note: the value may be undefined, still the type test is valid!
         //System.err.println("value: " + v + ", type: " + v.type());
-        if (t.isSubtypeOf(fTargetType))
+        if (t.conformsTo(fTargetType))
             res = BooleanValue.TRUE;
         
         ctx.exit(this, res);
@@ -90,7 +91,7 @@ public final class ExpIsKindOf extends Expression {
     public StringBuilder toString(StringBuilder sb) {
         fSourceExpr.toString(sb);
         
-        if (fSourceExpr.type().isCollection(true))
+        if (fSourceExpr.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID))
         	sb.append("->");
         else
         	sb.append(".");

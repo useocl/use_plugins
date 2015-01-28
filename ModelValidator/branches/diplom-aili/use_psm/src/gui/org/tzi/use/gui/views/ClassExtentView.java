@@ -76,8 +76,10 @@ import org.tzi.use.uml.ocl.value.VarBindings;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MObjectState;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.events.AttributeAssignedEvent;
+import org.tzi.use.uml.sys.events.ClassInvariantChangedEvent;
+import org.tzi.use.uml.sys.events.ClassInvariantsLoadedEvent;
+import org.tzi.use.uml.sys.events.ClassInvariantsUnloadedEvent;
 import org.tzi.use.uml.sys.events.ObjectCreatedEvent;
 import org.tzi.use.uml.sys.events.ObjectDestroyedEvent;
 import org.tzi.use.util.NullWriter;
@@ -187,17 +189,7 @@ public class ClassExtentView extends JPanel implements View, ActionListener {
             public void itemStateChanged(ItemEvent ev) {
                 fShowInvResults = ev.getStateChange() == ItemEvent.SELECTED;
 
-                fTableModel.initStructure();
-                fTableModel.initModel();
-                if (fShowInvResults) {
-                    fTableModel.updateInvariants();
-                    fTable
-                            .setToolTipText("Double click on the symbols of the invariants to open evaluation browser");
-                } else
-                    fTable.setToolTipText(null);
-                fTableModel.fireTableStructureChanged();
-                fTableModel.fireTableDataChanged();
-                fitWidth();
+                updateStructure();
             }
         });
         fPopupMenu.add(cbShowInvResults);
@@ -281,9 +273,7 @@ public class ClassExtentView extends JPanel implements View, ActionListener {
 
     // icons used for invariant results
     private static final Icon fTrueIcon = new ImageIcon(Options.getIconPath("InvTrue.gif").toString());
-
     private static final Icon fFalseIcon = new ImageIcon(Options.getIconPath("InvFalse.gif").toString());
-
     private static final Icon fNotAvailIcon = new ImageIcon(Options.getIconPath("InvNotAvail.gif").toString());
 
     /**
@@ -367,6 +357,9 @@ public class ClassExtentView extends JPanel implements View, ActionListener {
                 }
             }
             for (int i = 0; i < fClassInvariants.length; i++) {
+            	if(!fClassInvariants[i].isActive()){
+            		continue;
+            	}
                 try {
                     Set<MObject> badObjects = new HashSet<MObject>();
                     Evaluator evaluator = new Evaluator();
@@ -395,7 +388,7 @@ public class ClassExtentView extends JPanel implements View, ActionListener {
                         String invName = fTable.getColumnName(fTable
                                 .getSelectedColumn());
                         for (int i = 0; i < fClassInvariants.length; i++) {
-                            if (fClassInvariants[i].name().equals(invName)) {
+                            if (fClassInvariants[i].isActive() && fClassInvariants[i].name().equals(invName)) {
                                 expr = fClassInvariants[i].expandedExpression();
                                 Evaluator evaluator = new Evaluator(true);
                                 try {
@@ -458,15 +451,16 @@ public class ClassExtentView extends JPanel implements View, ActionListener {
                 String[] values = (String[]) fObjectValueStrMap.get(obj);
                 return values[col - 1];
             } else {
-                MClassInvariant inv = fClassInvariants[col - fAttributes.length
-                        - 1];
+                MClassInvariant inv = fClassInvariants[col - fAttributes.length - 1];
                 Set<MObject> badObjects = fInvBadObjects.get(inv);
-                if (badObjects == null)
-                    return fNotAvailIcon;
-                else if (badObjects.contains(obj))
-                    return fFalseIcon;
-                else
-                    return fTrueIcon;
+                if (badObjects == null || !inv.isActive()){
+                	//TODO create separate icon for inactive invariants
+                	return fNotAvailIcon;
+                } else if (badObjects.contains(obj)){
+                	return fFalseIcon;
+                } else {
+                	return fTrueIcon;
+                }
             }
         }
 
@@ -509,12 +503,20 @@ public class ClassExtentView extends JPanel implements View, ActionListener {
 
     }
 
-    /**
-     * Called due to an external change of state.
-     */
-    public void stateChanged(StateChangeEvent e) {
+    private void updateStructure(){
+    	fTableModel.initStructure();
+        fTableModel.initModel();
+        if (fShowInvResults) {
+            fTableModel.updateInvariants();
+            fTable.setToolTipText("Double click on the symbols of the invariants to open evaluation browser");
+        } else {
+        	fTable.setToolTipText(null);
+        }
+        fTableModel.fireTableStructureChanged();
+        fTableModel.fireTableDataChanged();
+        fitWidth();
     }
-
+    
     private void update() {
         if (fShowInvResults)
             fTableModel.updateInvariants();
@@ -544,6 +546,21 @@ public class ClassExtentView extends JPanel implements View, ActionListener {
     public void onAttributeAssignment(AttributeAssignedEvent e) {
     	if (e.getObject().cls().equals(fClass))
             fTableModel.updateObject(e.getObject());
+    }
+    
+    @Subscribe
+    public void onClassInvariantsLoaded(ClassInvariantsLoadedEvent e){
+    	updateStructure();
+    }
+    
+    @Subscribe
+    public void onClassInvariantsUnloaded(ClassInvariantsUnloadedEvent e){
+    	updateStructure();
+    }
+    
+    @Subscribe
+    public void onClassInvariantStateChange(ClassInvariantChangedEvent e){
+    	update();
     }
     
     /**

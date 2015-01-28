@@ -22,6 +22,7 @@
 package org.tzi.use.uml.sys.events;
 
 import org.tzi.use.uml.sys.MOperationCall;
+import org.tzi.use.uml.sys.events.tags.EventContext;
 
 
 /**
@@ -39,9 +40,8 @@ public class OperationEnteredEvent extends Event {
 	 * Constructs a new operation entered event.
 	 * @param operationCall The operation call which let to this operation enter event
 	 */
-	public OperationEnteredEvent(
-			MOperationCall operationCall) {
-		
+	public OperationEnteredEvent(EventContext ctx, MOperationCall operationCall) {
+		super(ctx);
 		fOperationCall = operationCall;
 	}
 	

@@ -32,12 +32,12 @@ import org.w3c.dom.Element;
  * This strategy is used for placing elements
  * as is. This means, no automatically computations 
  * are done.
- * @author Lars Hamann
  *
+ * @author Lars Hamann
  */
 public class StrategyFixed implements PositionStrategy {
 
-	public static StrategyFixed instance = new StrategyFixed();
+	public static final StrategyFixed instance = new StrategyFixed();
 	
 	private StrategyFixed() { }
 	

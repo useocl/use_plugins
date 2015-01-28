@@ -30,7 +30,7 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.expr.ExpInvalidException;
 import org.tzi.use.uml.ocl.expr.ExpObjectByUseId;
 import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.type.TypeFactory;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
 /**
  * Node of the abstract syntax tree constructed by the parser.
@@ -60,12 +60,12 @@ public class ASTObjectByUseIdExpression extends ASTExpression {
 
         Expression idExpression = idExpr.gen(ctx);
         
-        if (!idExpression.type().isString())
+        if (!idExpression.type().isKindOfString(VoidHandling.INCLUDE_VOID))
             throw new SemanticException(fToken,
                                         "Operation " + fToken.getText() + ".byUseId(expression) requires an expression of type `String', found `" + idExpression.type() + "'.");
         
         try {
-            res = new ExpObjectByUseId(TypeFactory.mkObjectType(cls), idExpression);
+            res = new ExpObjectByUseId(cls, idExpression);
             if (isPre()) res.setIsPre();
         } catch (ExpInvalidException ex) {
             throw new SemanticException(fToken, ex);

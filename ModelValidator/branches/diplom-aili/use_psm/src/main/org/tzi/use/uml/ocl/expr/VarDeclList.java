@@ -32,7 +32,6 @@ import org.tzi.use.util.StringUtil;
 /** 
  * A list of variable declarations.
  *
- * @version     $ProjectVersion: 0.393 $
  * @author      Mark Richters 
  */
 public class VarDeclList implements Iterable<VarDecl> {
@@ -82,7 +81,7 @@ public class VarDeclList implements Iterable<VarDecl> {
      * Returns the nth variable declaration.
      */
     public VarDecl varDecl(int n) {
-        return (VarDecl) fVarDecls.get(n);
+        return fVarDecls.get(n);
     }
 
     /**
@@ -169,9 +168,6 @@ public class VarDeclList implements Iterable<VarDecl> {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Iterable#iterator()
-	 */
 	@Override
 	public Iterator<VarDecl> iterator() {
 		return fVarDecls.iterator();

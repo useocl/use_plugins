@@ -21,7 +21,10 @@
 
 package org.tzi.use.uml.mm;
 
+import java.util.Map;
 import java.util.Set;
+
+import org.tzi.use.uml.ocl.type.Type;
 
 /**
  * Interface representing a classifier of
@@ -30,7 +33,21 @@ import java.util.Set;
  * @author Lars Hamann
  *
  */
-public interface MClassifier extends MNamedElement {
+public interface MClassifier extends Type, MNamedElement, MModelElement, UseFileLocatable {
+	
+	/**
+     * Returns the model owning this classifier.
+     */
+    public MModel model();
+
+    /**
+     * Sets the model owning this classifier. This method must be called by
+     * {@link MModel#addClass(MClass)}.
+     *
+     * @see MModel#addClass(MClass)
+     */
+    public void setModel( MModel model );
+    
 	/**
 	 * If true, the Classifier does not provide a complete declaration and can typically not be instantiated.
 	 * An abstract classifier is intended to be used by other classifiers (e.g., as the target of general 
@@ -38,14 +55,14 @@ public interface MClassifier extends MNamedElement {
 	 * @return
 	 */
 	boolean isAbstract();
-	
+	    
 	/**
      * Returns the set of all direct parent classes (without this
      * class).
      *
      * @return Set(MClassifier)
      */
-    public Set<? extends MClassifier> parents();
+    Set<? extends MClassifier> parents();
 
     /**
      * Returns the set of all parent classifiers (without this
@@ -54,7 +71,7 @@ public interface MClassifier extends MNamedElement {
      *
      * @return Set&lt;MClassifier&gt;
      */
-    public Set<? extends MClassifier> allParents();
+    Set<? extends MClassifier> allParents();
 
     /**
      * Returns an iterable over the generalization hierarchy.
@@ -63,7 +80,7 @@ public interface MClassifier extends MNamedElement {
      * @param includeThis If <code>true</code>, the first element of the iteration is this class.
      * @return An iterable over the generalization hierarchy.
      */
-    public Iterable<? extends MClassifier> generalizationHierachie(boolean includeThis);
+    Iterable<? extends MClassifier> generalizationHierachie(boolean includeThis);
     
     /**
      * Returns an iterable over the generalization hierarchy.
@@ -72,7 +89,7 @@ public interface MClassifier extends MNamedElement {
      * @param includeThis If <code>true</code>, the first element of the iteration is this class.
      * @return An iterable over the generalization hierarchy.
      */
-    public Iterable<? extends MClassifier> specializationHierachie(boolean includeThis);
+    Iterable<? extends MClassifier> specializationHierachie(boolean includeThis);
     
     /**
      * Returns the set of all child classifier (without this classifier). This
@@ -80,7 +97,7 @@ public interface MClassifier extends MNamedElement {
      *
      * @return Set(MClassifier)
      */
-    public Set<? extends MClassifier> allChildren();
+    Set<? extends MClassifier> allChildren();
 
     /**
      * Returns the set of all direct child classifier (without this
@@ -88,5 +105,21 @@ public interface MClassifier extends MNamedElement {
      *
      * @return Set(MClassifier) 
      */
-    public Set<? extends MClassifier> children();
+    Set<? extends MClassifier> children();
+    
+    /**
+     * Returns the association end that can be reached by the
+     * OCL expression <code>self.rolename</code>.
+     *
+     * @return null if no such association end exists.
+     */
+    MNavigableElement navigableEnd( String rolename );
+
+    /**
+     * Returns a map of all association ends that can be reached from
+     * this class by navigation.
+     *
+     * @return Map(String, MAssociationEnd)
+     */
+    Map<String, ? extends MNavigableElement> navigableEnds();
 }

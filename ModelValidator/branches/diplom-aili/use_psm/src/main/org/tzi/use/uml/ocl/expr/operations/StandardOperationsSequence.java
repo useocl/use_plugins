@@ -58,8 +58,8 @@ final class Op_sequence_union extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSequence()
-				&& params[1].isSequence()) {
+		if (params.length == 2 && params[0].isTypeOfSequence()
+				&& params[1].isTypeOfSequence()) {
 			SequenceType sequence1 = (SequenceType) params[0];
 			SequenceType sequence2 = (SequenceType) params[1];
 
@@ -97,7 +97,7 @@ final class Op_sequence_append extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSequence()) {
+		if (params.length == 2 && params[0].isTypeOfSequence()) {
 			SequenceType seqType = (SequenceType) params[0];
 
 			Type commonElementType = seqType.elemType()
@@ -132,7 +132,7 @@ final class Op_sequence_prepend extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSequence()) {
+		if (params.length == 2 && params[0].isTypeOfSequence()) {
 			SequenceType seqType = (SequenceType) params[0];
 
 			Type commonElementType = seqType.elemType()
@@ -167,8 +167,8 @@ final class Op_sequence_insertAt extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 3 && params[0].isSequence()
-				&& params[1].isInteger()) {
+		if (params.length == 3 && params[0].isTypeOfSequence()
+				&& params[1].isTypeOfInteger()) {
 			SequenceType seqType = (SequenceType) params[0];
 
 			Type commonElementType = seqType.elemType()
@@ -209,8 +209,8 @@ final class Op_sequence_subSequence extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 3 && params[0].isSequence()
-				&& params[1].isInteger() && params[2].isInteger()) ? params[0]
+		return (params.length == 3 && params[0].isTypeOfSequence()
+				&& params[1].isTypeOfInteger() && params[2].isTypeOfInteger()) ? params[0]
 				: null;
 	}
 
@@ -248,8 +248,8 @@ final class Op_sequence_at extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSequence()
-				&& params[1].isInteger()) {
+		if (params.length == 2 && params[0].isTypeOfSequence()
+				&& params[1].isTypeOfInteger()) {
 			SequenceType seq = (SequenceType) params[0];
 			return seq.elemType();
 		}
@@ -286,7 +286,7 @@ final class Op_sequence_first extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 1 && params[0].isSequence()) {
+		if (params.length == 1 && params[0].isTypeOfSequence()) {
 			SequenceType seq = (SequenceType) params[0];
 			return seq.elemType();
 		}
@@ -318,7 +318,7 @@ final class Op_sequence_last extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 1 && params[0].isSequence()) {
+		if (params.length == 1 && params[0].isTypeOfSequence()) {
 			SequenceType seq = (SequenceType) params[0];
 			return seq.elemType();
 		}
@@ -350,7 +350,7 @@ final class Op_sequence_including extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSequence()) {
+		if (params.length == 2 && params[0].isTypeOfSequence()) {
 			SequenceType seqType = (SequenceType) params[0];
 
 			Type commonElementType = seqType.elemType()
@@ -388,7 +388,7 @@ final class Op_sequence_excluding extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSequence()) {
+		if (params.length == 2 && params[0].isTypeOfSequence()) {
 			SequenceType seqType = (SequenceType) params[0];
 
 			Type commonElementType = seqType.elemType()
@@ -413,7 +413,7 @@ final class Op_sequence_excluding extends OpGeneric {
 		
 		Type commonElementType = col.elemType().getLeastCommonSupertype(args[1].type());
 		
-		if (!(col.elemType().isTrueOclAny() || args[1].type().isTrueOclAny()) && commonElementType.isTrueOclAny()) {
+		if (!(col.elemType().isTypeOfOclAny() || args[1].type().isTypeOfOclAny()) && commonElementType.isTypeOfOclAny()) {
 			return "Expression " + StringUtil.inQuotes(this.stringRep(args, "")) + 
 				   " will always evaluate to the same sequence, " + StringUtil.NEWLINE +
 				   "because the element type " + StringUtil.inQuotes(col.elemType()) + 
@@ -439,7 +439,7 @@ final class Op_sequence_indexOf extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSequence()) {
+		if (params.length == 2 && params[0].isTypeOfSequence()) {
 			SequenceType seqType = (SequenceType) params[0];
 
 			Type commonElementType = seqType.elemType()
@@ -471,7 +471,7 @@ final class Op_sequence_indexOf extends OpGeneric {
 		
 		Type commonElementType = col.elemType().getLeastCommonSupertype(args[1].type());
 		
-		if (!(col.elemType().isTrueOclAny() || args[1].type().isTrueOclAny()) && commonElementType.isTrueOclAny()) {
+		if (!(col.elemType().isTypeOfOclAny() || args[1].type().isTypeOfOclAny()) && commonElementType.isTypeOfOclAny()) {
 			return "Expression " + StringUtil.inQuotes(this.stringRep(args, "")) + 
 				   " will always evaluate to undefined, " + StringUtil.NEWLINE +
 				   "because the element type " + StringUtil.inQuotes(col.elemType()) + 
@@ -497,7 +497,7 @@ final class Op_sequence_reverse extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 1 && params[0].isSequence()) {
+		if (params.length == 1 && params[0].isTypeOfSequence()) {
 			return params[0];
 		}
 		return null;
@@ -529,7 +529,7 @@ final class Op_sequence_shuffle extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 1 && params[0].isSequence()) {
+		if (params.length == 1 && params[0].isTypeOfSequence()) {
 			return params[0];
 		}
 		return null;

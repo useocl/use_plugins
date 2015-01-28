@@ -26,6 +26,8 @@ import java.util.List;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.sys.MLink;
 import org.tzi.use.uml.sys.MObject;
+import org.tzi.use.uml.sys.events.tags.EventContext;
+import org.tzi.use.uml.sys.events.tags.SystemStructureChangedEvent;
 
 
 /**
@@ -34,16 +36,17 @@ import org.tzi.use.uml.sys.MObject;
  * @author Daniel Gent
  * @author Lars Hamann
  */
-public class LinkInsertedEvent extends Event {
+public class LinkInsertedEvent extends Event implements SystemStructureChangedEvent {
 	/** The association the link is inserted into. */
 	private MLink fLink;
 	
 	/**
 	 * Constructs a new link event instance.
-	 * @param association The association the link is inserted into.
-	 * @param participants The participating objects in the same order as the link ends of the association.
+	 * @param ctx The EventContext
+	 * @param link The inserted link.
 	 */
-	public LinkInsertedEvent(MLink link) {
+	public LinkInsertedEvent(EventContext ctx, MLink link) {
+		super(ctx);
 		fLink = link;
 	}
 	

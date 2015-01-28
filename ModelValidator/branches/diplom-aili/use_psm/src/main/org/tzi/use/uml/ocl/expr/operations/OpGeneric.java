@@ -3,6 +3,7 @@ package org.tzi.use.uml.ocl.expr.operations;
 import org.tzi.use.uml.ocl.expr.EvalContext;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.util.StringUtil;
 
@@ -65,7 +66,7 @@ public abstract class OpGeneric {
             // translate into dot notation, e.g. foo->union(bla)
             res = name() + atPre;
             if (args.length > 0) {
-                if (args[0].type().isCollection(true))
+                if (args[0].type().isKindOfCollection(VoidHandling.EXCLUDE_VOID))
                     res = args[0] + "->" + res;
                 else
                     res = args[0] + "." + res;

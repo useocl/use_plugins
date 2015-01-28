@@ -42,7 +42,7 @@ public class ExpCollectNested extends ExpQuery {
         throws ExpInvalidException
     {
         // result type is bag or sequence of query expression type
-        super( rangeExp.type().isSequence() || rangeExp.type().isOrderedSet()
+        super( rangeExp.type().isTypeOfSequence() || rangeExp.type().isTypeOfOrderedSet()
                 ? (Type) TypeFactory.mkSequence(queryExp.type())
                 : (Type) TypeFactory.mkBag(queryExp.type()), 
                ( elemVarDecl != null ) 

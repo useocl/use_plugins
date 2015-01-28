@@ -76,7 +76,7 @@ public class ASTElemVarsDeclaration extends AST {
         // variable type may be omitted in query expressions
         Type sourceElementType;
         
-        if (range.type().isVoidType()) {
+        if (range.type().isTypeOfVoidType()) {
         	sourceElementType = TypeFactory.mkVoidType();
         } else {
         	sourceElementType = ((CollectionType) range.type()).elemType();
@@ -96,7 +96,7 @@ public class ASTElemVarsDeclaration extends AST {
 		    
 		    if (type != null) {
 		    	thisType = type.gen(ctx);
-		    	if (!sourceElementType.isSubtypeOf(thisType))
+		    	if (!sourceElementType.conformsTo(thisType))
 					throw new SemanticException(id, "Invalid type "
 							+ StringUtil.inQuotes(thisType)
 							+ " for source element type "

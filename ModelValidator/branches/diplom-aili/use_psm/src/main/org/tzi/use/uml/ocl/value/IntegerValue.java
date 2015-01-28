@@ -30,7 +30,7 @@ import org.tzi.use.uml.ocl.type.TypeFactory;
  * @see     RealValue
  */
 public final class IntegerValue extends Value {
-    int fValue;
+    final int fValue;
     
     /**
      * Constructs a new IntegerValue with the value of <code>n</code>

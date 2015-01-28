@@ -74,4 +74,4 @@ public interface PPCHandler {
 	public abstract void handleTransitionsPost(
 			MSystem system, 
 			MOperationCall operationCall) throws PostConditionCheckFailedException;
-};
+}

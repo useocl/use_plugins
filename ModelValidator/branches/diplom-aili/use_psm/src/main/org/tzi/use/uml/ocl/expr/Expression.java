@@ -149,7 +149,7 @@ public abstract class Expression implements BufferedToString {
      *                not a boolean expression
      */
     public void assertBoolean() throws ExpInvalidException {
-        if (!fType.isSubtypeOf(TypeFactory.mkBoolean()))
+        if (!fType.conformsTo(TypeFactory.mkBoolean()))
             throw new ExpInvalidException("Boolean expression expected, "
                     + "found expression of type `" + this.toString() + "'.");
     }

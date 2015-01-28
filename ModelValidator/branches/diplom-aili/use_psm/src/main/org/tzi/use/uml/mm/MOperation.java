@@ -201,7 +201,7 @@ public final class MOperation extends MModelElementImpl implements UseFileLocata
     		throw new MInvalidModelException("The operation " + StringUtil.inQuotes(this.cls().name() + "." + this.name()) + 
     				" does not have a declared result type and the result type of the defined expression could not be calcuated. This" +
     				" can happen when an operation without a declared result type is calling itself recursively.");
-    	} else if (! expr.type().isSubtypeOf(fResultType) ) {
+    	} else if (! expr.type().conformsTo(fResultType) ) {
             throw new MInvalidModelException("Expression type `" +
                                              expr.type() + 
                                              "' does not match declared result type `" + fResultType + "'.");
@@ -297,7 +297,7 @@ public final class MOperation extends MModelElementImpl implements UseFileLocata
 		if (this.fResultType == null) {
 			if (op.fResultType != null) return false;
 		} else {
-			if (!this.fResultType.isSubtypeOf(op.fResultType))
+			if (!this.fResultType.conformsTo(op.fResultType))
 				return false;
 		}
 		
@@ -306,7 +306,7 @@ public final class MOperation extends MModelElementImpl implements UseFileLocata
 		
 		int index = 0;
 		for (VarDecl opVar : op.fVarDeclList) {
-			if (!opVar.type().isSubtypeOf(this.fVarDeclList.varDecl(index).type()))
+			if (!opVar.type().conformsTo(this.fVarDeclList.varDecl(index).type()))
 				return false;
 			++index;
 		}

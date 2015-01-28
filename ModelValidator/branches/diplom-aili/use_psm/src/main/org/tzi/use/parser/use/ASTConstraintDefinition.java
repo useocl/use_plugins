@@ -33,7 +33,6 @@ import org.tzi.use.parser.SemanticException;
 import org.tzi.use.parser.ocl.ASTType;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MClassInvariant;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 
 /**
@@ -72,11 +71,11 @@ public class ASTConstraintDefinition extends AST {
     	Collection<MClassInvariant> invs = new LinkedList<MClassInvariant>();
         try {
             Type t = fType.gen(ctx);
-            if (! t.isTrueObjectType() )
+            if (! t.isTypeOfClass() )
                 throw new SemanticException(fType.getStartToken(), 
                                             "Expected an object type, found `" +
                                             t + "'");
-            MClass cls = ((ObjectType) t).cls();
+            MClass cls = (MClass)t;
             ctx.setCurrentClass(cls);
             
             MClassInvariant inv;

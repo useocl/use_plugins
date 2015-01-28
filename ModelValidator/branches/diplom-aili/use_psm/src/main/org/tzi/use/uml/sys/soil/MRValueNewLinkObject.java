@@ -62,7 +62,7 @@ public class MRValueNewLinkObject extends MRValue {
 
 	@Override
 	public Type getType() {
-		return fNewLinkObjectStatement.getAssociationClass().type();
+		return fNewLinkObjectStatement.getAssociationClass();
 	}
 
 

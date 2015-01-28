@@ -33,7 +33,6 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.tzi.use.uml.mm.statemachines.MProtocolStateMachine;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.VarDecl;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.sys.MOperationCall;
@@ -49,12 +48,10 @@ import org.tzi.use.uml.sys.MOperationCall;
  * @see MClassImpl
  */
 
-public class MAssociationClassImpl extends MModelElementImpl implements MAssociationClass {
+public class MAssociationClassImpl extends MClassifierImpl implements MAssociationClass {
 
     private MAssociationImpl fAssociationImpl;
     private MClassImpl fClassImpl;
-    private int fPositionInModel;
-    private ObjectType fType;
     
     /**
      * Creates a new associationclass.
@@ -64,10 +61,9 @@ public class MAssociationClassImpl extends MModelElementImpl implements MAssocia
      *                      is defined abstract.
      */
     MAssociationClassImpl( String name, boolean isAbstract ) {
-        super( name );
+        super( name, isAbstract );
         fClassImpl = new MClassImpl( name, isAbstract );
         fAssociationImpl = new MAssociationImpl( name );
-        fType = new ObjectType(this);
     }
 
     /**
@@ -90,38 +86,37 @@ public class MAssociationClassImpl extends MModelElementImpl implements MAssocia
     public Type getType( Type sourceObjectType, MNavigableElement src, boolean qualifiedAccess ) {
         MAssociation assoc = src.association();
         if (assoc.associationEnds().size() > 2) 
-            return TypeFactory.mkSet( TypeFactory.mkObjectType( this ) );
+            return TypeFactory.mkSet(this);
         
         MAssociationEnd otherEnd;
         if (src == assoc.associationEnds().get(0))
             otherEnd = (MAssociationEnd) assoc.associationEnds().get(1);
         else
             otherEnd = (MAssociationEnd) assoc.associationEnds().get(0);
-        
-        Type thisType = TypeFactory.mkObjectType( this );
+
         if (src.hasQualifiers()) {
         	if (qualifiedAccess) {
         		if (otherEnd.multiplicity().isCollection()) {
     				if ( otherEnd.isOrdered() )
-    	                return TypeFactory.mkOrderedSet( thisType );
+    	                return TypeFactory.mkOrderedSet( this );
     	            else
-    	                return TypeFactory.mkSet( thisType );
+    	                return TypeFactory.mkSet( this );
     			}
         	} else {
         		if ( otherEnd.isOrdered() )
-	                return TypeFactory.mkSequence( thisType );
+	                return TypeFactory.mkSequence( this );
 	            else
-	                return TypeFactory.mkBag( thisType );
+	                return TypeFactory.mkBag( this );
         	}
         } else {
 	        if (otherEnd.multiplicity().isCollection()) {
 	            if (otherEnd.isOrdered())
-	                return TypeFactory.mkOrderedSet(thisType);
+	                return TypeFactory.mkOrderedSet(this);
 	            else
-	                return TypeFactory.mkSet(thisType);
+	                return TypeFactory.mkSet(this);
 	        }
         }
-        return thisType;
+        return this;
     }
 
     public MAssociation association() {
@@ -151,18 +146,11 @@ public class MAssociationClassImpl extends MModelElementImpl implements MAssocia
     public String nameAsRolename() {
         return fClassImpl.nameAsRolename();
     }
-    
-    /**
-     * returns the corresponding type
-     * @return the corresponding type
-     */
-    public ObjectType type() {
-    	return fType;
-    }
 
     /**
      * Returns the model owning this class.
      */
+    @Override
     public MModel model() {
         return fClassImpl.model();
     }
@@ -173,6 +161,7 @@ public class MAssociationClassImpl extends MModelElementImpl implements MAssocia
      *
      * @see MModel#addClass
      */
+    @Override
     public void setModel( MModel model ) {
         fClassImpl.setModel( model );
         fAssociationImpl.setModel( model );
@@ -188,6 +177,7 @@ public class MAssociationClassImpl extends MModelElementImpl implements MAssocia
      *            attribute with the same name or a name clash
      *            occured.
      */
+    @Override
     public void addAttribute( MAttribute attr ) throws MInvalidModelException {
         // Well-Formedness Rule No. 1 of AssociationClass of OMG 1.4
         for (MAssociationEnd ae : associationEnds()) {
@@ -312,13 +302,33 @@ public class MAssociationClassImpl extends MModelElementImpl implements MAssocia
     public void registerNavigableEnds( List<MNavigableElement> associationEnds ) {
         fClassImpl.registerNavigableEnds( associationEnds );
     }
-
-    @Override
-    public void deleteNavigableElements () {
-        fClassImpl.deleteNavigableElements();
-    }
     
     @Override
+	public boolean isTypeOfClassifier() {
+		return false;
+	}
+
+	@Override
+	public boolean isKindOfClass(VoidHandling h) {
+		return true;
+	}
+
+	@Override
+	public boolean isTypeOfClass() {
+		return true;
+	}
+
+	@Override
+	public boolean isKindOfAssociation(VoidHandling h) {
+		return true;
+	}
+
+	@Override
+	public boolean isTypeOfAssociation() {
+		return true;
+	}
+
+	@Override
     @SuppressWarnings({ "unchecked", "rawtypes" }) // Association class only inherit from other association classes
 	public Set<MAssociationClass> parents() {
 		return (Set)model().generalizationGraph().targetNodeSet(this);
@@ -525,20 +535,6 @@ public class MAssociationClassImpl extends MModelElementImpl implements MAssocia
         List<MNavigableElement> ne = new ArrayList<MNavigableElement>( navigableEnds().values() );
         ne.add( this );
         return ne;
-    }
-
-    /**
-     * Returns the position in the defined USE-Model.
-     */
-    public int getPositionInModel() {
-        return fPositionInModel;
-    }
-
-    /**
-     * Sets the position in the defined USE-Model.
-     */
-    public void setPositionInModel(int position) {
-        fPositionInModel = position;
     }
 
     public boolean isAssignableFrom(MClass[] classes) {

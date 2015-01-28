@@ -27,6 +27,7 @@ import java.util.Iterator;
 
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.util.StringUtil;
 
@@ -229,7 +230,7 @@ public class OrderedSetValue extends CollectionValue {
      * Otherwise the result is nondeterministic, as in Set->asSequence
      */
     public OrderedSetValue flatten(Type resultType) {
-        if ( !elemType().isCollection(true) ) 
+        if ( !elemType().isKindOfCollection(VoidHandling.EXCLUDE_VOID) ) 
             return this;
 
         OrderedSetValue res = new OrderedSetValue(getResultElementType(resultType));

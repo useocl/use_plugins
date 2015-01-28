@@ -78,7 +78,7 @@ public class ASTAttribute extends ASTAnnotatable {
     	Expression exp = deriveExpression.gen(ctx);
     	
     	// We can ignore redefinition here
-    	if (!exp.type().isSubtypeOf(attribute.type())) {
+    	if (!exp.type().conformsTo(attribute.type())) {
     		throw new SemanticException(deriveExpression.getStartToken(), 
     				"The type " +
     				StringUtil.inQuotes(exp.type().toString()) + " of the derive expression at attribute " +
@@ -100,7 +100,7 @@ public class ASTAttribute extends ASTAnnotatable {
 		Expression exp = initExpression.gen(ctx);
 		
     	// We can ignore redefinition here
-    	if (!exp.type().isSubtypeOf(attribute.type())) {
+    	if (!exp.type().conformsTo(attribute.type())) {
     		throw new SemanticException(initExpression.getStartToken(), 
     				"The type " +
     				StringUtil.inQuotes(exp.type().toString()) + " of the init expression at attribute " +

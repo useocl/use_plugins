@@ -37,8 +37,6 @@ import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.statemachines.MProtocolStateMachine;
 import org.tzi.use.uml.mm.statemachines.MStateMachine;
-import org.tzi.use.uml.ocl.type.ObjectType;
-import org.tzi.use.uml.ocl.type.TypeFactory;
 
 /**
  * Node of the abstract syntax tree constructed by the parser.
@@ -100,7 +98,7 @@ public class ASTClass extends ASTAnnotatable {
         fClass.setPositionInModel( fName.getLine() );
         this.genAnnotations(fClass);
         // makes sure we have a unique class name
-        ctx.typeTable().add(fName, TypeFactory.mkObjectType(fClass));
+        ctx.typeTable().add(fName, fClass);
         return fClass;
     }
 
@@ -200,12 +198,11 @@ public class ASTClass extends ASTAnnotatable {
     	ctx.setCurrentClass(fClass);
 
         // enter pseudo-variable "self" into scope of expressions
-        ObjectType ot = TypeFactory.mkObjectType(fClass);
-        ctx.exprContext().push("self", ot);
+        ctx.exprContext().push("self", fClass);
         Symtable vars = ctx.varTable();
         vars.enterScope();
         try {
-            vars.add("self", ot, null);
+            vars.add("self", fClass, null);
         } catch (SemanticException ex) { 
             // fatal error?
             throw new Error(ex);
@@ -261,8 +258,7 @@ public class ASTClass extends ASTAnnotatable {
 		ctx.setCurrentClass(fClass);
 
         // enter pseudo-variable "self" into scope of expressions
-        ObjectType ot = TypeFactory.mkObjectType(fClass);
-        ctx.exprContext().push("self", ot);
+        ctx.exprContext().push("self", fClass);
         Symtable vars = ctx.varTable();
         vars.enterScope();
         
@@ -286,12 +282,11 @@ public class ASTClass extends ASTAnnotatable {
         ctx.setCurrentClass(fClass);
 
         // enter pseudo-variable "self" into scope of expressions
-        ObjectType ot = TypeFactory.mkObjectType(fClass);
-        ctx.exprContext().push("self", ot);
+        ctx.exprContext().push("self", fClass);
         Symtable vars = ctx.varTable();
         vars.enterScope();
         try {
-            vars.add("self", ot, null);
+            vars.add("self", fClass, null);
         } catch (SemanticException ex) { 
             // fatal error?
             throw new Error(ex);

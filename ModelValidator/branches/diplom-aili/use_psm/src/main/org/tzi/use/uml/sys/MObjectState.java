@@ -189,7 +189,7 @@ public final class MObjectState {
 			throw new IllegalArgumentException("Attribute `" + attr
 					+ "' does not exist in object `" + fObject.name() + "'.");
         
-        if (! newVal.type().isSubtypeOf(attr.type()) )
+        if (! newVal.type().conformsTo(attr.type()) )
 			throw new IllegalArgumentException("Expected type `" + attr.type()
 					+ "' for attribute `" + attr.name() + "', found type `"
 					+ newVal.type() + "'.");

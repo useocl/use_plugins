@@ -32,8 +32,8 @@ import org.tzi.use.uml.ocl.expr.ExpOclInState;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.CollectionType;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.util.StringUtil;
 
 /**
@@ -75,7 +75,7 @@ public class ASTInStateExpression extends ASTExpression {
                                             fOpToken.getText() + "'.");
         }
     
-        if (!expr.type().isCollection(true) && fFollowsArrow) {
+        if (!expr.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID) && fFollowsArrow) {
         	ctx.reportWarning(fOpToken, "application of `" + fOpToken.getText() + 
                     "' to a single value should be done with `.' " +
                     "instead of `->'.");
@@ -86,7 +86,7 @@ public class ASTInStateExpression extends ASTExpression {
         // e.g. `c.oclIsKindOf(Employee)'
         // is a valid shorthand for `c->collect(e |
         // e.oclIsKindOf(Employee))'
-        if (expr.type().isCollection(true) && !fFollowsArrow) {
+        if (expr.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID) && !fFollowsArrow) {
             if (Options.disableCollectShorthand )
                 throw new SemanticException(fOpToken, MSG_DISABLE_COLLECT_SHORTHAND);
         
@@ -106,11 +106,11 @@ public class ASTInStateExpression extends ASTExpression {
 
     private Expression genExpr(Expression sourceExpr) throws SemanticException 
     {
-    	if (!sourceExpr.type().isTrueObjectType()) {
+    	if (!sourceExpr.type().isTypeOfClass()) {
     		throw new SemanticException(fOpToken, "Need an object to apply `oclInState(" + this.fStateIdentifier.getText() + ")'.");
     	}
     	
-    	MClass srcClass = ((ObjectType)sourceExpr.type()).cls();
+    	MClass srcClass = (MClass)sourceExpr.type();
     	String stateName = fStateIdentifier.getText();
         
     	Set<MProtocolStateMachine> psms = srcClass.getAllOwnedProtocolStateMachines(); 

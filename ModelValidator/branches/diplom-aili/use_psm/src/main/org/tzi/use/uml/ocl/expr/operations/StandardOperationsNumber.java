@@ -2,6 +2,7 @@ package org.tzi.use.uml.ocl.expr.operations;
 
 import org.tzi.use.uml.ocl.expr.EvalContext;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.ocl.value.IntegerValue;
@@ -60,9 +61,10 @@ abstract class ArithOperation extends OpGeneric {
 	@Override
 	public Type matches(Type params[]) {
 		if (params.length == 2) {
-			if (params[0].isInteger() && params[1].isInteger())
+			if (params[0].isTypeOfInteger() && params[1].isTypeOfInteger())
 				return TypeFactory.mkInteger();
-			else if (params[00].isNumber() && params[1].isNumber())
+			else if (params[0].isKindOfNumber(VoidHandling.INCLUDE_VOID)
+					&& params[1].isKindOfNumber(VoidHandling.INCLUDE_VOID))
 				return TypeFactory.mkReal();
 		}
 		return null;
@@ -209,8 +211,9 @@ final class Op_number_div extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isNumber() && params[1]
-				.isNumber()) ? TypeFactory.mkReal() : null;
+		return (params.length == 2 && 
+				params[0].isKindOfNumber(VoidHandling.EXCLUDE_VOID) && 
+				params[1].isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? TypeFactory.mkReal() : null;
 	}
 
 	@Override
@@ -255,7 +258,7 @@ final class Op_real_abs extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isReal()) ? TypeFactory
+		return (params.length == 1 && params[0].isTypeOfReal()) ? TypeFactory
 				.mkReal() : null;
 	}
 
@@ -287,7 +290,7 @@ final class Op_integer_abs extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isInteger()) ? TypeFactory
+		return (params.length == 1 && params[0].isTypeOfInteger()) ? TypeFactory
 				.mkInteger() : null;
 	}
 
@@ -319,7 +322,7 @@ final class Op_number_unaryminus extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isNumber()) ? params[0] : null;
+		return (params.length == 1 && params[0].isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? params[0] : null;
 	}
 
 	@Override
@@ -357,7 +360,7 @@ final class Op_number_unaryplus extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isNumber()) ? params[0] : null;
+		return (params.length == 1 && params[0].isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? params[0] : null;
 	}
 
 	@Override
@@ -389,7 +392,7 @@ final class Op_real_floor extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isNumber()) ? TypeFactory
+		return (params.length == 1 && params[0].isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? TypeFactory
 				.mkInteger() : null;
 	}
 
@@ -427,7 +430,7 @@ final class Op_real_round extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isNumber()) ? TypeFactory
+		return (params.length == 1 && params[0].isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? TypeFactory
 				.mkInteger() : null;
 	}
 
@@ -554,8 +557,8 @@ final class Op_integer_mod extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isInteger() && params[1]
-				.isInteger()) ? TypeFactory.mkInteger() : null;
+		return (params.length == 2 && params[0].isTypeOfInteger() && params[1]
+				.isTypeOfInteger()) ? TypeFactory.mkInteger() : null;
 	}
 
 	@Override
@@ -587,8 +590,8 @@ final class Op_integer_idiv extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isInteger() && params[1]
-				.isInteger()) ? TypeFactory.mkInteger() : null;
+		return (params.length == 2 && params[0].isTypeOfInteger() && params[1]
+				.isTypeOfInteger()) ? TypeFactory.mkInteger() : null;
 	}
 
 	@Override
@@ -620,8 +623,10 @@ final class Op_number_less extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isNumber() && params[1]
-				.isNumber()) ? TypeFactory.mkBoolean() : null;
+		return (params.length == 2
+				&& params[0].isKindOfNumber(VoidHandling.EXCLUDE_VOID) && params[1]
+					.isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? TypeFactory
+				.mkBoolean() : null;
 	}
 
 	@Override
@@ -667,8 +672,10 @@ final class Op_number_greater extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isNumber() && params[1]
-				.isNumber()) ? TypeFactory.mkBoolean() : null;
+		return (params.length == 2
+				&& params[0].isKindOfNumber(VoidHandling.EXCLUDE_VOID) && params[1]
+					.isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? TypeFactory
+				.mkBoolean() : null;
 	}
 
 	@Override
@@ -713,8 +720,10 @@ final class Op_number_lessequal extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isNumber() && params[1]
-				.isNumber()) ? TypeFactory.mkBoolean() : null;
+		return (params.length == 2
+				&& params[0].isKindOfNumber(VoidHandling.EXCLUDE_VOID) && params[1]
+					.isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? TypeFactory
+				.mkBoolean() : null;
 	}
 
 	@Override
@@ -759,8 +768,10 @@ final class Op_number_greaterequal extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isNumber() && params[1]
-				.isNumber()) ? TypeFactory.mkBoolean() : null;
+		return (params.length == 2
+				&& params[0].isKindOfNumber(VoidHandling.EXCLUDE_VOID) && params[1]
+					.isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? TypeFactory
+				.mkBoolean() : null;
 	}
 
 	@Override
@@ -803,7 +814,9 @@ final class Op_number_toString extends OpGeneric {
 
 	@Override
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isNumber()) ? TypeFactory.mkString() : null;
+		return (params.length == 1 && params[0]
+				.isKindOfNumber(VoidHandling.EXCLUDE_VOID)) ? TypeFactory
+				.mkString() : null;
 	}
 
 	@Override

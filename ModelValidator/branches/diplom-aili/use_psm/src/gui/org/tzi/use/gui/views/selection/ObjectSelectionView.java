@@ -25,7 +25,9 @@ import org.tzi.use.gui.views.diagrams.ObjectNodeActivity;
 import org.tzi.use.gui.views.diagrams.elements.PlaceableNode;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
+import org.tzi.use.uml.sys.events.StatementExecutedEvent;
+
+import com.google.common.eventbus.Subscribe;
 
 /** 
  * A ObjectSelectionView is derived from JPanel and the superclass of the three other subclasses. 
@@ -71,7 +73,7 @@ public abstract class ObjectSelectionView extends JPanel implements View{
 		this.fMainWindow = parent;
 		this.diagram = diagram;
 		
-		fSystem.addChangeListener(this);
+		fSystem.getEventBus().register(this);
 		initClassSelectionView();
 	}
 	
@@ -173,7 +175,8 @@ public abstract class ObjectSelectionView extends JPanel implements View{
 	/**
 	 * Method stateChanged called due to an external change of state.
 	 */
-	public void stateChanged(StateChangeEvent e) {
+	@Subscribe
+	public void onStatementExecuted(StatementExecutedEvent e) {
 		update();
 	}
 
@@ -181,6 +184,6 @@ public abstract class ObjectSelectionView extends JPanel implements View{
 	 * Method detachModel detaches the view from its model.
 	 */
 	public void detachModel() {
-		fSystem.removeChangeListener(this);
+		fSystem.getEventBus().unregister(this);
 	}
 }

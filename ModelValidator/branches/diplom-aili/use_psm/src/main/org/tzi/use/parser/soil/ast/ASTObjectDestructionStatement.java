@@ -32,6 +32,7 @@ import org.tzi.use.uml.ocl.expr.ExpCollectionLiteral;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.sys.soil.MEmptyStatement;
 import org.tzi.use.uml.sys.soil.MObjectDestructionStatement;
 import org.tzi.use.uml.sys.soil.MSequenceStatement;
@@ -75,7 +76,7 @@ public class ASTObjectDestructionStatement extends ASTStatement {
 			
 			// check if each element is an object
 			for (Expression element : collection.getElemExpr()) {
-				if (!element.type().isObjectType()) {
+				if (!element.type().isTypeOfClass()) {
 					throw new CompilationFailedException(this, "Expected "
 							+ StringUtil.inQuotes(fToDelete.getStringRep())
 							+ " to be a collection of objects, found "
@@ -85,8 +86,8 @@ public class ASTObjectDestructionStatement extends ASTStatement {
 			
 			objects = Arrays.asList(collection.getElemExpr());
 			
-		} else if (type.isObjectType() || 
-				(type.isCollection(false) && ((CollectionType)type).elemType().isObjectType())) {
+		} else if (type.isTypeOfClass() || 
+				(type.isKindOfCollection(VoidHandling.EXCLUDE_VOID) && ((CollectionType)type).elemType().isTypeOfClass())) {
 			// note: this could also be a collection, but just not literal
 			// (e.g. .allInstances). since those collections must be handled
 			// at evaluation time, this is done in MObjectDestructionStatement

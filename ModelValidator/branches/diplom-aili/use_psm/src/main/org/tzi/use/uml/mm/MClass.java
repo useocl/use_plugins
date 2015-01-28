@@ -22,55 +22,25 @@
 package org.tzi.use.uml.mm;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.tzi.use.uml.mm.statemachines.MProtocolStateMachine;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.sys.MOperationCall;
 
 /**
  * Instances of the type MClass represent classes in a model.
  *
- * @version     $ProjectVersion: 0.393 $
  * @author <a href="mailto:hanna@tzi.de">Hanna Bauerdick</a>
  * @author <a href="mailto:gutsche@tzi.de">Fabian Gutsche</a>
  */
 
-public interface MClass extends MModelElement, MClassifier, UseFileLocatable {
-
-    /**
-     * Returns true if the class is marked abstract.
-     */
-    public boolean isAbstract();
-
+public interface MClass extends MClassifier {
+	
     /**
      * Returns the name of this class with lowercase first letter.
      */
     public String nameAsRolename();
 
-    
-    /**
-     * returns the corresponding type
-     * @return the corresponding type
-     */
-    public ObjectType type();
-    
-    
-    /**
-     * Returns the model owning this class.
-     */
-    public MModel model();
-
-    /**
-     * Sets the model owning this class. This method must be called by
-     * {@link MModel#addClass(MClass)}.
-     *
-     * @see MModel#addClass(MClass)
-     */
-    public void setModel( MModel model );
-
-    
     /**
      * Returns the set of all direct parent classes (without this class).
      * 
@@ -187,36 +157,6 @@ public interface MClass extends MModelElement, MClassifier, UseFileLocatable {
      */
     public MOperation operation( String name, boolean searchInherited );
 
-
-    /**
-     * Returns the association end that can be reached by the
-     * OCL expression <code>self.rolename</code>.
-     *
-     * @return null if no such association end exists.
-     */
-    public MNavigableElement navigableEnd( String rolename );
-
-    /**
-     * Returns a map of all association ends that can be reached from
-     * this class by navigation.
-     *
-     * @return Map(String, MAssociationEnd)
-     */
-    Map<String, MNavigableElement> navigableEnds();
-
-    public void deleteNavigableElements ();
-    
-
-    /**
-     * Registers all association ends as navigable from this
-     * class. This should be called by a MModel implementation when an
-     * association is added to the model.
-     *
-     * @param associationEnds List(MAssociationEnd)
-     * @see MModel#addAssociation
-     */
-    void registerNavigableEnds( List<MNavigableElement> associationEnds );
-
     /**
      * Returns the set of associations this class directly
      * participates in.
@@ -265,6 +205,16 @@ public interface MClass extends MModelElement, MClassifier, UseFileLocatable {
      * @return A list of association ends in the order from the most specific class to the more general classes.
      */
 	public List<MAssociationEnd> getAssociationEnd(String name);
+	
+	/**
+     * Registers all association ends as navigable from this
+     * class. This should be called by a MModel implementation when an
+     * association is added to the model.
+     *
+     * @param associationEnds List(MAssociationEnd)
+     * @see MModel#addAssociation
+     */
+    void registerNavigableEnds( List<MNavigableElement> associationEnds );
 	
 	/**
 	 * Adds a new PSM to the class

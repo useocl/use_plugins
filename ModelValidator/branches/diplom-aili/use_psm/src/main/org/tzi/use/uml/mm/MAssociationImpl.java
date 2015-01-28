@@ -24,24 +24,26 @@ package org.tzi.use.uml.mm;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.tzi.use.util.collections.CollectionUtil;
+
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 
 /** 
  * An association connects two or more classes.
  * 
  * @author  Mark Richters
  */
-class MAssociationImpl extends MModelElementImpl implements MAssociation {
+class MAssociationImpl extends MClassifierImpl implements MAssociation {
     
-	private MModel fModel;
-	
 	private List<MAssociationEnd> fAssociationEnds;
-    
-    private int fPositionInModel;
     
     private Set<MAssociation> subsets = new HashSet<MAssociation>();
     private Set<MAssociation> subsettedBy = new HashSet<MAssociation>();
@@ -70,19 +72,35 @@ class MAssociationImpl extends MModelElementImpl implements MAssociation {
      * ends.
      */
     MAssociationImpl(String name) {
-        super(name);
+        super(name, false);
         fAssociationEnds = new ArrayList<MAssociationEnd>(2);
     }
 
-    /**
+    @Override
+	public boolean isTypeOfClassifier() {
+		return false;
+	}
+
+
+	@Override
+	public boolean isKindOfAssociation(VoidHandling h) {
+		return true;
+	}
+
+	@Override
+	public boolean isTypeOfAssociation() {
+		return true;
+	}
+
+
+	/**
      * Returns the set of all direct parent classes (without this
      * class).
      *
      * @return Set(MClass) 
      */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Set<MAssociation> parents() {
-        return (Set)fModel.generalizationGraph().targetNodeSet(this);
+        return CollectionUtil.downCastUnsafe(super.parents());
     }
 
     /**
@@ -92,69 +110,28 @@ class MAssociationImpl extends MModelElementImpl implements MAssociation {
      *
      * @return Set(MClass) 
      */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
     public Set<MAssociation> allParents() {
-        return (Set)fModel.generalizationGraph().targetNodeClosureSet(this);
+    	return CollectionUtil.downCastUnsafe(super.allParents());
     }
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Iterable<MAssociation> generalizationHierachie(final boolean includeThis) {
-		return new Iterable<MAssociation>() {
-			// Only associations can inherit from associations, therefore the "cast" is valid
-			// and these warnings can be ignored.
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			@Override
-			public Iterator<MAssociation> iterator() {
-				return (Iterator)fModel.generalizationGraph().targetNodeClosureSetIterator(MAssociationImpl.this, includeThis);
-			}
-		};
+		return (Iterable)super.generalizationHierachie(includeThis);
 	}
 	
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Iterable<MAssociation> specializationHierachie(final boolean includeThis) {
-		return new Iterable<MAssociation>() {
-			// Only associations can inherit from associations, therefore the "cast" is valid
-			// and these warnings can be ignored.
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			@Override
-			public Iterator<MAssociation> iterator() {
-				return (Iterator)fModel.generalizationGraph().sourceNodeClosureSetIterator(MAssociationImpl.this, includeThis);
-			}
-		};
+		return (Iterable)super.specializationHierachie(includeThis);
 	}
 	
-    /**
-     * Returns the set of all child classes (without this class). This
-     * is the transitive closure of the generalization relation.
-     *
-     * @return Set(MClass) 
-     */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
     public Set<MAssociation> allChildren() {
-        return (Set)fModel.generalizationGraph().sourceNodeClosureSet(this);
+        return CollectionUtil.downCastUnsafe(super.allChildren());
     }
 
-    /**
-     * Returns the set of all direct child classes (without this
-     * class).
-     *
-     * @return Set(MClass) 
-     */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
     public Set<MAssociation> children() {
-        return (Set)fModel.generalizationGraph().sourceNodeSet(this);
-    }
-    
-    public boolean isAbstract() {
-    	return false;
-    }
-    
-    public MModel getModel() {
-    	return fModel;
-    }
-    
-    public void setModel(MModel m) {
-    	fModel = m;
+        return CollectionUtil.downCastUnsafe(super.children());
     }
         
     /** 
@@ -311,21 +288,6 @@ class MAssociationImpl extends MModelElementImpl implements MAssociation {
     }
     
     /**
-     * Returns the position in the defined USE-Model.
-     */
-    public int getPositionInModel() {
-        return fPositionInModel;
-    }
-
-    /**
-     * Sets the position in the defined USE-Model.
-     */
-    public void setPositionInModel(int position) {
-        fPositionInModel = position;
-    }
-
-
-    /**
      * Process this element with visitor.
      */
     public void processWithVisitor(MMVisitor v) {
@@ -344,7 +306,7 @@ class MAssociationImpl extends MModelElementImpl implements MAssociation {
 	@Override
 	public void addSubsets(@NonNull MAssociation asso) {
 		subsets.add(asso);		
-		fModel.generalizationGraph().addEdge(new MGeneralization(this, asso));
+		this.model().generalizationGraph().addEdge(new MGeneralization(this, asso));
 	}
 
 	@Override
@@ -403,6 +365,27 @@ class MAssociationImpl extends MModelElementImpl implements MAssociation {
 		}
 		
 		return null;
+	}
+
+	@Override
+	public MNavigableElement navigableEnd(final String rolename) {
+		return Iterables.find(this.fAssociationEnds, new Predicate<MAssociationEnd>() {
+			@Override
+			public boolean apply(MAssociationEnd end) {
+				return rolename.equals(end.name());
+			}
+		}, null);
+	}
+
+	@Override
+	public Map<String, MAssociationEnd> navigableEnds() {
+
+		return Maps.<String,MAssociationEnd>uniqueIndex(this.fAssociationEnds, new Function<MAssociationEnd, String>() {
+			@Override
+			public String apply(MAssociationEnd input) {
+				return input.nameAsRolename();
+			}
+		});
 	}
 
 	@Override
@@ -486,9 +469,9 @@ class MAssociationImpl extends MModelElementImpl implements MAssociation {
 	@Override
 	public void addRedefines(@NonNull MAssociation parentAssociation) {
 		this.redefines.add(parentAssociation);
-		fModel.generalizationGraph().addEdge(new MGeneralization(this, parentAssociation));
+		this.model().generalizationGraph().addEdge(new MGeneralization(this, parentAssociation));
 		
-		for (MAssociation assoc : fModel.associations()) {
+		for (MAssociation assoc : this.model().associations()) {
 			assoc.calculateRedefinedByClosure();
 		}
 	}

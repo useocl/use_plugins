@@ -26,7 +26,6 @@ import java.util.Collection;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemState;
-import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.events.LinkDeletedEvent;
 import org.tzi.use.uml.sys.events.LinkInsertedEvent;
 
@@ -65,8 +64,6 @@ public class LinkCountView extends BarChartView implements View {
         }
         setValues(values);
     }
-
-    public void stateChanged(StateChangeEvent e) { }
 
     @Subscribe
     public void stateChanged(LinkInsertedEvent e) {

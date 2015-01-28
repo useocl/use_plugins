@@ -30,20 +30,20 @@ import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.views.PrintableView;
 import org.tzi.use.gui.views.View;
 import org.tzi.use.uml.mm.statemachines.MStateMachine;
-import org.tzi.use.uml.mm.statemachines.MTransition;
-import org.tzi.use.uml.mm.statemachines.TransitionListener;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MObjectState;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
+import org.tzi.use.uml.sys.events.TransitionEvent;
 import org.tzi.use.uml.sys.statemachines.MProtocolStateMachineInstance;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * @author Lars Hamann
  *
  */
 @SuppressWarnings("serial")
-public class StateMachineDiagramView extends JPanel implements View, PrintableView, TransitionListener {
+public class StateMachineDiagramView extends JPanel implements View, PrintableView {
 
 	protected MSystem system;
 	
@@ -88,6 +88,8 @@ public class StateMachineDiagramView extends JPanel implements View, PrintableVi
         if (loadDefaultLayout) {
         	diagram.loadDefaultLayout();
         }
+        
+        getSystem().getEventBus().register(this);
 	}
 	
 	/**
@@ -124,7 +126,6 @@ public class StateMachineDiagramView extends JPanel implements View, PrintableVi
 		
 		setDiagramCaption();
 		highlightCurrentState();
-		this.stateMachine.addTransitionListener(this);
 	}
 	
 	/**
@@ -137,11 +138,6 @@ public class StateMachineDiagramView extends JPanel implements View, PrintableVi
 		diagram.setActiveState(psmInstance.getCurrentState(stateMachine.getDefaultRegion()));
 		
 		diagram.repaint();
-	}
-
-	@Override
-	public void stateChanged(StateChangeEvent e) {
-		
 	}
 
 	@Override
@@ -162,14 +158,16 @@ public class StateMachineDiagramView extends JPanel implements View, PrintableVi
 
 	@Override
 	public void detachModel() {
-		
+		getSystem().getEventBus().unregister(this);
 	}
 
-	@Override
-	public void transition(MStateMachine source, MObject context, MTransition t, boolean isRevert) {
-		if (!context.equals(this.monitoredInstance)) return;
-		
-		this.highlightCurrentState();
+	@Subscribe
+	public void onTransition(TransitionEvent e) {
+		if (e.getSource().equals(this.monitoredInstance) && 
+				e.getStateMachine().equals(stateMachine)) {
+			
+			this.highlightCurrentState();
+		}
 	}
 
 	/**

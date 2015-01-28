@@ -28,6 +28,7 @@ import java.util.Collection;
 
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.IntegerValue;
 import org.tzi.use.uml.ocl.value.StringValue;
@@ -177,7 +178,8 @@ public class SoilLibrary {
 		@Override
 		public boolean matches(Type[] argTypes) {
 			if (argTypes.length != 1) return false;
-			return argTypes[0].isString();
+			
+			return argTypes[0].isKindOfString(VoidHandling.INCLUDE_VOID);
 		}
 
 		@Override
@@ -209,7 +211,7 @@ public class SoilLibrary {
 		@Override
 		public boolean matches(Type[] argTypes) {
 			if (argTypes.length != 1) return false;
-			return argTypes[0].isString();
+			return argTypes[0].isKindOfString(VoidHandling.INCLUDE_VOID);
 		}
 
 		@Override

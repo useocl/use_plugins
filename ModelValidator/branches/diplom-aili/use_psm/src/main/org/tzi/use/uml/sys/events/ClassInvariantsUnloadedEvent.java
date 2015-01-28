@@ -22,17 +22,20 @@ package org.tzi.use.uml.sys.events;
 import java.util.Collection;
 
 import org.tzi.use.uml.mm.MClassInvariant;
+import org.tzi.use.uml.sys.events.tags.EventContext;
+import org.tzi.use.uml.sys.events.tags.ModelChangedEvent;
 
 /**
  * Event for unloaded class invariants.
  * 
  * @author Frank Hilken
  */
-public class ClassInvariantsUnloadedEvent extends Event {
+public class ClassInvariantsUnloadedEvent extends Event implements ModelChangedEvent {
 
 	private final Collection<MClassInvariant> invariant;
 	
-	public ClassInvariantsUnloadedEvent(Collection<MClassInvariant> inv) {
+	public ClassInvariantsUnloadedEvent(EventContext ctx, Collection<MClassInvariant> inv) {
+		super(ctx);
 		invariant = inv;
 	}
 	

@@ -55,7 +55,7 @@ public class ASTSimpleType extends ASTType {
                 if (cls == null )
                     throw new SemanticException(fName,
                                                 "Expected type name, found `" + name + "'.");
-                res = TypeFactory.mkObjectType(cls);
+                res = cls;
             }
         }
         

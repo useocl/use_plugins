@@ -62,8 +62,6 @@ public class SelectionObjectView extends ObjectSelectionView {
 
 	private ClassComboBoxActionListener fClassComboBoxActionListener;
 
-	private MSystem fSystem;
-
 	/**
 	 * Constructor for SelectionObjectView.
 	 */

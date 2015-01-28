@@ -103,7 +103,7 @@ public class ASTConditionalExecutionStatement extends ASTStatement {
 		
 		// generate the condition expression and check if it's boolean
 		Expression condition = generateExpression(fCondition);
-		if (!condition.type().isBoolean()) {
+		if (!condition.type().isTypeOfBoolean()) {
 			throw new CompilationFailedException(this, "Expression "
 					+ StringUtil.inQuotes(fCondition.getStringRep())
 					+ " is expected to be of type "

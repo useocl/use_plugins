@@ -142,7 +142,7 @@ public class ASTSequenceStatement extends ASTStatement {
 			
 			for (Type assignedType : assignedTypes) {
 				for (Type boundType : boundTypes) {
-					if (!assignedType.isSubtypeOf(boundType)) {
+					if (!assignedType.conformsTo(boundType)) {
 						ASTStatement cause = fSymtable.getCause(name);
 						throw new CompilationFailedException(
 								this,

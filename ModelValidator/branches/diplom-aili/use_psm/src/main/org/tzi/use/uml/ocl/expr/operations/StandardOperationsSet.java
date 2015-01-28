@@ -55,7 +55,10 @@ final class Op_set_union extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSet() && params[1].isSet()) {
+		if (params.length == 2 && 
+			params[0].isTypeOfSet() && 
+			params[1].isTypeOfSet()) {
+			
 			return params[0].getLeastCommonSupertype(params[1]);
 		}
 
@@ -86,7 +89,9 @@ final class Op_set_union_bag extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSet() && params[1].isBag()) {
+		if (params.length == 2 && 
+			params[0].isTypeOfSet() && 
+			params[1].isTypeOfBag()) {
 			SetType set = (SetType) params[0];
 			BagType bag = (BagType) params[1];
 			Type newElementType = set.elemType().getLeastCommonSupertype(
@@ -122,7 +127,10 @@ final class Op_set_intersection extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSet() && params[1].isSet()) {
+		if (params.length == 2 && 
+			params[0].isTypeOfSet() &&
+			params[1].isTypeOfSet()) {
+			
 			SetType set1 = (SetType) params[0];
 			SetType set2 = (SetType) params[1];
 			Type commonElementType = set1.elemType().getLeastCommonSupertype(
@@ -150,7 +158,7 @@ final class Op_set_intersection extends OpGeneric {
 		
 		Type commonElementType = elemType1.getLeastCommonSupertype(elemType2);
 		
-		if (!(elemType1.isTrueOclAny() || elemType2.isTrueOclAny()) && commonElementType.isTrueOclAny()) {
+		if (!(elemType1.isTypeOfOclAny() || elemType2.isTypeOfOclAny()) && commonElementType.isTypeOfOclAny()) {
 			return "Expression " + StringUtil.inQuotes(this.stringRep(args, "")) + 
 					 " will always evaluate to an empty set, " + StringUtil.NEWLINE +
 					 "because the element types " + StringUtil.inQuotes(elemType1) + 
@@ -178,7 +186,10 @@ final class Op_set_intersection_bag extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSet() && params[1].isBag()) {
+		if (params.length == 2 && 
+			params[0].isTypeOfSet() && 
+			params[1].isTypeOfBag()) {
+			
 			SetType set = (SetType) params[0];
 			BagType bag = (BagType) params[1];
 
@@ -207,7 +218,7 @@ final class Op_set_intersection_bag extends OpGeneric {
 		
 		Type commonElementType = elemType1.getLeastCommonSupertype(elemType2);
 		
-		if (!(elemType1.isTrueOclAny() || elemType2.isTrueOclAny()) && commonElementType.isTrueOclAny()) {
+		if (!(elemType1.isTypeOfOclAny() || elemType2.isTypeOfOclAny()) && commonElementType.isTypeOfOclAny()) {
 			return "Expression " + StringUtil.inQuotes(this.stringRep(args, "")) + 
 					 " will always evaluate to an empty, " + StringUtil.NEWLINE +
 					 "because the element type " + StringUtil.inQuotes(elemType1) + 
@@ -235,7 +246,10 @@ final class Op_set_difference extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSet() && params[1].isSet()) {
+		if (params.length == 2 && 
+			params[0].isTypeOfSet() && 
+			params[1].isTypeOfSet()) {
+			
 			SetType set1 = (SetType) params[0];
 			SetType set2 = (SetType) params[1];
 			Type commonElementType = set1.elemType().getLeastCommonSupertype(
@@ -263,7 +277,7 @@ final class Op_set_difference extends OpGeneric {
 		
 		Type commonElementType = elemType1.getLeastCommonSupertype(elemType2);
 		
-		if (!(elemType1.isTrueOclAny() || elemType2.isTrueOclAny()) && commonElementType.isTrueOclAny()) {
+		if (!(elemType1.isTypeOfOclAny() || elemType2.isTypeOfOclAny()) && commonElementType.isTypeOfOclAny()) {
 			return "Expression " + StringUtil.inQuotes(this.stringRep(args, "")) + 
 					 " will always evaluate to the same set, " + StringUtil.NEWLINE +
 					 "because the element types " + StringUtil.inQuotes(elemType1) + 
@@ -291,7 +305,8 @@ final class Op_set_including extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSet()) {
+		if (params.length == 2 && 
+			params[0].isTypeOfSet()) {
 			SetType set1 = (SetType) params[0];
 
 			Type commonElementType = set1.elemType().getLeastCommonSupertype(params[1]);
@@ -329,7 +344,9 @@ final class Op_set_excluding extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSet()) {
+		if (params.length == 2 && 
+			params[0].isTypeOfSet()) {
+			
 			SetType set1 = (SetType) params[0];
 			Type commonElementType = set1.elemType().getLeastCommonSupertype(
 					params[1]);
@@ -353,7 +370,7 @@ final class Op_set_excluding extends OpGeneric {
 		
 		Type commonElementType = col.elemType().getLeastCommonSupertype(args[1].type());
 		
-		if (!(col.elemType().isTrueOclAny() || args[1].type().isTrueOclAny()) && commonElementType.isTrueOclAny()) {
+		if (!(col.elemType().isTypeOfOclAny() || args[1].type().isTypeOfOclAny()) && commonElementType.isTypeOfOclAny()) {
 			return "Expression " + StringUtil.inQuotes(this.stringRep(args, "")) + 
 					 " will always evaluate to the same set, " + StringUtil.NEWLINE +
 					 "because the element type " + StringUtil.inQuotes(col.elemType()) + 
@@ -381,7 +398,10 @@ final class Op_set_symmetricDifference extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 2 && params[0].isSet() && params[1].isSet()) {
+		if (params.length == 2 && 
+			params[0].isTypeOfSet() &&
+			params[1].isTypeOfSet()) {
+			
 			SetType set1 = (SetType) params[0];
 			SetType set2 = (SetType) params[1];
 
@@ -410,7 +430,7 @@ final class Op_set_symmetricDifference extends OpGeneric {
 		
 		Type commonElementType = elemType1.getLeastCommonSupertype(elemType2);
 		
-		if (!(elemType1.isTrueOclAny() || elemType2.isTrueOclAny()) && commonElementType.isTrueOclAny()) {
+		if (!(elemType1.isTypeOfOclAny() || elemType2.isTypeOfOclAny()) && commonElementType.isTypeOfOclAny()) {
 			return "Expression " + StringUtil.inQuotes(this.stringRep(args, "")) + 
 					 " will always evaluate to the union of both sets, " + StringUtil.NEWLINE +
 					 "because the element types " + StringUtil.inQuotes(elemType1) + 

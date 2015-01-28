@@ -154,6 +154,19 @@ public class MModel extends MModelElementImpl {
     }
 
     /**
+     * Returns the classifier (currently MClass, MAssociation, or MAssociationClass)
+     * with the given name or <code>null</code>, if no classifier with the
+     * given name exists in the model.
+     */
+    public MClassifier getClassifier(String name) {
+        MClassifier classifier = getClass(name);
+        if (classifier != null) return classifier;
+        
+        classifier = getAssociation(name);
+        return classifier;
+    }
+    
+    /**
      * Returns the specified association class.
      * 
      * @return null if class <code>name</name> does not exist.
@@ -221,7 +234,7 @@ public class MModel extends MModelElementImpl {
         // check for role name conflicts: for each class the set of
         // navigable classes must have unique role names
         for (MClass cls : assoc.associatedClasses()) {
-            Map<String, MNavigableElement> aends = cls.navigableEnds();
+            Map<String, ? extends MNavigableElement> aends = cls.navigableEnds();
             List<String> newRolenames = new ArrayList<String>();
             
             for (MNavigableElement elem : assoc.navigableEndsFrom(cls)) {
@@ -485,6 +498,19 @@ public class MModel extends MModelElementImpl {
      */
     public Collection<MClassInvariant> classInvariants() {
         return fClassInvariants.values();
+    }
+    
+    public Collection<MClassInvariant> classInvariants(boolean onlyActive) {
+        if (onlyActive) {
+        	return Maps.filterValues(fClassInvariants, new Predicate<MClassInvariant>() {
+				@Override
+				public boolean apply(MClassInvariant input) {
+					return input.isActive();
+				}
+        	}).values();
+        } else {
+        	return fClassInvariants.values();
+        }
     }
     
     /**

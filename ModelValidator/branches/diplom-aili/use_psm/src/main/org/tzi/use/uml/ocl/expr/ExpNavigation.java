@@ -24,18 +24,12 @@ package org.tzi.use.uml.ocl.expr;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNavigableElement;
-import org.tzi.use.uml.ocl.type.BagType;
-import org.tzi.use.uml.ocl.type.ObjectType;
-import org.tzi.use.uml.ocl.type.OrderedSetType;
-import org.tzi.use.uml.ocl.type.SequenceType;
-import org.tzi.use.uml.ocl.type.SetType;
+import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
-import org.tzi.use.uml.ocl.value.BagValue;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.ObjectValue;
-import org.tzi.use.uml.ocl.value.OrderedSetValue;
-import org.tzi.use.uml.ocl.value.SequenceValue;
-import org.tzi.use.uml.ocl.value.SetValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MObject;
@@ -71,7 +65,7 @@ public final class ExpNavigation extends Expression {
         	this.qualifierExpressions = theQualifierExpressions.toArray(new Expression[theQualifierExpressions.size()]);
         }
                 
-        if ( !objExp.type().isTrueObjectType() )
+        if ( !objExp.type().isTypeOfClass() )
             throw new ExpInvalidException(
                     "Target expression of navigation operation must have " +
                     "object type, found `" + objExp.type() + "'." );
@@ -114,7 +108,7 @@ public final class ExpNavigation extends Expression {
     		}
         	        	
             List<MObject> objList = obj.getNavigableObjects(state, fSrc, fDst, qualifierValues);
-            if (resultType.isTrueObjectType() ) {
+            if (resultType.isTypeOfClass() ) {
                 if (objList.size() > 1 )
                     throw new MultiplicityViolationException(
                         "expected link set size 1 at " + 
@@ -122,20 +116,11 @@ public final class ExpNavigation extends Expression {
                         "', found: " + 
                         objList.size());
                 if (objList.size() == 1 ) {
-                    res = new ObjectValue((ObjectType)type(), objList.get(0));
+                    res = new ObjectValue((MClass)type(), objList.get(0));
                 }
-            } else if (resultType.isSet() ) {
-                res = new SetValue(((SetType) resultType).elemType(), 
-                                   oidsToObjectValues(state, objList));
-            } else if (resultType.isOrderedSet() ) {
-                res = new OrderedSetValue(((OrderedSetType) resultType).elemType(), 
-                                        oidsToObjectValues(state, objList));
-            } else if (resultType.isBag() ) {
-            	res = new BagValue(((BagType) resultType).elemType(), 
-                        oidsToObjectValues(state, objList));
-            } else if (resultType.isSequence() ) {
-            	res = new SequenceValue(((SequenceType) resultType).elemType(), 
-                        oidsToObjectValues(state, objList));
+            } else if (resultType.isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
+            	CollectionType ct = (CollectionType)resultType;
+            	res = ct.createCollectionValue(oidsToObjectValues(state, objList));
             } else
                 throw new RuntimeException("Unexpected association end type `" + 
                                            resultType + "'");
@@ -152,7 +137,7 @@ public final class ExpNavigation extends Expression {
         for (MObject obj : objList) {
             MObjectState objState = obj.state(state);
             if (objState != null )
-                res[i++] = new ObjectValue(obj.type(), obj);
+                res[i++] = new ObjectValue(obj.cls(), obj);
         }
         return res;
     }

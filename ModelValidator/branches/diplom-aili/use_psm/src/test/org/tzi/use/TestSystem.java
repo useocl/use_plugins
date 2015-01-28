@@ -243,7 +243,7 @@ public class TestSystem {
 				null);
 		
 		op8.setStatement(new MObjectOperationCallStatement(
-				new ExpVariable("self", c1.type()), 
+				new ExpVariable("self", c1), 
 				op7, new Expression[0]));
 		
 	

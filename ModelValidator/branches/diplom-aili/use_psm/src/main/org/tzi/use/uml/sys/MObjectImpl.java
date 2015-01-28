@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNavigableElement;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.Value;
 
@@ -69,18 +68,13 @@ public final class MObjectImpl implements MObject {
     }
 
     @Override
-    public ObjectType type() {
-        return fClass.type();
-    }
-    
-    @Override
     public String name() {
         return fName;
     }
 
     @Override
     public ObjectValue value() {
-    	return new ObjectValue(type(), this);
+    	return new ObjectValue(this.cls(), this);
     }
 
     @Override

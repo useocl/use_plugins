@@ -31,7 +31,6 @@ import org.tzi.use.parser.ocl.ASTSimpleType;
 import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.sys.soil.MNewObjectStatement;
 import org.tzi.use.uml.sys.soil.MStatement;
@@ -83,12 +82,12 @@ public class ASTNewObjectStatement extends ASTStatement {
 	
 		Type t = generateType(fObjectType);
 		
-		if (!t.isObjectType()) {
+		if (!t.isTypeOfClass()) {
 			throw new CompilationFailedException(this, "Expected object type, found "
 					+ StringUtil.inQuotes(t) + ".");
 		}
 		
-		MClass objectClass = ((ObjectType)t).cls();
+		MClass objectClass = (MClass)t;
 		
 		if (objectClass instanceof MAssociationClass ) {
 			throw new CompilationFailedException(this,

@@ -35,8 +35,6 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MOperation;
-import org.tzi.use.uml.ocl.type.ObjectType;
-import org.tzi.use.uml.ocl.type.TypeFactory;
 
 
 /**
@@ -72,7 +70,7 @@ public class ASTAssociationClass extends ASTClass {
         fAssocClass.setModel( ctx.model() );
         
         // makes sure we have a unique class name
-        ctx.typeTable().add( fName, TypeFactory.mkObjectType( fAssocClass ) );
+        ctx.typeTable().add( fName, fAssocClass );
         fClass = fAssocClass;
         
         return fAssocClass;
@@ -103,6 +101,10 @@ public class ASTAssociationClass extends ASTClass {
         for (ASTAttribute a : fAttributes) {
             try {
                 MAttribute attr = a.gen( ctx );
+                if (this.fAssocClass.isDerived() && !attr.isDerived()) {
+					throw new SemanticException(a.nameToken(),
+							"A derived association class can only define derived attributes.");
+                }
                 fAssocClass.addAttribute( attr );
             } catch ( SemanticException ex ) {
                 ctx.reportError( ex );
@@ -166,12 +168,11 @@ public class ASTAssociationClass extends ASTClass {
     	ctx.setCurrentClass( fAssocClass );
 
         // enter pseudo-variable "self" into scope of expressions
-        ObjectType ot = TypeFactory.mkObjectType( fAssocClass );
-        ctx.exprContext().push( "self", ot );
+        ctx.exprContext().push( "self", fAssocClass );
         Symtable vars = ctx.varTable();
         vars.enterScope();
         try {
-            vars.add( "self", ot, null );
+            vars.add( "self", fAssocClass, null );
         } catch ( SemanticException ex ) {
             // fatal error?
             throw new Error(ex);
@@ -206,12 +207,11 @@ public class ASTAssociationClass extends ASTClass {
         ctx.setCurrentClass( fAssocClass );
 
         // enter pseudo-variable "self" into scope of expressions
-        ObjectType ot = TypeFactory.mkObjectType( fAssocClass );
-        ctx.exprContext().push( "self", ot );
+        ctx.exprContext().push( "self", fAssocClass );
         Symtable vars = ctx.varTable();
         vars.enterScope();
         try {
-            vars.add( "self", ot, null );
+            vars.add( "self", fAssocClass, null );
         } catch ( SemanticException ex ) {
             // fatal error?
             throw new Error(ex);

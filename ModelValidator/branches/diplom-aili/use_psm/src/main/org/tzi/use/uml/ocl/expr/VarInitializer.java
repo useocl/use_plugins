@@ -38,7 +38,7 @@ public class VarInitializer {
     {
         fVarDecl = new VarDecl(v, t);
         fInitExpr = initExpr;
-        if (! initExpr.type().isSubtypeOf(t) )
+        if (! initExpr.type().conformsTo(t) )
             throw new ExpInvalidException(
                                           "Type mismatch. Initialization expression has type `" + 
                                           initExpr.type() + "', expected type `" + t + "'.");

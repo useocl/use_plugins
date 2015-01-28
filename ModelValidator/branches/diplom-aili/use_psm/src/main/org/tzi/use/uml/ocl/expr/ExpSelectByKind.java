@@ -25,6 +25,7 @@ import java.util.List;
 import org.tzi.use.parser.SemanticException;
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.CollectionValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
@@ -49,12 +50,12 @@ public class ExpSelectByKind extends Expression {
 
 		Type type;
 		
-		if (source.type().isVoidType()) {
+		if (source.type().isTypeOfVoidType()) {
         	type = TypeFactory.mkVoidType();
-        } else if (source.type().isCollection(false)) {
+        } else if (source.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
         	type = ((CollectionType)source.type()).createCollectionType(t);
         } else {
-        	throw new SemanticException("The operation " + StringUtil.inQuotes("selectByKind") + " is only applicable on collections." );
+        	throw new SemanticException("The operation " + StringUtil.inQuotes(getOperationName()) + " is only applicable on collections." );
         }
 		
 		this.setResultType(type);
@@ -98,7 +99,7 @@ public class ExpSelectByKind extends Expression {
 	}
 	
 	protected boolean includeElement(Value v) {
-		return v.type().isSubtypeOf(type().elemType());
+		return v.getRuntimeType().conformsTo(type().elemType());
 	}
 	
 	@Override
@@ -112,8 +113,8 @@ public class ExpSelectByKind extends Expression {
 	
 	@Override
 	public StringBuilder toString(StringBuilder sb) {
-		sourceExpr.toString(sb).append(getOperationName()).append("(");
-		((CollectionType)type()).elemType().toString(sb).append(")");
+		sourceExpr.toString(sb).append("->").append(getOperationName()).append("(");
+		type().elemType().toString(sb).append(")");
 		return sb;
 	}
 

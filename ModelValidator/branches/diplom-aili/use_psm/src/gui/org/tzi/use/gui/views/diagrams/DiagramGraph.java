@@ -135,6 +135,11 @@ public class DiagramGraph extends DirectedGraphBase<PlaceableNode, EdgeBase>  {
         clearUninitialized();
 	}
 		
+	public synchronized boolean addInitializedEdge(EdgeBase e) {
+		invalidatedEdges.add(e);
+		return super.addEdge(e);
+	}
+	
 	@Override
 	public synchronized boolean addEdge(EdgeBase e) {
 		uninitializedEdges.add(e);

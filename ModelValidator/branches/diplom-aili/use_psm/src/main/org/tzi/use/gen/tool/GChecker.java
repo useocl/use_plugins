@@ -26,6 +26,7 @@ package org.tzi.use.gen.tool;
 
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 
 import org.tzi.use.gen.assl.dynamics.IGChecker;
@@ -65,10 +66,11 @@ public class GChecker implements IGChecker {
     
     public GChecker(MModel model, GGeneratorArguments args) {
         fCheckStructure = args.checkStructure();
-        fInvariantStatistics = new GInvariantStatistic[model.classInvariants().size()];
+        Collection<MClassInvariant> invs = model.classInvariants();
+        fInvariantStatistics = new GInvariantStatistic[invs.size()];
         
         int index = 0;
-        for (MClassInvariant inv : model.classInvariants()) {
+        for (MClassInvariant inv : invs) {
         	fInvariantStatistics[index] = new GInvariantStatistic(inv);
         	++index;
         }

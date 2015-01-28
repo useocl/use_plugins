@@ -32,8 +32,6 @@ import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.MPrePostCondition;
 import org.tzi.use.uml.ocl.expr.ExpInvalidException;
 import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.type.ObjectType;
-import org.tzi.use.uml.ocl.type.TypeFactory;
 
 /**
  * Node of the abstract syntax tree constructed by the parser.
@@ -56,14 +54,13 @@ public class ASTPrePostClause extends ASTAnnotatable {
         boolean isPre = fToken.getText().equals("pre");
 
         // enter context variable into scope of invariant
-        ObjectType ot = TypeFactory.mkObjectType(cls);
         Symtable vars = ctx.varTable();
         vars.enterScope();
 
         try {
             // create pseudo-variable "self"
-            vars.add("self", ot, null);
-            ctx.exprContext().push("self", ot);
+            vars.add("self", cls, null);
+            ctx.exprContext().push("self", cls);
             // add special variable `result' in postconditions with result value
             if (! isPre && op.hasResultType() )
                 vars.add("result", op.resultType(), null);

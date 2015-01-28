@@ -40,7 +40,7 @@ public class ExpObjRef extends Expression {
 	 * @param object The referenced object
 	 */
 	public ExpObjRef(MObject object) {
-		super(object.type());
+		super(object.cls());
 		fObject = object;
 	}
 

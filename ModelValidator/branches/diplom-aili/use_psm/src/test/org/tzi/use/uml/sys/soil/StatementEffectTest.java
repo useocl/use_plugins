@@ -719,7 +719,7 @@ public class StatementEffectTest extends TestCase {
 		// variable should be undefined, but still exist
 		Value varVal1 = lookUpVar(vNameObj1);
 		assertNotNull(varVal1);
-		assertTrue(varVal1.type().isSubtypeOf(fOldVarEnv.lookUp(vNameObj1).type()));
+		assertTrue(varVal1.type().conformsTo(fOldVarEnv.lookUp(vNameObj1).type()));
 		assertTrue(varVal1.isUndefined());
 		
 		//////////
@@ -750,7 +750,7 @@ public class StatementEffectTest extends TestCase {
 		// variable should be undefined, but still exist
 		varVal1 = lookUpVar(vNameObj1);
 		assertNotNull(varVal1);
-		assertTrue(varVal1.type().isSubtypeOf(fOldVarEnv.lookUp(vNameObj1).type()));
+		assertTrue(varVal1.type().conformsTo(fOldVarEnv.lookUp(vNameObj1).type()));
 		assertTrue(varVal1.isUndefined());
 		
 		/////////////////////////////////////
@@ -783,11 +783,11 @@ public class StatementEffectTest extends TestCase {
 		// variables should undefined
 		varVal1 = lookUpVar(vNameObj1);
 		assertNotNull(varVal1);
-		assertTrue(varVal1.type().isSubtypeOf(fOldVarEnv.lookUp(vNameObj1).type()));
+		assertTrue(varVal1.type().conformsTo(fOldVarEnv.lookUp(vNameObj1).type()));
 		assertTrue(varVal1.isUndefined());
 		Value varVal2 = lookUpVar(vNameObj2);
 		assertNotNull(varVal2);
-		assertTrue(varVal2.type().isSubtypeOf(fOldVarEnv.lookUp(vNameObj2).type()));
+		assertTrue(varVal2.type().conformsTo(fOldVarEnv.lookUp(vNameObj2).type()));
 		assertTrue(varVal2.isUndefined());
 		
 		///////////////////////////////////////////////
@@ -811,11 +811,11 @@ public class StatementEffectTest extends TestCase {
 		// variables should undefined
 		varVal1 = lookUpVar(vNameObj1);
 		assertNotNull(varVal1);
-		assertTrue(varVal1.type().isSubtypeOf(fOldVarEnv.lookUp(vNameObj1).type()));
+		assertTrue(varVal1.type().conformsTo(fOldVarEnv.lookUp(vNameObj1).type()));
 		assertTrue(varVal1.isUndefined());
 		varVal2 = lookUpVar(vNameObj2);
 		assertNotNull(varVal2);
-		assertTrue(varVal2.type().isSubtypeOf(fOldVarEnv.lookUp(vNameObj2).type()));
+		assertTrue(varVal2.type().conformsTo(fOldVarEnv.lookUp(vNameObj2).type()));
 		assertTrue(varVal2.isUndefined());
 		
 		//////////////////////////////////////////////

@@ -34,8 +34,6 @@ import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.ocl.expr.ExpInvalidException;
 import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.type.ObjectType;
-import org.tzi.use.uml.ocl.type.TypeFactory;
 
 /**
  * Node of the abstract syntax tree constructed by the parser.
@@ -62,7 +60,6 @@ public class ASTInvariantClause extends ASTAnnotatable {
     
     MClassInvariant gen(Context ctx, List<Token> varTokens, MClass cls, boolean addToModel) {
         // enter context variable into scope of invariant
-        ObjectType ot = TypeFactory.mkObjectType(cls);
         Symtable vars = ctx.varTable();
         vars.enterScope();
 
@@ -72,14 +69,14 @@ public class ASTInvariantClause extends ASTAnnotatable {
         try {
             if (varTokens != null && varTokens.size() > 0) {                
             	for (Token var : varTokens) {
-            		vars.add(var, ot);
-            		ctx.exprContext().push(var.getText(), ot);
+            		vars.add(var, cls);
+            		ctx.exprContext().push(var.getText(), cls);
             		varNames.add(var.getText());
             	}
             } else {
                 // create pseudo-variable "self"
-                vars.add("self", ot, null);
-                ctx.exprContext().push("self", ot);
+                vars.add("self", cls, null);
+                ctx.exprContext().push("self", cls);
                 varNames.add("self");
             }
 

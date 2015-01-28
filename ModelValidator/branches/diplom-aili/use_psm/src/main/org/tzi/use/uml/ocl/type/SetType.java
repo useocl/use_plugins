@@ -44,37 +44,42 @@ public final class SetType extends CollectionType {
     }
 
     public String shortName() {
-        if (elemType().isCollection(true) )
+        if (elemType().isKindOfCollection(VoidHandling.EXCLUDE_VOID) )
             return "Set(...)";
         else 
             return "Set(" + elemType() + ")";
     }
 
-    public boolean isTrueCollection() {
+    @Override
+    public boolean isTypeOfCollection() {
     	return false;
     }
     
-    public boolean isSet() {
+    @Override
+    public boolean isTypeOfSet() {
     	return true;
     }
-    
-    public boolean isTrueSet() {
-    	return true;
-    }
-    
-    public boolean isInstantiableCollection() {
+        
+    @Override
+	public boolean isKindOfSet(VoidHandling h) {
+		return true;
+	}
+
+    @Override
+	public boolean isInstantiableCollection() {
     	return true;
     }
     
     /** 
      * Returns true if this type is a subtype of <code>t</code>. 
      */
-    public boolean isSubtypeOf(Type t) {
-        if (! t.isTrueCollection() && ! t.isTrueSet() )
+    @Override
+    public boolean conformsTo(Type t) {
+        if (!t.isTypeOfCollection() && !t.isTypeOfSet())
             return false;
 
         CollectionType t2 = (CollectionType) t;
-        if (elemType().isSubtypeOf(t2.elemType()) )
+        if (elemType().conformsTo(t2.elemType()) )
             return true;
         
         return false;
@@ -88,8 +93,8 @@ public final class SetType extends CollectionType {
     public Set<Type> allSupertypes() {
         Set<Type> res = new HashSet<Type>();
         res.addAll(super.allSupertypes());
-        Set<Type> elemSuper = elemType().allSupertypes();
-        Iterator<Type> typeIter = elemSuper.iterator();
+        Set<? extends Type> elemSuper = elemType().allSupertypes();
+        Iterator<? extends Type> typeIter = elemSuper.iterator();
         
         while (typeIter.hasNext() ) {
             Type t = typeIter.next();
@@ -100,10 +105,10 @@ public final class SetType extends CollectionType {
 
     public Type getLeastCommonSupertype(Type type)
     {
-    	if (!type.isCollection(false))
+    	if (!type.isKindOfCollection(VoidHandling.INCLUDE_VOID))
     		return null;
     	
-    	if (type.isVoidType())
+    	if (type.isTypeOfVoidType())
     		return this;
     	
     	CollectionType cType = (CollectionType)type;
@@ -112,7 +117,7 @@ public final class SetType extends CollectionType {
     	if (commonElementType == null)
     		return null;
     	
-    	if (type.isSet())
+    	if (type.isTypeOfSet())
     		return TypeFactory.mkSet(commonElementType);
     	else
     		return TypeFactory.mkCollection(commonElementType);
@@ -125,6 +130,11 @@ public final class SetType extends CollectionType {
     
     @Override
     public CollectionValue createCollectionValue(List<Value> values) {
+    	return new SetValue(elemType(), values);
+    }
+    
+    @Override
+    public CollectionValue createCollectionValue(Value[] values) {
     	return new SetValue(elemType(), values);
     }
     

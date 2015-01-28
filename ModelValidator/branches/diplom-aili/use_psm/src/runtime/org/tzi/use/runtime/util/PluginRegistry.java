@@ -21,7 +21,7 @@ import org.xml.sax.SAXParseException;
  */
 public class PluginRegistry {
 
-	private static PluginRegistry instance = new PluginRegistry();
+	private static final PluginRegistry instance = new PluginRegistry();
 
 	/**
 	 * Method returning the Singleton instance of the PluginRegistry
@@ -38,7 +38,7 @@ public class PluginRegistry {
 	private PluginRegistry() {
 	}
 
-	private final String PLUGINXML = "useplugin.xml";
+	private static final String PLUGINXML = "useplugin.xml";
 
 	private IPluginDescriptor createPluginDescriptor(PluginModel pluginModel,
 			URL location) {
@@ -60,7 +60,7 @@ public class PluginRegistry {
 			JarFile jarFile = new JarFile(pluginFile);
 
 			InputStream inputStream = jarFile.getInputStream(jarFile
-					.getEntry(this.PLUGINXML));
+					.getEntry(PLUGINXML));
 			try {
 				InputSource inputSource = new InputSource(inputStream);
 				Log.debug("Creating plugin for: " + pluginFile);

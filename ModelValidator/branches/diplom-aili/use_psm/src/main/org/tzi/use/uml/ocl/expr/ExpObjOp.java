@@ -53,7 +53,7 @@ public final class ExpObjOp extends Expression {
         super(op.resultType());
         fOp = op;
         fArgs = args;
-        if (! args[0].type().isTrueObjectType() )
+        if (! args[0].type().isTypeOfClass() )
             throw new ExpInvalidException(
                                           "Target expression of object operation must have " +
                                           "object type, found `" + args[0].type() + "'.");
@@ -67,7 +67,7 @@ public final class ExpObjOp extends Expression {
                                           (args.length - 1) + ".");
 
         for (int i = 1; i < args.length; i++)
-            if (! args[i].type().isSubtypeOf(params.varDecl(i - 1).type()) )
+            if (! args[i].type().conformsTo(params.varDecl(i - 1).type()) )
                 throw new ExpInvalidException(
                                               "Type mismatch in argument `" + params.varDecl(i - 1).name() + 
                                               "'. Expected type `" + params.varDecl(i - 1).type() + 

@@ -3,6 +3,7 @@ package org.tzi.use.uml.ocl.expr.operations;
 import org.tzi.use.uml.ocl.expr.EvalContext;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.ocl.value.StringValue;
@@ -39,8 +40,9 @@ public class StandardOperationsBoolean {
 		}
 	
 		public Type matches(Type params[]) {
-			return (params.length == 2 && params[0].isBoolean() && params[1]
-					.isBoolean()) ? params[0] : null;
+			return (params.length == 2 && 
+					params[0].isKindOfBoolean(VoidHandling.INCLUDE_VOID) && 
+					params[1].isKindOfBoolean(VoidHandling.INCLUDE_VOID)) ? params[0] : null;
 		}
 	
 		public Value evalWithArgs(EvalContext ctx, Expression args[]) {
@@ -87,8 +89,9 @@ public class StandardOperationsBoolean {
 		}
 	
 		public Type matches(Type params[]) {
-			return (params.length == 2 && params[0].isBoolean() && params[1]
-					.isBoolean()) ? params[0] : null;
+			return (params.length == 2 && 
+					params[0].isKindOfBoolean(VoidHandling.INCLUDE_VOID) && 
+					params[1].isKindOfBoolean(VoidHandling.INCLUDE_VOID)) ? params[0] : null;
 		}
 	
 		public Value evalWithArgs(EvalContext ctx, Expression args[]) {
@@ -122,8 +125,9 @@ public class StandardOperationsBoolean {
 		}
 	
 		public Type matches(Type params[]) {
-			return (params.length == 2 && params[0].isBoolean() && params[1]
-					.isBoolean()) ? params[0] : null;
+			return (params.length == 2 && 
+					params[0].isKindOfBoolean(VoidHandling.INCLUDE_VOID) && 
+					params[1].isKindOfBoolean(VoidHandling.INCLUDE_VOID)) ? params[0] : null;
 		}
 	
 		public Value evalWithArgs(EvalContext ctx, Expression args[]) {
@@ -170,7 +174,9 @@ public class StandardOperationsBoolean {
 		}
 	
 		public Type matches(Type params[]) {
-			return (params.length == 1 && params[0].isBoolean()) ? params[0] : null;
+			return (params.length == 1 && params[0]
+					.isKindOfBoolean(VoidHandling.INCLUDE_VOID)) ? params[0]
+					: null;
 		}
 	
 		public Value evalWithArgs(EvalContext ctx, Expression args[]) {
@@ -195,8 +201,10 @@ public class StandardOperationsBoolean {
 		}
 	
 		public Type matches(Type params[]) {
-			return (params.length == 2 && params[0].isBoolean() && params[1]
-					.isBoolean()) ? params[0] : null;
+			return (params.length == 2
+					&& params[0].isKindOfBoolean(VoidHandling.INCLUDE_VOID) && params[1]
+						.isKindOfBoolean(VoidHandling.INCLUDE_VOID)) ? params[0]
+					: null;
 		}
 	
 		public Value evalWithArgs(EvalContext ctx, Expression args[]) {
@@ -247,7 +255,9 @@ public class StandardOperationsBoolean {
 		}
 	
 		public Type matches(Type params[]) {
-			return params.length == 1 && params[0].isBoolean() ? TypeFactory.mkString() : null;
+			return params.length == 1
+					&& params[0].isKindOfBoolean(VoidHandling.INCLUDE_VOID) ? TypeFactory
+					.mkString() : null;
 		}
 	
 		public Value eval(EvalContext ctx, Value[] args, Type resultType) {

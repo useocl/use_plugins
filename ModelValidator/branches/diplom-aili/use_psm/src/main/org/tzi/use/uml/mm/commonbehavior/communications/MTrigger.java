@@ -82,7 +82,7 @@ public class MTrigger implements MNamedElement {
 	public static MTrigger create(String text, MClass cls) {
 		if (text.equals("create")) {
 			return new MTrigger(new MEventCreate(cls));
-		};
+		}
 		
 		return null;
 	}

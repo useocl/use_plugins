@@ -134,7 +134,7 @@ public class ClassDiagram extends DiagramView
 	private final ClassSelection fSelection;
 	
 	private final DiagramInputHandling inputHandling;
-	    
+
 	ClassDiagram( ClassDiagramView parent, PrintWriter log ) {
 		this(parent, log, new ClassDiagramOptions(Paths.get(parent.system().model().filename())));
 	}
@@ -182,10 +182,6 @@ public class ClassDiagram extends DiagramView
     
     public MSystem getSystem() {
     	return fParent.system();
-    }
-    
-    public Map<MClass, ClassNode> getClassToNodeMap() {
-    	return this.visibleData.fClassToNodeMap;
     }
     
     public Selection<PlaceableNode> getNodeSelection() {

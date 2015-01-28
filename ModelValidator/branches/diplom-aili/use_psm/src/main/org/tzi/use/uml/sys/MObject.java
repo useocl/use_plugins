@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNavigableElement;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.Value;
 
@@ -45,12 +44,6 @@ public interface MObject {
      * Returns the class of this object.
      */
     public MClass cls();
-
-    /**
-     * Returns the type of this object.
-     */
-    public ObjectType type();
-
 
     /**
      * Returns a name for this object.

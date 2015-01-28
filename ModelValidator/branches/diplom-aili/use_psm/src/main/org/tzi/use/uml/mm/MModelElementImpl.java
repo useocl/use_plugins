@@ -100,11 +100,6 @@ public abstract class MModelElementImpl implements MModelElement {
     public abstract void processWithVisitor(MMVisitor v);
 
     @Override
-    public boolean isAnnotatable() {
-    	return true;
-    }
-    
-    @Override
     public Map<String, MElementAnnotation> getAllAnnotations() {
     	return this.annotations;
     }
@@ -171,7 +166,7 @@ public abstract class MModelElementImpl implements MModelElement {
         if (o == this )
             return 0;
 
-        return fName.compareTo(((MModelElement) o).name());
+        return fName.compareTo(o.name());
     }
 
     /**

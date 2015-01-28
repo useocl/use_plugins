@@ -24,8 +24,7 @@ import org.tzi.use.gui.views.diagrams.classdiagram.ClassifierNode;
 import org.tzi.use.gui.views.diagrams.elements.PlaceableNode;
 import org.tzi.use.uml.mm.MClassifier;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
-import org.tzi.use.uml.sys.events.Event;
+import org.tzi.use.uml.sys.events.StatementExecutedEvent;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -227,17 +226,8 @@ public abstract class ClassSelectionView extends JPanel implements View {
      */
 	public abstract void update();
 
-	/**
-	 * Method stateChanged called due to an external change of state.
-	 * 
-	 * @see org.tzi.use.uml.sys.StateChangeListener#stateChanged(StateChangeEvent)
-	 */
-	public void stateChanged(StateChangeEvent e) {
-		
-	}
-
 	@Subscribe
-	public void stateChanged(Event e) {
+	public void onStatementExecuted(StatementExecutedEvent e) {
 		update();
 	}
 	

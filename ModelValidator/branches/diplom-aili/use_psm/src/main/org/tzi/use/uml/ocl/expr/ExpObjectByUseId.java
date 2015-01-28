@@ -22,8 +22,7 @@
 package org.tzi.use.uml.ocl.expr;
 
 import org.tzi.use.uml.mm.MClass;
-import org.tzi.use.uml.ocl.type.ObjectType;
-import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.StringValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
@@ -37,22 +36,22 @@ import org.tzi.use.uml.sys.MSystemState;
  * @author  Lars Hamann
  */
 public final class ExpObjectByUseId extends Expression {
-    private ObjectType sourceType;
+    private MClass sourceType;
     
     private Expression idExpr;
     
-    public ExpObjectByUseId(Type sourceType, Expression idExpr)
+    public ExpObjectByUseId(MClass sourceType, Expression idExpr)
         throws ExpInvalidException
     {
         super(sourceType);
 
-        if (! sourceType.isTrueObjectType() )
+        if (! sourceType.isTypeOfClass() )
             throw new ExpInvalidException("Expected an object type, found `" + sourceType + "'.");
         
-        if (!idExpr.type().isString())
+        if (!idExpr.type().isKindOfString(VoidHandling.INCLUDE_VOID))
         	throw new ExpInvalidException("Expected an expression of type `String', found `" + idExpr.type() + "'.");
         
-        this.sourceType = (ObjectType)sourceType;
+        this.sourceType = sourceType;
         this.idExpr = idExpr;
     }
 
@@ -60,7 +59,7 @@ public final class ExpObjectByUseId extends Expression {
      * The type allInstances() is applied to. 
      * @return
      */
-    public ObjectType getSourceType() {
+    public MClass getSourceType() {
     	return this.sourceType;
     }
     
@@ -81,11 +80,10 @@ public final class ExpObjectByUseId extends Expression {
         StringValue id = (StringValue)idExprResult;
         
         // get the object 
-        MClass cls = sourceType.cls();
         MObject obj = systemState.objectByName(id.value());
         
         if (obj == null) return UndefinedValue.instance;
-        if (!obj.cls().isSubClassOf(cls)) return UndefinedValue.instance;
+        if (!obj.cls().isSubClassOf(sourceType)) return UndefinedValue.instance;
         
         ObjectValue res = new ObjectValue(sourceType, obj);
        

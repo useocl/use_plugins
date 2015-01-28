@@ -34,7 +34,7 @@ import org.tzi.use.uml.sys.MSystemState;
  * 
  * @author Mark Richters
  */
-public final class VarBindings implements Iterable<VarBindings.Entry> {
+public class VarBindings implements Iterable<VarBindings.Entry> {
 
     public class Entry {
         String fVarname;

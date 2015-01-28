@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.tzi.use.config.Options;
 import org.tzi.use.gen.assl.dynamics.GEvalProcedure;
@@ -214,11 +213,8 @@ public class GGenerator {
         }
     }
 
-    public void printInvariantFlags( Set<MClassInvariant> invs ) {
+    public void printInvariantFlags( Collection<MClassInvariant> invs ) {
         boolean found = false;
-        if (!invs.isEmpty())
-            System.out.println(
-                               "Listing only invariants given as parameter...");
     
         System.out.println("- disabled class invariants:");
         

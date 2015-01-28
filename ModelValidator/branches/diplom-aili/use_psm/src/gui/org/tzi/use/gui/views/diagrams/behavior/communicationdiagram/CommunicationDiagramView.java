@@ -34,8 +34,6 @@ import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.views.PrintableView;
 import org.tzi.use.gui.views.View;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
-import org.tzi.use.uml.sys.UndoListener;
 import org.tzi.use.uml.sys.events.AttributeAssignedEvent;
 import org.tzi.use.uml.sys.events.Event;
 import org.tzi.use.uml.sys.events.LinkDeletedEvent;
@@ -44,7 +42,8 @@ import org.tzi.use.uml.sys.events.ObjectCreatedEvent;
 import org.tzi.use.uml.sys.events.ObjectDestroyedEvent;
 import org.tzi.use.uml.sys.events.OperationEnteredEvent;
 import org.tzi.use.uml.sys.events.OperationExitedEvent;
-import org.tzi.use.uml.sys.events.UndoEvent;
+import org.tzi.use.uml.sys.events.StatementExecutedEvent;
+import org.tzi.use.uml.sys.events.tags.EventContext;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -55,7 +54,7 @@ import com.google.common.eventbus.Subscribe;
  * 
  */
 @SuppressWarnings("serial")
-public class CommunicationDiagramView extends JPanel implements View, PrintableView, UndoListener {
+public class CommunicationDiagramView extends JPanel implements View, PrintableView {
 
 	private final MSystem system;
 	private final MainWindow mainWindow;
@@ -67,7 +66,6 @@ public class CommunicationDiagramView extends JPanel implements View, PrintableV
 		this.system = system;
 
 		system.getEventBus().register(this);
-		system.addUndoListener(this);
 
 		setLayout(new BorderLayout());
 		this.setFocusable(true);
@@ -140,10 +138,6 @@ public class CommunicationDiagramView extends JPanel implements View, PrintableV
 	 */
 	public MainWindow getMainWindow() {
 		return mainWindow;
-	}
-
-	@Override
-	public void stateChanged(StateChangeEvent e) {
 	}
 
 	@Override
@@ -221,9 +215,11 @@ public class CommunicationDiagramView extends JPanel implements View, PrintableV
 		return system;
 	}
 
-	@Override
-	public void undone(UndoEvent e) {
-		comDia.onClosing();
-		initDiagram(true, null);
+	@Subscribe
+	public void undone(StatementExecutedEvent e) {
+		if (e.getContext() == EventContext.UNDO) {
+			comDia.onClosing();
+			initDiagram(true, null);
+		}
 	}
 }

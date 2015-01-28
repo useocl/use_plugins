@@ -123,7 +123,9 @@ public class DerivedAttributeController implements DerivedValueController {
 				
 				if (returnChangeset) {
 					modifiedObjects.add(obj);
-					AttributeAssignedEvent e = new AttributeAssignedEvent(obj, attr, derivedValue);
+					AttributeAssignedEvent e = new AttributeAssignedEvent(state
+							.system().getExecutionContext(), obj, attr,
+							derivedValue);
 					state.system().getEventBus().post(e);
 				}
 			}

@@ -59,6 +59,7 @@ gen result
 *!Person2.alive := false
 gen result accept
 *Generated result (system state) accepted.
+gen flags -d
 check
 *checking structure...
 *checking invariants...

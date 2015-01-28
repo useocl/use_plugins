@@ -46,9 +46,7 @@ import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
-import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.sys.soil.MRValue;
 import org.tzi.use.uml.sys.soil.MStatement;
 import org.tzi.use.util.StringUtil;
@@ -268,7 +266,7 @@ public abstract class ASTStatement extends AST {
 			}
 			
 			Type resultType = bound().getType("result");
-			if (!resultType.isSubtypeOf(fRequiredResultType)) {
+			if (!resultType.conformsTo(fRequiredResultType)) {
 				throw new CompilationFailedException(
 						this, 
 						"Operation returns a value of type " +
@@ -306,7 +304,7 @@ public abstract class ASTStatement extends AST {
         	symbolTable.setType("result", operation.resultType());
         }
     	// ... self
-    	symbolTable.setType("self", TypeFactory.mkObjectType(operation.cls()));
+    	symbolTable.setType("self", operation.cls());
     	
     	if (operation.hasResultType()) {
     		mustBindResultAs(operation.resultType());
@@ -487,7 +485,7 @@ public abstract class ASTStatement extends AST {
 		
 		Expression possibleString = generateExpression(expression);
 		
-		if (!possibleString.type().isString()) {
+		if (!possibleString.type().isTypeOfString()) {
 			throw new CompilationFailedException(this, "Expression "
 					+ inQuotes(expression.getStringRep()) + " is of type "
 					+ inQuotes(possibleString.type()) + ", expected "
@@ -519,7 +517,7 @@ public abstract class ASTStatement extends AST {
 		
 		validateObjectType(objectExpr);
 		
-		MClass objectClass = ((ObjectType)objectExpr.type()).cls();
+		MClass objectClass = (MClass)objectExpr.type();
 		MAttribute attribute = 
 			objectClass.attribute(attributeName, true);
 		
@@ -540,7 +538,7 @@ public abstract class ASTStatement extends AST {
 	 */
 	private void validateObjectType(Expression expression)
 			throws CompilationFailedException {
-		if (!expression.type().isObjectType()) {
+		if (!expression.type().isTypeOfClass()) {
 			throw new CompilationFailedException(this,
 					"Expected expression with object type, found type "
 							+ StringUtil.inQuotes(expression.type()) + ".");
@@ -637,10 +635,10 @@ public abstract class ASTStatement extends AST {
 			
 			MRValue participant = participants.get(i).generate(this);
 			
-			Type expectedType = associationEnd.cls().type();
+			Type expectedType = associationEnd.cls();
 			Type foundType = participant.getType();
 			
-			if (!foundType.isSubtypeOf(expectedType)) {
+			if (!foundType.conformsTo(expectedType)) {
 				
 				throw new CompilationFailedException(
 						this, 
@@ -720,7 +718,7 @@ public abstract class ASTStatement extends AST {
 			Type expectedType = parameter.type();
 			Type foundType = argument.type();
 			
-			if (!foundType.isSubtypeOf(expectedType)) {
+			if (!foundType.conformsTo(expectedType)) {
 				
 				throw new CompilationFailedException(
 						this,

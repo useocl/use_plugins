@@ -51,7 +51,7 @@ public abstract class StatefullPositionStrategy implements PositionStrategy, Pos
 	/**
 	 * Used for deserializing
 	 */
-	protected StatefullPositionStrategy() {};
+	protected StatefullPositionStrategy() {}
 	
 	public StatefullPositionStrategy(PlaceableNode owner) {
 		setOwner(owner);

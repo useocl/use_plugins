@@ -18,12 +18,12 @@
  */
 package org.tzi.use.uml.mm.statemachines;
 
-import org.tzi.use.uml.sys.MObject;
+import org.tzi.use.uml.sys.events.TransitionEvent;
 
 /**
  * @author Lars Hamann
  *
  */
 public interface TransitionListener {
-	void transition(MStateMachine source, MObject context, MTransition t, boolean isRevert);
+	void transition(TransitionEvent e);
 }

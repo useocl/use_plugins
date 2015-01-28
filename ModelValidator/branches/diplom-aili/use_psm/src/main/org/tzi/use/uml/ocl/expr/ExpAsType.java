@@ -21,7 +21,7 @@
 
 package org.tzi.use.uml.ocl.expr;
 
-import org.tzi.use.uml.ocl.type.ObjectType;
+import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
@@ -44,7 +44,7 @@ public final class ExpAsType extends Expression {
         super(targetType);
         fSourceExpr = sourceExpr;
 
-        if (! targetType.isSubtypeOf(fSourceExpr.type()) )
+        if (! targetType.conformsTo(fSourceExpr.type()) )
             throw new ExpInvalidException(
                                           "Target type `" + targetType + 
                                           "' is not a subtype of the source expression's type `" + 
@@ -85,12 +85,12 @@ public final class ExpAsType extends Expression {
             MObject obj = ov.value();
             // Note: an undefined value can still be casted to a
             // subtype!  See initialization of res above
-            if (obj.exists(ctx.postState()) && obj.type().isSubtypeOf(targetType) )
-                res = new ObjectValue((ObjectType) targetType, obj);
+            if (obj.exists(ctx.postState()) && obj.cls().conformsTo(targetType) )
+                res = new ObjectValue((MClass) targetType, obj);
         } else {
             // value is fine if its type is equal or a subtype of the
             // expected type
-            if (v.type().isSubtypeOf(targetType) ) {
+            if (v.type().conformsTo(targetType) ) {
                 res = v;
             }
         }

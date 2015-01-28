@@ -35,21 +35,31 @@ public final class IntegerType extends BasicType {
     }
     
     @Override
-	public boolean isNumber() {
+	public boolean isTypeOfInteger() {
     	return true;
     }
     
     @Override
-	public boolean isInteger() {
+	public boolean isKindOfInteger(VoidHandling h) {
+		return true;
+	}
+
+	@Override
+	public boolean isKindOfNumber(VoidHandling h) {
     	return true;
+    }
+    
+    @Override
+  	public boolean isKindOfReal(VoidHandling h) {
+      	return true;
     }
     
     /** 
      * Returns true if this type is a subtype of <code>t</code>. 
      */
     @Override
-	public boolean isSubtypeOf(Type t) {
-        return !t.isVoidType() && (t.isNumber() || t.isTrueOclAny());
+	public boolean conformsTo(Type t) {
+        return !t.isTypeOfVoidType() && (t.isKindOfNumber(VoidHandling.EXCLUDE_VOID) || t.isTypeOfOclAny());
     }
 
     /** 

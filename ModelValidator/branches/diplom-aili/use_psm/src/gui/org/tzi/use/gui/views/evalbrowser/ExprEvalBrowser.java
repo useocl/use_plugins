@@ -212,7 +212,7 @@ public class ExprEvalBrowser extends JPanel {
         } else if (value.equals(BooleanValue.FALSE)) {
             return TreeValue.FALSE;
         } else if (value.equals(UndefinedValue.instance)
-                && type.isBoolean()) {
+                && type.isTypeOfBoolean()) {
             return TreeValue.UNDEFINED;
         } else {
         	return TreeValue.INVALID;
@@ -559,7 +559,7 @@ public class ExprEvalBrowser extends JPanel {
 			public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     Entry var = fVarAssList.getSelectedValue();
-                    if(var.getValue().type().isTrueObjectType()){
+                    if(var.getValue().type().isTypeOfClass()){
                     	new ObjectBrowser(fSystem, ((ObjectValue) var.getValue()).value());
                     }
                 }

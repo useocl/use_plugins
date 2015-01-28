@@ -63,7 +63,7 @@ public class MOperationCallInverseStatement extends MStatement {
 
 		for (Map.Entry<MProtocolStateMachineInstance, Set<MTransition>> entry : this.operationCall.getExecutedTransitions().entrySet()) {			
 			for (MTransition t : entry.getValue()) {
-				entry.getKey().revertTransition(this.operationCall, t);
+			   context.getSystem().revertTransition(entry.getKey(), t);
 			}
 		}
 		

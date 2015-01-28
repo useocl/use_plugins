@@ -21,7 +21,7 @@
 
 package org.tzi.use.uml.ocl.value;
 
-import org.tzi.use.uml.ocl.type.ObjectType;
+import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.sys.MObject;
 
@@ -34,7 +34,7 @@ import org.tzi.use.uml.sys.MObject;
 public final class ObjectValue extends Value {
     private MObject fObject;
 
-    public ObjectValue(ObjectType t, MObject obj) {
+    public ObjectValue(MClass t, MObject obj) {
         super(t);
         fObject = obj;
     }
@@ -57,7 +57,7 @@ public final class ObjectValue extends Value {
      * Returns the <em>actual</em> type of the object.
      */
     public Type getRuntimeType() {
-        return fObject.type();
+        return fObject.cls();
     }
 
     public boolean equals(Object obj) {

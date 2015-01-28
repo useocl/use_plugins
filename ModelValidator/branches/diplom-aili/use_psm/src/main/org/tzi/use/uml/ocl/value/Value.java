@@ -38,7 +38,7 @@ import org.tzi.use.util.BufferedToString;
  */
 public abstract class Value implements Comparable<Value>, BufferedToString {
 
-    private final Type fType; // every value has a type
+    private Type fType; // every value has a type
     
     protected Value(Type t) {
         fType = t;
@@ -176,5 +176,14 @@ public abstract class Value implements Comparable<Value>, BufferedToString {
      */
     @Override
 	public abstract boolean equals(Object obj);
+    
+    /**
+     * This operation is needed by some external tools
+     * that require a more loose interpretation of
+     * static typed.
+     */
+    public void setTypeToRuntimeType() {
+    	this.fType = getRuntimeType();
+    }
 }
 

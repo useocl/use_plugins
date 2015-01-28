@@ -524,7 +524,7 @@ public class StateMachineDiagram extends DiagramView {
 			
 			if (source.equals(t.getSource().name()) &&
 				target.equals(t.getTarget().name()) &&
-				trigger.equals(t.getTrigger().toString()) &&
+				trigger.equals((t.getTrigger() == null ? "" : t.getTrigger().toString())) &&
 				guard.equals(tGuard) &&
 				post.equals(tPost)) {
 				

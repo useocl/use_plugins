@@ -42,7 +42,7 @@ public class ExpSelectByType extends ExpSelectByKind {
 
 	@Override
 	protected boolean includeElement(Value v) {
-		return v.type().equals(type().elemType());
+		return v.getRuntimeType().equals(type().elemType());
 	}
 
 	@Override

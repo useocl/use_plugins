@@ -44,7 +44,6 @@ import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MClassInvariant;
-import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.ocl.expr.EvalContext;
 import org.tzi.use.uml.ocl.expr.Evaluator;
@@ -54,7 +53,7 @@ import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.MultiplicityViolationException;
 import org.tzi.use.uml.ocl.expr.SimpleEvalContext;
 import org.tzi.use.uml.ocl.expr.VarDecl;
-import org.tzi.use.uml.ocl.type.ObjectType;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.ocl.value.CollectionValue;
 import org.tzi.use.uml.ocl.value.ObjectValue;
@@ -73,6 +72,8 @@ import org.tzi.use.util.collections.HashBag;
 import org.tzi.use.util.collections.Queue;
 import org.tzi.use.util.soil.StateDifference;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -172,7 +173,7 @@ public final class MSystemState {
 
 		fLinkSets = new HashMap<MAssociation, MLinkSet>();
 		for(Map.Entry<MAssociation, MLinkSet> e : x.fLinkSets.entrySet()) {
-			fLinkSets.put(e.getKey(), new MLinkSet((MLinkSet) e.getValue()));
+			fLinkSets.put(e.getKey(), new MLinkSet(e.getValue()));
 		}
 		
 		derivedValuesController = new DerivedValueController[3];
@@ -362,7 +363,7 @@ public final class MSystemState {
 		}
 		
 		for (MAssociation ass : toDo) {
-			MLinkSet linkSet = (MLinkSet) fLinkSets.get(ass);
+			MLinkSet linkSet = fLinkSets.get(ass);
 			if (linkSet.hasLinkBetweenObjects(objects, qualiferValues))
 				return true;
 		}
@@ -674,7 +675,7 @@ public final class MSystemState {
 				
 		for (MClass cls : allClasses) {
 			for (MAttribute attr : cls.attributes()) {
-				if (obj.type().isSubtypeOf(attr.type())) {
+				if (obj.cls().conformsTo(attr.type())) {
 					// Check for all object values
 					for (MObject relObject : this.objectsOfClassAndSubClasses(cls)) {
 						MObjectState state = relObject.state(this); 
@@ -732,6 +733,10 @@ public final class MSystemState {
 		MLink link = null;
 		StringWriter sw = new StringWriter();
 		PrintWriter out = new PrintWriter(sw);
+
+		if(assoc.isDerived()){
+			throw new MSystemException("Cannot create link for association with derived end.");
+		}
 		
 		validateLinkQualifiers(assoc, qualifierValues);
 		
@@ -757,7 +762,7 @@ public final class MSystemState {
 		} else if ((assoc.aggregationKind() == MAggregationKind.AGGREGATION)
 				|| (assoc.aggregationKind() == MAggregationKind.COMPOSITION)) {
 			
-			MLinkSet linkSet = (MLinkSet) fLinkSets.get(assoc);
+			MLinkSet linkSet = fLinkSets.get(assoc);
 			link = new MLinkImpl(assoc, objects, qualifierValues);
 			if (linkSet.contains(link))
 				throw new MSystemException("Link `" + assoc.name()
@@ -789,7 +794,7 @@ public final class MSystemState {
 							sourceEdgeIter.next()).iterator();
 					
 					while (iter.hasNext()) {
-						MLink l = (MLink) iter.next();
+						MLink l = iter.next();
 						if (l.association().aggregationKind() == MAggregationKind.COMPOSITION && 
 							!associationsHaveSubsetsRelation(l.association(), assoc) &&
 							!associationsHaveRedefinitionRelation(l.association(), wholePartLink.association())) {
@@ -816,7 +821,7 @@ public final class MSystemState {
 			// create a normal link
 			link = new MLinkImpl(assoc, objects, qualifierValues);
 			// get link set for association
-			MLinkSet linkSet = (MLinkSet) fLinkSets.get(assoc);
+			MLinkSet linkSet = fLinkSets.get(assoc);
 			if (linkSet.contains(link))
 				throw new MSystemException("Link `" + assoc.name()
 						+ "' between ("
@@ -826,8 +831,6 @@ public final class MSystemState {
 		}
 		return link;
 	}
-
-    
 
 	/**
 	 * Validates, if a redefinition constraint of a child association of <code>toCheck</code> exists,
@@ -952,7 +955,7 @@ public final class MSystemState {
 						Value qualifierValue = qualifierValues.get(valueIndex);
 						VarDecl qualifier = end.getQualifiers().get(valueIndex);
 						
-						if (!qualifierValue.type().isSubtypeOf(qualifier.type())) {
+						if (!qualifierValue.type().conformsTo(qualifier.type())) {
 							throw new MSystemException(
 									"The type of the provided value ("
 											+ StringUtil.inQuotes(qualifierValue
@@ -1480,7 +1483,7 @@ public final class MSystemState {
 		List<MObject> result = new LinkedList<>();
 		
 		for (int i = 0; i < source.length; ++i) {
-			ObjectValue objVal = new ObjectValue((ObjectType)dst.getDeriveParamter().varDecl(i).type(), source[i]);
+			ObjectValue objVal = new ObjectValue((MClass)dst.getDeriveParamter().varDecl(i).type(), source[i]);
 			ctx.pushVarBinding(dst.getDeriveParamter().varDecl(i).name(), objVal);
 		}
 		
@@ -1495,11 +1498,11 @@ public final class MSystemState {
     		return Collections.emptyList();
     	}
 
-    	if (res.type().isObjectType()) {
+    	if (res.type().isTypeOfClass()) {
     		// Single object as result
     		ObjectValue singleObject = (ObjectValue)res;
     		result.add(singleObject.value());
-    	} else if (res.type().isCollection(true)) {
+    	} else if (res.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
     		// Collection of objects as result
     		CollectionValue col = (CollectionValue)res;
     		
@@ -1527,7 +1530,7 @@ public final class MSystemState {
 	}
 	
 	public Value evaluateDeriveExpression(final MObject source, final MAttribute attribute) {
-		final ObjectValue objVal = new ObjectValue(source.cls().type(), source);
+		final ObjectValue objVal = new ObjectValue(source.cls(), source);
 		
     	return evaluateDeriveExpression(objVal, attribute);
 	}
@@ -1538,10 +1541,9 @@ public final class MSystemState {
 	 * the log if traceEvaluation is true. - Checks the whole/part hierarchy.
 	 */
 	public boolean check(PrintWriter out, boolean traceEvaluation,
-			boolean showDetails, boolean allInvariants, List<String> invNames) {
+			boolean showDetails, boolean allInvariants, final List<String> invNames) {
 		boolean valid = true;
 		Evaluator evaluator = new Evaluator();
-		MModel model = fSystem.model();
 
 		// model inherent constraints: check whether cardinalities of
 		// association links match their declaration of multiplicities
@@ -1563,92 +1565,42 @@ public final class MSystemState {
 		ArrayList<MClassInvariant> invList = new ArrayList<MClassInvariant>();
 		ArrayList<Boolean> negatedList = new ArrayList<Boolean>();
 		ArrayList<Expression> exprList = new ArrayList<Expression>();
+		Collection<MClassInvariant> source;
 		
-		if (allInvariants) {
-			// get all invariants (loaded and normal class invariants)
-			// it doesn't matter if specific invariants are given or not
-
-			// get all loaded Invariants
-			for (MClassInvariant inv : fSystem.model().classInvariants()) {
-				Expression expr = inv.expandedExpression();
-				
-				// sanity check
-				if (!expr.type().isBoolean())
-					throw new RuntimeException("Expression " + expr
-							+ "has type " + expr.type()
-							+ ", expected boolean type");
-				if (inv.isNegated()) {
-					try {
-						Expression[] args = { expr };
-						Expression expr1 = ExpStdOp.create("not", args);
-						expr = expr1;
-					} catch (ExpInvalidException e) {
-						// TODO: Should this be ignored or is this a fatal
-						// error?
-					}
-					negatedList.add(Boolean.TRUE);
-				} else {
-					negatedList.add(Boolean.FALSE);
-				}
-				invList.add(inv);
-				exprList.add(expr);
-				out.println("GeneratorInvariants: " + inv);
-			}
-		} else if (invNames.isEmpty()) {
-			//TODO does this branch still make sense after GModel refactoring?
-			// get all invariants
-			for(MClassInvariant inv : model.modelClassInvariants()) {
-				Expression expr = inv.expandedExpression();
-				// sanity check
-				if (!expr.type().isBoolean())
-					throw new RuntimeException("Expression " + expr
-							+ "has type " + expr.type()
-							+ ", expected boolean type");
-				invList.add(inv);
-				negatedList.add(Boolean.FALSE);
-				exprList.add(expr);
-			}
+		if (invNames.isEmpty()) {
+			source = fSystem.model().classInvariants();
 		} else {
-			// get only specified invariants
-			for (String invName : invNames) {
-				MClassInvariant inv = model.getClassInvariant(invName);
-				if (inv != null) {
-					Expression expr = inv.expandedExpression();
-					// sanity check
-					if (!expr.type().isBoolean())
-						throw new RuntimeException("Expression " + expr
-								+ "has type " + expr.type()
-								+ ", expected boolean type");
-					invList.add(inv);
-					negatedList.add(Boolean.FALSE);
-					exprList.add(expr);
-				} else {
-					inv = fSystem.model().getClassInvariant(invName);
-					if (inv != null) {
-						Expression expr = inv.expandedExpression();
-						// sanity check
-						if (!expr.type().isBoolean())
-							throw new RuntimeException("Expression " + expr
-									+ "has type " + expr.type()
-									+ ", expected boolean type");
-						if (inv.isNegated()) {
-							try {
-								Expression[] args = { expr };
-								Expression expr1 = ExpStdOp.create("not", args);
-								expr = expr1;
-							} catch (ExpInvalidException e) {
-								// TODO: Should this be ignored or is this a
-								// fatal error?
-							}
-							negatedList.add(Boolean.TRUE);
-						} else {
-							negatedList.add(Boolean.FALSE);
+			source = Collections2.filter(fSystem.model().classInvariants(), 
+					new Predicate<MClassInvariant>() {
+						@Override
+						public boolean apply(MClassInvariant input) {
+							return invNames.contains(input.name());
 						}
-						invList.add(inv);
-						exprList.add(expr);
-					}
+					});
+		}
+		
+		for (MClassInvariant inv : source) {
+		
+			// Ignore if deactivated and not all should be checked.
+			if (!allInvariants && !inv.isActive()) continue;
+			
+			Expression expr = inv.expandedExpression();
+			
+			if (inv.isNegated()) {
+				try {
+					Expression[] args = { expr };
+					Expression expr1 = ExpStdOp.create("not", args);
+					expr = expr1;
+				} catch (ExpInvalidException e) {
+					// This cannot happen, since in invariant is a boolean expression 
+					// (checked by MClassInvariant constructor)
 				}
+				negatedList.add(Boolean.TRUE);
+			} else {
+				negatedList.add(Boolean.FALSE);
 			}
+			invList.add(inv);
+			exprList.add(expr);
 		}
 
 		// start (possibly concurrent) evaluation
@@ -1657,7 +1609,7 @@ public final class MSystemState {
 
 		// receive results
 		for (int i = 0; i < exprList.size(); i++) {
-			MClassInvariant inv = (MClassInvariant) invList.get(i);
+			MClassInvariant inv = invList.get(i);
 			numChecked++;
 			String msg = "checking invariant (" + numChecked + ") `"
 					+ inv.cls().name() + "::" + inv.name() + "': ";
@@ -1685,7 +1637,7 @@ public final class MSystemState {
 						// results
 						if (traceEvaluation) {
 							out.println("Results of subexpressions:");
-							Expression expr = (Expression) exprList.get(i);
+							Expression expr = exprList.get(i);
 							evaluator.eval(expr, this, new VarBindings(), out);
 						}
 
@@ -1944,8 +1896,7 @@ public final class MSystemState {
 	 */
 	public Bag<MObject[]> getCrossProductOfInstanceSets(List<MClass> classes) {
 		Bag<MObject[]> bag = new HashBag<MObject[]>();
-		insertAllNMinusOneTuples(bag, (MClass[]) classes
-				.toArray(new MClass[classes.size()]), 0, new MObject[0]);
+		insertAllNMinusOneTuples(bag, classes.toArray(new MClass[classes.size()]), 0, new MObject[0]);
 		return bag;
 	}
 
@@ -2105,22 +2056,6 @@ public final class MSystemState {
 	 */
 	public String uniqueObjectNameForClass(MClass cls) {
 		return uniqueObjectNameForClass(cls.name());
-	}
-
-	/**
-	 * Tries to determine the states of the state machines
-	 * for the defined objects by evaluating the state invariants
-	 * of each object and the corresponding state machines.
-	 */
-	public void determineStates(PrintWriter out) {
-		for (MObject o : this.allObjects()) {
-			if (o.cls().getAllOwnedProtocolStateMachines().isEmpty()) continue;
-			
-			for (MProtocolStateMachineInstance psmI : o.state(this).getProtocolStateMachinesInstances()) {
-				psmI.determineState(this, out);
-			}
-		}
-		out.println("State determination finished.");
 	}
 
 	/**

@@ -33,13 +33,12 @@ import org.w3c.dom.Element;
  * A position strategy which force a node unmovable on graph
  * 
  * @author Quang Dung Nguyen
- * 
  */
 public class StrategyUnmovable implements PositionStrategy {
 
-	public static StrategyUnmovable instance = new StrategyUnmovable();
+	public static final StrategyUnmovable instance = new StrategyUnmovable();
 
-	public StrategyUnmovable() {
+	private StrategyUnmovable() {
 	}
 
 	@Override

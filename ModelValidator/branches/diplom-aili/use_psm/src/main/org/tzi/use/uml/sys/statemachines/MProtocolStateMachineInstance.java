@@ -274,7 +274,7 @@ public class MProtocolStateMachineInstance {
 		if (targetState.getStateInvariant() != null) {
 			Evaluator oclEvaluator = new Evaluator();
 			VarBindings b = new VarBindings();
-			b.push("self", new ObjectValue(stateMachine.getContext().type(), contextObject));
+			b.push("self", new ObjectValue(stateMachine.getContext(), contextObject));
 			Value evalResult = 
 				oclEvaluator.eval(targetState.getStateInvariant(), ctx.postState(), ctx.varBindings());
 
@@ -284,27 +284,16 @@ public class MProtocolStateMachineInstance {
 		return result;
 	}
 
-	public void doTransition(MOperationCall operationCall, TransitionResult result) {
-		MTransition t = result.getTransition();
+	public void doTransition(MTransition t) {
 		MState targetState = (MState)t.getTarget();
 		this.currentRegionsState.put(t.getContainer(), targetState);
-		operationCall.addExecutedTransition(this, t);
-		fireTransition(operationCall.getSelf(), t, false);
 	}
 	
 	/**
 	 * @param t
 	 */
-	public void revertTransition(MOperationCall opCall, MTransition t) {
-		if (!opCall.getSelf().equals(contextObject))
-			throw new IllegalArgumentException("Invalid transition to revert! OpCall does not belong to this PSM instance.");
-		
-		if (!currentRegionsState.get(t.getContainer()).equals(t.getTarget()))
-			throw new IllegalArgumentException("Invalid transition to revert! PSM instance is not in the target state of the transition.");
-		
+	public void revertTransition(MTransition t) {
 		this.currentRegionsState.put(t.getContainer(), (MState)t.getSource());
-		
-		fireTransition(opCall.getSelf(), t, true);
 	}
 	
 	@Override
@@ -319,11 +308,6 @@ public class MProtocolStateMachineInstance {
 		res.append("]");
 		
 		return  res.toString();
-	}
-
-	
-	protected void fireTransition(MObject o, MTransition t, boolean isRevert) {
-		stateMachine.fireTransition(o, t, isRevert);
 	}
 
 	/**
@@ -361,7 +345,10 @@ public class MProtocolStateMachineInstance {
 	}
 	
 	/**
-	 * 
+	 * Determines the states of all regions of this state machine by
+	 * evaluating the state invariants.
+	 * If exactly one state invariant in a region is <code>true</code>,
+	 * the state is set as the current one in this region. 
 	 */
 	public void determineState(MSystemState systemState, PrintWriter out) {
 		Set<MState> possibleStates = new HashSet<MState>();
@@ -402,14 +389,12 @@ public class MProtocolStateMachineInstance {
 			} else {
 				currentRegionsState.put(r, possibleStates.iterator().next());
 			}
-			
-			fireTransition(contextObject, null, false);
 		}
 	}
 
 	private VarBindings getVarBindings(MSystemState systemState) {
 		VarBindings bindings = new VarBindings(systemState);
-		bindings.push("self", new ObjectValue(stateMachine.getContext().type(), contextObject));
+		bindings.push("self", new ObjectValue(stateMachine.getContext(), contextObject));
 		return bindings;
 	}
 

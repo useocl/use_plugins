@@ -76,7 +76,7 @@ public class DirectedGraphBase<N, E extends DirectedEdge<N>> extends AbstractCol
  	             	targetNodeClosureSet0(closure, key);
  	             	return closure;
  	             }
- 	           });;
+ 	           });
     
     /**
      * Constructs an empty graph.

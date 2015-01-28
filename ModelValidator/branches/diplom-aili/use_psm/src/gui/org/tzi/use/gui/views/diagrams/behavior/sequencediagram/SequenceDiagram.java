@@ -83,10 +83,10 @@ import org.tzi.use.uml.sys.events.OperationEnteredEvent;
 import org.tzi.use.uml.sys.events.OperationExitedEvent;
 
 /**
- * A SequenceDiagram shows an UML sequence diagramm of events.
+ * A SequenceDiagram shows an UML sequence diagram of events.
  * 
- * @version $ProjectVersion: 0.393 $
- * @author Mark Richters, Antje Werner
+ * @author Mark Richters 
+ * @author Antje Werner
  */
 @SuppressWarnings("serial")
 public class SequenceDiagram extends JPanel implements Printable {
@@ -878,7 +878,6 @@ public class SequenceDiagram extends JPanel implements Printable {
 	 * Updates all values of the seuquence diagram: gives the command for
 	 * creating all (new) lifelines, creates all activations and repaints the
 	 * sequence diagram.
-	 * 
 	 */
 	void update() {
 		// refresh popup menu
@@ -1024,7 +1023,7 @@ public class SequenceDiagram extends JPanel implements Printable {
 	private int calculateNextMessPosition(int lastYValue, Event event, Lifeline owner) {
 		int value = lastYValue;
 		// if there has not been drawn a message so far
-		// -> caculate position of forst message in the sequence diagram
+		// -> calculate position of first message in the sequence diagram
 		if (lastYValue == 0) {
 			FontMetrics fm = getFontMetrics(fProperties.getFont());
 			// Offset between message and edge = 2
@@ -1051,7 +1050,7 @@ public class SequenceDiagram extends JPanel implements Printable {
 
 			}
 		}
-		// return position fr the next message
+		// return position for the next message
 		return value;
 	}
 

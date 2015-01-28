@@ -62,7 +62,7 @@ public class StrategyRelativeToCorner extends StatefullPositionStrategy {
 	protected double maxDeltaY = Double.MAX_VALUE;
 	protected Supplier<Double> heightCalculation = null;
 	
-	protected StrategyRelativeToCorner() {};
+	protected StrategyRelativeToCorner() {}
 	
 	public StrategyRelativeToCorner(PlaceableNode owner, PlaceableNode relativeNode, Direction corner, double deltaX, DeltaBasis deltaXbasis, double deltaY, DeltaBasis deltaYbasis) {
 		super(owner);

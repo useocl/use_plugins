@@ -41,7 +41,7 @@ import org.tzi.use.util.StringUtil;
  * @version     $ProjectVersion: 0.393 $
  * @author      Mark Richters 
  */
-public final class TupleType extends Type {
+public final class TupleType extends TypeImpl {
     private Map<String, Part> fParts = new TreeMap<String, Part>();
 
     public static class Part implements BufferedToString {
@@ -103,9 +103,20 @@ public final class TupleType extends Type {
     }
 
     @Override
-    public boolean isTupleType(boolean excludeVoid) {
+    public boolean isTypeOfTupleType() {
     	return true;
     }
+    
+    @Override
+    public boolean isKindOfTupleType(VoidHandling h) {
+    	return true;
+    }
+    
+    @Override
+    public boolean isKindOfOclAny(VoidHandling h) {
+    	return true;
+    }
+    
     
     /**
      * Returns the defined tuple parts
@@ -118,11 +129,11 @@ public final class TupleType extends Type {
     /** 
      * Returns true if this type is a subtype of <code>t</code>. 
      */
-    public boolean isSubtypeOf(Type t) {
-    	if (t.isTrueOclAny())
+    public boolean conformsTo(Type t) {
+    	if (t.isTypeOfOclAny())
     		return true;
     	
-    	if(!t.isTupleType(true)){
+    	if(!t.isTypeOfTupleType()){
     		return false;
     	}
 
@@ -134,7 +145,7 @@ public final class TupleType extends Type {
     		
     		TupleType.Part otherPart = otherType.fParts.get(part.name());
     		
-    		if (!part.type().isSubtypeOf(otherPart.type()))
+    		if (!part.type().conformsTo(otherPart.type()))
     			return false;
     	}
     	
@@ -143,10 +154,10 @@ public final class TupleType extends Type {
 
     @Override
 	public Type getLeastCommonSupertype(Type type) {
-    	if (type.isVoidType())
+    	if (type.isTypeOfVoidType())
     		return this;
     	
-    	if(!type.isTupleType(true)){
+    	if(!type.isTypeOfTupleType()){
     		return TypeFactory.mkOclAny();
     	}
 
@@ -244,7 +255,7 @@ public final class TupleType extends Type {
     		superTypes = new HashSet<Type>();
     		superTypes.add(p.type());
     	} else {
-    		superTypes = p.type().allSupertypes();
+    		superTypes = new HashSet<>(p.type().allSupertypes());
     	}
     	
     	for (Type t1 : superTypes) {

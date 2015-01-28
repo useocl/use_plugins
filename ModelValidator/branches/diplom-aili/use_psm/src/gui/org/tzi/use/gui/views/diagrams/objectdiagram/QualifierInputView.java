@@ -100,7 +100,7 @@ public class QualifierInputView extends JDialog {
 		this.association = association;
 		this.participants = participants;
 		initGui();
-	};
+	}
 
 	private void initGui() {
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);

@@ -57,7 +57,7 @@ final class Op_toString extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		if (params.length == 1 && params[0].isEnum())
+		if (params.length == 1 && params[0].isTypeOfEnum())
 			return TypeFactory.mkString();
 		else
 			return null;

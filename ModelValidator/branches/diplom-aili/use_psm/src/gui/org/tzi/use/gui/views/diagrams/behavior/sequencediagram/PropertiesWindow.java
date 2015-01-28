@@ -158,7 +158,7 @@ public class PropertiesWindow extends JDialog implements ActionListener {
 		fSizeBox = new JComboBox<Integer>();
 		int sizes[] = { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28 };
 		for (int i = 0; i < sizes.length; i++) {
-			fSizeBox.addItem(new Integer(sizes[i]));
+			fSizeBox.addItem(Integer.valueOf(sizes[i]));
 		}
 		int actFontSize = fSeqDiag.getProperties().getFontSize();
 		fSizeBox.setSelectedItem(Integer.valueOf(actFontSize));

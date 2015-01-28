@@ -42,6 +42,7 @@ import org.tzi.use.gui.views.diagrams.ToolTipProvider;
 import org.tzi.use.gui.views.diagrams.util.Direction;
 import org.tzi.use.gui.views.diagrams.util.Util;
 import org.tzi.use.uml.mm.statemachines.MState;
+import org.tzi.use.util.FloatUtil;
 import org.w3c.dom.Element;
 
 /**
@@ -331,7 +332,7 @@ public class StateNode extends VertexNode implements ToolTipProvider {
 		Rectangle2D rect = getBounds();
 		
 		double dist = Math.max(rect.getWidth(), rect.getHeight()) * 2;
-		if (dist == 0.0)
+		if (FloatUtil.equals(dist, 0.0f))
 			return source;
 		
         Line2D line = new Line2D.Double(source, target);

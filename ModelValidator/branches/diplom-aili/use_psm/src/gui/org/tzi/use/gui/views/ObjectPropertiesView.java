@@ -59,8 +59,7 @@ import org.tzi.use.uml.sys.MObjectState;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
 import org.tzi.use.uml.sys.MSystemState;
-import org.tzi.use.uml.sys.StateChangeEvent;
-import org.tzi.use.uml.sys.events.Event;
+import org.tzi.use.uml.sys.events.tags.SystemStateChangedEvent;
 import org.tzi.use.uml.sys.soil.MAttributeAssignmentStatement;
 
 import com.google.common.base.Predicate;
@@ -170,7 +169,7 @@ public class ObjectPropertiesView extends JPanel implements View {
         public void actionPerformed(ActionEvent e) {
             String objName = (String)fObjectComboBox.getSelectedItem();
             
-            if (objName != NO_OBJECTS_AVAILABLE )
+            if (!NO_OBJECTS_AVAILABLE.equals(objName))
                 selectObject(objName);
         }
     }
@@ -357,13 +356,8 @@ public class ObjectPropertiesView extends JPanel implements View {
         fTableModel.update();
     }
     
-    /** 
-     * Called due to an external change of state.
-     */
-    public void stateChanged(StateChangeEvent e) { }
-
     @Subscribe
-    public void onStateChanged(Event e) {
+    public void onStateChanged(SystemStateChangedEvent e) {
     	update();
     }
     

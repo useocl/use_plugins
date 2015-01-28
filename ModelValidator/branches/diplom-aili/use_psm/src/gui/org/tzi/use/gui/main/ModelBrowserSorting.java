@@ -113,68 +113,68 @@ public class ModelBrowserSorting  {
     /**
      * Signals that the classes will be sorted in alphabetic order.
      */
-    public final int CLS_ALPHABETIC = 1;
+    public static final int CLS_ALPHABETIC = 1;
 
     /**
      * Signals that the classes will be sorted in the
      * way they were written in the USE-File.
      */
-    public final int CLS_USE_ORDER = 2;
+    public static final int CLS_USE_ORDER = 2;
 
     /**
      * Signals that the attributes will be sorted in alphabetic order.
      */
-    public final int ATTR_ALPHABETIC = 1;
+    public static final int ATTR_ALPHABETIC = 1;
 
     /**
      * Signals that the attributes will be sorted in the
      * way they were written in the USE-File.
      */
-    public final int ATTR_USE_ORDER = 2;
+    public static final int ATTR_USE_ORDER = 2;
 
    /**
      * Signals that the operations will be sorted in alphabetic order.
      */
-    public final int OPR_ALPHABETIC = 1;
+    public static final int OPR_ALPHABETIC = 1;
 
     /**
      * Signals that the operations will be sorted in the
      * way they were written in the USE-File.
      */
-    public final int OPR_USE_ORDER = 2;
+    public static final int OPR_USE_ORDER = 2;
 
     /**
      * Signals that the associations will be sorted in alphabetic order.
      */
-    public final int ASSOC_ALPHABETIC = 1;
+    public static final int ASSOC_ALPHABETIC = 1;
     /**
      * Signals that the associations will be sorted in the
      * way they were written in the USE-File.
      */
-    public final int ASSOC_USE_ORDER = 2;
+    public static final int ASSOC_USE_ORDER = 2;
 
     /**
      * Signals that all invarants will be sorted in alphabetic order 
      * by class name first
      */
-    public final int INV_ALPHABETIC_BY_CLASS = 1;
+    public static final int INV_ALPHABETIC_BY_CLASS = 1;
 
     /**
      * Signals that the invariants will be sorted in the
      * way they were written in the USE-File.
      */
-    public final int INV_USE_ORDER = 2;
+    public static final int INV_USE_ORDER = 2;
 
     /**
      * Signals that all invarants will be sorted in alphabetic order 
      * by invariant name first
      */
-    public final int INV_ALPHABETIC_INV_NAME = 5;
+    public static final int INV_ALPHABETIC_INV_NAME = 5;
     public int condOrder = 10;
-    public final int COND_ALPHABETIC_BY_OPERATION = 7;
-    public final int COND_ALPHABETIC_BY_NAME = 8;
-    public final int COND_ALPHABETIC_BY_PRE = 9;
-    public final int COND_USE_ORDER = 10;
+    public static final int COND_ALPHABETIC_BY_OPERATION = 7;
+    public static final int COND_ALPHABETIC_BY_NAME = 8;
+    public static final int COND_ALPHABETIC_BY_PRE = 9;
+    public static final int COND_USE_ORDER = 10;
 
 
     private ModelBrowserSorting() {

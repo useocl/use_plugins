@@ -39,7 +39,6 @@ import org.tzi.use.uml.mm.MMultiplicity;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.util.StringUtil;
 
@@ -292,7 +291,7 @@ public class ASTAssociationEnd extends ASTAnnotatable {
 	    	if (this.deriveParameter == null || this.deriveParameter.isEmpty()) { 
 	    		// Short notation using self
 	    		if (this.mAend.association().associationEnds().size() == 2) {
-	    			ObjectType ot = mAend.getAllOtherAssociationEnds().get(0).cls().type();
+	    			MClass ot = mAend.getAllOtherAssociationEnds().get(0).cls();
 	    			parameter.add(new VarDecl("self", ot));
 	    			ctx.exprContext().push("self", ot);
 	    			exprContextChanged = true;
@@ -308,12 +307,12 @@ public class ASTAssociationEnd extends ASTAnnotatable {
 	    		for (int index = 0; index < mAend.association().associationEnds().size(); ++index) {
 		    		if (mAend.association().associationEnds().get(index) != mAend ) {		    			
 		    			// Use association end type. Can be more generic in declaration
-		    			Type varType = mAend.association().associationEnds().get(index).cls().type();
+		    			Type varType = mAend.association().associationEnds().get(index).cls();
 		    			
 		    			ASTType astType = deriveParameter.getVarTypes().get(parIndex);
 		    			if (astType != null) {
 		    				Type declaredType =  astType.gen(ctx);
-		    				if (!varType.isSubtypeOf(declaredType)) {
+		    				if (!varType.conformsTo(declaredType)) {
 		    					throw new SemanticException(astType.getStartToken(), "The derive parameter must be of type " + StringUtil.inQuotes(varType.toString()) + " or one of its supertypes.");
 		    				}
 		    				varType = declaredType;
@@ -330,7 +329,7 @@ public class ASTAssociationEnd extends ASTAnnotatable {
 	    	Expression exp = derivedExpression.gen(ctx);
 	    	
 	    	// We can ignore redefinition here
-	    	if (!exp.type().isSubtypeOf(mAend.getType())) {
+	    	if (!exp.type().conformsTo(mAend.getType())) {
 	    		throw new SemanticException(derivedExpression.getStartToken(), 
 	    				"The type " +
 	    				StringUtil.inQuotes(exp.type().toString()) + " of the derive expression at association end " +

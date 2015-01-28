@@ -30,6 +30,8 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+import org.tzi.use.util.FloatUtil;
+
 /**
  * Class providing mathematical calculations
  */
@@ -116,7 +118,7 @@ public class Util {
     }
 
     private static boolean isVerticalLine(final double x1, final double x2) {
-        return x1 == x2;
+        return FloatUtil.equals(x1, x2);
     }
 
     private static boolean isLineToTheLeft(final double x1, final double x2) {
@@ -124,8 +126,8 @@ public class Util {
     }
 
     private static double calculateAngleInQuadrant(final double x1, final double y1, final double x2, final double y2) {
-        if (x2 == x1) {
-            return 0.0;
+        if (FloatUtil.equals(x1, x2)) {
+            return 0.0d;
         }
         final double height = y2 - y1;
         final double width = x2 - x1;
@@ -203,7 +205,7 @@ public class Util {
     	// The original code was published here:
     	// http://gravisto.fim.uni-passau.de/doc/guide/plugins/kinds/shape.html
     	
-        if (circle.getWidth() != circle.getHeight())
+        if (!FloatUtil.equals(circle.getWidth(), circle.getHeight()))
         {
             throw new IllegalArgumentException(
                 "First parameter must be a circle, i.e. height and width " +
@@ -312,7 +314,7 @@ public class Util {
 	 * @return
 	 */
 	public static Point2D intersectionPoint(Ellipse2D circle, Point2D point) {
-		if (circle.getWidth() != circle.getHeight())
+		if (!FloatUtil.equals(circle.getWidth(), circle.getHeight()))
         {
             throw new IllegalArgumentException(
                 "First parameter must be a circle, i.e. height and width " +
@@ -363,7 +365,7 @@ public class Util {
     	if (enlargeLine) {
     		Rectangle2D b = s.getBounds2D();
     		double dist = Math.max(b.getWidth(), b.getHeight()) * 2;
-    		if (dist == 0.0)
+    		if (FloatUtil.equals(dist, 0.0d))
     			return source;
     		line = enlargeLine(line, dist);
     	}

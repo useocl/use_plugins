@@ -48,13 +48,12 @@ import org.tzi.use.uml.sys.MLinkObject;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
-import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.events.AttributeAssignedEvent;
 import org.tzi.use.uml.sys.events.LinkDeletedEvent;
 import org.tzi.use.uml.sys.events.LinkInsertedEvent;
 import org.tzi.use.uml.sys.events.ObjectCreatedEvent;
 import org.tzi.use.uml.sys.events.ObjectDestroyedEvent;
-import org.tzi.use.uml.sys.events.OperationExitedEvent;
+import org.tzi.use.uml.sys.events.TransitionEvent;
 import org.tzi.use.uml.sys.soil.MLinkDeletionStatement;
 import org.tzi.use.uml.sys.soil.MLinkInsertionStatement;
 import org.tzi.use.uml.sys.soil.MObjectDestructionStatement;
@@ -83,8 +82,8 @@ public class NewObjectDiagramView extends JPanel
         fSystem = system;
         
         fSystem.registerRequiresAllDerivedValues();
-        fSystem.getEventBus().register(this);
         ModelBrowserSorting.getInstance().addSortChangeListener( this );
+        fSystem.getEventBus().register(this);
 
         setLayout(new BorderLayout());
 
@@ -121,7 +120,7 @@ public class NewObjectDiagramView extends JPanel
     }
     
     /**
-     * Determinds if this is the selected view.
+     * Determines if this is the selected view.
      * @return <code>true</code> if it is the selected view, otherwise
      * <code>false</false>
      */
@@ -148,19 +147,19 @@ public class NewObjectDiagramView extends JPanel
         fObjectDiagram.initialize();
         viewcount++;
     }
-
-    /**
-     * Does an incremental update of the view.
-     */
-    @Override
-	public void stateChanged(StateChangeEvent e) { }
+    
+    @Subscribe
+    public void onTransition(TransitionEvent e) {
+    	fObjectDiagram.updateObject(e.getSource());
+    	fObjectDiagram.invalidateContent(true);
+    }
     
     @Subscribe
     public void onObjectCeated(ObjectCreatedEvent e) {
     	if (e.getCreatedObject() instanceof MLink) {
     		return;
     	}
-    	
+
     	fObjectDiagram.addObject(e.getCreatedObject());
     	fObjectDiagram.invalidateContent(true);
     }
@@ -179,14 +178,6 @@ public class NewObjectDiagramView extends JPanel
     public void onAttributeAssigned(AttributeAssignedEvent e) {
     	fObjectDiagram.updateObject(e.getObject());
     	fObjectDiagram.invalidateContent(true);
-    }
-    
-    @Subscribe
-    public void onOperationExit(OperationExitedEvent e) {
-    	if (e.getOperationCall().hasExecutedTransitions()) {
-    		fObjectDiagram.updateObject(e.getOperationCall().getSelf());
-        	fObjectDiagram.invalidateContent(true);
-    	}
     }
     
     @Subscribe

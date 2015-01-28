@@ -43,8 +43,8 @@ import org.tzi.use.gui.views.diagrams.util.Util;
  */
 
 public abstract class BaseNode extends PlaceableNode {
-	private final int HORIZONTAL_OFFSET = 10;
-	private final int VERTICAL_OFFSET = 4;
+	private static final int HORIZONTAL_OFFSET = 10;
+	private static final int VERTICAL_OFFSET = 4;
 
 	private final DiagramOptions fOpt;
 	private final CommunicationDiagramView comDiaView;

@@ -29,6 +29,7 @@ import org.tzi.use.uml.ocl.expr.operations.BooleanOperation;
 import org.tzi.use.uml.ocl.expr.operations.OpGeneric;
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.util.Log;
@@ -168,22 +169,22 @@ public final class ExpStdOp extends Expression {
 	private static void checkOclAnyCollectionsWarning(OpGeneric op, Type[] params, Type resultType, WarningType warningType) throws ExpInvalidException {
 		Type sourceType = params[0];
 		
-		if (sourceType.isCollection(true)) {
+		if (sourceType.isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
 			CollectionType sourceCollectionType = (CollectionType)sourceType;
 			Type sourceElementType = sourceCollectionType.elemType();
 			
-			while (sourceElementType.isCollection(true)) {
+			while (sourceElementType.isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
 				sourceElementType = ((CollectionType)sourceElementType).elemType();
 			}
 			
-			if (sourceElementType.isTrueOclAny()) return;
+			if (sourceElementType.isTypeOfOclAny()) return;
 			
 			Type resultElementType = resultType;
-			while (resultElementType.isCollection(true)) {
+			while (resultElementType.isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
 				resultElementType = ((CollectionType)resultElementType).elemType();
 			}
 			
-			if (resultElementType.isTrueOclAny()) {
+			if (resultElementType.isTypeOfOclAny()) {
 				StringBuilder paramTypes = new StringBuilder();
 				for (int index = 1; index < params.length; ++index) {
 					if (index > 1) {
@@ -213,7 +214,7 @@ public final class ExpStdOp extends Expression {
         // build error message with type names of arguments
         Type srcType = args[0].type();
         StringBuffer s = new StringBuffer(srcType
-                + (srcType.isCollection(true) ? "->" : ".") + name + "(");
+                + (srcType.isKindOfCollection(VoidHandling.EXCLUDE_VOID) ? "->" : ".") + name + "(");
         for (int i = 1; i < args.length; i++) {
             if (i > 1)
                 s.append(", ");

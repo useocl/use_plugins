@@ -115,7 +115,7 @@ public class SelectedObjectPathView extends ObjectSelectionView {
 		LinkedList<MObject> buffer = new LinkedList<MObject>();
 		
 		buffer.addLast(mo);
-		result.put(mo, new Integer(0));
+		result.put(mo, Integer.valueOf(0));
 		
 		MObject currentObject;
 		int depth;
@@ -132,7 +132,7 @@ public class SelectedObjectPathView extends ObjectSelectionView {
 				if (linkedobjects.contains(currentObject)) {
 					for (MObject object : linkedobjects) {
 						if (!result.containsKey(object)) {
-							result.put(object, new Integer(depth));
+							result.put(object, Integer.valueOf(depth));
 							// Check objects reachable by this object
 							buffer.add(object);
 						}

@@ -62,19 +62,22 @@ public class DetailedEvalContext extends EvalContext {
 	@Override
 	void enter(Expression expr) {
 		super.enter(expr);
-		fNodeStack.push(new EvalNode(varBindings()));
+		EvalNode n = new EvalNode(varBindings());
+		n.setExpression(expr);
+		fNodeStack.push(n);
 	}
 
 	@Override
 	void exit(Expression expr, Value result) {
 		super.exit(expr, result);
 	    EvalNode n = fNodeStack.pop();
-	    n.setExpression(expr);
 	    n.setResult(result);
 	    
-	    if ( !fNodeStack.empty() )
-	        fNodeStack.peek().addChild(n);
-	    else
-	        fRootNode = n;
+	    if ( !fNodeStack.empty() ) {
+	    	fNodeStack.peek().addChild(n);
+	    } else {
+	    	fRootNode = n;
+	    	fRootNode.sortSubtree();
+	    }
 	}
 }

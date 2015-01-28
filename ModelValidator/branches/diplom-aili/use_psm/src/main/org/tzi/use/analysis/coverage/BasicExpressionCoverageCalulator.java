@@ -82,7 +82,7 @@ public class BasicExpressionCoverageCalulator extends AbstractCoverageVisitor {
 
 	@Override
 	public void visitObjectByUseId(ExpObjectByUseId expObjectByUseId) {
-		coverage.getCoveredClasses().add(expObjectByUseId.getSourceType().cls());
+		coverage.getCoveredClasses().add(expObjectByUseId.getSourceType());
 		expObjectByUseId.getIdExpression().processWithVisitor(this);
 	}
 

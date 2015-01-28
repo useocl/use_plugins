@@ -94,7 +94,7 @@ public final class MLinkEnd {
         	Value value = qualifierValues.get(index);
         	Type expectedType = aend.getQualifiers().get(index).type();
         	
-        	if (!value.type().isSubtypeOf(expectedType))
+        	if (!value.type().conformsTo(expectedType))
         		throw new MSystemException(
         			"Type of qualifier value (" + StringUtil.inQuotes(value.toStringWithType()) + 
         			") does not conform to expected qualifier type (" + StringUtil.inQuotes(expectedType.toString()) + ")!");

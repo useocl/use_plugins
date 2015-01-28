@@ -58,7 +58,6 @@ import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.TeeWriter;
 
@@ -71,7 +70,7 @@ import org.tzi.use.util.TeeWriter;
 @SuppressWarnings("serial")
 public class SelectionOCLView extends JPanel implements View, ActionListener {
 
-	public static MSystem fSystem;
+	public MSystem fSystem;
 
 	private JButton fBtnShowAll;
 
@@ -297,7 +296,7 @@ public class SelectionOCLView extends JPanel implements View, ActionListener {
 				
 				// If the element type is OclAny it is still possible
 				// that all elements are object types.
-				if (!col.elemType().isObjectType()) {
+				if (!col.elemType().isTypeOfClass()) {
 					for (Value elem : col.collection()) {
 						if (!elem.isObject()) {
 							validResult = false;
@@ -345,20 +344,8 @@ public class SelectionOCLView extends JPanel implements View, ActionListener {
 	}
 
 	/**
-	 * Method stateChanged call due to an external change of state.
-	 * 
-	 * @see org.tzi.use.uml.sys.StateChangeListener#stateChanged(StateChangeEvent)
-	 */
-	public void stateChanged(StateChangeEvent e) {
-	}
-
-	/**
 	 * Method detachModel detaches the view from its model.
-	 * 
-	 * @see org.tzi.use.gui.views.View#detachModel()
 	 */
-	public void detachModel() {
-		fSystem.removeChangeListener(this);
-	}
+	public void detachModel() {}
 
 }

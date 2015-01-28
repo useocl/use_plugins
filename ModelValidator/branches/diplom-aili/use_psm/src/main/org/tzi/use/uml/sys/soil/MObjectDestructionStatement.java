@@ -21,6 +21,7 @@ package org.tzi.use.uml.sys.soil;
 
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.ExpressionWithValue;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.CollectionValue;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.Value;
@@ -75,7 +76,7 @@ public class MObjectDestructionStatement extends MStatement {
             throws EvaluationFailedException {
 		
 		// handle "dynamic" collections (e.g. .allInstances)
-		if (fToDelete.type().isCollection(false)) {
+		if (fToDelete.type().isKindOfCollection(VoidHandling.INCLUDE_VOID)) {
             Value val = EvalUtil.evaluateExpression(context, fToDelete);
 			
 			if (val.isUndefined())

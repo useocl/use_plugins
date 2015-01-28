@@ -22,6 +22,8 @@
 package org.tzi.use.uml.mm;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.tzi.use.util.StringUtil;
 
@@ -58,7 +60,7 @@ public final class MMultiplicity {
      */
     public static final MMultiplicity ZERO_ONE = new MMultiplicity(0, 1);
     
-    private final class Range {
+    public final class Range {
         int fLower;
         int fUpper;
 
@@ -79,6 +81,20 @@ public final class MMultiplicity {
             fLower = lower;
             fUpper = upper;
         }
+        
+        /**
+		 * @return the fLower
+		 */
+		public int getLower() {
+			return fLower;
+		}
+		
+		/**
+		 * @return the fUpper
+		 */
+		public int getUpper() {
+			return fUpper;
+		}
 
         /**
          * Test if range contains a specified value.
@@ -108,21 +124,26 @@ public final class MMultiplicity {
         }
     }
     
-    private ArrayList<Range> mRanges;
-
+    private List<Range> mRanges = new ArrayList<MMultiplicity.Range>();
+    
+    /**
+	 * @return the mRanges
+	 */
+	public List<Range> getRanges() {
+		return Collections.unmodifiableList(mRanges);
+	}
+    
     /**
      * Creates a new multiplicity. You need to add ranges before the
      * multiplicity is actually valid.
      */
     public MMultiplicity() {
-        mRanges = new ArrayList<Range>();
     }
 
     /**
      * Creates a multiplicity with given range.
      */
     public MMultiplicity(int lower, int upper) {
-        this();
         addRange(lower, upper);
     }
 
@@ -158,6 +179,7 @@ public final class MMultiplicity {
      * Because USE supports ranges of multiplicities, this query differs from the original specification.
      **/
     public boolean includesMultiplicity(MMultiplicity m, boolean includeLowerBounds) {
+    	//TODO improve support of multiple ranges
     	if (mRanges.size() != m.mRanges.size())
     		return false;
     	

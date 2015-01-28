@@ -22,15 +22,12 @@
 package org.tzi.use.uml.mm.statemachines;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.tzi.use.parser.SrcPos;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNamedElement;
 import org.tzi.use.uml.mm.UseFileLocatable;
-import org.tzi.use.uml.sys.MObject;
 
 /**
  * State machines can be used to express the behavior of part of a system. Behavior is modeled as a traversal of a graph of
@@ -66,9 +63,6 @@ public class MStateMachine implements MNamedElement, UseFileLocatable {
 	 */
 	protected List<MRegion> region = new ArrayList<MRegion>();
 	
-	
-	protected List<TransitionListener> transitionListener = Collections.emptyList();
-	
 	/**
 	 * Constructs a new state machine with a default region.
 	 * @param name The name of the state machine
@@ -101,30 +95,6 @@ public class MStateMachine implements MNamedElement, UseFileLocatable {
 	
 	public MClass getContext() {
 		return this.context;
-	}
-	
-	/**
-	 * @param o
-	 * @param t
-	 */
-	public void fireTransition(MObject o, MTransition t, boolean isRevert) {
-		for (TransitionListener l : this.transitionListener) {
-			l.transition(this, o, t, isRevert);
-		}
-	}
-	
-	/**
-	 * @param stateMachineDiagramView
-	 */
-	public void addTransitionListener(TransitionListener listener) {
-		if (this.transitionListener.isEmpty())
-			this.transitionListener = new LinkedList<TransitionListener>();
-		
-		this.transitionListener.add(listener);
-	}
-	
-	public void removeTransitionListener(TransitionListener listener) {
-		this.transitionListener.remove(listener);
 	}
 
 	@Override

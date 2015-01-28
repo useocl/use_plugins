@@ -24,6 +24,8 @@ package org.tzi.use.uml.sys.events;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MObject;
+import org.tzi.use.uml.sys.events.tags.EventContext;
+import org.tzi.use.uml.sys.events.tags.SystemStateChangedEvent;
 
 
 /**
@@ -32,7 +34,7 @@ import org.tzi.use.uml.sys.MObject;
  * @author Lars Hamann
  *
  */
-public class AttributeAssignedEvent extends Event {
+public class AttributeAssignedEvent extends Event implements SystemStateChangedEvent {
 	/** The object that was assigned a new attribute value */
 	private MObject fObject;
 	/** The attribute which was assigned a new value */
@@ -44,15 +46,17 @@ public class AttributeAssignedEvent extends Event {
 	/**
 	 * Constructs a new <code>AttributeAssignedEvent</code> with
 	 * all needed information.
+	 * @param context The context in which the event is raised, e. g., UNDO
 	 * @param object The <code>MObject</code> that was assigned a new attribute value
 	 * @param attribute The <code>MAttribute</code> which was assigned a new value
 	 * @param value The assigned <code>Value</code>
 	 */
 	public AttributeAssignedEvent(
+			EventContext context,
 			MObject object, 
 			MAttribute attribute, 
 			Value value) {
-		
+		super(context);
 		fObject = object;
 		fAttribute = attribute;
 		fValue = value;

@@ -72,7 +72,7 @@ public class ASTAttributeAssignmentStatement extends ASTStatement {
 		MAttribute attribute = getAttributeSafe(object, fAttributeName);
 		MRValue rValue = fRValue.generate(this);
 				
-		if (!rValue.getType().isSubtypeOf(attribute.type())) {
+		if (!rValue.getType().conformsTo(attribute.type())) {
 			throw new CompilationFailedException(this,
 					"Type mismatch in assignment expression. Expected type "
 							+ StringUtil.inQuotes(attribute.type())

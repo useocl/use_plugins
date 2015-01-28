@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.util.StringUtil;
 
@@ -241,7 +242,7 @@ public class SequenceValue extends CollectionValue {
      * Otherwise the result is nondeterministic, as in Set->asSequence
      */
     public SequenceValue flatten(Type resultType) {
-        if (! elemType().isCollection(true) ) 
+        if (! elemType().isKindOfCollection(VoidHandling.EXCLUDE_VOID) ) 
             return this;
     
         SequenceValue res = new SequenceValue(getResultElementType(resultType));

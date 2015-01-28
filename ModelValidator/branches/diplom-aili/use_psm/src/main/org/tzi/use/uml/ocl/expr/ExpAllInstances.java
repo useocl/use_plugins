@@ -24,7 +24,6 @@ package org.tzi.use.uml.ocl.expr;
 import java.util.Set;
 
 import org.tzi.use.uml.mm.MClass;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.ObjectValue;
@@ -40,7 +39,7 @@ import org.tzi.use.uml.sys.MSystemState;
  * @author  Mark Richters
  */
 public final class ExpAllInstances extends Expression {
-    private ObjectType fSourceType;
+    private MClass fSourceType;
     
     public ExpAllInstances(Type sourceType)
         throws ExpInvalidException
@@ -48,17 +47,17 @@ public final class ExpAllInstances extends Expression {
         // result type is a set of sourceType
         super(TypeFactory.mkSet(sourceType));
 
-        if (! sourceType.isTrueObjectType() )
+        if (! sourceType.isTypeOfClass() )
             throw new ExpInvalidException("Expected an object type, found `" + sourceType + "'.");
         
-        fSourceType = (ObjectType)sourceType;
+        fSourceType = (MClass)sourceType;
     }
 
     /**
      * The type allInstances() is applied to. 
      * @return
      */
-    public ObjectType getSourceType() {
+    public MClass getSourceType() {
     	return this.fSourceType;
     }
     
@@ -78,14 +77,13 @@ public final class ExpAllInstances extends Expression {
         // class plus all instances of subclasses
 
         // get set of objects 
-        MClass cls = ((ObjectType) fSourceType).cls();
+        MClass cls = fSourceType;
         Set<MObject> objSet = systemState.objectsOfClassAndSubClasses(cls);
         Value[] objValues = new Value[objSet.size()];
 
         int i = 0;
         for (MObject obj : objSet) {
-            ObjectType t = TypeFactory.mkObjectType(obj.cls());
-            objValues[i++] = new ObjectValue(t, obj);
+            objValues[i++] = new ObjectValue(obj.cls(), obj);
         }
 
         // create result set with object references

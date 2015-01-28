@@ -38,8 +38,6 @@ import org.tzi.use.uml.mm.statemachines.MStateMachine;
 import org.tzi.use.uml.mm.statemachines.MTransition;
 import org.tzi.use.uml.mm.statemachines.MVertex;
 import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.type.ObjectType;
-import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.util.StringUtil;
 
 /**
@@ -191,14 +189,13 @@ public class ASTTransitionDefinition extends AST {
 		Expression conditionExp = null;
 		
         // enter context variable into scope of invariant
-        ObjectType ot = TypeFactory.mkObjectType(cls);
         Symtable vars = ctx.varTable();
         vars.enterScope();
 
         try {
             // create pseudo-variable "self"
-            vars.add("self", ot, null);
-            ctx.exprContext().push("self", ot);
+            vars.add("self", cls, null);
+            ctx.exprContext().push("self", cls);
 
             t.getTrigger().buildEnvironment(vars, ctx.exprContext(), isPre);
             
@@ -206,7 +203,7 @@ public class ASTTransitionDefinition extends AST {
             conditionExp = expr.gen(ctx);
             ctx.setInsidePostCondition(false);
             
-            if (!conditionExp.type().isBoolean()) {
+            if (!conditionExp.type().isTypeOfBoolean()) {
 				throw new SemanticException(expr.getStartToken(), "A "
 						+ (isPre ? "guard" : "post condition")
 						+ " must be a boolean expression.");

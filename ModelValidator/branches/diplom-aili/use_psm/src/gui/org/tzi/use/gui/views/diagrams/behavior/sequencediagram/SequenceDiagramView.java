@@ -34,23 +34,15 @@ import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.views.PrintableView;
 import org.tzi.use.gui.views.View;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
-import org.tzi.use.uml.sys.events.AttributeAssignedEvent;
-import org.tzi.use.uml.sys.events.Event;
-import org.tzi.use.uml.sys.events.LinkDeletedEvent;
-import org.tzi.use.uml.sys.events.LinkInsertedEvent;
-import org.tzi.use.uml.sys.events.ObjectCreatedEvent;
-import org.tzi.use.uml.sys.events.ObjectDestroyedEvent;
-import org.tzi.use.uml.sys.events.OperationEnteredEvent;
-import org.tzi.use.uml.sys.events.OperationExitedEvent;
+import org.tzi.use.uml.sys.events.tags.SystemStateChangedEvent;
 
 import com.google.common.eventbus.Subscribe;
 
 /**
  * A SequenceDiagramView shows a UML sequence diagramm of events.
  * 
- * @version $ProjectVersion: 0.393 $
- * @author Mark Richters, Antje Werner
+ * @author Mark Richters
+ * @author Antje Werner
  */
 
 @SuppressWarnings("serial")
@@ -68,8 +60,7 @@ public class SequenceDiagramView extends JPanel implements View, PrintableView {
 		fSeqDiag = new SequenceDiagram(system, mainW);
 		add(fSeqDiag, BorderLayout.CENTER);
 
-		fSystem.addChangeListener(this);
-		// fSystem.getEventBus().register(this);
+		fSystem.getEventBus().register(this);
 	}
 
 	/**
@@ -84,8 +75,6 @@ public class SequenceDiagramView extends JPanel implements View, PrintableView {
 
 	/**
 	 * Updates the current sequence diagram.
-	 * 
-	 * @throws CommandFailedException
 	 */
 	public void update() {
 		fSeqDiag.update();
@@ -101,47 +90,8 @@ public class SequenceDiagramView extends JPanel implements View, PrintableView {
 	}
 
 	@Subscribe
-	public void onStateChanged(Event event) {
+	public void onStateChanged(SystemStateChangedEvent event) {
 		// TODO: Handle event types to be able to update the diagram stepwise
-		fSeqDiag.update();
-	}
-
-	@Subscribe
-	public void onObjectCeated(ObjectCreatedEvent e) {
-
-	}
-
-	@Subscribe
-	public void onObjectDestroyed(ObjectDestroyedEvent e) {
-
-	}
-
-	@Subscribe
-	public void onLinkInserted(LinkInsertedEvent e) {
-
-	}
-
-	@Subscribe
-	public void onLinkDeleted(LinkDeletedEvent e) {
-
-	}
-
-	@Subscribe
-	public void onAttributeAssigned(AttributeAssignedEvent e) {
-
-	}
-
-	@Subscribe
-	public void onOperationEntered(OperationEnteredEvent e) {
-
-	}
-
-	@Subscribe
-	public void onOperationExited(OperationExitedEvent e) {
-
-	}
-
-	public void stateChanged(StateChangeEvent e) {
 		fSeqDiag.update();
 	}
 
@@ -149,7 +99,7 @@ public class SequenceDiagramView extends JPanel implements View, PrintableView {
 	 * Detaches the view from its model.
 	 */
 	public void detachModel() {
-		fSystem.removeChangeListener(this);
+		fSystem.getEventBus().unregister(this);
 	}
 
 	/**
@@ -180,19 +130,11 @@ public class SequenceDiagramView extends JPanel implements View, PrintableView {
 		fSeqDiag.printView(pf);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.tzi.use.gui.views.PrintableView#getContentHeight()
-	 */
 	@Override
 	public float getContentHeight() {
 		return (float) fSeqDiag.getPreferredSize().getHeight();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.tzi.use.gui.views.PrintableView#getContentWidth()
-	 */
 	@Override
 	public float getContentWidth() {
 		return (float) fSeqDiag.getPreferredSize().getWidth();

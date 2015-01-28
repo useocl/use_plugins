@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -107,7 +108,83 @@ public class EvalNode {
         fChildren.add(n);
     }
 
-    public List<EvalNode> children() {
+    /**
+	 * Sorts the node tree to match the sorted display order of unsorted types.
+	 * E.g. for the expression <code>Set{2,3,1}->forAll( i | i < 5 )</code> the
+	 * range expression is displayed as <code>Set{1,2,3}</code> and the order of
+	 * the evaluation details should follow this order.
+	 */
+    public void sortSubtree(){
+    	for(EvalNode child : children()){
+    		child.sortSubtree();
+    	}
+    	
+    	// query expressions with an unordered range type need sorting
+    	if(fExpr instanceof ExpQuery &&
+        		(((ExpQuery) fExpr).getRangeExpression().type().isTypeOfSet() || ((ExpQuery) fExpr).getRangeExpression().type().isTypeOfBag())){
+        	
+        	EvalNode rangeNode = null;
+        	ExpQuery expr = (ExpQuery) fExpr;
+        	
+        	// find the node representing the range expression and cut it from the list
+	        for (Iterator<EvalNode> iterator = fChildren.iterator(); iterator.hasNext();) {
+				EvalNode child = iterator.next();
+				if(child.getExpression() == expr.getRangeExpression()){
+	        		rangeNode = child;
+	        		iterator.remove();
+	        		break;
+	        	}
+			}
+        
+	        if(rangeNode != null){
+	        	final List<String> relevantVars = new ArrayList<String>(expr.getVariableDeclarations().size());
+	        	for(int i = 0; i < expr.getVariableDeclarations().size(); i++){
+	        		relevantVars.add(expr.getVariableDeclarations().varDecl(i).name());
+	        	}
+
+	        	// sort the list by the variables defined in the query expression
+	        	Collections.sort(fChildren, new Comparator<EvalNode>() {
+					@Override
+					public int compare(EvalNode o1, EvalNode o2) {
+						Value[] v1 = getVarValues(o1, relevantVars);
+						Value[] v2 = getVarValues(o2, relevantVars);
+						
+						for(int i = 0; i < relevantVars.size(); i++){
+							if(v1[i] == null && v2[i] == null){
+								return 0;
+							} else if(v2[i] == null){
+								return -1;
+							} else if(v1[i] == null){
+								return 1;
+							} else if(!v1[i].equals(v2[i])){
+								return v1[i].compareTo(v2[i]);
+							}
+						}
+						
+						return 0;
+					}
+					
+					private Value[] getVarValues(EvalNode node, List<String> relevantVars) {
+						Value[] values = new Value[relevantVars.size()];
+						for(int i = 0; i < relevantVars.size(); i++){
+							String rVar = relevantVars.get(i);
+							for (VarBindings.Entry e : node.getVarBindings()) {
+								if (rVar.equals(e.getVarName())) {
+									values[i] = e.getValue();
+								}
+							}
+						}
+						return values;
+					}
+				});
+	        	
+	        	// insert range expression back at the first position
+	        	fChildren.add(0, rangeNode);
+	        }
+        }
+    }
+    
+	public List<EvalNode> children() {
         if (fChildren == null)
             return new ArrayList<EvalNode>();
         else
@@ -558,7 +635,7 @@ public class EvalNode {
 		protected boolean doHighlight() { return true; }
 		
 		private String highlight(String s, Expression expr){
-			return getExpression() == expr && doHighlight() ? "<font color=\"red\">" + s + "</font>" : s ;
+			return getExpression() == expr && doHighlight() ? "<font color=\"blue\">" + s + "</font>" : s ;
 		}
 		
 		@Override

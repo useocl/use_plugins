@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.util.StringUtil;
 
@@ -292,7 +293,7 @@ public class SetValue extends CollectionValue {
      * Returns a new "flattened" set. This set must have collection elements.
      */
     public SetValue flatten(Type resultType) {
-        if (!elemType().isCollection(true))
+        if (!elemType().isKindOfCollection(VoidHandling.EXCLUDE_VOID))
             return this;
 
         SetValue res = new SetValue(getResultElementType(resultType));
@@ -330,7 +331,7 @@ public class SetValue extends CollectionValue {
 
     protected Integer getClassCompareNr()
     {
-    	return new Integer(1);
+    	return Integer.valueOf(1);
     }
     
     /**

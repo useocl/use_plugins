@@ -28,7 +28,6 @@ import java.util.Collection;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemState;
-import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.events.ObjectCreatedEvent;
 import org.tzi.use.uml.sys.events.ObjectDestroyedEvent;
 
@@ -66,8 +65,6 @@ public class ObjectCountView extends BarChartView implements View {
         }
         setValues(fValues);
     }
-
-    public void stateChanged(StateChangeEvent e) { }
 
     @Subscribe
     public void onObjectCreated(ObjectCreatedEvent e) {

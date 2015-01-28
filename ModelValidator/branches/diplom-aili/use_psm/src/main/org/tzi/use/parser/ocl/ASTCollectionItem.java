@@ -62,7 +62,7 @@ public class ASTCollectionItem extends AST {
 		} else {
 			Expression second = fSecond.gen(ctx);
 			
-			if (!(first.type().isInteger() && second.type().isInteger()))
+			if (!(first.type().isTypeOfInteger() && second.type().isTypeOfInteger()))
 				throw new SemanticException("Ranges must be of type Integer.");
 			
 			return new ExpRange(first, second);

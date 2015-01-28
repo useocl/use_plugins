@@ -74,7 +74,7 @@ final class Op_string_size extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isString()) ? TypeFactory
+		return (params.length == 1 && params[0].isTypeOfString()) ? TypeFactory
 				.mkInteger() : null;
 	}
 
@@ -101,8 +101,8 @@ final class Op_string_concat extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isString() && params[1]
-				.isString()) ? params[0] : null;
+		return (params.length == 2 && params[0].isTypeOfString() && params[1]
+				.isTypeOfString()) ? params[0] : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -129,8 +129,8 @@ final class Op_string_concatinfix extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isString() && params[1]
-				.isString()) ? params[0] : null;
+		return (params.length == 2 && params[0].isTypeOfString() && params[1]
+				.isTypeOfString()) ? params[0] : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -157,7 +157,7 @@ final class Op_string_toUpper extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isString()) ? params[0] : null;
+		return (params.length == 1 && params[0].isTypeOfString()) ? params[0] : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -183,7 +183,7 @@ final class Op_string_toLower extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 1 && params[0].isString()) ? params[0] : null;
+		return (params.length == 1 && params[0].isTypeOfString()) ? params[0] : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -209,8 +209,8 @@ final class Op_string_substring extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 3 && params[0].isString()
-				&& params[1].isInteger() && params[2].isInteger()) ? params[0]
+		return (params.length == 3 && params[0].isTypeOfString()
+				&& params[1].isTypeOfInteger() && params[2].isTypeOfInteger()) ? params[0]
 				: null;
 	}
 
@@ -247,8 +247,8 @@ final class Op_string_less extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isString() && params[1]
-				.isString()) ? TypeFactory.mkBoolean() : null;
+		return (params.length == 2 && params[0].isTypeOfString() && params[1]
+				.isTypeOfString()) ? TypeFactory.mkBoolean() : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -274,8 +274,8 @@ final class Op_string_greater extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isString() && params[1]
-				.isString()) ? TypeFactory.mkBoolean() : null;
+		return (params.length == 2 && params[0].isTypeOfString() && params[1]
+				.isTypeOfString()) ? TypeFactory.mkBoolean() : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -301,8 +301,8 @@ final class Op_string_lessequal extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isString() && params[1]
-				.isString()) ? TypeFactory.mkBoolean() : null;
+		return (params.length == 2 && params[0].isTypeOfString() && params[1]
+				.isTypeOfString()) ? TypeFactory.mkBoolean() : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -328,8 +328,8 @@ final class Op_string_greaterequal extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return (params.length == 2 && params[0].isString() && params[1]
-				.isString()) ? TypeFactory.mkBoolean() : null;
+		return (params.length == 2 && params[0].isTypeOfString() && params[1]
+				.isTypeOfString()) ? TypeFactory.mkBoolean() : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -355,7 +355,7 @@ final class Op_string_toReal extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return params.length == 1 && params[0].isString() ? TypeFactory.mkReal() : null;
+		return params.length == 1 && params[0].isTypeOfString() ? TypeFactory.mkReal() : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -387,7 +387,7 @@ final class Op_string_toInteger extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return params.length == 1 && params[0].isString() ? TypeFactory.mkInteger() : null;
+		return params.length == 1 && params[0].isTypeOfString() ? TypeFactory.mkInteger() : null;
 	}
 
 	public Value eval(EvalContext ctx, Value[] args, Type resultType) {
@@ -427,7 +427,7 @@ final class Op_string_indexOf extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return params.length == 2 && params[0].isString() && params[1].isString() ? 
+		return params.length == 2 && params[0].isTypeOfString() && params[1].isTypeOfString() ? 
 				TypeFactory.mkInteger() : null;
 	}
 
@@ -459,7 +459,7 @@ final class Op_string_equalsIgnoreCase extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return params.length == 2 && params[0].isString() && params[1].isString() ? 
+		return params.length == 2 && params[0].isTypeOfString() && params[1].isTypeOfString() ? 
 				TypeFactory.mkBoolean() : null;
 	}
 
@@ -488,7 +488,7 @@ final class Op_string_at extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return params.length == 2 && params[0].isString() && params[1].isInteger() ? 
+		return params.length == 2 && params[0].isTypeOfString() && params[1].isTypeOfInteger() ? 
 				TypeFactory.mkString() : null;
 	}
 
@@ -520,7 +520,7 @@ final class Op_string_characters extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return params.length == 1 && params[0].isString() ? 
+		return params.length == 1 && params[0].isTypeOfString() ? 
 				TypeFactory.mkSequence(TypeFactory.mkString()) : null;
 	}
 
@@ -556,7 +556,7 @@ final class Op_string_toBoolean extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return params.length == 1 && params[0].isString() ? 
+		return params.length == 1 && params[0].isTypeOfString() ? 
 				TypeFactory.mkBoolean() : null;
 	}
 
@@ -587,7 +587,7 @@ final class Op_string_split extends OpGeneric {
 	}
 
 	public Type matches(Type params[]) {
-		return params.length == 2 && params[0].isString() && params[1].isString() ? 
+		return params.length == 2 && params[0].isTypeOfString() && params[1].isTypeOfString() ? 
 				TypeFactory.mkSequence(TypeFactory.mkString()) : null;
 	}
 

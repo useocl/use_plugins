@@ -54,7 +54,7 @@ public class StrategyInBetween extends StatefullPositionStrategy {
 	 */
 	double offsetY;
 	
-	protected StrategyInBetween() {};
+	protected StrategyInBetween() {}
 	
 	public StrategyInBetween(PlaceableNode owner, PlaceableNode[] related, double offsetX, double offsetY) {
 		super(owner);

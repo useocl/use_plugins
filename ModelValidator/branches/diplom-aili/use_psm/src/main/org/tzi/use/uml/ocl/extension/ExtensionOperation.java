@@ -20,7 +20,7 @@ import org.tzi.use.util.rubyintegration.RubyHelper;
 
 public class ExtensionOperation extends OpGeneric {
 
-	public class Parameter {
+	public static class Parameter {
 		private String name;
 		private String typeName;
 		private Type type;
@@ -94,7 +94,7 @@ public class ExtensionOperation extends OpGeneric {
             Value resultValue = RubyHelper.rubyValueToUseValue(result, resultType);
             
             // Wrong result type!
-            if (!resultValue.type().isSubtypeOf(this.resultType)) {
+            if (!resultValue.type().conformsTo(this.resultType)) {
 				Log.warn("Extension method `" + name
 						+ "' returned wrong type! Expected `"
 						+ this.resultType.toString() + "' got `"
@@ -125,7 +125,7 @@ public class ExtensionOperation extends OpGeneric {
 
 	@Override
 	public Type matches(Type[] params) {
-		if (!params[0].isSubtypeOf(this.sourceType)) {
+		if (!params[0].conformsTo(this.sourceType)) {
 			return null;
 		}
 		
@@ -133,7 +133,7 @@ public class ExtensionOperation extends OpGeneric {
 			Type givenType = params[i];
 			Type requiredType = parameter.get(i - 1).getType();
 			
-			if (!givenType.isSubtypeOf(requiredType) ) {
+			if (!givenType.conformsTo(requiredType) ) {
 				return null;
 			}
 		}

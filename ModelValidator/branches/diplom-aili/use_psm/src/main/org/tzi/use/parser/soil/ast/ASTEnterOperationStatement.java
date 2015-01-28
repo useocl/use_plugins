@@ -26,9 +26,9 @@ import java.util.List;
 
 import org.antlr.runtime.Token;
 import org.tzi.use.parser.ocl.ASTExpression;
+import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.sys.soil.MEnterOperationStatement;
 import org.tzi.use.uml.sys.soil.MStatement;
 import org.tzi.use.util.StringUtil;
@@ -71,8 +71,7 @@ public class ASTEnterOperationStatement extends ASTStatement {
 		
 		Expression object = generateObjectExpression(fObject);
 		
-		MOperation operation = 
-			getOperationSafe(((ObjectType)object.type()).cls(), fOperationName);
+		MOperation operation = getOperationSafe((MClass)object.type(), fOperationName);
 		
 		if (operation.hasExpression() || operation.hasStatement()) {
 			throw new CompilationFailedException(this, "Operation " +

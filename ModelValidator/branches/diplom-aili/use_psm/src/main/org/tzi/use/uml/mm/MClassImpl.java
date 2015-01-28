@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.tzi.use.uml.mm.statemachines.MProtocolStateMachine;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.sys.MOperationCall;
 import org.tzi.use.util.collections.CollectionUtil;
 
@@ -43,13 +41,8 @@ import org.tzi.use.util.collections.CollectionUtil;
  * @author  Mark Richters
  * @author  Lars Hamann
  */
-public class MClassImpl extends MModelElementImpl implements MClass {
+public class MClassImpl extends MClassifierImpl implements MClass {
    
-	/**
-	 * abstract class?
-	 */
-	private boolean fIsAbstract;
-	
 	/**
 	 * All defined attributes of this class excluding inherited ones.
 	 */
@@ -61,16 +54,7 @@ public class MClassImpl extends MModelElementImpl implements MClass {
      * Maps all operations (including inherited)
      */
     private Map<String, MOperation> fVTableOperations;
-    
-    /**
-     * Owner of this class
-     */
-    private MModel fModel;
-    
-    private int fPositionInModel;
-    
-    private ObjectType fType;
-    
+        
     // other classes reachable by associations 
     private Map<String, MNavigableElement> fNavigableElements;
 
@@ -80,20 +64,11 @@ public class MClassImpl extends MModelElementImpl implements MClass {
     private Set<MProtocolStateMachine> ownedProtocolStateMachines = Collections.emptySet();
     
     MClassImpl(String name, boolean isAbstract) {
-        super(name);
-        fIsAbstract = isAbstract;
+        super(name, isAbstract);
         fAttributes = new TreeMap<String, MAttribute>();
         fOperations = new TreeMap<String, MOperation>();
         fVTableOperations = new HashMap<String, MOperation>();
         fNavigableElements = new HashMap<String, MNavigableElement>();
-        fType = new ObjectType(this);
-    }
-    
-    /**
-     * Returns true if the class is marked abstract.
-     */
-    public boolean isAbstract() {
-        return fIsAbstract;
     }
 
     /**
@@ -102,52 +77,17 @@ public class MClassImpl extends MModelElementImpl implements MClass {
     public String nameAsRolename() {
         return Character.toLowerCase(name().charAt(0)) + name().substring(1);
     }
-    
-    /**
-     * returns the corresponding type
-     * @return the corresponding type
-     */
-    public ObjectType type() {
-    	return fType;
-    }
 
-    /**
-     * Returns the model owning this class.
-     */
-    public MModel model() {
-        return fModel;
-    }
-
-    /**
-     * Sets the model owning this class. This method must be called by
-     * MModel.addClass().  
-     *
-     * @see MModel#addClass
-     */
-    public void setModel(MModel model) {
-        fModel = model;
-    }
-    
     @Override
+    @SuppressWarnings({ "rawtypes", "unchecked" }) // Class only inherit from other classes
 	public Iterable<MClass> generalizationHierachie(final boolean includeThis) {
-		return new Iterable<MClass>() {
-			@SuppressWarnings({ "rawtypes", "unchecked" }) // Class only inherit from other classes
-			@Override
-			public Iterator<MClass> iterator() {
-				return (Iterator)fModel.generalizationGraph().targetNodeClosureSetIterator(MClassImpl.this, includeThis);
-			}
-		};
+    	return (Iterable)super.generalizationHierachie(includeThis);
 	}
     
     @Override
+    @SuppressWarnings({ "rawtypes", "unchecked" }) // Class only inherit from other classes
 	public Iterable<MClass> specializationHierachie(final boolean includeThis) {
-		return new Iterable<MClass>() {
-			@SuppressWarnings({ "rawtypes", "unchecked" }) // Class only inherit from other classes
-			@Override
-			public Iterator<MClass> iterator() {
-				return (Iterator)fModel.generalizationGraph().sourceNodeClosureSetIterator(MClassImpl.this, includeThis);
-			}
-		};
+		return (Iterable)super.specializationHierachie(includeThis);
 	}
     
     /** 
@@ -391,18 +331,31 @@ public class MClassImpl extends MModelElementImpl implements MClass {
         }
     }
 
-    public void deleteNavigableElements () {
-        fNavigableElements.clear();
-    }
+    
+    @Override
+	public boolean isTypeOfClassifier() {
+		return false;
+	}
 
-    /**
+	@Override
+	public boolean isKindOfClass(VoidHandling h) {
+		return true;
+	}
+
+	@Override
+	public boolean isTypeOfClass() {
+		return true;
+	}
+
+	/**
      * Returns the set of all direct parent classes (without this
      * class).
      *
      * @return Set(MClass) 
      */
+    @Override
     public Set<MClass> parents() {
-    	return fModel.generalizationGraph().targetNodeSet(MClass.class, this);
+    	return model.generalizationGraph().targetNodeSet(MClass.class, this);
     }
 
     /**
@@ -414,7 +367,7 @@ public class MClassImpl extends MModelElementImpl implements MClass {
      * @return Set(MClass) An unmodifiable set of all parent classes
      */
     public Set<MClass> allParents() {
-        return Collections.unmodifiableSet(fModel.generalizationGraph().targetNodeClosureSet(MClass.class, this));
+        return Collections.unmodifiableSet(model.generalizationGraph().targetNodeClosureSet(MClass.class, this));
     }
 
     /**
@@ -425,7 +378,7 @@ public class MClassImpl extends MModelElementImpl implements MClass {
      * @return Set(MClass) An unmodifiable set of all child classes
      */
     public Set<MClass> allChildren() {
-        return Collections.unmodifiableSet(fModel.generalizationGraph().sourceNodeClosureSet(MClass.class, this));
+        return Collections.unmodifiableSet(model.generalizationGraph().sourceNodeClosureSet(MClass.class, this));
     }
 
     /**
@@ -435,7 +388,7 @@ public class MClassImpl extends MModelElementImpl implements MClass {
      * @return Set(MClass) 
      */
     public Set<MClass> children() {
-        return fModel.generalizationGraph().sourceNodeSet(MClass.class, this);
+        return model.generalizationGraph().sourceNodeSet(MClass.class, this);
     }
     
     /**
@@ -471,6 +424,10 @@ public class MClassImpl extends MModelElementImpl implements MClass {
         return res;
     }
 
+    /**
+     * Please use {@link #conformsTo(MClassifier)}.
+     */
+    @Deprecated
     @Override
     public boolean isSubClassOf(MClass otherClass) {
         return isSubClassOf(otherClass, false);
@@ -479,20 +436,6 @@ public class MClassImpl extends MModelElementImpl implements MClass {
     @Override
     public boolean isSubClassOf(MClass otherClass, boolean excludeThis) {
         return (!excludeThis && this.equals(otherClass)) || allParents().contains(otherClass);
-    }
-    
-    /**
-     * Returns the position in the defined USE-Model.
-     */
-    public int getPositionInModel() {
-        return fPositionInModel;
-    }
-
-    /**
-     * Sets the position in the defined USE-Model.
-     */
-    public void setPositionInModel(int position) {
-        fPositionInModel = position;
     }
 
     /**

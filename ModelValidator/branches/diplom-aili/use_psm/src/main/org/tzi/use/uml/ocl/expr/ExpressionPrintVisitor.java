@@ -21,6 +21,8 @@ package org.tzi.use.uml.ocl.expr;
 
 import java.io.PrintWriter;
 
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
+
 /**
  * Default visitor to print OCL expressions.
  * Subclasses can override the format operations.
@@ -245,7 +247,7 @@ public class ExpressionPrintVisitor implements ExpressionVisitor {
 	public void visitIsTypeOf(ExpIsTypeOf exp) {
 		exp.getSourceExpr().processWithVisitor(this);
 
-		if (exp.getSourceExpr().type().isCollection(true))
+		if (exp.getSourceExpr().type().isKindOfCollection(VoidHandling.EXCLUDE_VOID))
         	writer.write("->");
         else
         	writer.write(".");
@@ -415,7 +417,7 @@ public class ExpressionPrintVisitor implements ExpressionVisitor {
 				writer.write(operationName);
 			} else {
 				args[0].processWithVisitor(this);
-				writer.write(operator( args[0].type().isCollection(true) ? "->" : ".", exp ));
+				writer.write(operator( args[0].type().isKindOfCollection(VoidHandling.EXCLUDE_VOID) ? "->" : ".", exp ));
 				writer.write(operationName);
 				writer.write(operator("(", exp));
 				if(args.length > 1){
@@ -504,7 +506,7 @@ public class ExpressionPrintVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitObjectByUseId(ExpObjectByUseId expObjectByUseId) {
-		writer.write(expObjectByUseId.getSourceType().cls().name());
+		writer.write(expObjectByUseId.getSourceType().name());
 		writer.write("(");
 		expObjectByUseId.processWithVisitor(this);
 		writer.write(")");

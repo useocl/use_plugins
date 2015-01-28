@@ -48,9 +48,9 @@ import org.tzi.use.uml.ocl.expr.ExpTupleSelectOp;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.CollectionType;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.TupleType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.collections.CollectionUtil;
 
@@ -209,7 +209,7 @@ public class ASTOperationExpression extends ASTExpression {
                     // construct source expression
                     ExprContext.Entry e = ec.peek();
                     srcExpr = new ExpVariable(e.fName, e.fType);
-                    if (e.fType.isCollection(true) )
+                    if (e.fType.isKindOfCollection(VoidHandling.EXCLUDE_VOID) )
                         fFollowsArrow = true;
                     res = gen1(ctx, srcExpr);
                 } else
@@ -281,11 +281,11 @@ public class ASTOperationExpression extends ASTExpression {
         final int PARENTHESES         = 0x0001;
 
         int opcase;
-        if (srcType.isTrueObjectType() )
+        if (srcType.isTypeOfClass() )
             opcase = SRC_OBJECT_TYPE;
-        else if (srcType.isCollection(true) )
+        else if (srcType.isKindOfCollection(VoidHandling.EXCLUDE_VOID) )
             opcase = SRC_COLLECTION_TYPE;
-        else if (srcType.isTupleType(true) ) 
+        else if (srcType.isKindOfTupleType(VoidHandling.EXCLUDE_VOID) ) 
             opcase = SRC_TUPLE_TYPE;
         else
             opcase = SRC_SIMPLE_TYPE;
@@ -306,7 +306,7 @@ public class ASTOperationExpression extends ASTExpression {
         case SRC_SIMPLE_TYPE + ARROW + NO_PARENTHESES:
         case SRC_SIMPLE_TYPE + ARROW + PARENTHESES:
         	// If source is null literal, convert to Bag{} (OCL 2.3.1 p. 146)
-        	if (fArgExprs[0].type().isVoidType()) {
+        	if (fArgExprs[0].type().isTypeOfVoidType()) {
         		try {
 					fArgExprs[0] = new ExpBagLiteral(new Expression[0]);
 				} catch (ExpInvalidException e) { }
@@ -321,7 +321,7 @@ public class ASTOperationExpression extends ASTExpression {
             break;
 
         case SRC_OBJECT_TYPE + DOT + NO_PARENTHESES:
-            MClass srcClass = ((ObjectType) srcType).cls();
+            MClass srcClass = (MClass)srcType;
             MAttribute attr = srcClass.attribute(opname, true);
             if (attr != null ) {
                 // (2) attribute operation on object type (no arguments)
@@ -341,7 +341,7 @@ public class ASTOperationExpression extends ASTExpression {
             break;
 
         case SRC_OBJECT_TYPE + DOT + NO_PARENTHESES + EXPLICIT_ROLENAME:
-            MClass srcClass3 = ( ( ObjectType ) srcType ).cls();
+            MClass srcClass3 = (MClass)srcType;
             // (4) navigation operation on object type
             // must be a role name
             MNavigableElement dst = srcClass3.navigableEnd( opname );
@@ -357,7 +357,7 @@ public class ASTOperationExpression extends ASTExpression {
         case SRC_OBJECT_TYPE + DOT + PARENTHESES:
             // (3) "isQuery" operation on object type (possibly with
             // arguments) or (1)
-            MClass srcClass2 = ((ObjectType) srcType).cls();
+            MClass srcClass2 = (MClass)srcType;
             res = genObjOperation(ctx, srcClass2, srcExpr);
             break;
 
@@ -439,8 +439,8 @@ public class ASTOperationExpression extends ASTExpression {
         CollectionType cType = (CollectionType)srcExpr.type();
         Type elemType = cType.elemType();
         
-        if (elemType.isTrueObjectType() ) {
-            MClass srcClass = ((ObjectType) elemType).cls();
+        if (elemType.isTypeOfClass() ) {
+            MClass srcClass = (MClass)elemType;
             MAttribute attr = srcClass.attribute(opname, true);
             if (attr != null ) {
                 // (2) attribute operation on object type (no arguments)
@@ -463,7 +463,7 @@ public class ASTOperationExpression extends ASTExpression {
                     res = genImplicitCollect(srcExpr, eNav, elemType);
                 }
             }
-        } else if (elemType.isTupleType(true)) {
+        } else if (elemType.isKindOfTupleType(VoidHandling.EXCLUDE_VOID)) {
         	TupleType t = (TupleType)elemType;
         	TupleType.Part p = t.getPart(opname);
         	
@@ -495,8 +495,8 @@ public class ASTOperationExpression extends ASTExpression {
         // c.op()  201 (5) with implicit (3,1)
         CollectionType cType = (CollectionType ) srcExpr.type();
         Type elemType = cType.elemType();
-        if (elemType.isTrueObjectType() ) {
-            MClass srcClass = ((ObjectType) elemType).cls();
+        if (elemType.isTypeOfClass() ) {
+            MClass srcClass = (MClass)elemType;
             MOperation op = srcClass.operation(opname, true);
             if (op != null ) {
                 

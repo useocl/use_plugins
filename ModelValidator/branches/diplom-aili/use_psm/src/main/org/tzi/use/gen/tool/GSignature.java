@@ -44,7 +44,7 @@ public class GSignature {
 			
 			for(int index = 0; index < this.types.size(); index++)
 			{
-				if (!sigTypes.get(index).isSubtypeOf(types.get(index)))
+				if (!sigTypes.get(index).conformsTo(types.get(index)))
 					return false;
 			}
 			

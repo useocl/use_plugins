@@ -22,6 +22,7 @@
 package org.tzi.use.uml.mm;
 
 import org.tzi.use.uml.mm.commonbehavior.communications.MSignal;
+import org.tzi.use.uml.ocl.type.EnumType;
 
 
 /**
@@ -43,4 +44,5 @@ public interface MMVisitor {
     void visitOperation(MOperation e);
     void visitPrePostCondition(MPrePostCondition e);
 	void visitSignal(MSignal mSignalImpl);
+	void visitEnum(EnumType enumType);
 }

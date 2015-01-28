@@ -38,8 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-import javax.swing.event.EventListenerList;
-
 import org.tzi.use.config.Options;
 import org.tzi.use.gen.tool.GGenerator;
 import org.tzi.use.parser.generator.ASSLCompiler;
@@ -53,6 +51,7 @@ import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.MPrePostCondition;
 import org.tzi.use.uml.mm.statemachines.MRegion;
+import org.tzi.use.uml.mm.statemachines.MStateMachine;
 import org.tzi.use.uml.mm.statemachines.MTransition;
 import org.tzi.use.uml.ocl.expr.EvalContext;
 import org.tzi.use.uml.ocl.expr.Evaluator;
@@ -64,8 +63,8 @@ import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.ocl.value.VarBindings;
 import org.tzi.use.uml.sys.MSystemState.DeleteObjectResult;
 import org.tzi.use.uml.sys.events.AttributeAssignedEvent;
-import org.tzi.use.uml.sys.events.ClassInvariantChangeEvent;
-import org.tzi.use.uml.sys.events.ClassInvariantChangeEvent.InvariantStateChange;
+import org.tzi.use.uml.sys.events.ClassInvariantChangedEvent;
+import org.tzi.use.uml.sys.events.ClassInvariantChangedEvent.InvariantStateChange;
 import org.tzi.use.uml.sys.events.ClassInvariantsLoadedEvent;
 import org.tzi.use.uml.sys.events.ClassInvariantsUnloadedEvent;
 import org.tzi.use.uml.sys.events.Event;
@@ -75,7 +74,9 @@ import org.tzi.use.uml.sys.events.ObjectCreatedEvent;
 import org.tzi.use.uml.sys.events.ObjectDestroyedEvent;
 import org.tzi.use.uml.sys.events.OperationEnteredEvent;
 import org.tzi.use.uml.sys.events.OperationExitedEvent;
-import org.tzi.use.uml.sys.events.UndoEvent;
+import org.tzi.use.uml.sys.events.StatementExecutedEvent;
+import org.tzi.use.uml.sys.events.TransitionEvent;
+import org.tzi.use.uml.sys.events.tags.EventContext;
 import org.tzi.use.uml.sys.ppcHandling.PPCHandler;
 import org.tzi.use.uml.sys.ppcHandling.PostConditionCheckFailedException;
 import org.tzi.use.uml.sys.ppcHandling.PreConditionCheckFailedException;
@@ -95,7 +96,6 @@ import org.tzi.use.uml.sys.statemachines.MProtocolStateMachineInstance.Transitio
 import org.tzi.use.util.Log;
 import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.UniqueNameGenerator;
-import org.tzi.use.util.soil.StateDifference;
 import org.tzi.use.util.soil.VariableEnvironment;
 import org.tzi.use.util.soil.exceptions.EvaluationFailedException;
 
@@ -107,6 +107,7 @@ import com.google.common.eventbus.EventBus;
  * 
  * @author Fabian Buettner
  * @author Lars Hamann
+ * @author Frank Hilken
  * @author Mark Richters
  */
 public final class MSystem {
@@ -121,12 +122,6 @@ public final class MSystem {
 
 	/** Handles creation of numbered object names considering undo */
 	private UniqueNameGenerator fUniqueNameGenerator;
-
-	/**
-	 * List for all registered listeners. Uses less resources than different
-	 * lists.
-	 */
-	protected EventListenerList fListenerList = new EventListenerList();
 
 	/** Event bus for detailed events during execution **/
 	private EventBus eventBus = new EventBus("System change");
@@ -178,6 +173,12 @@ public final class MSystem {
 	 * elements.
 	 */
 	private int deriveUpdatableElementCount = 0;
+
+	/**
+	 * The current state of execution, to be able
+	 * to identify undo operations. 
+	 */
+	private EventContext executionContext = EventContext.NORMAL_EXECUTION;
 
 	/**
 	 * constructs a new MSystem
@@ -249,33 +250,6 @@ public final class MSystem {
 	}
 
 	/**
-	 * Adds a change listener that is informed after a SOIL command has been
-	 * executed completely.
-	 * 
-	 * @param l
-	 */
-	public void addChangeListener(StateChangeListener l) {
-		fListenerList.add(StateChangeListener.class, l);
-	}
-
-	/**
-	 * Removes a previously added change listener.
-	 * 
-	 * @param l
-	 */
-	public void removeChangeListener(StateChangeListener l) {
-		fListenerList.remove(StateChangeListener.class, l);
-	}
-
-	public void addUndoListener(UndoListener l) {
-		fListenerList.add(UndoListener.class, l);
-	}
-
-	public void removeUndoListener(UndoListener l) {
-		fListenerList.remove(UndoListener.class, l);
-	}
-
-	/**
 	 * The event bus of the system. 
 	 * It is used to provide fine grained event 
 	 * notifications during execution.
@@ -291,6 +265,14 @@ public final class MSystem {
 		return this.eventBus;
 	}
 
+	/**
+	 * The current execution context, e. g., UNDO
+	 * @return the executionContext
+	 */
+	public EventContext getExecutionContext() {
+		return executionContext;
+	}
+	
 	public void registerPPCHandlerOverride(PPCHandler ppcHandlerOverride) {
 		fPPCHandlerOverride = ppcHandlerOverride;
 	}
@@ -357,13 +339,19 @@ public final class MSystem {
 		fObjects.remove(obj.name());
 	}
 
-	public void loadInvariants(InputStream in, String inputName, boolean doEcho, PrintWriter out) throws MInvalidModelException {
+	public void loadInvariants(InputStream in, String inputName, boolean doEcho, PrintWriter out) {
 		Collection<MClassInvariant> invs = ASSLCompiler
 				.compileInvariants(fModel, in, inputName,
 						out);
 
-		for(MClassInvariant inv : invs){
-			fModel.addClassInvariant(inv);
+		for(Iterator<MClassInvariant> it = invs.iterator(); it.hasNext();){
+			MClassInvariant inv = it.next();
+			try {
+				fModel.addClassInvariant(inv);
+			} catch (MInvalidModelException e) {
+				it.remove();
+				out.println(e.getMessage());
+			}
 		}
 		
 		if(invs != null && invs.size() > 0){
@@ -373,12 +361,12 @@ public final class MSystem {
 		if (invs != null && doEcho) {
 			out.println("Added invariants:");
 
-			for (MClassInvariant inv : invs) {
-				out.println(inv.toString());
-			}
-
-			if (invs.isEmpty()){
+			if (invs.isEmpty()) {
 				out.println("(none)");
+			} else {
+				for (MClassInvariant inv : invs) {
+					out.println(inv.toString());
+				}
 			}
 		}
 	}
@@ -452,7 +440,9 @@ public final class MSystem {
 
 			Value evalResult = oclEvaluator.eval(preCondition.expression(), fCurrentState, b);
 
-			boolean conditionPassed = (evalResult.isDefined() && evalResult.type().isBoolean() && ((BooleanValue) evalResult).isTrue());
+			boolean conditionPassed = (evalResult.isDefined()
+					&& evalResult.type().isTypeOfBoolean() && ((BooleanValue) evalResult)
+					.isTrue());
 
 			results.put(preCondition, conditionPassed);
 		}
@@ -492,7 +482,9 @@ public final class MSystem {
 			try {
 				Value evalResult = oclEvaluator.eval(postCondition.expression(), operationCall.getPreState(), fCurrentState, operationCall.getVarBindings());
 
-				conditionPassed = (evalResult.isDefined() && evalResult.type().isBoolean() && ((BooleanValue) evalResult).isTrue());
+				conditionPassed = (evalResult.isDefined()
+						&& evalResult.type().isTypeOfBoolean() && ((BooleanValue) evalResult)
+						.isTrue());
 			} catch (MultiplicityViolationException e) {
 				conditionPassed = false;
 			}
@@ -779,7 +771,9 @@ public final class MSystem {
 
 			if (allRegionsValid) {
 				for (TransitionResult r : toExecute) {
-					psm.doTransition(operationCall, r);
+					psm.doTransition(r.getTransition());
+					operationCall.addExecutedTransition(psm, r.getTransition());
+					fireTransition(operationCall.getSelf(), psm.getProtocolStateMachine(), r.getTransition());
 				}
 				psm.setExecutingTransition(false);
 			} else {
@@ -789,6 +783,33 @@ public final class MSystem {
 		}
 	}
 
+	/**
+	 * @param key
+	 * @param t
+	 */
+	public void revertTransition(MProtocolStateMachineInstance psmI, MTransition t) {
+		psmI.revertTransition(t);
+		fireTransition(psmI.getObject(), psmI.getProtocolStateMachine(), t);
+	}
+	
+	/**
+	 * Tries to determine the states of the state machines
+	 * for the defined objects by evaluating the state invariants
+	 * of each object and the corresponding state machines.
+	 */
+	public void determineStates(PrintWriter out) {
+		for (MObject o : this.state().allObjects()) {
+			if (o.cls().getAllOwnedProtocolStateMachines().isEmpty()) continue;
+			
+			for (MProtocolStateMachineInstance psmI : o.state(this.state()).getProtocolStateMachinesInstances()) {
+				psmI.determineState(this.state(), out);
+				fireTransition(o, psmI.getProtocolStateMachine(), null);
+			}
+		}
+		
+		out.println("State determination finished.");
+	}
+	
 	/**
 	 * Evaluate and check all preconditions of an operation call. If any is not
 	 * fulfilled, an exception is raised. Before the exception is raised, the
@@ -868,7 +889,7 @@ public final class MSystem {
 			Type expectedType = parameter.type();
 			Type foundType = argument.type();
 
-			if (!foundType.isSubtypeOf(expectedType)) {
+			if (!foundType.conformsTo(expectedType)) {
 
 				throw new MSystemException("Type mismatch in argument " + i + ". Expected type " + StringUtil.inQuotes(expectedType) + ", found "
 						+ StringUtil.inQuotes(foundType) + ".");
@@ -892,7 +913,7 @@ public final class MSystem {
 						+ ".");
 
 				// result value has incompatible type
-			} else if (!resultValue.type().isSubtypeOf(operation.resultType())) {
+			} else if (!resultValue.type().conformsTo(operation.resultType())) {
 				throw new MSystemException("Result value type " + inQuotes(resultValue.type()) + " does not match operation result type "
 						+ inQuotes(operation.resultType()) + ".");
 				// result value is of correct type
@@ -1152,7 +1173,7 @@ public final class MSystem {
 
 		state().updateDerivedValues(result.getStateDifference());
 		
-		Event e = new LinkDeletedEvent(link);
+		LinkDeletedEvent e = new LinkDeletedEvent(executionContext, link);
 		result.appendEvent(e);
 		
 		getEventBus().post(e);
@@ -1242,30 +1263,6 @@ public final class MSystem {
 	}
 
 	/**
-	 * Notifies the registered state change listeners about changes in the
-	 * system state.
-	 * 
-	 * @param differences Information about the changes to the system state.
-	 */
-	private void fireStateChanged(StateDifference differences) {
-		Object[] listeners = fListenerList.getListenerList();
-		StateChangeEvent sce = null;
-
-		for (int i = listeners.length - 2; i >= 0; i -= 2) {
-			if (listeners[i] == StateChangeListener.class) {
-				try {
-					if (sce == null) {
-						sce = new StateChangeEvent(this);
-						differences.fillStateChangeEvent(sce);
-					}
-
-					((StateChangeListener) listeners[i + 1]).stateChanged(sce);
-				} catch (Exception ex) { }
-			}
-		}
-	}
-
-	/**
 	 * Executes a statement using the current system state and stores the result
 	 * on the undo stack. If the execution fails, the effects of the statement
 	 * are reverted. Update listeners are notified and the result is stored.
@@ -1339,6 +1336,7 @@ public final class MSystem {
 
 		if (context.isUndo()) {
 			fUniqueNameGenerator.popState();
+			executionContext = EventContext.UNDO;
 		} else {
 			fUniqueNameGenerator.pushState();
 		}
@@ -1356,7 +1354,7 @@ public final class MSystem {
 		}
 
 		if (result.wasSuccessfull() && notifyUpdateStateListeners) {
-			fireStateChanged(result.getStateDifference());
+			getEventBus().post(new StatementExecutedEvent(executionContext, statement, result.getStateDifference()));
 		}
 
 		if (!result.wasSuccessfull()) {
@@ -1371,6 +1369,7 @@ public final class MSystem {
 			throw new MSystemException(result.getException().getMessage(), result.getException());
 		}
 
+		executionContext = EventContext.NORMAL_EXECUTION;
 		return result;
 	}
 
@@ -1400,18 +1399,7 @@ public final class MSystem {
 		SoilEvaluationContext context = new SoilEvaluationContext(this);
 		context.setIsUndo(true);
 
-		Object[] listeners = fListenerList.getListenerList();
-
 		StatementEvaluationResult result = execute(inverseStatement, context, false, false, true);
-
-		UndoEvent ue = new UndoEvent();
-
-		// Notify all undo listener
-		for (int i = listeners.length - 2; i >= 0; i -= 2) {
-			if (listeners[i] == UndoListener.class) {
-				((UndoListener)listeners[i + 1]).undone(ue);
-			}
-		}
 		
 		return result;
 	}
@@ -1592,13 +1580,6 @@ public final class MSystem {
 		return result;
 	}
 
-	public void updateListeners() {
-		StatementEvaluationResult currentResult = fCurrentlyEvaluatedStatements.peek();
-		if (currentResult != null) {
-			fireStateChanged(currentResult.getStateDifference());
-		}
-	}
-
 	/**
 	 * Starts a new variation in a test case
 	 */
@@ -1630,7 +1611,7 @@ public final class MSystem {
 	ObjectCreatedEvent fireObjectCreated(MObject object) {
 		if (object instanceof MLink) return null;
 		
-		ObjectCreatedEvent objectCreatedEvent = new ObjectCreatedEvent(object);
+		ObjectCreatedEvent objectCreatedEvent = new ObjectCreatedEvent(executionContext, object);
         getEventBus().post(objectCreatedEvent);
         
         return objectCreatedEvent;
@@ -1641,13 +1622,13 @@ public final class MSystem {
 	 * @return
 	 */
 	ObjectDestroyedEvent fireObjectDestroyed(MObject object) {
-		ObjectDestroyedEvent event = new ObjectDestroyedEvent(object);
+		ObjectDestroyedEvent event = new ObjectDestroyedEvent(executionContext, object);
 		getEventBus().post(event);
 		return event;
 	}
 		
 	LinkDeletedEvent fireLinkDeleted(MLink link) {
-		LinkDeletedEvent event = new LinkDeletedEvent(link);
+		LinkDeletedEvent event = new LinkDeletedEvent(executionContext, link);
 		getEventBus().post(event);
 		return event;
 	}
@@ -1656,44 +1637,50 @@ public final class MSystem {
 	 * @param link
 	 */
 	LinkInsertedEvent fireLinkInserted(MLink link) {
-		LinkInsertedEvent event = new LinkInsertedEvent(link);
+		LinkInsertedEvent event = new LinkInsertedEvent(executionContext, link);
 		getEventBus().post(event);
 		return event;
 	}
 	
 	AttributeAssignedEvent fireAttributeAssigned(MObject object, MAttribute attribute,
 			Value value) {
-		AttributeAssignedEvent e = new AttributeAssignedEvent(object, attribute, value);
+		AttributeAssignedEvent e = new AttributeAssignedEvent(executionContext, object, attribute, value);
 		getEventBus().post(e);
 		return e;
 	}
 
 	OperationEnteredEvent fireOperationEntered(MOperationCall operationCall) {
-		OperationEnteredEvent e = new OperationEnteredEvent(operationCall);
+		OperationEnteredEvent e = new OperationEnteredEvent(executionContext, operationCall);
 		getEventBus().post(e);
 		return e;
 	}
 	
 	OperationExitedEvent fireOperationExited(MOperationCall operationCall) {
-		OperationExitedEvent e = new OperationExitedEvent(operationCall);
+		OperationExitedEvent e = new OperationExitedEvent(executionContext, operationCall);
+		getEventBus().post(e);
+		return e;
+	}
+	
+	TransitionEvent fireTransition(MObject source, MStateMachine stateMachine, MTransition transition) {
+		TransitionEvent e = new TransitionEvent(executionContext, source, stateMachine, transition);
 		getEventBus().post(e);
 		return e;
 	}
 	
 	ClassInvariantsLoadedEvent fireClassInvariantsLoadedEvent(Collection<MClassInvariant> invariants) {
-		ClassInvariantsLoadedEvent e = new ClassInvariantsLoadedEvent(invariants);
+		ClassInvariantsLoadedEvent e = new ClassInvariantsLoadedEvent(executionContext, invariants);
 		getEventBus().post(e);
 		return e;
 	}
 	
 	ClassInvariantsUnloadedEvent fireClassInvariantsUnloadedEvent(Collection<MClassInvariant> invariants) {
-		ClassInvariantsUnloadedEvent e = new ClassInvariantsUnloadedEvent(invariants);
+		ClassInvariantsUnloadedEvent e = new ClassInvariantsUnloadedEvent(executionContext, invariants);
 		getEventBus().post(e);
 		return e;
 	}
 	
-	ClassInvariantChangeEvent fireClassInvariantChangeEvent(MClassInvariant invariant, InvariantStateChange change){
-		ClassInvariantChangeEvent e = new ClassInvariantChangeEvent(invariant, change);
+	ClassInvariantChangedEvent fireClassInvariantChangeEvent(MClassInvariant invariant, InvariantStateChange change){
+		ClassInvariantChangedEvent e = new ClassInvariantChangedEvent(executionContext, invariant, change);
 		getEventBus().post(e);
 		return e;
 	}

@@ -22,7 +22,11 @@
 package org.tzi.use.uml.mm;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,6 +38,7 @@ import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.uml.sys.soil.MStatement;
 import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.uml.sorting.UseFileOrderComparator;
+import org.tzi.use.util.uml.sorting.UseModelElementFileOrderComparator;
 
 /**
  * Visitor for dumping a string representation of model elements on an
@@ -110,7 +115,8 @@ public class MMPrintVisitor implements MMVisitor {
             fOut.print(ws());
     }
 
-    public void visitAssociation(MAssociation e) {
+    @Override
+	public void visitAssociation(MAssociation e) {
         indent();
         visitAnnotations(e);
         println(keyword(MAggregationKind.name(e.aggregationKind())) + ws() + 
@@ -133,7 +139,8 @@ public class MMPrintVisitor implements MMVisitor {
         indent();
     }
     
-    public void visitAssociationClass( MAssociationClass e ) {
+    @Override
+	public void visitAssociationClass( MAssociationClass e ) {
     	indent();
     	visitAnnotations(e);
         if ( e.isAbstract() ) {
@@ -171,7 +178,8 @@ public class MMPrintVisitor implements MMVisitor {
         println( keyword( "end" ) );
     }
 
-    public void visitAssociationEnd(MAssociationEnd e) {
+    @Override
+	public void visitAssociationEnd(MAssociationEnd e) {
         indent();
         visitAnnotations(e);
         StringBuilder result = new StringBuilder();
@@ -238,7 +246,8 @@ public class MMPrintVisitor implements MMVisitor {
         println(result.toString());
     }
 
-    public void visitAttribute(MAttribute e) {
+    @Override
+	public void visitAttribute(MAttribute e) {
         indent();
         visitAnnotations(e);
         
@@ -292,7 +301,8 @@ public class MMPrintVisitor implements MMVisitor {
         }
     }
     
-    public void visitClass(MClass e) {
+    @Override
+	public void visitClass(MClass e) {
         indent();
         visitAnnotations(e);
         if (e.isAbstract() )
@@ -312,7 +322,8 @@ public class MMPrintVisitor implements MMVisitor {
         println(keyword("end")); 
     }
 
-    public void visitClassInvariant(MClassInvariant e) {
+    @Override
+	public void visitClassInvariant(MClassInvariant e) {
     	visitAnnotations(e);
     	
     	StringBuilder line = new StringBuilder();
@@ -354,10 +365,12 @@ public class MMPrintVisitor implements MMVisitor {
 		return new ExpressionPrintVisitor(fOut);
 	}
 
+	@Override
 	public void visitGeneralization(MGeneralization e) {
     }
 
-    public void visitModel(MModel e) {
+    @Override
+	public void visitModel(MModel e) {
         indent(); 
         visitAnnotations(e);
         println(keyword("model") + ws() + id(e.name()));
@@ -368,31 +381,21 @@ public class MMPrintVisitor implements MMVisitor {
         Arrays.sort(enumTypes, new UseFileOrderComparator());
         
         for (EnumType t : enumTypes) {
-            indent();
-            visitAnnotations(t);
-            println(keyword("enum") + ws() + other(t.toString()) + ws() + 
-                    other("{") + ws() +
-                    other(StringUtil.fmtSeq(t.literals(), ", ")) + ws() +
-                    other("};"));
+        	visitEnum(t);
         }
         println();
 
-        // visit classes
-        MClass[] classes = e.classes().toArray(new MClass[0]);
-        Arrays.sort(classes, new UseFileOrderComparator());
+        // visit classes and associations together to maintain USE file order and easy handling of association classes
+        Set<MModelElement> classesAndAssocs = new HashSet<MModelElement>();
+        classesAndAssocs.addAll(e.classes());
+        classesAndAssocs.addAll(e.associations());
         
-        for (MClass cls : classes) {
-            cls.processWithVisitor(this);
-            println();
-        }
-
-        // visit associations
-        MAssociation[] associations = e.associations().toArray(new MAssociation[0]);
-        Arrays.sort(associations, new UseFileOrderComparator());
+        List<MModelElement> sortedClassesAndAssocs = new ArrayList<MModelElement>(classesAndAssocs);
+        Collections.sort(sortedClassesAndAssocs, new UseModelElementFileOrderComparator());
         
-        for (MAssociation assoc : associations) {
-        	assoc.processWithVisitor(this);
-            println();
+        for(MModelElement element : sortedClassesAndAssocs){
+        	element.processWithVisitor(this);
+        	println();
         }
 
         // visit constraints
@@ -418,7 +421,8 @@ public class MMPrintVisitor implements MMVisitor {
         }
     }
 
-    public void visitOperation(MOperation e) {
+    @Override
+	public void visitOperation(MOperation e) {
         indent(); 
         visitAnnotations(e);
         print(id(e.name()) + 
@@ -456,7 +460,8 @@ public class MMPrintVisitor implements MMVisitor {
     	return statement.toConcreteSyntax(fIndent, fIndentStep);
     }
     
-    public void visitPrePostCondition(MPrePostCondition e) {
+    @Override
+	public void visitPrePostCondition(MPrePostCondition e) {
     	visitAnnotations(e);
         println(keyword("context") + ws() +
                 other(e.cls().name()) + other("::") +
@@ -515,8 +520,10 @@ public class MMPrintVisitor implements MMVisitor {
 	public void visitSignal(MSignal s) {
 		print(keyword("signal"));
 		println(s.name());
+		incIndent();
 		indent();
 		print(keyword("attributes"));
+		incIndent();
 		indent();
 		for (MAttribute attr : s.getAttributes()) {
 			attr.processWithVisitor(this);
@@ -524,5 +531,20 @@ public class MMPrintVisitor implements MMVisitor {
 		decIndent();
 		decIndent();
 		println(keyword("end"));
+	}
+
+	@Override
+	public void visitEnum(EnumType enumType) {
+		indent();
+		visitAnnotations(enumType);
+		println(keyword("enum") + ws() + other(enumType.name()) + ws() + other("{"));
+		
+		incIndent();
+		indent();
+		println(other(StringUtil.fmtSeq(enumType.literals(), ", ")));
+		
+		decIndent();
+		indent();
+		println(ws() + other("};"));
 	}
 }

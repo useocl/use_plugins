@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.CollectionValue;
 import org.tzi.use.uml.ocl.value.OrderedSetValue;
@@ -72,14 +73,14 @@ public class ExpClosure extends ExpQuery {
 		CollectionType rangeType = (CollectionType) rangeExp.type();
 		Type flattenedQueryType;
 		
-		if (queryExp.type().isCollection(true)
-				&& !queryExp.type().isSubtypeOf(rangeType.elemType())) {
+		if (queryExp.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID)
+				&& !queryExp.type().conformsTo(rangeType.elemType())) {
 			flattenedQueryType = ((CollectionType)queryExp.type()).elemType();
 		} else {
 			flattenedQueryType = queryExp.type();
 		}
 
-		if (!flattenedQueryType.isSubtypeOf(rangeType.elemType())) {
+		if (!flattenedQueryType.conformsTo(rangeType.elemType())) {
 			throw new ExpInvalidException("Query expression must be of type "
 					+ StringUtil.inQuotes(rangeType.elemType())
 					+ " or "
@@ -87,7 +88,7 @@ public class ExpClosure extends ExpQuery {
 							+ ")") + ", but is " + StringUtil.inQuotes(queryExp.type()) + ".");
 		}
 
-		if (rangeExp.type().isSequence() || rangeExp.type().isOrderedSet()) {
+		if (rangeExp.type().isTypeOfSequence() || rangeExp.type().isTypeOfOrderedSet()) {
 			resultType = TypeFactory.mkOrderedSet(rangeType.elemType());
 		} else {
 			resultType = TypeFactory.mkSet(rangeType.elemType());
@@ -129,7 +130,7 @@ public class ExpClosure extends ExpQuery {
         CollectionType resultType = (CollectionType)type();
         
         // result is collection with mapped values
-        if (fRangeExp.type().isSequence() || fRangeExp.type().isOrderedSet())
+        if (fRangeExp.type().isTypeOfSequence() || fRangeExp.type().isTypeOfOrderedSet())
             return new OrderedSetValue(resultType.elemType(), resValues);
         else
             return new SetValue(resultType.elemType(), resValues);
@@ -145,7 +146,7 @@ public class ExpClosure extends ExpQuery {
 		Collection<Value> rangeVal;
 		CollectionType resultType = (CollectionType)type();
 		
-		if (elem.isCollection() && !elem.type().isSubtypeOf(resultType.elemType())) {
+		if (elem.isCollection() && !elem.type().conformsTo(resultType.elemType())) {
 			rangeVal = ((CollectionValue)elem).collection();
 		} else {
 			rangeVal = new ArrayList<Value>(1);
@@ -164,7 +165,7 @@ public class ExpClosure extends ExpQuery {
             Value val = fQueryExp.eval(ctx);
 
             // add element or elements to result
-            if (val.isCollection() && !val.type().isSubtypeOf(resultType.elemType()) ) {
+            if (val.isCollection() && !val.type().conformsTo(resultType.elemType()) ) {
             	CollectionValue colVal = (CollectionValue)val;
             	for (Value elem2 : colVal.collection()) {
             		if (!resValues.contains(elem2)) {

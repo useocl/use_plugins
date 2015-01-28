@@ -76,7 +76,6 @@ import org.tzi.use.uml.ocl.expr.ExpressionVisitor;
 import org.tzi.use.uml.ocl.expr.ExpressionWithValue;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
-import org.tzi.use.uml.ocl.type.ObjectType;
 
 /**
  * Abstract visitor implementation.
@@ -99,7 +98,7 @@ public abstract class AbstractCoverageVisitor implements ExpressionVisitor{
 
 	@Override
 	public void visitAllInstances(ExpAllInstances exp) {
-		addClassCoverage(exp.getSourceType().cls());
+		addClassCoverage(exp.getSourceType());
 	}
 
 	@Override
@@ -115,7 +114,7 @@ public abstract class AbstractCoverageVisitor implements ExpressionVisitor{
 	@Override
 	public void visitAttrOp(ExpAttrOp exp) {
 		exp.objExp().processWithVisitor(this);
-		addAttributeCoverage(((ObjectType)exp.objExp().type()).cls(), exp.attr());
+		addAttributeCoverage((MClass)exp.objExp().type(), exp.attr());
 	}
 
 	@Override
@@ -175,8 +174,8 @@ public abstract class AbstractCoverageVisitor implements ExpressionVisitor{
 	@Override
 	public void visitIsKindOf(ExpIsKindOf exp) {
 		exp.getSourceExpr().processWithVisitor(this);
-		if (exp.getTargetType().isObjectType()) {
-			addClassCoverage(((ObjectType)exp.getTargetType()).cls());
+		if (exp.getTargetType().isTypeOfClass()) {
+			addClassCoverage((MClass)exp.getTargetType());
 		}
 	}
 
@@ -221,7 +220,7 @@ public abstract class AbstractCoverageVisitor implements ExpressionVisitor{
 			ex.processWithVisitor(this);
 		}
 
-		addOperationCoverage(((ObjectType)exp.getArguments()[0].type()).cls(), exp.getOperation());
+		addOperationCoverage((MClass)exp.getArguments()[0].type(), exp.getOperation());
 		
 		if (expandOperations && exp.getOperation().hasExpression() && !operationStack.contains(exp.getOperation())) {
 			operationStack.push(exp.getOperation());
@@ -304,8 +303,8 @@ public abstract class AbstractCoverageVisitor implements ExpressionVisitor{
 
 	@Override
 	public void visitVariable(ExpVariable exp) {
-		if (exp.type().isTrueObjectType()) {
-			addClassCoverage(((ObjectType)exp.type()).cls());
+		if (exp.type().isTypeOfClass()) {
+			addClassCoverage((MClass)exp.type());
 		}
 	}
 	
@@ -339,7 +338,7 @@ public abstract class AbstractCoverageVisitor implements ExpressionVisitor{
 	
 	@Override
 	public void visitObjectByUseId(ExpObjectByUseId expObjectByUseId) {
-		addClassCoverage(expObjectByUseId.getSourceType().cls());
+		addClassCoverage(expObjectByUseId.getSourceType());
 		expObjectByUseId.getIdExpression().processWithVisitor(this);
 	}
 
@@ -351,16 +350,16 @@ public abstract class AbstractCoverageVisitor implements ExpressionVisitor{
 
 	@Override
 	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
-		if (expSelectByKind.type().elemType().isTrueObjectType()) {
-			addClassCoverage(((ObjectType)expSelectByKind.type().elemType()).cls());
+		if (expSelectByKind.type().elemType().isTypeOfClass()) {
+			addClassCoverage((MClass)expSelectByKind.type().elemType());
 		}
 		expSelectByKind.getSourceExpression().processWithVisitor(this);
 	}
 
 	@Override
 	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
-		if (expSelectByType.type().elemType().isTrueObjectType()) {
-			addClassCoverage(((ObjectType)expSelectByType.type().elemType()).cls());
+		if (expSelectByType.type().elemType().isTypeOfClass()) {
+			addClassCoverage((MClass)expSelectByType.type().elemType());
 		}
 		expSelectByType.getSourceExpression().processWithVisitor(this);		
 	}

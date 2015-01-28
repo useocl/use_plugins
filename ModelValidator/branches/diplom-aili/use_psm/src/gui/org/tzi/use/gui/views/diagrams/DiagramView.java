@@ -81,6 +81,7 @@ import org.tzi.use.gui.views.diagrams.elements.Rolename;
 import org.tzi.use.gui.views.diagrams.elements.edges.EdgeBase;
 import org.tzi.use.gui.views.diagrams.event.ActionLoadLayout;
 import org.tzi.use.gui.views.diagrams.event.ActionSaveLayout;
+import org.tzi.use.gui.views.diagrams.util.Direction;
 import org.tzi.use.gui.views.diagrams.waypoints.WayPoint;
 import org.tzi.use.util.Log;
 import org.w3c.dom.Document;
@@ -353,7 +354,10 @@ public abstract class DiagramView extends JPanel
 	        edgeIterator = fGraph.edgeIterator();
 	        while(edgeIterator.hasNext()) {
 	        	EdgeBase e = edgeIterator.next();
-	        	//FIXME: Return max X and Y to be able to scroll
+	        	PlaceableNode eastNode = e.getWayPointMostTo(Direction.EAST);
+	        	maxX = Math.max(maxX, eastNode.getX() + eastNode.getWidth());
+	        	PlaceableNode southNode = e.getWayPointMostTo(Direction.SOUTH);
+	        	maxY = Math.max(maxY, southNode.getY() + southNode.getHeight());
 	        	e.drawProperties(g2d);
 	        }
 	        
@@ -954,7 +958,7 @@ public abstract class DiagramView extends JPanel
 	 */
 	protected void onClosing() {
 		this.saveDefaultLayout();
-	};
+	}
 	
 	/**
 	 * Returns information about currently visible nodes and edges in the diagram.

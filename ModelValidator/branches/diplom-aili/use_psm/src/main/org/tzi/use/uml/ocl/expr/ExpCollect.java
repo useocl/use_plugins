@@ -23,6 +23,7 @@ package org.tzi.use.uml.ocl.expr;
 
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.Value;
 
@@ -43,11 +44,11 @@ public class ExpCollect extends ExpQuery {
         throws ExpInvalidException
     {
         // result type is bag or sequence of query expression type
-        super( rangeExp.type().isSequence() || rangeExp.type().isOrderedSet()
+        super( rangeExp.type().isTypeOfSequence() || rangeExp.type().isTypeOfOrderedSet()
                ? (Type) TypeFactory.mkSequence(
-            		   (queryExp.type().isCollection(true) ? ((CollectionType)queryExp.type()).elemType() : queryExp.type()))
+            		   (queryExp.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID) ? ((CollectionType)queryExp.type()).elemType() : queryExp.type()))
                : (Type) TypeFactory.mkBag(
-            		   (queryExp.type().isCollection(true) ? ((CollectionType)queryExp.type()).elemType() : queryExp.type())), 
+            		   (queryExp.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID) ? ((CollectionType)queryExp.type()).elemType() : queryExp.type())), 
                ( elemVarDecl != null ) 
                ? new VarDeclList(elemVarDecl) 
                : new VarDeclList(true),
@@ -69,7 +70,7 @@ public class ExpCollect extends ExpQuery {
         
         Value res;
         
-        if (this.fQueryExp.type().isCollection(true)) {
+        if (this.fQueryExp.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
         	res = evalCollectOnNested(ctx);
         } else {
         	res = evalCollect(ctx);

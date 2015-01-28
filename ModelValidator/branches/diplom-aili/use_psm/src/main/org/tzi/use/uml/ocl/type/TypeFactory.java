@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.commonbehavior.communications.MSignal;
 
 /**
@@ -109,10 +108,6 @@ public final class TypeFactory {
 
     public static OrderedSetType mkOrderedSet(Type elemType) {
     	return new OrderedSetType(elemType);
-    }
-    
-    public static ObjectType mkObjectType(MClass cls) {
-        return cls.type();
     }
 
     public static MessageType mkMessageType(MSignal signal) {

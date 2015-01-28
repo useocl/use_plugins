@@ -22,7 +22,6 @@ package org.tzi.use.uml.sys.soil;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.expr.ExpConstString;
 import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MObject;
@@ -86,8 +85,8 @@ public class MNewObjectStatement extends MStatement {
      * 
      * @return
      */
-    public Type getObjectType() {
-        return fObjectClass.type();
+    public MClass getObjectType() {
+        return fObjectClass;
     }
 
     @Override
@@ -102,7 +101,7 @@ public class MNewObjectStatement extends MStatement {
 
         // create new object
         try {
-            return new ObjectValue(fObjectClass.type(), context.getSystem().createObject(result, fObjectClass, objectName));
+            return new ObjectValue(fObjectClass, context.getSystem().createObject(result, fObjectClass, objectName));
         } catch (MSystemException e) {
             throw new EvaluationFailedException(e);
         }

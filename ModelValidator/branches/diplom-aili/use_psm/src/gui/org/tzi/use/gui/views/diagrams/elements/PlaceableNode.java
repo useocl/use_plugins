@@ -52,6 +52,7 @@ import org.tzi.use.gui.views.diagrams.elements.positioning.StrategyRelativeToCor
 import org.tzi.use.gui.views.diagrams.util.Direction;
 import org.tzi.use.gui.views.diagrams.util.Util;
 import org.tzi.use.gui.xmlparser.LayoutTags;
+import org.tzi.use.util.FloatUtil;
 import org.tzi.use.util.MathUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -348,7 +349,7 @@ public abstract class PlaceableNode implements Layoutable, Selectable {
     	bounds.width =  MathUtil.max(getRequiredWidth(), getMinWidth(), width);
     	bounds.height = MathUtil.max(getRequiredHeight(), getMinHeight(), height);
     	    	
-    	if (oldBounds.getHeight() != bounds.getHeight() || oldBounds.getWidth() != bounds.getWidth()) {
+    	if (!FloatUtil.equals(oldBounds.getHeight(), bounds.getHeight()) || !FloatUtil.equals(oldBounds.getWidth(), bounds.getWidth())) {
     		this.updatePosition();
     		fireBoundsChanged(oldBounds, getBounds());
     	}
@@ -786,7 +787,7 @@ public abstract class PlaceableNode implements Layoutable, Selectable {
      * @param target the target <code>Point2D</code> of the line.
      */
     public final Point2D getIntersectionCoordinate( Point2D target ) {
-    	if (getWidth() == 0.0 || getHeight() == 0.0)
+    	if (FloatUtil.equals(getWidth(), 0.0d) || FloatUtil.equals(getHeight(), 0.0d))
     		return getPosition();
     	
     	return getIntersectionCoordinate(this.getCenter(), target);
@@ -815,7 +816,7 @@ public abstract class PlaceableNode implements Layoutable, Selectable {
 		double length = Math.max(getWidth(), getHeight()) * 2;
 		final Point2D center = getCenter();
 		
-		if (length == 0.0)
+		if (FloatUtil.equals(length, 0.0d))
 			return center;
 		
 		Point2D.Double calPoint = new Point2D.Double(0, 0);

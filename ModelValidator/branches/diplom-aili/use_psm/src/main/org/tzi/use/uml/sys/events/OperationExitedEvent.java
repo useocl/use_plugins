@@ -22,6 +22,7 @@
 package org.tzi.use.uml.sys.events;
 
 import org.tzi.use.uml.sys.MOperationCall;
+import org.tzi.use.uml.sys.events.tags.EventContext;
 
 
 /**
@@ -38,7 +39,8 @@ public class OperationExitedEvent extends Event {
 	 * Constructs a new operation exited event.
 	 * @param operationCall The operation call which let to this operation exit event
 	 */
-	public OperationExitedEvent(MOperationCall operationCall) {
+	public OperationExitedEvent(EventContext ctx, MOperationCall operationCall) {
+		super(ctx);
 		fOperationCall = operationCall;
 	}
 	

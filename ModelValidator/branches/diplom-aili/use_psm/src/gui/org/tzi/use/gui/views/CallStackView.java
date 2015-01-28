@@ -39,7 +39,6 @@ import org.tzi.use.gui.util.PopupListener;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.sys.MOperationCall;
 import org.tzi.use.uml.sys.MSystem;
-import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.events.OperationEnteredEvent;
 import org.tzi.use.uml.sys.events.OperationExitedEvent;
 import org.tzi.use.util.StringUtil;
@@ -159,10 +158,5 @@ public class CallStackView extends JPanel implements View {
     public void detachModel() {
         fSystem.getEventBus().unregister(this);
     }
-
-	@Override
-	public void stateChanged(StateChangeEvent e) {
-		
-	}
 
 }

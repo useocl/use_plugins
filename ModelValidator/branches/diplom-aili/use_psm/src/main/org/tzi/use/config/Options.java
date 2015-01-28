@@ -22,6 +22,7 @@
 package org.tzi.use.config;
 
 import java.awt.Dimension;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -47,7 +48,7 @@ import org.tzi.use.util.TypedProperties;
 public class Options {
 
     // the release version
-    public static final String RELEASE_VERSION = "3.1.0";
+    public static final String RELEASE_VERSION = "4.0.0";
 
     // the copyright
     public static final String COPYRIGHT = "Copyright (C) 1999-2014 University of Bremen";
@@ -181,16 +182,15 @@ public class Options {
     				return t;
     			}
     		}
-    		
     		return null;
     	}
     }
-    
-    private static WarningType checkWarningsOclAnyInCollections = WarningType.WARN;
-    
-    private static WarningType checkWarningsUnrelatedTypes = WarningType.WARN;
-       
-    /**
+
+	private static WarningType checkWarningsOclAnyInCollections = WarningType.WARN;
+
+	private static WarningType checkWarningsUnrelatedTypes = WarningType.WARN;
+
+	/**
 	 * enable/disable plugin architecture
 	 *
 	 **/
@@ -216,6 +216,11 @@ public class Options {
 	 * file.
      */
     public static final String PROTOCOL_FILE = "use.protocol";
+
+	/**
+	 * Default precision for floating-point number comparisons.
+	 */
+	public static final int DEFAULT_FLOAT_PRECISION = 8;
     
     /**
      * Contains the ten last opened files
@@ -232,34 +237,27 @@ public class Options {
         System.out.println("options:");
         System.out.println("  -c            compile only");
         System.out.println("  -cp           compile and print specification");
-		System.out
-				.println("  -daVinciClass output a daVinci graph representing the class diagram");
-		System.out
-				.println("  -disableCollectShorthand flag use of OCL shorthand notation as error");
-		System.out.println("  -oclAnyCollectionsChecks: (W)arn|(E)rror|(I)gnore");
-		System.out.println("  -extendedTypeSystemChecks:(W)arn|(E)rror|(I)gnore");
+		System.out.println("  -disableCollectShorthand");
+		System.out.println("                flag use of OCL shorthand notation as error");
+		System.out.println("  -oclAnyCollectionsChecks:W");
+		System.out.println("                (W)arn|(E)rror|(I)gnore");
+		System.out.println("  -extendedTypeSystemChecks:W");
+		System.out.println("                (W)arn|(E)rror|(I)gnore");
 		System.out.println("  -implicitTypes  Implicit variable typing in operations");
         System.out.println("  -nogui        do not use GUI");
 		System.out.println("  -noplugins    do not use plugins");
         System.out.println("  -h            print help");
         System.out.println("  -H=path       home of use installation");
-		System.out
-				.println("  -nr           suppress warnings about missing readline library");
-		System.out
-				.println("  -q            reads spec_file, executes cmd_file, and checks constraints");
-		System.out
-				.println("                exit code is 1 if constraints fail, otherwise 0");
-		System.out
-				.println("  -qv           like -q but with verbose output of constraint check");
+		System.out.println("  -nr           suppress warnings about missing readline library");
+		System.out.println("  -q            reads spec_file, executes cmd_file, and checks constraints");
+		System.out.println("                exit code is 1 if constraints fail, otherwise 0");
+		System.out.println("  -qv           like -q but with verbose output of constraint check");
         System.out.println("  -v            print verbose messages");
-		System.out
-				.println("  -vt           print verbose messages with time info");
+		System.out.println("  -vt           print verbose messages with time info");
         System.out.println("  -V            print version info and exit");
         System.out.println();
-		System.out
-				.println("spec_file:      file containing a USE specification");
-		System.out
-				.println("cmd_file:       script file containing commands (will be executed on startup)");
+		System.out.println("spec_file:      file containing a USE specification");
+		System.out.println("cmd_file:       script file containing commands (will be executed on startup)");
         System.out.println();
         System.out.println("diagnostics:");
         System.out.println("  -debug        print lots of messages");
@@ -357,10 +355,16 @@ public class Options {
                     }
                 } else if (arg.startsWith("oclAnyCollectionsChecks:")) {
                 	String value = arg.substring("oclAnyCollectionsChecks:".length());
-                	checkWarningsOclAnyInCollections = WarningType.getType(value);
+                	WarningType wt = WarningType.getType(value);
+                	if(wt != null){
+                		checkWarningsOclAnyInCollections = wt;
+                	}
                 } else if (arg.startsWith("extendedTypeSystemChecks:")) {
                 	String value = arg.substring("extendedTypeSystemChecks:".length());
-                	checkWarningsUnrelatedTypes = WarningType.getType(value);
+                	WarningType wt = WarningType.getType(value);
+                	if(wt != null){
+                		checkWarningsUnrelatedTypes = wt;
+                	}
                 } else {
                 	System.out.println("invalid argument `" + arg
 							+ "\', try `use -h' for help.");
@@ -375,7 +379,7 @@ public class Options {
                 System.exit(1);
             }
         }
-
+        
         if (homeDir == null) {
         	// Try to get the home from Java
         	URL path = Options.class.getProtectionDomain().getCodeSource().getLocation();
@@ -383,9 +387,10 @@ public class Options {
         		URI pathUri = path.toURI();
         		Path home = Paths.get(pathUri);
 				if (Files.isRegularFile(home)) {
-					// in jar
+					// resolve jar file path
 					home = home.getParent();
 				}
+				// resolve lib/ folder path, assuming default folder structure
 				homeDir = home.getParent();
 			} catch (URISyntaxException e) { }
         }
@@ -395,8 +400,8 @@ public class Options {
             System.exit(1);
         }
         
+        setLastDirectory(homeDir);
         iconDir = homeDir.resolve("images");
-    
 		pluginDir = homeDir.resolve("lib").resolve("plugins");
 
         if (quiet && (specFilename == null || cmdFilename == null) ) {
@@ -411,7 +416,7 @@ public class Options {
 
         // args ok, print welcome message if in interactive mode
         if (!compileOnly && !quiet ) {
-			Log.println("use version " + Options.RELEASE_VERSION + ", " + Options.COPYRIGHT);
+			Log.println("USE version " + Options.RELEASE_VERSION + ", " + Options.COPYRIGHT);
         }
     }
 
@@ -553,6 +558,30 @@ public class Options {
 	 */
 	public static Path getLastDirectory() {
 		return lastDirectory;
+	}
+	
+	/**
+	 * Returns an absolute file path to the given file considering the
+	 * {@link #lastDirectory}.
+	 * 
+	 * @see #getFilenameToOpen(String)
+	 */
+	public static String getFilenameToOpen(File file) {
+		if(file.isAbsolute()){
+			return file.getAbsolutePath();
+		}
+		
+		return lastDirectory.resolve(file.toPath()).toString();
+	}
+
+	/**
+	 * Returns an absolute file path to the given filename considering the
+	 * {@link #lastDirectory}.
+	 * 
+	 * @see #getFilenameToOpen(File)
+	 */
+	public static String getFilenameToOpen(String filepath) {
+		return getFilenameToOpen(new File(filepath));
 	}
 	
 	public static RecentItems getRecentFiles() {

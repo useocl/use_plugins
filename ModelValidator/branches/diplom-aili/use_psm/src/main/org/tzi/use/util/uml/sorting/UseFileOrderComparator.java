@@ -24,6 +24,8 @@ import java.util.Comparator;
 import org.tzi.use.uml.mm.UseFileLocatable;
 
 /**
+ * A comparator that compares elements by the (line) order in the USE specification file.
+ * 
  * @author Frank Hilken
  */
 public class UseFileOrderComparator implements Comparator<UseFileLocatable> {

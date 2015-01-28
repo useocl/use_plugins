@@ -38,6 +38,7 @@ import org.tzi.use.uml.ocl.expr.ExpVariable;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
 /**
  * Node of the abstract syntax tree constructed by the parser, 
@@ -88,7 +89,7 @@ public class ASTTypeArgExpression extends ASTExpression {
                                             fOpToken.getText() + "'.");
         }
     
-        if (!expr.type().isCollection(true) && fFollowsArrow) {
+        if (!expr.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID) && fFollowsArrow) {
         	ctx.reportWarning(fOpToken, "application of `" + fOpToken.getText() + 
                     "' to a single value should be done with `.' " +
                     "instead of `->'.");
@@ -98,7 +99,7 @@ public class ASTTypeArgExpression extends ASTExpression {
         // e.g. `c.oclIsKindOf(Employee)'
         // is a valid shorthand for `c->collect(e |
         // e.oclIsKindOf(Employee))'
-        if (expr.type().isCollection(true) && !fFollowsArrow) {
+        if (expr.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID) && !fFollowsArrow) {
             if (Options.disableCollectShorthand )
                 throw new SemanticException(fOpToken, MSG_DISABLE_COLLECT_SHORTHAND);
         
@@ -112,7 +113,7 @@ public class ASTTypeArgExpression extends ASTExpression {
         } else {
             res = genExpr(expr, t);
             // Because of multiple inheritance only oclIsTypeOf results always in false when no relation is given  
-            if ((res instanceof ExpIsTypeOf) && ! expr.type().isSubtypeOf(t) && ! t.isSubtypeOf(expr.type()) )
+            if ((res instanceof ExpIsTypeOf) && ! expr.type().conformsTo(t) && ! t.conformsTo(expr.type()) )
                 ctx.reportWarning(fTargetType.getStartToken(), 
                                   "Expression is always false since the expression's type `" +
                                   expr.type() + 

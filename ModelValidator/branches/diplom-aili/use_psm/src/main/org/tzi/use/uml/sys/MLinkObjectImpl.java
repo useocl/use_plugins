@@ -29,8 +29,6 @@ import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNavigableElement;
-import org.tzi.use.uml.ocl.type.ObjectType;
-import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.uml.ocl.value.ObjectValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.util.StringUtil;
@@ -74,14 +72,6 @@ public class MLinkObjectImpl implements MLinkObject {
     }
 
     /**
-     * Returns the type of this link object.
-     */
-    @Override
-    public ObjectType type() {
-        return delegatesObject.type();
-    }
-
-    /**
      * Returns a name for this link object.
      */
     @Override
@@ -91,7 +81,7 @@ public class MLinkObjectImpl implements MLinkObject {
     
     @Override
     public ObjectValue value() {
-    	return new ObjectValue(TypeFactory.mkObjectType(cls()), this);
+    	return new ObjectValue(cls(), this);
     }
 
     

@@ -29,7 +29,6 @@ import org.tzi.use.parser.ocl.ASTOperationExpression;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.sys.soil.MLibraryOperationCallStatement;
 import org.tzi.use.uml.sys.soil.MObjectOperationCallStatement;
 import org.tzi.use.uml.sys.soil.MOperationCallStatement;
@@ -84,7 +83,7 @@ public class ASTOperationCallStatement extends ASTStatement {
 		objectExpression.setStringRep(fOperationCall.getStringRep());
 		Expression object = generateObjectExpression(objectExpression);
 				
-		MClass objectClass = ((ObjectType)object.type()).cls();
+		MClass objectClass = (MClass)object.type();
 
 		String operationName = operationExpression.getOpToken().getText();
 		

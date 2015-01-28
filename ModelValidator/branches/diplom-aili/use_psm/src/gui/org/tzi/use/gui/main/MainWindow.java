@@ -22,6 +22,7 @@ package org.tzi.use.gui.main;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Graphics;
@@ -124,8 +125,9 @@ import org.tzi.use.uml.mm.statemachines.MStateMachine;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
-import org.tzi.use.uml.sys.StateChangeEvent;
-import org.tzi.use.uml.sys.StateChangeListener;
+import org.tzi.use.uml.sys.events.StatementExecutedEvent;
+import org.tzi.use.uml.sys.events.tags.SystemStateChangedEvent;
+import org.tzi.use.uml.sys.events.tags.SystemStructureChangedEvent;
 import org.tzi.use.uml.sys.soil.MEnterOperationStatement;
 import org.tzi.use.uml.sys.soil.MExitOperationStatement;
 import org.tzi.use.uml.sys.soil.MNewObjectStatement;
@@ -134,6 +136,7 @@ import org.tzi.use.util.Log;
 import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.USEWriter;
 
+import com.google.common.eventbus.Subscribe;
 import com.itextpdf.awt.PdfGraphics2D;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -150,7 +153,7 @@ import com.itextpdf.text.pdf.PdfWriter;
  * @author Frank Hilken
  */
 @SuppressWarnings("serial")
-public class MainWindow extends JFrame implements StateChangeListener {
+public class MainWindow extends JFrame {
     private final Session fSession;
 
     private final StatusBar fStatusBar;
@@ -170,6 +173,8 @@ public class MainWindow extends JFrame implements StateChangeListener {
 
 	private final JToolBar fToolBar;
 	private final JMenuBar fMenuBar;
+	private final JMenu statemachineMenu;
+	
     private final JButton fBtnEditUndo;
     private final JButton fBtnEditRedo;
 
@@ -403,16 +408,22 @@ public class MainWindow extends JFrame implements StateChangeListener {
         JMenu submenu = new JMenu("Create View");
         submenu.setMnemonic('C');
         menu.add(submenu);
-        mi = submenu.add(fActionViewCreateObjectCount);
-        mi.setMnemonic('O');
-        mi = submenu.add(fActionViewCreateLinkCount);
-        mi.setMnemonic('L');
         mi = submenu.add(fActionViewCreateClassDiagram);
         mi.setMnemonic('V');
+        
+        statemachineMenu = new JMenu("State machine diagram");
+        statemachineMenu.setIcon(getIcon("Diagram.gif"));
+        createStateMachineMenuEntries(statemachineMenu);
+        submenu.add(statemachineMenu);
+        
         mi = submenu.add(fActionViewCreateObjectDiagram);
         mi.setMnemonic('d');
         mi = submenu.add(fActionViewCreateClassInvariant);
         mi.setMnemonic('C');
+        mi = submenu.add(fActionViewCreateObjectCount);
+        mi.setMnemonic('O');
+        mi = submenu.add(fActionViewCreateLinkCount);
+        mi.setMnemonic('L');
         mi = submenu.add(fActionViewCreateStateEvolution);
         mi.setMnemonic('S');
         mi = submenu.add(fActionViewCreateObjectProperties);
@@ -709,19 +720,50 @@ public class MainWindow extends JFrame implements StateChangeListener {
         fLogWriter.flush();
     }
 
-    @Override
-	public void stateChanged(StateChangeEvent e) {
-    	setUndoRedoButtons();
+    private void createStateMachineMenuEntries(Container menu){
+    	int elems = 0;
+    	if(fSession.hasSystem()){
+    		for (final MClass cls : fSession.system().model().classes()) {
+    			for (final MStateMachine sm : cls.getOwnedProtocolStateMachines()) {
+    				JMenuItem item = new JMenuItem(cls.name() + "::" + sm.name());
+    				item.addActionListener(new ActionListener() {
+    					@Override
+    					public void actionPerformed(ActionEvent e) {
+    						showStateMachineView(sm);
+    					}
+    				});
+    				menu.add(item);
+    				++elems;
+    			}
+    		}
+    	}
     	
-        if (e.structureHasChanged() && fCbMenuItemCheckStructure.isSelected()) {
-        	 checkStructure();
-        }
-        
-        if (Options.getCheckStateInvariants()) {
+    	if (elems == 0) {
+    		JMenuItem item = new JMenuItem("<html><i>No statemachines available.</i></html>");
+    		item.setEnabled(false);
+    		menu.add(item);
+    	}
+    }
+    
+    @Subscribe
+	public void onSystemChanged(SystemStateChangedEvent e) {
+    	if (Options.getCheckStateInvariants()) {
         	fLogWriter.println("Checking state invariants.");
         	fSession.system().state().checkStateInvariants(fLogWriter);
         }
-        
+    }
+    
+    @Subscribe
+	public void onStructureChanged(SystemStructureChangedEvent e) {
+		if (fCbMenuItemCheckStructure.isSelected()) {
+			checkStructure();
+		}
+	}
+    
+    @Subscribe
+	public void onStatementExecuted(StatementExecutedEvent e) {
+    	setUndoRedoButtons();
+
         fActionFileSaveScript.setEnabled(
         		fSession.system().numEvaluatedStatements() > 0);
     }
@@ -785,6 +827,7 @@ public class MainWindow extends JFrame implements StateChangeListener {
         fActionViewCreateLinkCount.setEnabled(on);
         fActionViewCreateClassDiagram.setEnabled(on);
         fStateMachineDropdown.setEnabled(on);
+        statemachineMenu.setEnabled(on);
         fActionViewCreateObjectDiagram.setEnabled(on);
         fActionViewCreateClassInvariant.setEnabled(on);
         fActionViewCreateStateEvolution.setEnabled(on);
@@ -801,17 +844,18 @@ public class MainWindow extends JFrame implements StateChangeListener {
 				currentAction.setEnabled(on);
 			}
 		}
-        disableUndo();
+		setUndoRedoButtons();
         closeAllViews();
+        statemachineMenu.removeAll();
+        createStateMachineMenuEntries(statemachineMenu);
 
         if (on) {
             MSystem system = fSession.system();
             fModelBrowser.setModel(system.model());
-            system.addChangeListener(this);
+            system.getEventBus().register(this);
             setTitle("USE: " + new File(system.model().filename()).getName());
         } else {
             fModelBrowser.setModel(null);
-            // fSession.system().removeChangeListener(this);
             fActionFileSaveScript.setEnabled(false);
             setTitle("USE");
         }
@@ -834,6 +878,12 @@ public class MainWindow extends JFrame implements StateChangeListener {
     }
     
     private void setUndoRedoButtons() {
+    	if(!fSession.hasSystem()){
+    		disableUndo();
+    		disableRedo();
+    		return;
+    	}
+    	
     	String nextToUndo = fSession.system().getUndoDescription();
 		
 		if (nextToUndo != null) {
@@ -1081,32 +1131,34 @@ public class MainWindow extends JFrame implements StateChangeListener {
         	fLogWriter.println("compiling specification " + f.toString() + "...");
         	
             MModel model = null;
-            MSystem system = null;
             try (InputStream iStream = Files.newInputStream(f)) {
                 model = USECompiler.compileSpecification(iStream, f.toAbsolutePath().toString(),
                         fLogWriter, new ModelFactory());
                 fLogWriter.println("done.");
-                if (model != null) {
-                    fLogWriter.println(model.getStats());
-                    // create system
-                    system = new MSystem(model);
-                }
             } catch (IOException ex) {
                 fLogWriter.println("File `" + f.toAbsolutePath().toString() + "' not found.");
             }
             
+            final MSystem system;
+            if (model != null) {
+            	fLogWriter.println(model.getStats());
+            	// create system
+            	system = new MSystem(model);
+            } else {
+            	system = null;
+            }
+            
             // set new system (may be null if compilation failed)
-            final MSystem system2 = system; // need final variable for Runnable
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
 				public void run() {
-                    fSession.setSystem(system2);
+                    fSession.setSystem(system);
                 }
             });
             
             if (system != null) {
             	Options.getRecentFiles().push(f.toString());
-            	Options.setLastDirectory(f);
+            	Options.setLastDirectory(f.getParent());
             	return true;
             } else {
             	return false;
@@ -1594,7 +1646,7 @@ public class MainWindow extends JFrame implements StateChangeListener {
     	
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			fSession.system().state().determineStates(fLogWriter);
+			fSession.system().determineStates(fLogWriter);
 		}
 	}
     
@@ -1691,7 +1743,6 @@ public class MainWindow extends JFrame implements StateChangeListener {
 
 				@Override
 				public void internalFrameClosed(InternalFrameEvent e) {
-					super.internalFrameClosed(e);
 					classDiagrams.remove(((ViewFrame)e.getSource()).getView());
 				}
             });
@@ -1751,28 +1802,8 @@ public class MainWindow extends JFrame implements StateChangeListener {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					// build menu from model
 					menu.removeAll();
-					int elems = 0;
-
-					for (final MClass cls : fSession.system().model().classes()) {
-						for (final MStateMachine sm : cls.getOwnedProtocolStateMachines()) {
-							JMenuItem item = menu.add(cls.name() + "::" + sm.name());
-							item.addActionListener(new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									showStateMachineView(sm);
-								}
-							});
-							++elems;
-						}
-					}
-
-					if (elems == 0) {
-						JMenuItem item = menu.add("<html><i>No statemashines available.</i></html>");
-						item.setEnabled(false);
-					}
-
+					createStateMachineMenuEntries(menu);
 					menu.show(StateMachineDropdown.this, 0, getHeight());
 				}
 			}
@@ -1823,7 +1854,6 @@ public class MainWindow extends JFrame implements StateChangeListener {
                 
                 @Override
 				public void internalFrameClosed(InternalFrameEvent e) {
-					super.internalFrameClosed(e);
 					objectDiagrams.remove(((ViewFrame)e.getSource()).getView());
 				}
             });
@@ -1866,21 +1896,21 @@ public class MainWindow extends JFrame implements StateChangeListener {
 	    ViewFrame f = new ViewFrame("Communication diagram", cdv, "CommunicationDiagram.gif");
 	    // give some help information
 	    f.addInternalFrameListener(new InternalFrameAdapter() {
-		@Override
-		public void internalFrameActivated(InternalFrameEvent ev) {
-		    fStatusBar.showTmpMessage("Use left mouse button to move " + "actor, object and link boxes, right button for popup menu.");
-		}
+			@Override
+			public void internalFrameActivated(InternalFrameEvent ev) {
+				fStatusBar.showTmpMessage("Use left mouse button to move "
+								+ "actor, object and link boxes, right button for popup menu.");
+			}
 
-		@Override
-		public void internalFrameDeactivated(InternalFrameEvent ev) {
-		    fStatusBar.clearMessage();
-		}
+			@Override
+			public void internalFrameDeactivated(InternalFrameEvent ev) {
+				fStatusBar.clearMessage();
+			}
 
-		@Override
-		public void internalFrameClosed(InternalFrameEvent e) {
-		    super.internalFrameClosed(e);
-		    communicationDiagrams.remove(((ViewFrame) e.getSource()).getView());
-		}
+			@Override
+			public void internalFrameClosed(InternalFrameEvent e) {
+				communicationDiagrams.remove(((ViewFrame) e.getSource()).getView());
+			}
 	    });
 
 	    JComponent c = (JComponent) f.getContentPane();
@@ -1905,6 +1935,19 @@ public class MainWindow extends JFrame implements StateChangeListener {
                     fSession.system());
             ViewFrame f = new ViewFrame("Class invariants", civ,
                     "InvariantView.gif");
+            
+			f.addInternalFrameListener(new InternalFrameAdapter() {
+				@Override
+				public void internalFrameActivated(InternalFrameEvent ev) {
+					fStatusBar.showTmpMessage("Use right mouse button for popup menu.");
+				}
+
+				@Override
+				public void internalFrameDeactivated(InternalFrameEvent ev) {
+					fStatusBar.clearMessage();
+				}
+			});
+            
             JComponent c = (JComponent) f.getContentPane();
             c.setLayout(new BorderLayout());
             c.add(civ, BorderLayout.CENTER);
@@ -1958,6 +2001,19 @@ public class MainWindow extends JFrame implements StateChangeListener {
 		public void actionPerformed(ActionEvent e) {
             ClassExtentView cev = new ClassExtentView(MainWindow.this, fSession.system());
             ViewFrame f = new ViewFrame("Class extent", cev, "ClassExtentView.gif");
+            
+            f.addInternalFrameListener(new InternalFrameAdapter() {
+            	@Override
+				public void internalFrameActivated(InternalFrameEvent ev) {
+					fStatusBar.showTmpMessage("Use right mouse button for popup menu.");
+				}
+
+				@Override
+				public void internalFrameDeactivated(InternalFrameEvent ev) {
+					fStatusBar.clearMessage();
+				}
+			});
+            
             JComponent c = (JComponent) f.getContentPane();
             c.setLayout(new BorderLayout());
             c.add(cev, BorderLayout.CENTER);
@@ -1968,26 +2024,22 @@ public class MainWindow extends JFrame implements StateChangeListener {
     /**
      * Creates a new sequence diagram view.
      */
-    private class ActionViewCreateSequenceDiagram extends AbstractAction {
-	ActionViewCreateSequenceDiagram() {
-	    super("Sequence diagram", getIcon("SequenceDiagram.gif"));
-	}
+	private class ActionViewCreateSequenceDiagram extends AbstractAction {
+		ActionViewCreateSequenceDiagram() {
+			super("Sequence diagram", getIcon("SequenceDiagram.gif"));
+		}
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-	    SequenceDiagramView sv = createSeqDiagView();
-	    ViewFrame f = new ViewFrame("Sequence diagram", sv,
-		    "SequenceDiagram.gif");
-	    JComponent c = (JComponent) f.getContentPane();
-	    c.setLayout(new BorderLayout());
-	    c.add(new SDScrollPane(sv), BorderLayout.CENTER);
-	    addNewViewFrame(f);
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			SequenceDiagramView sv = new SequenceDiagramView(fSession.system(), MainWindow.this);
+			ViewFrame f = new ViewFrame("Sequence diagram", sv,
+					"SequenceDiagram.gif");
+			JComponent c = (JComponent) f.getContentPane();
+			c.setLayout(new BorderLayout());
+			c.add(new SDScrollPane(sv), BorderLayout.CENTER);
+			addNewViewFrame(f);
+		}
 	}
-    }
-
-    public SequenceDiagramView createSeqDiagView() {
-        return new SequenceDiagramView(fSession.system(), this);
-    }
 
     /**
      * Creates a new call stack view.
@@ -2103,8 +2155,7 @@ public class MainWindow extends JFrame implements StateChangeListener {
             int y = 0;
 
             // Iterate over the frames, deiconifying any iconified frames and
-            // then
-            // relocating & resizing each
+            // then relocating & resizing each
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < cols && ((i * cols) + j < count); j++) {
                     JInternalFrame f = allframes[(i * cols) + j];
@@ -2193,11 +2244,6 @@ public class MainWindow extends JFrame implements StateChangeListener {
 			public void internalFrameDeactivated(InternalFrameEvent ev) {
                 fStatusBar.clearMessage();
             }
-
-			@Override
-			public void internalFrameClosed(InternalFrameEvent e) {
-				super.internalFrameClosed(e);
-			}
         });
         
         JComponent c = (JComponent) f.getContentPane();

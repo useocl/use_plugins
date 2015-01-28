@@ -117,19 +117,11 @@ public final class TupleValue extends Value {
      */
     public TupleValue(TupleType t, List<TupleValue.Part> parts) {
         super(t);
-        
-        Map<String, TupleType.Part> typeParts = t.getParts();
         Iterator<TupleValue.Part> iter = parts.iterator();
         
         while(iter.hasNext())
         {
         	TupleValue.Part part = iter.next();
-        	TupleType.Part typePart = typeParts.get(part.getName());
-        	        	
-            if (! part.getValue().type().isSubtypeOf(typePart.type()) )
-                throw new IllegalArgumentException("type mismatch: " + 
-                                                   part.getValue().type() + ", " + typePart.type());
-            
             fParts.put(part.getName(), part);
         }
     }

@@ -214,7 +214,7 @@ public class ObjectBrowser extends JFrame {
     
     private void update() {
         
-    	this.fTopLabel.setText(fObject.name() + ":" + fObject.type().toString());
+    	this.fTopLabel.setText(fObject.name() + ":" + fObject.cls().toString());
     	
         calcLinks();
         

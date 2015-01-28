@@ -126,7 +126,7 @@ public class ASTVariableAssignmentStatement extends ASTStatement {
 		if (fMandatoryType != null) {
 			Type mandatoryType = generateType(fMandatoryType);
 			
-			if (!valueType.isSubtypeOf(mandatoryType)) {
+			if (!valueType.conformsTo(mandatoryType)) {
 				throw new CompilationFailedException(this,
 						"Type of expression does not match declaration. Expected "
 								+ StringUtil.inQuotes(mandatoryType)
@@ -142,7 +142,7 @@ public class ASTVariableAssignmentStatement extends ASTStatement {
 			if (!fSymtable.contains(fVariableName))
 				throw new CompilationFailedException(this, "Variable " + fVariableName + " was not declared.");
 			Type t = fSymtable.getType(fVariableName);
-			if (! variableType.isSubtypeOf(t)) 
+			if (! variableType.conformsTo(t)) 
 				throw new CompilationFailedException(this, "Variable " + fVariableName + " of type " + t + ", which is incompatible with " + variableType);
 		} else {
 			fBoundSet.add(fVariableName, variableType);

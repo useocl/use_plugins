@@ -39,7 +39,7 @@ import org.tzi.use.util.StringUtil;
  * @see     SequenceType
  * @see     BagType
  */
-public class CollectionType extends Type {
+public class CollectionType extends TypeImpl {
 
     private final Type fElemType;
 
@@ -52,28 +52,26 @@ public class CollectionType extends Type {
     }
 
     @Override
-    public boolean isCollection(boolean excludeVoid) {
+    public boolean isKindOfCollection(VoidHandling h) {
     	return true;
     }
     
     @Override
-    public boolean isTrueCollection() {
+    public boolean isTypeOfCollection() {
     	return true;
     }
     
-    /** 
-     * Returns true if this type is a subtype of <code>t</code>. 
-     */
     @Override
-    public boolean isSubtypeOf(Type t) {
-        if (! t.isTrueCollection() )
+	public boolean conformsTo(Type other) {
+    	if (!other.isTypeOfCollection())
             return false;
 
-        CollectionType t2 = (CollectionType) t;
-        if (fElemType.isSubtypeOf(t2.elemType()) )
+        CollectionType t2 = (CollectionType) other;
+        if (fElemType.conformsTo(t2.elemType()))
             return true;
+        
         return false;
-    }
+	}
 
     /** 
      * Returns the set of all supertypes (including this type).  If
@@ -83,8 +81,8 @@ public class CollectionType extends Type {
     @Override
     public Set<Type> allSupertypes() {
         Set<Type> res = new HashSet<Type>();
-        Set<Type> elemSuper = fElemType.allSupertypes();
-        Iterator<Type> typeIter = elemSuper.iterator();
+        Set<? extends Type> elemSuper = fElemType.allSupertypes();
+        Iterator<? extends Type> typeIter = elemSuper.iterator();
         
         while (typeIter.hasNext() ) {
             Type t = typeIter.next();
@@ -97,10 +95,10 @@ public class CollectionType extends Type {
     @Override
     public Type getLeastCommonSupertype(Type type)
     {
-    	if (!type.isCollection(false))
+    	if (!type.isKindOfCollection(VoidHandling.INCLUDE_VOID))
     		return null;
     	
-    	if (type.isVoidType())
+    	if (type.isTypeOfVoidType())
     		return this;
     	
     	CollectionType cType = (CollectionType)type;
@@ -142,11 +140,12 @@ public class CollectionType extends Type {
 	/**
 	 * Creates a collection type with the same
 	 * kind of collection and the given element type.
+	 * <p>
 	 * <code>
-	 * Collection(OclAny).createCollectionType(String) => Collection(String)
+	 * Collection(OclAny).createCollectionType(String) => Collection(String)<br/>
 	 * Set(OclAny).createCollectionType(String) => Set(String)
 	 * </code>
-	 * 
+	 * </p>
 	 * @param t The new type of the elements
 	 * @return
 	 */
@@ -162,6 +161,10 @@ public class CollectionType extends Type {
 	 * @throws UnsupportedOperationException If called on CollectionType.
 	 */
 	public CollectionValue createCollectionValue(List<Value> values) {
+		throw new UnsupportedOperationException("The abstract type " + StringUtil.inQuotes("Collection") + " cannot be instantiated.");
+	}
+	
+	public CollectionValue createCollectionValue(Value[] values) {
 		throw new UnsupportedOperationException("The abstract type " + StringUtil.inQuotes("Collection") + " cannot be instantiated.");
 	}
 }

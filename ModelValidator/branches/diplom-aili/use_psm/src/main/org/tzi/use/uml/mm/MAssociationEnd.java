@@ -30,7 +30,6 @@ import java.util.Set;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.TypeFactory;
 import org.tzi.use.util.collections.CollectionUtil;
@@ -253,9 +252,9 @@ public final class MAssociationEnd extends MModelElementImpl implements MNavigab
     	Type t;
     	
     	if (this.getRedefiningEnds().size() > 0) {
-    		t = getRedefinedType((ObjectType)sourceObjectType);
+    		t = getRedefinedType((MClass)sourceObjectType);
     	} else {
-    		t = TypeFactory.mkObjectType( cls() );
+    		t = cls();
     	}
     	
         if ( src.equals( src.association() ) ) {
@@ -312,10 +311,10 @@ public final class MAssociationEnd extends MModelElementImpl implements MNavigab
      * @return The type at this association end.
      */
     public Type getType() {
-    	return this.getType(cls().type(), false, false);
+    	return this.getType(cls(), false, false);
     }
     
-	private Type getRedefinedType(ObjectType sourceObjectType) {
+	private Type getRedefinedType(MClass sourceObjectType) {
 		Type resultType = null;
 		
 		// If another association end redefines this end with 
@@ -323,16 +322,16 @@ public final class MAssociationEnd extends MModelElementImpl implements MNavigab
 		boolean foundDirectEnd = false;
 
 		// No redefinition possible, because source type is the opposite of this end
-		if (this.getAllOtherAssociationEnds().get(0).cls().equals(sourceObjectType.cls()) )
-			return TypeFactory.mkObjectType(this.cls());
+		if (this.getAllOtherAssociationEnds().get(0).cls().equals(sourceObjectType) )
+			return this.cls();
 			
 		for (MAssociationEnd redefiningEnd : this.getRedefiningEnds()) {
 			// TODO: n-ary
 			MAssociationEnd redefiningEndSrc = redefiningEnd.getAllOtherAssociationEnds().get(0);
-			Type redefiningEndSrcType = TypeFactory.mkObjectType(redefiningEndSrc.cls());
+			Type redefiningEndSrcType = redefiningEndSrc.cls();
 			
 			if (redefiningEndSrcType.equals(sourceObjectType)) {
-				resultType = TypeFactory.mkObjectType(redefiningEnd.cls());
+				resultType = redefiningEnd.cls();
 				foundDirectEnd = true;
 				break;
 			}
@@ -341,9 +340,9 @@ public final class MAssociationEnd extends MModelElementImpl implements MNavigab
 		// No redefinitions with equal type found.
 		// We need to check inheritance
 		if (!foundDirectEnd) {
-			for (MClassifier parent : sourceObjectType.cls().parents()) {
+			for (MClass parent : sourceObjectType.parents()) {
 				if (parent instanceof MClass) {
-					resultType = getRedefinedType(TypeFactory.mkObjectType((MClass)parent));
+					resultType = getRedefinedType(parent);
 					
 					if (resultType != null) {
 						break;

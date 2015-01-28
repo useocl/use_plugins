@@ -213,7 +213,7 @@ public class UseSystemApiUndoable extends UseSystemApi {
 		try {
 			evaluateStatement(
 					new MObjectDestructionStatement(
-							new ObjectValue(object.type(), object)));
+							new ObjectValue(object.cls(), object)));
 		} catch (MSystemException e) {
 			throw new UseApiException("Object could not be deleted!", e);
 		}

@@ -30,7 +30,6 @@ import org.tzi.use.uml.sys.MLinkObject;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MSystemState;
 import org.tzi.use.uml.sys.MSystemState.DeleteObjectResult;
-import org.tzi.use.uml.sys.StateChangeEvent;
 import org.tzi.use.uml.sys.soil.MStatement;
 import org.tzi.use.util.collections.CollectionUtil;
 
@@ -108,7 +107,6 @@ public class StateDifference {
      */
     private Set<MLink> fDeletedLinks = Collections.emptySet();
     
-
     /**
      * restores the initial state of this containing nothing
      */
@@ -663,22 +661,13 @@ public class StateDifference {
 		return fDeletedLinks;
 	}
 
-
-	/**
-	 * add the information stored in this object to the
-	 * {@code StateChangeEvent}.
-	 * 
-	 * @param sce the event to add information to
-	 */
-	public void fillStateChangeEvent(StateChangeEvent sce) {
-    	sce.addNewObjects(fNewObjects);
-    	sce.addDeletedObjects(fDeletedObjects);
-    	sce.addModifiedObjects(fModifiedObjects);
-    	sce.addNewLinks(fNewLinks);
-    	sce.addDeletedLinks(fDeletedLinks);
-    }
-    
-    
+	public boolean structureHasChanged() {
+		return !fNewObjects.isEmpty()
+				|| !fDeletedObjects.isEmpty()
+				|| !fNewLinks.isEmpty()
+				|| !fDeletedLinks.isEmpty();
+	}
+	
     @Override
     public String toString() {
     	StringBuilder sb = new StringBuilder();

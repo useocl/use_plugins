@@ -43,7 +43,6 @@ import org.tzi.use.util.Log;
  * Example: help.net.syntax=net help.net=Read commands from socket
  * help.net.detail=Read commands from a socket. Socket number is 1777.
  * 
- * @version $ProjectVersion: 0.393 $
  * @author <a href="mailto:hanna@tzi.de">Hanna Bauerdick </a>
  * @author <a href="mailto:gutsche@tzi.de">Fabian Gutsche </a>
  * @author green
@@ -52,9 +51,9 @@ public class HelpForCmd {
 
     private static HelpForCmd INSTANCE;
 
-    private static final String INTENT = "  ";
+    private static final String INDENT = "  ";
 
-    private final String HELP_PROPERTY_FILE = "help.properties";
+    private static final String HELP_PROPERTY_FILE = "help.properties";
 
     private ResourceBundle resource;
 
@@ -89,13 +88,13 @@ public class HelpForCmd {
             String detail = resource.getString(key+".detail");
             detail = detail.replaceAll("\\n",Options.LINE_SEPARATOR + "  ");
             System.out.println("SYNTAX");
-            System.out.println(INTENT + syntax);
+            System.out.println(INDENT + syntax);
             System.out.println();
             System.out.println("SYNOPSIS");
-            System.out.println(INTENT + shortStr);
+            System.out.println(INDENT + shortStr);
             System.out.println();
             System.out.println("DESCRIPTION");
-            System.out.println(INTENT + detail);
+            System.out.println(INDENT + detail);
             System.out.println();
         } catch (MissingResourceException e) {
             Log.error("help missing for " + key);

@@ -22,6 +22,8 @@
 package org.tzi.use.uml.sys.events;
 
 import org.tzi.use.uml.sys.MObject;
+import org.tzi.use.uml.sys.events.tags.EventContext;
+import org.tzi.use.uml.sys.events.tags.SystemStructureChangedEvent;
 
 /**
  * Information about the event of an object destruction.
@@ -29,7 +31,7 @@ import org.tzi.use.uml.sys.MObject;
  * @author Lars Hamann
  *
  */
-public class ObjectDestroyedEvent extends Event {
+public class ObjectDestroyedEvent extends Event implements SystemStructureChangedEvent {
 	/** The destroyed object */
 	private MObject fDestroyedObject;
 	
@@ -38,7 +40,8 @@ public class ObjectDestroyedEvent extends Event {
 	 * Constructs a new object destruction event.
 	 * @param destroyedObject The destroyed object
 	 */
-	public ObjectDestroyedEvent(MObject destroyedObject) {
+	public ObjectDestroyedEvent(EventContext ctx, MObject destroyedObject) {
+		super(ctx);
 		fDestroyedObject = destroyedObject;
 	}
 	
