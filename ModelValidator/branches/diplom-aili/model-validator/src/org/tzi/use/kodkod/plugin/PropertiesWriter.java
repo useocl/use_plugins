@@ -4,8 +4,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
@@ -87,9 +89,18 @@ public class PropertiesWriter {
 			writeNewLine();
 			writeAttributes(clazz.attributes().iterator(), pc);
 			i++;
+			
+			List<MAssociation> classAssociations = new ArrayList<>();
+			for (MAssociation association : mModel.associations()) {
+				if (association.associationEnds().iterator().next().cls().equals(clazz)) {
+					classAssociations.add(association);
+				}
+			}
+			for (MAssociation association : classAssociations) {
+				writeAssociation(association, pc);
+			}
 			if (!(i >= mModel.classes().size())) writeDivideLine(PropertyEntry.LIGHT_DIVIDE_LINE);
 		}
-		writeAssociations(mModel.associations().iterator(), pc);
 		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
 		writeInvariants(mModel.classInvariants().iterator(), pc);
 		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
@@ -109,9 +120,18 @@ public class PropertiesWriter {
 			writeNewLine();
 			writeIAttributes(clazz.attributes().iterator(), pc);
 			i++;
+			
+			List<IAssociation> classAssociations = new ArrayList<>();
+			for (IAssociation association : iModel.associations()) {
+				if (association.associationEnds().iterator().next().associatedClass().equals(clazz)) {
+					classAssociations.add(association);
+				}
+			}
+			for (IAssociation association : classAssociations) {
+				writeIAssociation(association, pc);
+			}
 			if (!(i >= iModel.classes().size())) writeDivideLine(PropertyEntry.LIGHT_DIVIDE_LINE);
 		}
-		writeIAssociations(iModel.associations().iterator(), pc);
 		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
 		writeIInvariants(iModel.classInvariants().iterator(), pc);
 		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
@@ -263,9 +283,8 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private static void writeAssociations(Iterator<MAssociation> iterator, PropertiesConfiguration pc) throws IOException {
-		while (iterator.hasNext()) {
-			MAssociation association = iterator.next();
+	private static void writeAssociation(MAssociation givenAssociation, PropertiesConfiguration pc) throws IOException {
+			MAssociation association = givenAssociation;
 			String assoc = association.name();
 			String assocMin = assoc+PropertyEntry.linksMin;
 			String assocMax = assoc+PropertyEntry.linksMax;
@@ -280,12 +299,10 @@ public class PropertiesWriter {
 			if (pc.containsKey(assocMax) && (pc.getProperty(assocMax) != null)) {
 				write(assocMax, pc.getInt(assocMax, DefaultConfigurationValues.linksPerAssocMax));
 			}
-		}
 	}
 	
-	private static void writeIAssociations(Iterator<IAssociation> iterator, PropertiesConfiguration pc) throws IOException {
-		while (iterator.hasNext()) {
-			IAssociation association = iterator.next();
+	private static void writeIAssociation(IAssociation givenAssociation, PropertiesConfiguration pc) throws IOException {
+			IAssociation association = givenAssociation;
 			String assoc = association.name();
 			String assocMin = assoc+PropertyEntry.linksMin;
 			String assocMax = assoc+PropertyEntry.linksMax;
@@ -300,7 +317,6 @@ public class PropertiesWriter {
 			if (pc.containsKey(assocMax) && (pc.getProperty(assocMax) != null)) {
 				write(assocMax, pc.getInt(assocMax, DefaultConfigurationValues.linksPerAssocMax));
 			}
-		}
 	}
 	
 	private static void writeInvariants(Iterator<MClassInvariant> iterator, PropertiesConfiguration pc) throws IOException {
@@ -384,10 +400,9 @@ public class PropertiesWriter {
 			}
 		}
 		writerString = writerString + ") ";
-		int writerStringLength = writerString.length();
-		if (writerStringLength < PropertyEntry.PUNCHED_CARD_LENGTH) {
-			for (int i=0; i < (PropertyEntry.PUNCHED_CARD_LENGTH - writerStringLength); i++) {
-				writerString = writerString + "-";
+		if (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
+			while (writerString.length() < (PropertyEntry.PUNCHED_CARD_LENGTH)) {
+				writerString = writerString + "- ";
 			}
 		}
 		
@@ -408,10 +423,9 @@ public class PropertiesWriter {
 			}
 		}
 		writerString = writerString + ") ";
-		int writerStringLength = writerString.length();
-		if (writerStringLength < PropertyEntry.PUNCHED_CARD_LENGTH) {
-			for (int i=0; i < (PropertyEntry.PUNCHED_CARD_LENGTH - writerStringLength); i++) {
-				writerString = writerString + "-";
+		if (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
+			while (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
+				writerString = writerString + "- ";
 			}
 		}
 		

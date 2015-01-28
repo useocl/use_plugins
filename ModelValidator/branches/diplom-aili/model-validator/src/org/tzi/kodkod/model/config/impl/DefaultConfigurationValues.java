@@ -20,7 +20,7 @@ public class DefaultConfigurationValues {
 	public static final int attributesColSizeMin = 1;
 	public static final int attributesColSizeMax = 1;
 
-	public static final int stringMin = -10;
+	public static final int stringMin = 0;
 	public static final int stringMax = 10;
 
 	public static final int integerMin = -10;
