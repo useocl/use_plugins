@@ -387,55 +387,53 @@ public class PropertiesWriter {
 	}
 	
 	private static void writeAssociationLine(MAssociation association) throws IOException {
-		String writerString = "";
+		StringBuilder associationString = new StringBuilder();
 		Iterator<MAssociationEnd> aes = association.associationEnds().iterator();
-		writerString = writerString + "-- ";
-		writerString = writerString + association.name();
-		writerString = writerString + "(";
+		associationString.append(association.name());
+		associationString.append("(");
 		while (aes.hasNext()) {
 			MAssociationEnd ae = aes.next();
-			writerString = writerString + ae.name() + ":" + ae.cls().name();
+			associationString.append(ae.name() + ":" + ae.cls().name());
 			if (aes.hasNext()) {
-				writerString = writerString + ",";
+				associationString.append(",");
 			}
 		}
-		writerString = writerString + ") ";
-		if (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
-			if (writerString.length() % 2 == 1) {
-				writerString += " ";
-			}
-			while (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
-				writerString = writerString + " -";
-			}
-		}
+		associationString.append(")");
 		
-		writer.write(writerString);
+		writeLabeledLine(associationString.toString());
 	}
 	
 	private static void writeIAssociationLine(IAssociation association) throws IOException {
-		String writerString = "";
+		StringBuilder associationString = new StringBuilder();
 		Iterator<IAssociationEnd> aes = association.associationEnds().iterator();
-		writerString = writerString + "-- ";
-		writerString = writerString + association.name();
-		writerString = writerString + "(";
+		associationString.append(association.name());
+		associationString.append("(");
 		while (aes.hasNext()) {
 			IAssociationEnd ae = aes.next();
-			writerString = writerString + ae.name() + ":" + ae.associatedClass().name();
+			associationString.append(ae.name() + ":" + ae.associatedClass().name());
 			if (aes.hasNext()) {
-				writerString = writerString + ",";
+				associationString.append(",");
 			}
 		}
-		writerString = writerString + ") ";
+		associationString.append(")");
+		
+		writeLabeledLine(associationString.toString());
+	}
+	
+	private static void writeLabeledLine(String string) throws IOException {
+		StringBuilder writerString = new StringBuilder();
+		writerString.append("-- ");
+		writerString.append(string);
 		if (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
 			if (writerString.length() % 2 == 1) {
-				writerString += " ";
+				writerString.append(" ");
 			}
 			while (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
-				writerString = writerString + " -";
+				writerString.append(" -");
 			}
 		}
 		
-		writer.write(writerString);
+		writer.write(writerString.toString());
 	}
 
 }
