@@ -1,8 +1,6 @@
 package org.tzi.kodkod;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import kodkod.ast.Formula;
@@ -103,7 +101,7 @@ public class KodkodSolver {
 	private Universe createUniverse(IModel model) {
 		Set<Object> atoms = new LinkedHashSet<Object>();
 
-		List<TypeAtoms> typeAtoms = new ArrayList<TypeAtoms>(model.enumTypes());
+		Set<TypeAtoms> typeAtoms = new LinkedHashSet<TypeAtoms>(model.enumTypes());
 		typeAtoms.addAll(model.typeFactory().typeAtoms());
 		for (TypeAtoms typeAtom : typeAtoms) {
 			atoms.addAll(typeAtom.atoms());

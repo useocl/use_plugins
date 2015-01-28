@@ -1,10 +1,10 @@
 package org.tzi.kodkod.model.type;
 
-import java.util.List;
-
-import org.tzi.kodkod.model.visitor.Visitor;
+import java.util.Set;
 
 import kodkod.ast.Relation;
+
+import org.tzi.kodkod.model.visitor.Visitor;
 
 /**
  * Abstract base class for all types with atoms.
@@ -14,7 +14,7 @@ import kodkod.ast.Relation;
 public abstract class TypeAtoms extends Type {
 
 	private String name;
-	protected List<Object> atoms;
+	protected Set<Object> atoms;
 
 	TypeAtoms(String name) {
 		this.name = name;
@@ -34,7 +34,7 @@ public abstract class TypeAtoms extends Type {
 	 * 
 	 * @return
 	 */
-	public List<Object> atoms() {
+	public Set<Object> atoms() {
 		if (atoms == null) {
 			atoms = createAtomList();
 		}
@@ -56,5 +56,5 @@ public abstract class TypeAtoms extends Type {
 	 * 
 	 * @return
 	 */
-	protected abstract List<Object> createAtomList();
+	protected abstract Set<Object> createAtomList();
 }

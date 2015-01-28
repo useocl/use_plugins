@@ -401,8 +401,11 @@ public class PropertiesWriter {
 		}
 		writerString = writerString + ") ";
 		if (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
-			while (writerString.length() < (PropertyEntry.PUNCHED_CARD_LENGTH)) {
-				writerString = writerString + "- ";
+			if (writerString.length() % 2 == 1) {
+				writerString += " ";
+			}
+			while (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
+				writerString = writerString + " -";
 			}
 		}
 		
@@ -424,8 +427,11 @@ public class PropertiesWriter {
 		}
 		writerString = writerString + ") ";
 		if (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
+			if (writerString.length() % 2 == 1) {
+				writerString += " ";
+			}
 			while (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
-				writerString = writerString + "- ";
+				writerString = writerString + " -";
 			}
 		}
 		

@@ -18,27 +18,16 @@ import org.tzi.use.uml.sys.MObjectState;
  */
 public class ObjectStrategy extends ElementStrategy {
 
-	private String className;
 	private MClass mClass;
 
 	public ObjectStrategy(UseSystemApi systemApi, Map<String, MObjectState> objectStates, String className) {
 		super(systemApi, objectStates);
-		this.className = className;
+		mClass = mModel.getClass(className);
 	}
 
 	@Override
 	public boolean canDo() {
-		if (mModel.getClass(className) != null) {
-			mClass = mModel.getClass(className);
-		} else {
-			mClass = mModel.getAssociationClass(className);
-		}
-
-		if (className != null) {
-			return true;
-		}
-
-		return false;
+		return mClass != null;
 	}
 
 	@Override
@@ -49,7 +38,7 @@ public class ObjectStrategy extends ElementStrategy {
 
 		MObject mObject;
 		try {
-			//TODO is this a wrong implementation for ADE mode, but system state is reset anyways? Artifact?
+			//TODO what is this for?
 			mObject = systemApi.getObjectSafe(objectName);
 		}
 		catch(UseApiException ex){

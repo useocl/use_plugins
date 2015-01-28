@@ -8,7 +8,7 @@ import java.util.Collection;
 
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IInvariant;
-import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.main.Session;
 
 /**
  * Class for a model validation with the default search space.
@@ -22,8 +22,8 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 	private boolean allInactive = false;
 	private Collection<IInvariant> allInvariants;
 
-	public UseDefaultConfigKodkodModelValidator(MSystem mSystem, File configFile) {
-		super(mSystem);
+	public UseDefaultConfigKodkodModelValidator(Session session, File configFile) {
+		super(session);
 		this.configFile = configFile;
 	}
 
@@ -68,7 +68,7 @@ public class UseDefaultConfigKodkodModelValidator extends UseKodkodModelValidato
 				if (evaluator.evaluate(invariant.formula())) {
 					invariant.activate();
 				} else {
-					String name = invariant.name().replaceFirst("::", "_");
+					String name = invariant.qualifiedName().replaceFirst("::", "_");
 					writer.append(name + " = inactive");
 					writer.newLine();
 				}

@@ -1,6 +1,7 @@
 package org.tzi.use.kodkod.transform.ocl;
 
 import org.apache.log4j.Logger;
+import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.uml.ocl.expr.ExpAllInstances;
 import org.tzi.use.uml.ocl.expr.ExpAny;
 import org.tzi.use.uml.ocl.expr.ExpAsType;
@@ -59,11 +60,11 @@ import org.tzi.use.uml.ocl.expr.VarDeclList;
  */
 public class SimpleExpressionVisitor implements ExpressionVisitor {
 
-	protected static final Logger LOG = Logger.getLogger(SimpleExpressionVisitor.class);
+	private static final Logger LOG = Logger.getLogger(SimpleExpressionVisitor.class);
 
 	@Override
 	public void visitAllInstances(ExpAllInstances exp) {
-		LOG.debug("");
+		LOG.debug("ExpAllInstances");
 	}
 
 	@Override
@@ -273,7 +274,7 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitOclInState(ExpOclInState expOclInState) {
-				
+		throw new TransformationException("oclInState not supported");
 	}
 
 	@Override
@@ -294,17 +295,17 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public void visitConstUnlimitedNatural(
 			ExpConstUnlimitedNatural expressionConstUnlimitedNatural) {
-				
+		throw new TransformationException("UnlimitedNatural not supported");
 	}
 
 	@Override
 	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
-		
+		throw new TransformationException("selectByKind not supported");
 	}
 
 	@Override
 	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
-		
+		throw new TransformationException("selectByType not supported");
 	}
 
 	@Override

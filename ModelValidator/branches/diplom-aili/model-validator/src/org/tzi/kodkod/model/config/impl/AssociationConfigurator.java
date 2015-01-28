@@ -48,7 +48,16 @@ public class AssociationConfigurator extends Configurator<IAssociation> {
 		for (String[] specific : specificValues) {
 			atoms = new ArrayList<String>();
 			for (int i = 0; i < arity; i++) {
-				atoms.add(allAssociationEnds.get(i).associatedClass().name() + "_" + specific[i]);
+				/*
+				 * FIXME Automatic Diagram Extraction and properties file create different models.
+				 * One adds the class name for links and the other does not. There might also be
+				 * further clashes regarding attribute definitions and so on.
+				 */
+				if(tupleFactory.universe().contains(allAssociationEnds.get(i).associatedClass().name() + "_" + specific[i])){
+					atoms.add(allAssociationEnds.get(i).associatedClass().name() + "_" + specific[i]);
+				} else {
+					atoms.add(specific[i]);
+				}
 			}
 			lower.add(tupleFactory.tuple(atoms));
 		}
@@ -83,10 +92,15 @@ public class AssociationConfigurator extends Configurator<IAssociation> {
 		if (associationClass != null) {
 			TupleSet associationClassTuples = associationClass.upperBound(tupleFactory);
 			upper = associationClassTuples.product(upper);
+			
+			/*
+			 * create undefined tuples for objects linked with 0..1 association
+			 * ends so that the navigation explicitly results in Undefined
+			 */
 			if (hasZeroOneEnd && association.isBinaryAssociation()) {
 				int rolepositionInTuple = 1;
 				TupleSet assocClause;
-				TupleSet undefinedTupleSet = tupleFactory.noneOf(1);
+				final TupleSet undefinedTupleSet = tupleFactory.noneOf(1);
 				undefinedTupleSet.add(tupleFactory.tuple(TypeConstants.UNDEFINED));
 				
 				for (IAssociationEnd associationEnd : association.associationEnds()) {
@@ -95,22 +109,15 @@ public class AssociationConfigurator extends Configurator<IAssociation> {
 						continue;
 					}
 					
-					assocClause = null;
-					
-					for(int i = 0; i < upper.arity(); i++) {
+					assocClause = undefinedTupleSet;
+
+					// index 0 is the linkobject itself
+					for(int i = 1; i < upper.arity(); i++) {
 						if(i == rolepositionInTuple){
-							if(assocClause == null){
-								assocClause = getAssociatedClassUpperBound(tupleFactory, associationEnd.associatedClass());
-							} else {
-								assocClause = assocClause.product(getAssociatedClassUpperBound(tupleFactory, associationEnd.associatedClass()));
-							}
+							assocClause = assocClause.product(getAssociatedClassUpperBound(tupleFactory, associationEnd.associatedClass()));
 						}
 						else {
-							if(assocClause == null){
-								assocClause = undefinedTupleSet;
-							} else {
-								assocClause = assocClause.product(undefinedTupleSet);
-							}
+							assocClause = assocClause.product(undefinedTupleSet);
 						}
 					}
 					

@@ -1,7 +1,7 @@
 package org.tzi.kodkod.model.type;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
@@ -36,8 +36,8 @@ public class UndefinedType extends TypeAtoms {
 	}
 
 	@Override
-	protected List<Object> createAtomList() {
-		List<Object> atoms=new ArrayList<Object>();
+	protected Set<Object> createAtomList() {
+		Set<Object> atoms=new LinkedHashSet<Object>();
 		atoms.add(name());
 		return atoms;
 	}

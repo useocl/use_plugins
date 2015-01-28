@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import kodkod.ast.Expression;
 import kodkod.ast.Node;
 import kodkod.ast.Variable;
 
@@ -16,6 +15,7 @@ import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.TypeLiterals;
 import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.uml.mm.MAssociation;
+import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.ExpAny;
@@ -23,7 +23,6 @@ import org.tzi.use.uml.ocl.expr.ExpAttrOp;
 import org.tzi.use.uml.ocl.expr.ExpNavigation;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
 
 /**
@@ -42,12 +41,19 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		super(model, variables, variableClasses, replaceVariables, collectionVariables);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * <b>Note:</b> This method is only reachable from inside the
+	 * {@code VariableOperationVisitor}. Other {@code any} expressions are
+	 * handled by {@link QueryExpressionVisitor#visitAny(ExpAny)}.
+	 */
 	@Override
 	public void visitAny(ExpAny exp) {
 		super.visitAny(exp);
 		Type type = exp.getVariableDeclarations().varDecl(0).type();
-		if(type.isObjectType()){
-			attributeClass = model.getClass(((ObjectType)type).cls().name());
+		if(type.isTypeOfClass()){
+			attributeClass = model.getClass(((MClass)type).name());
 		}
 	}
 	
@@ -62,7 +68,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 			sourceType = exp.type();
 
 			List<Object> arguments = new ArrayList<Object>();
-			arguments.add((Expression) object);
+			arguments.add(object);
 			arguments.add(attribute.relation());
 			arguments.add(set);
 
@@ -112,7 +118,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 			}
 
 			List<Object> arguments = new ArrayList<Object>();
-			arguments.add((Expression) object);
+			arguments.add(object);
 			arguments.add(association.relation());
 			arguments.add(fromRole);
 			arguments.add(toRole);
@@ -209,7 +215,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		sourceType = exp.type();
 		
 		if (replaceVariables.containsKey(exp.getVarname())) {
-			object = replaceVariables.get(exp.getVarname());		
+			object = replaceVariables.get(exp.getVarname());
 			getAttributeClass(replaceVariables.get(exp.getVarname()).name());
 
 		} else if (variables.containsKey(exp.getVarname())) {
@@ -218,7 +224,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 				set = true;
 			}
 			getAttributeClass(exp.getVarname());
-		} else if (exp.type().isObjectType()) {
+		} else if (exp.type().isTypeOfClass()) {
 			IClass clazz = model.getClass(exp.type().shortName());
 			TypeLiterals type = clazz.objectType();
 			type.addTypeLiteral(exp.getVarname());
@@ -233,8 +239,8 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 	public void visitObjOp(ExpObjOp exp) {
 		super.visitObjOp(exp);
 		MOperation operation = exp.getOperation();
-		if (operation.hasResultType() && operation.resultType().isObjectType()) {
-			attributeClass = model.getClass(operation.resultType().shortName());
+		if (operation.hasResultType() && operation.resultType().isTypeOfClass()) {
+			attributeClass = model.getClass(((MClass) operation.resultType()).name());
 		}
 	}
 

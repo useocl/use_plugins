@@ -17,23 +17,18 @@ import org.tzi.use.uml.sys.MObjectState;
  * @author Hendrik Reitmann
  * 
  */
-public class AssociationStrategy extends ElementStrategy {
+public class LinkStrategy extends ElementStrategy {
 
-	private String associationName;
 	private MAssociation mAssociation;
 
-	public AssociationStrategy(UseSystemApi sApi, Map<String, MObjectState> objectStates, String associationName) {
+	public LinkStrategy(UseSystemApi sApi, Map<String, MObjectState> objectStates, String associationName) {
 		super(sApi, objectStates);
-		this.associationName = associationName;
+		mAssociation = mModel.getAssociation(associationName);
 	}
 
 	@Override
 	public boolean canDo() {
-		mAssociation = mModel.getAssociation(associationName);
-		if (mAssociation != null) {
-			return true;
-		}
-		return false;
+		return mAssociation != null;
 	}
 
 	@Override
@@ -51,10 +46,6 @@ public class AssociationStrategy extends ElementStrategy {
 		}
 		
 		systemApi.createLinkEx(mAssociation, tupleObjects);
-
-//		if(!mSystemState.hasLinkBetweenObjects(mAssociation, tupleObjects, null)){
-//			mSystemState.createLink(mAssociation, tupleObjects, null);
-//		}
 	}
 
 }

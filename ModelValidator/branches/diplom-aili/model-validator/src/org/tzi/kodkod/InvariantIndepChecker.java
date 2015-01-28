@@ -17,7 +17,7 @@ import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.use.api.UseApiException;
 import org.tzi.use.kodkod.solution.ObjectDiagramCreator;
-import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.main.Session;
 
 /**
  * Checks the invariant independence.
@@ -29,7 +29,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 
 	private static final Logger LOG = Logger.getLogger(InvariantIndepChecker.class);
 
-	private MSystem system;
+	private Session session;
 	
 	private Map<Logger, Level> logLevels;
 	private List<IInvariant> inactiveInvariants;
@@ -38,16 +38,12 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 
 	private boolean validateSingleInvariant = false;
 	
-	public InvariantIndepChecker(MSystem system) {
-		this.system = system;
+	public InvariantIndepChecker(Session session) {
+		this.session = session;
 	}
 	
 	/**
 	 * Validation to check the independence of a single invariant.
-	 * 
-	 * @param model
-	 * @param className
-	 * @param invariantName
 	 */
 	public void validate(IModel model, String className, String invariantName) {
 		validateSingleInvariant = true;
@@ -143,8 +139,8 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 	private void createObjectDiagram(Map<Relation, TupleSet> relationTuples){
 		LOG.info(LogMessages.objDiagramCreation);
 
-		system.reset();
-		ObjectDiagramCreator diagramCreator = new ObjectDiagramCreator(model, system);
+		session.reset();
+		ObjectDiagramCreator diagramCreator = new ObjectDiagramCreator(model, session);
 		try {
 			diagramCreator.create(relationTuples);
 			diagramCreator.hasDiagramErrors();
@@ -159,7 +155,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 	
 	@Override
 	protected void satisfiable() {
-		LOG.info(currentInvariant.name() + ": Independent");
+		LOG.info(currentInvariant.qualifiedName() + ": Independent");
 		if(validateSingleInvariant){
 			createObjectDiagram(solution.instance().relationTuples());
 		}
@@ -167,7 +163,7 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 
 	@Override
 	protected void trivially_satisfiable() {
-		LOG.info(currentInvariant.name() + ": Independent");
+		LOG.info(currentInvariant.qualifiedName() + ": Independent");
 		if(validateSingleInvariant){
 			createObjectDiagram(solution.instance().relationTuples());
 		}
@@ -175,11 +171,11 @@ public class InvariantIndepChecker extends KodkodModelValidator {
 
 	@Override
 	protected void trivially_unsatisfiable() {
-		LOG.info(currentInvariant.name() + ": Dependent");
+		LOG.info(currentInvariant.qualifiedName() + ": Dependent");
 	}
 
 	@Override
 	protected void unsatisfiable() {
-		LOG.info(currentInvariant.name() + ": Not independent for given properties");
+		LOG.info(currentInvariant.qualifiedName() + ": Not independent for given properties");
 	}
 }

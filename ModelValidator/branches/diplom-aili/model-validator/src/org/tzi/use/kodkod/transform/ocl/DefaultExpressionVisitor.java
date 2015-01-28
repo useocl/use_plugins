@@ -9,6 +9,7 @@ import kodkod.ast.Node;
 import kodkod.ast.Relation;
 import kodkod.ast.Variable;
 
+import org.apache.log4j.Logger;
 import org.tzi.kodkod.KodkodModelValidatorConfiguration;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
@@ -19,6 +20,7 @@ import org.tzi.kodkod.model.type.TypeLiterals;
 import org.tzi.kodkod.ocl.OCLMethodInvoker;
 import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.kodkod.transform.TypeConverter;
+import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.expr.ExpAllInstances;
 import org.tzi.use.uml.ocl.expr.ExpAsType;
 import org.tzi.use.uml.ocl.expr.ExpAttrOp;
@@ -45,8 +47,8 @@ import org.tzi.use.uml.ocl.expr.ExpSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpStdOp;
 import org.tzi.use.uml.ocl.expr.ExpUndefined;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.util.StringUtil;
 
 /**
@@ -57,6 +59,8 @@ import org.tzi.use.util.StringUtil;
  */
 public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 
+	private static final Logger LOG = Logger.getLogger(DefaultExpressionVisitor.class);
+	
 	protected IModel model;
 	protected Relation undefined;
 	protected Relation undefined_Set;
@@ -119,7 +123,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitAllInstances(ExpAllInstances exp) {
 		super.visitAllInstances(exp);
-		IClass clazz = model.getClass(exp.getSourceType().cls().name());
+		IClass clazz = model.getClass(exp.getSourceType().name());
 
 		List<Object> arguments = new ArrayList<Object>();
 		if (!clazz.existsInheritance()) {
@@ -221,8 +225,8 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		if (varExpression instanceof Node) {
 			variables.put(exp.getVarname(), (Node) varExpression);
 			
-			if(exp.getVarType().isObjectType()){
-				variableClasses.put(exp.getVarname(), model.getClass(((ObjectType)exp.getVarType()).cls().name()));
+			if(exp.getVarType().isTypeOfClass()){
+				variableClasses.put(exp.getVarname(), model.getClass(((MClass)exp.getVarType()).name()));
 			}
 			
 			if (visitor.isSet()) {
@@ -337,7 +341,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitUndefined(ExpUndefined exp) {
 		super.visitUndefined(exp);
-		if (exp.type().isCollection(true)) {
+		if (exp.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
 			object = undefined_Set;
 		} else {
 			object = undefined;

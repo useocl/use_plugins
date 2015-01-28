@@ -1,6 +1,5 @@
 package org.tzi.kodkod.model.config.impl;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,15 +22,6 @@ public class IntegerConfigurator extends TypeConfigurator {
 	public TupleSet lowerBound(ConfigurableType type, int arity, TupleFactory tupleFactory) {
 		TupleSet lower = tupleFactory.noneOf(1);
 
-		/*for (String[] specific : allValues()) {
-			lower.add(tupleFactory.tuple(Integer.parseInt(specific[0])));
-		}
-
-		for (Range range : ranges) {
-			for (int i = range.getLower(); i <= range.getUpper(); i++) {
-				lower.add(tupleFactory.tuple(Integer.valueOf(i)));
-			}
-		}*/
 		for(Object atom : type.atoms()){
 			lower.add(tupleFactory.tuple(atom));
 		}
@@ -45,7 +35,7 @@ public class IntegerConfigurator extends TypeConfigurator {
 	}
 
 	@Override
-	public List<Object> atoms(ConfigurableType m, List<Object> literals) {
+	public Set<Object> atoms(ConfigurableType m, List<Object> literals) {
 		Set<Object> atoms = new LinkedHashSet<Object>();
 		atoms.addAll(literals);
 
@@ -59,6 +49,6 @@ public class IntegerConfigurator extends TypeConfigurator {
 			atoms.add(Integer.valueOf(specific[0]));
 		}
 
-		return new ArrayList<Object>(atoms);
+		return new LinkedHashSet<Object>(atoms);
 	}
 }

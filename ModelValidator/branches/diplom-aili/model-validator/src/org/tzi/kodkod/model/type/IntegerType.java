@@ -3,6 +3,7 @@ package org.tzi.kodkod.model.type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import kodkod.ast.Expression;
 import kodkod.ast.IntConstant;
@@ -74,7 +75,7 @@ public class IntegerType extends ConfigurableType {
 	}
 
 	@Override
-	protected List<Object> createAtomList() {
+	protected Set<Object> createAtomList() {
 		return configurator.atoms(this, literalValues);
 	}
 

@@ -120,16 +120,7 @@ public class Class extends ModelElement implements IClass {
 
 	@Override
 	public IInvariant getInvariant(String name) {
-		IInvariant invariant = invariants.get(name);
-		if (invariant == null) {
-			for (IClass parent : parents.values()) {
-				if (parent.getInvariant(name) != null) {
-					invariant = parent.getInvariant(name);
-					break;
-				}
-			}
-		}
-		return invariant;
+		return invariants.get(name);
 	}
 
 	@Override

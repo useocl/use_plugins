@@ -134,7 +134,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	@Override
 	public void visitInvariant(IInvariant invariant) {
-		String name = invariant.name().replaceFirst("::", "_");
+		String name = invariant.qualifiedName().replaceFirst("::", "_");
 		String status = config.getString(name);
 		invariant.reset();
 		if (status != null) {
@@ -144,7 +144,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 				invariant.deactivate();
 			} else {
 				if (!status.equals("active")) {
-					warning(invariant.name() + ": " + LogMessages.invariantConfigWarning(status));
+					warning(invariant.qualifiedName() + ": " + LogMessages.invariantConfigWarning(status));
 				}
 				invariant.activate();
 			}
@@ -268,7 +268,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		if (model.getConfigurator() instanceof ModelConfigurator) {
 			configurator = (ModelConfigurator) model.getConfigurator();
 		} else {
-			configurator = new ModelConfigurator(model, new HashMap<String, IInvariant>());
+			configurator = new ModelConfigurator(model);
 			model.setConfigurator(configurator);
 		}
 

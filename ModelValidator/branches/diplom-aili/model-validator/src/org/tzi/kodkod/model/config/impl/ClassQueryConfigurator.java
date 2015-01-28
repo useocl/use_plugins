@@ -15,10 +15,12 @@ public class ClassQueryConfigurator extends ClassConfigurator{
 				lower.add(tupleFactory.tuple(clazz.name() + "_" + specific[0]));
 				clazz.objectType().addTypeLiteral(specific[0]);
 			}
-			//FIXME might fail to add a value if the calculated name is already in the specific values
-			for (int i = specificValues.size(); i < min; i++) {
-				lower.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i + 1)));
-				clazz.objectType().addTypeLiteral(clazz.name().toLowerCase() + (i + 1));
+			int i = specificValues.size() + 1;
+			while ( lower.size() < min ) {
+				if (lower.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i)))) {
+					clazz.objectType().addTypeLiteral(clazz.name().toLowerCase() + (i));
+				}
+				i++;
 			}
 		}
 
@@ -30,10 +32,12 @@ public class ClassQueryConfigurator extends ClassConfigurator{
 		TupleSet upper = tupleFactory.noneOf(1);
 		if (!clazz.isAbstract()) {
 			upper.addAll(lowerBound(clazz, arity, tupleFactory));
-			//FIXME might fail to add a value if the calculated name is already in the specific values
-			for (int i = specificValues.size(); i < max; i++) {
-				upper.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i + 1)));
-				clazz.objectType().addTypeLiteral(clazz.name().toLowerCase() + (i + 1));
+			int i = specificValues.size() + 1;
+			while ( upper.size() < max ) {
+				if (upper.add(tupleFactory.tuple(clazz.name() + "_" + clazz.name().toLowerCase() + (i)))) {
+					clazz.objectType().addTypeLiteral(clazz.name().toLowerCase() + (i));
+				}
+				i++;
 			}
 		}
 		return upper;

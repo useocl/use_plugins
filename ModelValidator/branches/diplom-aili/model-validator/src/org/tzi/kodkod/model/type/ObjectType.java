@@ -1,8 +1,8 @@
 package org.tzi.kodkod.model.type;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -76,30 +76,24 @@ public class ObjectType extends TypeLiterals {
 	}
 
 	@Override
-	protected List<Object> createAtomList() {
-		List<Object> atoms = new ArrayList<Object>();
+	protected Set<Object> createAtomList() {
+		Set<Object> atoms = new LinkedHashSet<Object>();
 		atoms.addAll(typeLiterals().keySet());
 
 		for (String[] specific : values) {
-			addAtom(atoms, name() + "_" + specific[0]);
+			if(atoms.size() >= valueSize){
+				break;
+			}
+			atoms.add(name() + "_" + specific[0]);
 		}
-		for (int i = values.size(); i < valueSize; i++) {
-			addAtom(atoms, name() + "_" + name().toLowerCase() + (i + 1));
+		
+		int i = atoms.size() + 1;
+		while (atoms.size() < valueSize) {
+			atoms.add(name() + "_" + name().toLowerCase() + i);
+			i++;
 		}
 
 		return atoms;
-	}
-
-	/**
-	 * Adds a single atom to the list of atoms for this type.
-	 * 
-	 * @param atoms
-	 * @param atom
-	 */
-	private void addAtom(List<Object> atoms, String atom) {
-		if (!atoms.contains(atom)) {
-			atoms.add(atom);
-		}
 	}
 
 	/**

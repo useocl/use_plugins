@@ -1,5 +1,7 @@
 package org.tzi.use.kodkod.plugin;
 
+import java.lang.ref.WeakReference;
+
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.iface.IModelFactory;
 import org.tzi.kodkod.model.impl.SimpleFactory;
@@ -19,6 +21,11 @@ import org.tzi.use.main.ChangeEvent;
 import org.tzi.use.main.ChangeListener;
 import org.tzi.use.main.Session;
 import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.sys.MSystem;
+import org.tzi.use.uml.sys.events.ClassInvariantsLoadedEvent;
+import org.tzi.use.uml.sys.events.ClassInvariantsUnloadedEvent;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * Singleton to encapsulate the model transformation.
@@ -30,7 +37,8 @@ public enum PluginModelFactory implements ChangeListener {
 
 	INSTANCE;
 
-	private Session session = null;
+	private WeakReference<Session> session = new WeakReference<Session>(null);
+	private WeakReference<MSystem> system = new WeakReference<MSystem>(null);
 	private boolean reTransform = true;
 
 	private IModel model;
@@ -95,15 +103,33 @@ public enum PluginModelFactory implements ChangeListener {
 	}
 	
 	public void registerForSession(Session s){
-		if(s == session){
-			return;
+		if(session.get() == null || s != session.get()){
+			// session has changed since last register
+			s.addChangeListener(this);
+			session = new WeakReference<Session>(s);
 		}
-		s.addChangeListener(this);
-		session = s;
+		if(system.get() == null || s.system() != system.get()){
+			// system has changed since last register
+			s.system().getEventBus().register(this);
+			system = new WeakReference<MSystem>(s.system());
+		}
 	}
 	
 	@Override
 	public void stateChanged(ChangeEvent e) {
+		if(((Session) e.getSource()).hasSystem() && ((Session) e.getSource()).system() != system.get()){
+			reTransform = true;
+		}
+	}
+	
+	@Subscribe
+	public void onClassInvariantLoaded(ClassInvariantsLoadedEvent ev){
 		reTransform = true;
 	}
+	
+	@Subscribe
+	public void onClassInvariantUnloaded(ClassInvariantsUnloadedEvent ev){
+		reTransform = true;
+	}
+	
 }

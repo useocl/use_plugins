@@ -1,13 +1,13 @@
 package org.tzi.kodkod.model.type;
 
-import java.util.List;
+import java.util.Set;
+
+import kodkod.instance.TupleFactory;
+import kodkod.instance.TupleSet;
 
 import org.tzi.kodkod.model.config.ITypeConfigurator;
 import org.tzi.kodkod.model.config.impl.TypeConfigurator;
 import org.tzi.kodkod.model.iface.IConfigurableElement;
-
-import kodkod.instance.TupleFactory;
-import kodkod.instance.TupleSet;
 
 /**
  * Abstract base class for the configurable types.
@@ -25,7 +25,7 @@ public abstract class ConfigurableType extends TypeLiterals implements IConfigur
 	}
 
 	@Override
-	public List<Object> atoms() {
+	public Set<Object> atoms() {
 		return createAtomList();
 	}
 

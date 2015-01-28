@@ -1,20 +1,16 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
-import java.util.Iterator;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.SubnodeConfiguration;
 import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
-import org.tzi.kodkod.model.config.impl.DefaultConfigurationVisitor;
 import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
 import org.tzi.kodkod.model.iface.IInvariant;
+import org.tzi.use.config.Options;
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.kodkod.UseDefaultConfigKodkodModelValidator;
 import org.tzi.use.kodkod.UseKodkodModelValidator;
@@ -31,7 +27,7 @@ import org.tzi.use.uml.mm.MClassInvariant;
  * @author Hendrik Reitmann
  * 
  */
-public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmdDelegate {
+public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShellCmdDelegate {
 
 	private PropertyConfigurationVisitor configurationVisitor;
 	private Boolean shouldValidate;
@@ -62,7 +58,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 		try {
 			File file = configureModel();
 			enrichModel();
-			validate(new UseDefaultConfigKodkodModelValidator(mSystem, file));
+			validate(new UseDefaultConfigKodkodModelValidator(session, file));
 		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 			e.printStackTrace();
@@ -75,7 +71,9 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * @param arguments
 	 */
 	protected void handleArguments(String arguments) {
-		File file = new File(Shell.getInstance().getFilenameToOpen(arguments.trim(), false) );
+		String filepath = Shell.getInstance().getFilenameToOpen(arguments.trim(), false);
+		filepath = Options.getFilenameToOpen(filepath);
+		File file = new File(filepath);
 
 		if (file.exists() && file.canRead() && !file.isDirectory()) {
 			extractConfigureAndValidate(file);
@@ -92,7 +90,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 */
 	protected final void extractConfigureAndValidate(File file) {
 		try {
-			configureModel(file);
+			PropertyConfigurationVisitor configurationVisitor = configureModel(file);
 			enrichModel();
 			validate(createValidator());
 			configurationVisitor.printWarnings();
@@ -124,41 +122,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 	 * @return
 	 */
 	protected KodkodModelValidator createValidator() {
-		return new UseKodkodModelValidator(mSystem);
-	}
-
-	/**
-	 * Configuration of the model with the data from the given file.
-	 * 
-	 * @param file
-	 * @throws ConfigurationException
-	 */
-	private void configureModel(File file) throws ConfigurationException {
-		model().reset();
-		configurationVisitor = new PropertyConfigurationVisitor(getFirstSectorConfiguration(file));
-		model().accept(configurationVisitor);
-		
-		if (configurationVisitor.containErrors()) {
-			throw new ConfigurationException();
-		}
-		
-		LOG.info(LogMessages.modelConfigurationSuccessful);
-	}
-
-	/**
-	 * Configuration with the default search space.
-	 * 
-	 * @return
-	 * @throws Exception
-	 */
-	private File configureModel() throws Exception {
-		model().reset();
-		DefaultConfigurationVisitor configurationVisitor = new DefaultConfigurationVisitor(mModel.filename());
-		model().accept(configurationVisitor);
-
-		LOG.info(LogMessages.modelConfigurationSuccessful);
-
-		return configurationVisitor.getFile();
+		return new UseKodkodModelValidator(session);
 	}
 	
 	private void configureModel(IPluginAction pluginAction) throws Exception {
@@ -185,22 +149,6 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
         }
 	}
 	
-	@SuppressWarnings("unchecked")
-	private PropertiesConfiguration getFirstSectorConfiguration(File file) throws ConfigurationException {
-		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
-		Iterator<String> sectionsIterator = hierarchicalINIConfiguration.getSections().iterator();
-		PropertiesConfiguration firstSectorConfiguration = new PropertiesConfiguration();
-		String section = sectionsIterator.next();
-		SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
-		Iterator<String> keysIterator = sectionConfigurations.getKeys();
-		while (keysIterator.hasNext()) {
-			String key = keysIterator.next();
-			if (!key.startsWith("--"))
-				firstSectorConfiguration.addProperty(key, sectionConfigurations.getString(key));
-		}
-		return firstSectorConfiguration;
-	}
-
 	private void validate(KodkodModelValidator modelValidator) {
 		configureInvariantSettingsFromGenerator();
 		modelValidator.validate(model());
@@ -208,7 +156,7 @@ public class KodkodValidateCmd extends AbstractPlugin implements IPluginShellCmd
 
 	private void configureInvariantSettingsFromGenerator() {
 		for(IInvariant inv : model().classInvariants()){
-			MClassInvariant srcInv = mModel.getClassInvariant(inv.name());
+			MClassInvariant srcInv = mModel.getClassInvariant(inv.qualifiedName());
 			if(!srcInv.isActive() && inv.isActivated()){
 				inv.deactivate();
 				LOG.info(LogMessages.flagChangeInfo(inv, true));

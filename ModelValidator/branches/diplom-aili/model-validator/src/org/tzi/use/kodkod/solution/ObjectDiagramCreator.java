@@ -20,6 +20,7 @@ import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.api.UseApiException;
 import org.tzi.use.api.UseSystemApi;
+import org.tzi.use.main.Session;
 import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.expr.Evaluator;
@@ -47,9 +48,9 @@ public class ObjectDiagramCreator {
 
 	private Map<String, MObjectState> objectStates;
 
-	public ObjectDiagramCreator(IModel model, MSystem mSystem) {
+	public ObjectDiagramCreator(IModel model, Session session) {
 		this.model = model;
-		systemApi = UseSystemApi.create(mSystem, true);
+		systemApi = UseSystemApi.create(session);
 	}
 
 	/**
@@ -102,7 +103,7 @@ public class ObjectDiagramCreator {
 		boolean invariantError = false;
 		for (IInvariant invariant : model.classInvariants()) {
 			if (invariant.isActivated()) {
-				BooleanValue result = (BooleanValue) evaluator.eval(mModel.getClassInvariant(invariant.name()).expandedExpression(),
+				BooleanValue result = (BooleanValue) evaluator.eval(mModel.getClassInvariant(invariant.qualifiedName()).expandedExpression(),
 						mSystem.state());
 				if ((invariant.isNegated() && result.isTrue()) || (!invariant.isNegated() && result.isFalse())) {
 					LOG.info(LogMessages.unexpectedInvariantResult(invariant));
@@ -155,7 +156,7 @@ public class ObjectDiagramCreator {
 
 				if (!isType(nameSplit[0]) && !isToStringMap(nameSplit[0])) {
 					if (isAssociation(relationName, relation)) {
-						strategy = new AssociationStrategy(systemApi, objectStates, relationName);
+						strategy = new LinkStrategy(systemApi, objectStates, relationName);
 
 					} else if (isAttributeOfSimpleObject(relationName, relation)) {
 						strategy = new AttributeStrategy(systemApi, objectStates,
@@ -205,12 +206,12 @@ public class ObjectDiagramCreator {
 			associationClassesRelations.remove(mAssociationClass.name());
 			Relation relation = associationClassesRelations
 					.remove(associationClassName);
-			strategy = new AssociationClassStrategy(systemApi, objectStates, mAssociationClass);
+			strategy = new LinkObjectStrategy(systemApi, objectStates, mAssociationClass);
 
 			// filter association relations without a linkobject
 			TupleSet validRelations = relations.get(relation).clone();
 			for (Iterator<Tuple> it = validRelations.iterator(); it.hasNext();) {
-				Tuple tuple = (Tuple) it.next();
+				Tuple tuple = it.next();
 				if(tuple.atom(0).equals(TypeConstants.UNDEFINED)){
 					it.remove();
 				}

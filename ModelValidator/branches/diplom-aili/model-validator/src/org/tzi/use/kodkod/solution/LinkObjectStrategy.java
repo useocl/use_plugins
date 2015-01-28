@@ -17,11 +17,11 @@ import org.tzi.use.uml.sys.MObjectState;
  * @author Hendrik Reitmann
  * 
  */
-public class AssociationClassStrategy extends ElementStrategy {
+public class LinkObjectStrategy extends ElementStrategy {
 
 	private MAssociationClass mAssociationClass;
 
-	public AssociationClassStrategy(UseSystemApi sApi, Map<String, MObjectState> objectStates,
+	public LinkObjectStrategy(UseSystemApi sApi, Map<String, MObjectState> objectStates,
 			MAssociationClass mAssociationClass) {
 		super(sApi, objectStates);
 		this.mAssociationClass = mAssociationClass;

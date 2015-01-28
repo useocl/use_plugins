@@ -36,6 +36,10 @@ public class Invariant implements IInvariant {
 		return name;
 	}
 
+	public String qualifiedName() {
+		return clazz.name() + "::" + name;
+	}
+	
 	@Override
 	public void setFormula(Formula formula) {
 		this.formula = formula;
@@ -79,6 +83,7 @@ public class Invariant implements IInvariant {
 		negated = false;
 	}
 
+	@Override
 	public boolean isActivated() {
 		return activated;
 	}

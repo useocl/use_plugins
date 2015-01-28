@@ -1,8 +1,9 @@
 package org.tzi.kodkod.model.config.impl;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.tzi.kodkod.model.config.ITypeConfigurator;
 import org.tzi.kodkod.model.type.ConfigurableType;
@@ -20,8 +21,8 @@ public class TypeConfigurator extends Configurator<ConfigurableType> implements 
 	}
 
 	@Override
-	public List<Object> atoms(ConfigurableType type, List<Object> literals) {
-		return new ArrayList<Object>();
+	public Set<Object> atoms(ConfigurableType type, List<Object> literals) {
+		return new LinkedHashSet<Object>();
 	}
 
 	/**

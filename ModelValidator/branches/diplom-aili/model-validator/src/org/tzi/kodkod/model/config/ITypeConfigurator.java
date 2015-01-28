@@ -1,6 +1,7 @@
 package org.tzi.kodkod.model.config;
 
 import java.util.List;
+import java.util.Set;
 
 import org.tzi.kodkod.model.type.ConfigurableType;
 
@@ -20,6 +21,6 @@ public interface ITypeConfigurator<M extends ConfigurableType> extends IConfigur
 	 * @param literals
 	 * @return
 	 */
-	public List<Object> atoms(M m, List<Object> literals);
+	public Set<Object> atoms(M m, List<Object> literals);
 
 }
