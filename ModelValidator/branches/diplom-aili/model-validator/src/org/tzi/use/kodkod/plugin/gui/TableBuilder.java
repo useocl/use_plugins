@@ -35,6 +35,7 @@ import org.tzi.use.kodkod.plugin.gui.view.EditorInteger;
 import org.tzi.use.kodkod.plugin.gui.view.EditorReal;
 import org.tzi.use.kodkod.plugin.gui.view.EditorRealStep;
 import org.tzi.use.kodkod.plugin.gui.view.EditorString;
+import org.tzi.use.kodkod.plugin.gui.view.RendererBounds;
 import org.tzi.use.kodkod.plugin.gui.view.RendererInteger;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameAbstractAssociationClass;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameAbstractClass;
@@ -47,11 +48,6 @@ import org.tzi.use.kodkod.plugin.gui.view.RendererReal;
 import org.tzi.use.kodkod.plugin.gui.view.RendererString;
 
 public class TableBuilder {
-	//TODO: Alle Columnen mit ganzen Zahlen, sollen einen eigenen Renderer bekommen, der
-	//1. rechtbuendig ist
-	//2. bei einem Wert von -1 einen Stern(*), statt der -1 anzeigen soll
-	//   wenn man -1 manuell eingibt, soll daraus bei Enter ein Stern vom Renderer wiedergegeben gegeben werden, aber in den Settings -1 eintragen
-	//   wenn man ein Stern eingibt, soll da zwar auch ein Stern abgebildet werden, aber intern in den Settings als -1 gespeichert werden
 	
 	private SettingsConfiguration allSettings;
 	
@@ -97,18 +93,23 @@ public class TableBuilder {
 						}
 					}
 					return super.getCellRenderer(row, column);
+				} else if (getName().equals(ConfigurationTerms.INVARIANTS) && (column == getColumnCount()-1 || column == getColumnCount()-2)) {
+					return super.getCellRenderer(row, column);
+				} else if (getName().equals(ConfigurationTerms.OPTIONS) && column == getColumnCount()-1) {
+					return super.getCellRenderer(row, column);
 				} else if (!isCellEditable(row, column)) {
 					return new RendererNonEditable();
 				} else if ((column != getColumnCount()-1) && getName().equals(TypeConstants.INTEGER)) {
 					return new RendererInteger();
 				} else if ((column != getColumnCount()-1) && getName().equals(TypeConstants.REAL)) {
 					return new RendererReal();
-				} else if ((column == getColumnCount()-1) 
-						&& this.getName() != ConfigurationTerms.OPTIONS 
-						&& this.getName() != ConfigurationTerms.INVARIANTS) {
-					return new RendererString();
+				} else if ((column != getColumnCount()-1) 
+						&& !this.getColumnModel().getColumn(0).equals(ConfigurationTerms.OPTIONS) 
+						&& !this.getColumnModel().getColumn(0).equals(ConfigurationTerms.INVARIANTS)) {
+					return new RendererBounds();
 				} else {
-					return super.getCellRenderer(row, column);
+					return new RendererString();
+					//return super.getCellRenderer(row, column);
 				}
 			}
 		
@@ -126,7 +127,7 @@ public class TableBuilder {
 					}
 				} else if (getName().equals(TypeConstants.INTEGER) && column > 0) {
 					return new EditorInteger();
-				} else if (column > 0 && column < getColumnCount()-1) {
+				} else if (column > 0 && column < getColumnCount()-1 && this.getName() != ConfigurationTerms.INVARIANTS) {
 					return new EditorBounds();
 				}
 				return super.getCellEditor(row, column);
@@ -137,7 +138,8 @@ public class TableBuilder {
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.getTableHeader().setReorderingAllowed(false);
 		//if table losts focus, editing will be stopped
-		table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE); 
+		table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+		
 		
 		return table;
 	}

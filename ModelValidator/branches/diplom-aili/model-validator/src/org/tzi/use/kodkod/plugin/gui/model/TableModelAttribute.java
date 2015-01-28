@@ -13,9 +13,6 @@ import org.tzi.use.util.StringUtil;
 
 public class TableModelAttribute extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
-	//TODO: In der Attributentabelle sollen die Spalten fuer MinDefined, MaxDefined, 
-	//MinElements, MaxElements standardmaessig weggeblendet sein, mit einer Checkbox, um sie wieder einzublenden.
-	//Min-/MaxDefined und Min-/MaxElements sollen wie auch bei Min-/Maximum als Ranges dargestellt werden
 	
 	private List<SettingsAttribute> attributesSettings = Collections.emptyList();
 	

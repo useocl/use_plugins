@@ -109,6 +109,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	//ComboBoxActionListener has to be declared and initialized for a functioning update through its removability
 	private ComboBoxActionListener comboBoxActionListener;
 	private ListSelectionModel classTableSelectionListener;
+	private ActionListener validateActionListener;
 
 	/*
 	 * Listens for changed selection in the drop down menu, puts previous propertiesConfiguration
@@ -129,7 +130,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			TableBuilder.repaintAllTables(tables.iterator());
 		}
 	}
-
+	
 	/*
 	 * Listens for changed class row selection in the class table
 	 */
@@ -239,17 +240,28 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
         	}
 		});
-        
-        validateButton = new JButton("Validate");
-        validateButton.addActionListener( new ActionListener() {
+
+		validateActionListener = new ActionListener() {
         	@Override 
         	public void actionPerformed( ActionEvent e ) {
-        		//TODO: pruefen, ob settings veraendert wurden, wenn nicht dann openSaveDialog(this)
+        		System.out.println(settingsConfiguration.isChanged());
+        		if (settingsConfiguration.isChanged()) {
+        			int result = JOptionPane.showConfirmDialog(parent, 
+        					"Do you want to save them before Validation?", 
+        					"Configurations are not saved yet!", 
+        					JOptionPane.YES_NO_OPTION);
+    				if (result == 0) {
+    					saveConfigurationsToFile(file);
+    				}
+        		}
         		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
         		validatable = true;
         		setVisible(false);
         	}
-        } );
+        };
+		
+        validateButton = new JButton("Validate");
+        validateButton.addActionListener(validateActionListener);
 
         statusArea = new JTextArea();
         statusArea.setEditable(false);
@@ -279,14 +291,18 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         
         if (file.exists()) {
         	extractConfigurations(file);
-        	settingsConfiguration.setChanged(false);
         } else {
         	ChangeConfiguration.clearSettings(settingsConfiguration);
         	createDefaultConfigurations();
-        	settingsConfiguration.setChanged(true);
         }
         ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
         TableBuilder.repaintAllTables(tables.iterator());
+
+        if (file.exists()) {
+        	settingsConfiguration.setChanged(false);
+        } else {
+        	settingsConfiguration.setChanged(true);
+        }
 
         //Hiding the min-/maxDefined and min-/maxElements of the attributes table
         for (int i = 0; i < 4; i++) {
@@ -560,23 +576,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         	}
         });
 		
-		validateMenuItem.addActionListener( new ActionListener() {
-        	@Override 
-        	public void actionPerformed( ActionEvent e ) {
-        		if (settingsConfiguration.isChanged()) {
-        			int result = JOptionPane.showConfirmDialog(parent, 
-        					"Do you want to save them before Validation?", 
-        					"Configurations are not saved yet!", 
-        					JOptionPane.YES_NO_OPTION);
-    				if (result == 0) {
-    					saveConfigurationsToFile(file);
-    				}
-        		}
-        		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
-        		validatable = true;
-        		setVisible(false);
-        	}
-        } );
+		validateMenuItem.addActionListener(validateActionListener);
 		
 		
 		
@@ -595,7 +595,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private JSplitPane buildBasicTypesAndOptionsTab() {
-		//TODO: Spinner neben Zahlenwerten einsetzen
 		JSplitPane basicTypesAndOptionsPanel;
 		
 		JPanel leftUpper = new JPanel();
@@ -641,7 +640,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private JSplitPane buildClassesAndAssociationsTab() {
-		//TODO: Spinner neben Zahlenwerten einsetzen
 		JScrollPane classesScrollPane = new JScrollPane(classes);
         JScrollPane attributesScrollPane = new JScrollPane(attributes);
         JScrollPane associationsScrollPane = new JScrollPane(associations);
