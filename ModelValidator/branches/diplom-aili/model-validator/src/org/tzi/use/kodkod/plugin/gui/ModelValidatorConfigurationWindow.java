@@ -157,8 +157,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		super(parent, "Model-Validator Configuration");
 		
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		//TODO: USE soll weiterhin verwendbar bleiben, waehrrend die MV-GUI weiterlaeuft. Dies soll geschehen, indem die Validierung
-		// im Thread der MV-GUI mit ausgefuehrt wird.
+		//TODO: The GUI of the MV should run parallel to 
 		this.setModalityType(ModalityType.APPLICATION_MODAL);
 		this.setResizable(true);
 		this.setSize(1024,300);
@@ -268,7 +267,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         statusArea.setBackground(getParent().getBackground());
         statusArea.setLineWrap(true);
         statusArea.setWrapStyleWord(true);
-        //TODO: Hier koennten spaeter die Benachrichtigungen aus dem Validierungsprozess hineingehen
+        //TODO: This area is reserved for future status logs or other purposes
         statusArea.setText("");
         
         northNorth.add(new JLabel("Loaded properties file: "));
