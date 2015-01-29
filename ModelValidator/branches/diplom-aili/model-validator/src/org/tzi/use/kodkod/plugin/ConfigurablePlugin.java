@@ -90,7 +90,6 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 	}
 	
 	private PropertiesConfiguration getConfigurationFromSector(File file, String section) throws ConfigurationException {
-		//TODO: nur angegebenen sector der properites File nutzen 
 		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
 		PropertiesConfiguration sectorConfiguration = new PropertiesConfiguration();
 		SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);

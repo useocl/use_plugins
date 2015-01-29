@@ -40,14 +40,6 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 		}
 		
 		initialize(pluginCommand.getSession());
-
-		//String arguments = pluginCommand.getCmdArguments();
-		//TODO: use pluginCommand.getCmdArgumentsList() to use the second argument as 
-		//sector name of the properties file to be used
-		//Falls, kein zweites Argument neben File geschrieben wurde, einen Hinweis anzeigen, der sagt,
-		//dass die Datei mehrere Sektoren enthaelt und man nun den ersten Sektor zur Validierungskonfiguration
-		//nutzt
-		
 		String [] arguments = pluginCommand.getCmdArgumentList();
 		
 		if (arguments.length >= 1) {
