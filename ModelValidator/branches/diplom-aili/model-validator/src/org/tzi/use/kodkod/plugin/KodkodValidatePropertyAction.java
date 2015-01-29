@@ -24,8 +24,6 @@ public class KodkodValidatePropertyAction extends KodkodValidateCmd implements I
 		
 		initialize(pluginAction.getSession(), pluginAction.getParent());
 		
-		// TODO: Validation should also run in one thread with the GUI of the MV-Configuration
-		//for using the MV-GUI and USE-GUI and the same time. Here oder in KodkodValidateCmd
 		getConfigurationOverGUIAndValidate(pluginAction);
 		
 	}

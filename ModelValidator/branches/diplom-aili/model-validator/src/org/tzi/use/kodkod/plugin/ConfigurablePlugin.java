@@ -1,21 +1,25 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
+import java.util.Iterator;
 
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.SubnodeConfiguration;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationVisitor;
 import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
 
 /**
  * A base class for plugins that can be configured using property files.
+ * With just a file name without a sector name given, the first sector of
+ * the properties file will be used. 
  * 
  * @author Frank Hilken
  */
 public abstract class ConfigurablePlugin extends AbstractPlugin {
 
-	private PropertyConfigurationVisitor configurationVisitor;
-	
 	/**
 	 * Configuration of the model with the data from the given file.
 	 * 
@@ -24,15 +28,15 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 	 */
 	protected PropertyConfigurationVisitor configureModel(File file) throws ConfigurationException {
 		model().reset();
-		configurationVisitor = new PropertyConfigurationVisitor(file.getAbsolutePath());
-		model().accept(configurationVisitor);
-
-		if (configurationVisitor.containErrors()) {
+		PropertyConfigurationVisitor newConfigurationVisitor = new PropertyConfigurationVisitor(getFirstSectorConfiguration(file));
+		model().accept(newConfigurationVisitor);
+		
+		if (newConfigurationVisitor.containErrors()) {
 			throw new ConfigurationException();
 		}
-
+		
 		LOG.info(LogMessages.modelConfigurationSuccessful);
-		return configurationVisitor;
+		return newConfigurationVisitor;
 	}
 
 	/**
@@ -49,6 +53,21 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 		LOG.info(LogMessages.modelConfigurationSuccessful);
 
 		return configurationVisitor.getFile();
+	}
+	
+	private PropertiesConfiguration getFirstSectorConfiguration(File file) throws ConfigurationException {
+		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
+		Iterator<?> sectionsIterator = hierarchicalINIConfiguration.getSections().iterator();
+		PropertiesConfiguration firstSectorConfiguration = new PropertiesConfiguration();
+		String section = (String) sectionsIterator.next();
+		SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
+		Iterator<?> keysIterator = sectionConfigurations.getKeys();
+		while (keysIterator.hasNext()) {
+			String key = (String) keysIterator.next();
+			if (!key.startsWith("--"))
+				firstSectorConfiguration.addProperty(key, sectionConfigurations.getString(key));
+		}
+		return firstSectorConfiguration;
 	}
 	
 }

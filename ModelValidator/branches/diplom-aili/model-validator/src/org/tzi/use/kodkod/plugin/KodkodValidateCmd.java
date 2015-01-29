@@ -41,11 +41,21 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 		
 		initialize(pluginCommand.getSession());
 
-		String arguments = pluginCommand.getCmdArguments();
+		//String arguments = pluginCommand.getCmdArguments();
 		//TODO: use pluginCommand.getCmdArgumentsList() to use the second argument as 
 		//sector name of the properties file to be used
-		if (arguments.length() > 1) {
-			handleArguments(arguments);
+		//Falls, kein zweites Argument neben File geschrieben wurde, einen Hinweis anzeigen, der sagt,
+		//dass die Datei mehrere Sektoren enthaelt und man nun den ersten Sektor zur Validierungskonfiguration
+		//nutzt
+		
+		String [] arguments = pluginCommand.getCmdArgumentList();
+		
+		if (arguments.length >= 1) {
+			if (arguments.length < 2) {
+				handleArguments(arguments[0]);
+			} else {
+				handleArguments(arguments[0], arguments[1]);
+			}
 		} else {
 			noArguments();
 		}
@@ -76,12 +86,31 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 		File file = new File(filepath);
 
 		if (file.exists() && file.canRead() && !file.isDirectory()) {
+			LOG.warn("Using first configuration sector of the file.");
 			extractConfigureAndValidate(file);
 		} else {
 			LOG.error(LogMessages.fileCmdError(file));
 		}
 	}
+	
+	/**
+	 * Handling of the cmd call with a path to a configuration file and
+	 * the sector selected from it.
+	 * 
+	 * @param arguments
+	 */
+	protected void handleArguments(String fileName, String sector) {
+		String filepath = Shell.getInstance().getFilenameToOpen(fileName.trim(), false);
+		filepath = Options.getFilenameToOpen(filepath);
+		File file = new File(filepath);
 
+		if (file.exists() && file.canRead() && !file.isDirectory()) {
+			extractConfigureAndValidate(file, sector);
+		} else {
+			LOG.error(LogMessages.fileCmdError(file));
+		}
+	}
+	
 	/**
 	 * Configures the model from the first configuration section of the configuration file,
 	 * extracts an object diagram and calls the model validator.
@@ -89,6 +118,24 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	 * @param file
 	 */
 	protected final void extractConfigureAndValidate(File file) {
+		try {
+			PropertyConfigurationVisitor configurationVisitor = configureModel(file);
+			enrichModel();
+			validate(createValidator());
+			configurationVisitor.printWarnings();
+		} catch (ConfigurationException e) {
+			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
+		}
+	}
+
+	/**
+	 * Configures the model from the given configuration section of the configuration file,
+	 * extracts an object diagram and calls the model validator.
+	 * 
+	 * @param file
+	 */
+	protected final void extractConfigureAndValidate(File file, String sector) {
+		//TODO Konfiguration mit Sektornamen soll aufgerufen werden
 		try {
 			PropertyConfigurationVisitor configurationVisitor = configureModel(file);
 			enrichModel();
@@ -126,7 +173,6 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	}
 	
 	private void configureModel(IPluginAction pluginAction) throws Exception {
-		//TODO: Diese Methode in eine GUI-Methode extrahieren
 		model().reset();
         ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
         		new ModelValidatorConfigurationWindow(MainWindow.instance(), mModel);

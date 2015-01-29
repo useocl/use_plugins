@@ -53,7 +53,7 @@ import org.tzi.use.uml.mm.MModel;
 
 
 /**
- *  A GUI for the configuration of the model validator
+ *  A GUI for adjusting the configurations before giving them to the model validator
  * 
  * @author Subi Aili
  *
@@ -157,7 +157,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		super(parent, "Model-Validator Configuration");
 		
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		//TODO: The GUI of the MV should run parallel to 
 		this.setModalityType(ModalityType.APPLICATION_MODAL);
 		this.setResizable(true);
 		this.setSize(1024,300);
@@ -243,13 +242,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		validateActionListener = new ActionListener() {
         	@Override 
         	public void actionPerformed( ActionEvent e ) {
-        		System.out.println(settingsConfiguration.isChanged());
         		if (settingsConfiguration.isChanged()) {
         			int result = JOptionPane.showConfirmDialog(parent, 
         					"Do you want to save them before Validation?", 
         					"Configurations are not saved yet!", 
-        					JOptionPane.YES_NO_OPTION);
-    				if (result == 0) {
+        					JOptionPane.YES_NO_CANCEL_OPTION);
+    				if (result == 2) {
+    					return;
+    				} else if (result == 0) {
     					saveConfigurationsToFile(file);
     				}
         		}
@@ -267,7 +267,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         statusArea.setBackground(getParent().getBackground());
         statusArea.setLineWrap(true);
         statusArea.setWrapStyleWord(true);
-        //TODO: This area is reserved for future status logs or other purposes
         statusArea.setText("");
         
         northNorth.add(new JLabel("Loaded properties file: "));
