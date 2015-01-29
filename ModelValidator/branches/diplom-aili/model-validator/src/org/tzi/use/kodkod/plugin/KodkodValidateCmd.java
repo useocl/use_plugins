@@ -78,10 +78,10 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	/**
 	 * Handling of the cmd call with a path to a configuration file.
 	 * 
-	 * @param arguments
+	 * @param fileName
 	 */
-	protected void handleArguments(String arguments) {
-		String filepath = Shell.getInstance().getFilenameToOpen(arguments.trim(), false);
+	protected void handleArguments(String fileName) {
+		String filepath = Shell.getInstance().getFilenameToOpen(fileName.trim(), false);
 		filepath = Options.getFilenameToOpen(filepath);
 		File file = new File(filepath);
 
@@ -99,13 +99,13 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	 * 
 	 * @param arguments
 	 */
-	protected void handleArguments(String fileName, String sector) {
+	protected void handleArguments(String fileName, String section) {
 		String filepath = Shell.getInstance().getFilenameToOpen(fileName.trim(), false);
 		filepath = Options.getFilenameToOpen(filepath);
 		File file = new File(filepath);
 
 		if (file.exists() && file.canRead() && !file.isDirectory()) {
-			extractConfigureAndValidate(file, sector);
+			extractConfigureAndValidate(file, section);
 		} else {
 			LOG.error(LogMessages.fileCmdError(file));
 		}
@@ -134,10 +134,9 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	 * 
 	 * @param file
 	 */
-	protected final void extractConfigureAndValidate(File file, String sector) {
-		//TODO Konfiguration mit Sektornamen soll aufgerufen werden
+	protected final void extractConfigureAndValidate(File file, String section) {
 		try {
-			PropertyConfigurationVisitor configurationVisitor = configureModel(file);
+			PropertyConfigurationVisitor configurationVisitor = configureModel(file, section);
 			enrichModel();
 			validate(createValidator());
 			configurationVisitor.printWarnings();

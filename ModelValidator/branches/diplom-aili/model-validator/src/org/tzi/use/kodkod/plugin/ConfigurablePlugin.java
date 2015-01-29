@@ -38,6 +38,25 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 		LOG.info(LogMessages.modelConfigurationSuccessful);
 		return newConfigurationVisitor;
 	}
+	
+	/**
+	 * Configuration of the model with the data from the given file.
+	 * 
+	 * @param file
+	 * @throws ConfigurationException
+	 */
+	protected PropertyConfigurationVisitor configureModel(File file, String section) throws ConfigurationException {
+		model().reset();
+		PropertyConfigurationVisitor newConfigurationVisitor = new PropertyConfigurationVisitor(getConfigurationFromSector(file, section));
+		model().accept(newConfigurationVisitor);
+		
+		if (newConfigurationVisitor.containErrors()) {
+			throw new ConfigurationException();
+		}
+		
+		LOG.info(LogMessages.modelConfigurationSuccessful);
+		return newConfigurationVisitor;
+	}
 
 	/**
 	 * Configuration with the default search space.
@@ -68,6 +87,20 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 				firstSectorConfiguration.addProperty(key, sectionConfigurations.getString(key));
 		}
 		return firstSectorConfiguration;
+	}
+	
+	private PropertiesConfiguration getConfigurationFromSector(File file, String section) throws ConfigurationException {
+		//TODO: nur angegebenen sector der properites File nutzen 
+		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
+		PropertiesConfiguration sectorConfiguration = new PropertiesConfiguration();
+		SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
+		Iterator<?> keysIterator = sectionConfigurations.getKeys();
+		while (keysIterator.hasNext()) {
+			String key = (String) keysIterator.next();
+			if (!key.startsWith("--"))
+				sectorConfiguration.addProperty(key, sectionConfigurations.getString(key));
+		}
+		return sectorConfiguration;
 	}
 	
 }

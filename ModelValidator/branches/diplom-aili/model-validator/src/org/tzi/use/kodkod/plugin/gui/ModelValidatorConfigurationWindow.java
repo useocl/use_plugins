@@ -126,7 +126,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			}
 			selectedSection = (String) ((JComboBox<?>) e.getSource()).getSelectedItem();
 			propertiesConfiguration = (PropertiesConfiguration) propertiesConfigurationSections.get(selectedSection).clone();
+			//settingsConfiguration are switched when the configuration is exchanged via the Configuration ComboBox. The information
+			//if it's actually changed are lost after the switch, thus it's saved here before the switching and is recovered after.
+			boolean beforeChange = settingsConfiguration.isChanged();
 			ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
+			settingsConfiguration.setChanged(beforeChange);
 			TableBuilder.repaintAllTables(tables.iterator());
 		}
 	}
