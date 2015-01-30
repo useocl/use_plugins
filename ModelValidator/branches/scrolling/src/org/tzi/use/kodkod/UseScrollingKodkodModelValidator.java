@@ -144,7 +144,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 
 	public void setObservationTerm(Expression term) {
 		obsTerm = term;
-		obsTermInteger = term.type().isInteger();
+		obsTermInteger = term.type().isTypeOfInteger();
 	}
 	
 	public void setObservationTermKodkod(kodkod.ast.Expression observationTermKodkod) {

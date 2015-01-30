@@ -17,6 +17,7 @@ import kodkod.ast.Variable;
 import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
+import org.tzi.use.config.Options;
 import org.tzi.use.kodkod.UseScrollingKodkodModelValidator;
 import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.kodkod.transform.ocl.DefaultExpressionVisitor;
@@ -24,6 +25,7 @@ import org.tzi.use.main.shell.Shell;
 import org.tzi.use.parser.ocl.OCLCompiler;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.CollectionType;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.VarBindings;
 
 /**
@@ -63,7 +65,9 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 					validator.showSolution(index);
 				}
 			} else {
-				File file = new File(Shell.getInstance().getFilenameToOpen(arguments, false));
+				String fileToOpen = Shell.getInstance().getFilenameToOpen(arguments, false);
+				fileToOpen = Options.getFilenameToOpen(fileToOpen);
+				File file = new File(fileToOpen);
 	
 				if (file.exists() && file.canRead() && !file.isDirectory()) {
 					
@@ -113,7 +117,7 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 				continue;
 			}
 			
-			if(result.type().isInteger() || (result.type().isCollection(true) && ((CollectionType)result.type()).elemType().isInteger())){
+			if(result.type().isTypeOfInteger() || (result.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID) && ((CollectionType)result.type()).elemType().isTypeOfInteger())){
 				
 				// transform into kodkod
 				kodkod.ast.Expression obsTermKodkod;

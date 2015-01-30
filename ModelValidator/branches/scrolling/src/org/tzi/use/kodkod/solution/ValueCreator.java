@@ -13,6 +13,7 @@ import org.tzi.use.uml.ocl.type.OrderedSetType;
 import org.tzi.use.uml.ocl.type.SequenceType;
 import org.tzi.use.uml.ocl.type.SetType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.BagValue;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.ocl.value.EnumValue;
@@ -51,7 +52,7 @@ public class ValueCreator {
 	}
 
 	public Value create(Type attributeType, Object atom) {
-		if (attributeType.isCollection(false)) {
+		if (attributeType.isKindOfCollection(VoidHandling.INCLUDE_VOID)) {
 			return createCollectionValue(atom, attributeType);
 		} else {
 			return createValue(attributeType, atom);
@@ -61,17 +62,17 @@ public class ValueCreator {
 	private Value createValue(Type attributeType, Object atom) {
 		if (atom.equals(TypeConstants.UNDEFINED)) {
 			return createUndefinedValue();
-		} else if (attributeType.isInteger()) {
+		} else if (attributeType.isTypeOfInteger()) {
 			return createIntegerValue(atom);
-		} else if (attributeType.isBoolean()) {
+		} else if (attributeType.isTypeOfBoolean()) {
 			return createBooleanValue(atom);
-		} else if (attributeType.isString()) {
+		} else if (attributeType.isTypeOfString()) {
 			return createStringValue(atom);
-		} else if (attributeType.isReal()) {
+		} else if (attributeType.isTypeOfReal()) {
 			return createRealValue(atom);
-		} else if (attributeType.isObjectType()) {
+		} else if (attributeType.isTypeOfClass()) {
 			return createObjectValue(atom);
-		} else if (attributeType.isEnum()) {
+		} else if (attributeType.isTypeOfEnum()) {
 			return createEnumValue(atom);
 		}
 
@@ -81,16 +82,16 @@ public class ValueCreator {
 	private Value createCollectionValue(Object atom, Type attributeType) {
 		if (atom.equals(TypeConstants.UNDEFINED_SET)) {
 			return createUndefinedValue();
-		} else if (attributeType.isSet()) {
+		} else if (attributeType.isTypeOfSet()) {
 			return createSetValue(atom, (SetType) attributeType);
-		} else if (attributeType.isBag()) {
+		} else if (attributeType.isTypeOfBag()) {
 			return createBagValue(atom, (BagType) attributeType);
-		} else if (attributeType.isSequence()) {
+		} else if (attributeType.isTypeOfSequence()) {
 			return createSequenceValue(atom, (SequenceType) attributeType);
-		} else if (attributeType.isOrderedSet()) {
+		} else if (attributeType.isTypeOfOrderedSet()) {
 			return createOrderedSetValue(atom, (OrderedSetType) attributeType);
 		}
-
+		//FIXME: Collection?
 		return null;
 	}
 
@@ -113,7 +114,7 @@ public class ValueCreator {
 	private Value createObjectValue(Object atom) {
 		MObjectState o = objectStates.get(atom);
 		MObject mObject = o.object();
-		return new ObjectValue(mObject.type(), mObject);
+		return new ObjectValue(mObject.cls(), mObject);
 	}
 
 	private Value createRealValue(Object atom) {

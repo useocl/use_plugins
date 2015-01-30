@@ -25,6 +25,7 @@ import org.tzi.kodkod.model.iface.IModelFactory;
 import org.tzi.kodkod.model.type.TypeFactory;
 import org.tzi.use.kodkod.transform.ocl.DefaultExpressionVisitor;
 import org.tzi.use.uml.mm.MClassInvariant;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Class to transform invariants of the use model in invariants of the model of
@@ -93,8 +94,12 @@ public class InvariantTransformator {
 			Formula formula;
 			if (transform instanceof Expression) {
 				formula = ExpressionHelper.boolean_expr2formula((Expression) transform, typeFactory);
-			} else {
+			} else if(transform instanceof Formula) {
 				formula = (Formula) transform;
+			} else {
+				throw new TransformationException("Invariant "
+						+ StringUtil.inQuotes(invariantClass.name() + "::" + name)
+						+ " transformed into a non boolean expression.");
 			}
 
 			Relation relation;
