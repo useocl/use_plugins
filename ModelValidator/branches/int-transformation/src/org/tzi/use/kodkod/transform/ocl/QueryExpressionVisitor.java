@@ -3,6 +3,7 @@ package org.tzi.use.kodkod.transform.ocl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.UUID;
 
 import kodkod.ast.Node;
@@ -40,11 +41,15 @@ import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 
 	private List<Object> arguments;
+	
+	//FIXME get rid of this field variable by refactoring methods
+	private boolean object_type_nav;
 
 	public QueryExpressionVisitor(IModel model, Map<String, Node> variables, Map<String, IClass> variableClasses,
-			Map<String, Variable> replaceVariables, List<String> collectionVariables) {
-		super(model, variables, variableClasses, replaceVariables, collectionVariables);
+			Map<String, Variable> replaceVariables, List<String> collectionVariables, Stack<OclTransformationContext> contextStack) {
+		super(model, variables, variableClasses, replaceVariables, collectionVariables, contextStack);
 		arguments = new ArrayList<Object>();
+		object_type_nav = false;
 	}
 
 	@Override
@@ -73,7 +78,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 			throw new TransformationException(LogMessages.closureCollectionMessage);
 		}
 
-		invokeMethod(expClosure.name(), arguments, true);
+		invokeMethod(expClosure.name(), arguments, true, false);
 	}
 
 	@Override
@@ -98,15 +103,13 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 
 	@Override
 	public void visitIsUnique(ExpIsUnique exp) {
-		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
-		exp.getRangeExpression().processWithVisitor(visitor);
-		arguments.add(0, visitor.getObject());
+		OclTransformationContext rangeCtx = processSubExpression(exp.getRangeExpression());
+		arguments.add(0, rangeCtx.object);
 
 		List<String> replacedVariables = createVariables(exp.getVariableDeclarations());
 
-		DefaultExpressionVisitor visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
-		exp.getQueryExpression().processWithVisitor(visitor2);
-		arguments.add(1, visitor2.getObject());
+		OclTransformationContext queryCtx = processSubExpression(exp.getQueryExpression());
+		arguments.add(1, queryCtx.object);
 
 		/*
 		 * We go through the same expression again but rename the variable
@@ -119,11 +122,10 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 		 */
 		replacedVariables.addAll(createVariables(exp.getVariableDeclarations()));
 
-		visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
-		exp.getQueryExpression().processWithVisitor(visitor2);
-		arguments.add(2, visitor2.getObject());
+		OclTransformationContext queryCtx2 = processSubExpression(exp.getQueryExpression());
+		arguments.add(2, queryCtx2.object);
 
-		invokeMethod(exp.name(), arguments, true);
+		invokeMethod(exp.name(), arguments, true, rangeCtx.object_type_nav);
 
 		removeReplaceVariable(replacedVariables);
 	}
@@ -145,23 +147,21 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 
 	@Override
 	public void visitQuery(ExpQuery exp) {
-		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
-		exp.getRangeExpression().processWithVisitor(visitor);
-		arguments.add(0, visitor.getObject());
+		OclTransformationContext rangeCtx = processSubExpression(exp.getRangeExpression());
+		arguments.add(0, rangeCtx.object);
+		object_type_nav = rangeCtx.object_type_nav;
 
 		List<String> replacedVariables = createVariables(exp.getVariableDeclarations());
 
-		DefaultExpressionVisitor visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
-		exp.getQueryExpression().processWithVisitor(visitor2);
-		arguments.add(1, visitor2.getObject());
+		OclTransformationContext queryCty = processSubExpression(exp.getQueryExpression());
+		arguments.add(1, queryCty.object);
 
 		removeReplaceVariable(replacedVariables);
 	}
 
 	private void visitQueryAndInvoke(ExpQuery exp) {
 		visitQuery(exp);
-
-		invokeMethod(exp.name(), arguments, true);
+		invokeMethod(exp.name(), arguments, true, object_type_nav);
 	}
 
 	private void removeReplaceVariable(List<String> replacedVariables) {

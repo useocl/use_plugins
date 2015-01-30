@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.SortedSet;
+import java.util.Stack;
 import java.util.TreeSet;
 
 import kodkod.ast.Expression;
@@ -108,7 +109,7 @@ public class OCLTest {
 	}
 
 	protected Object toKodkod(org.tzi.use.uml.ocl.expr.Expression expression) {
-		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, new HashMap<String, Node>(), new HashMap<String, IClass>(), new HashMap<String, Variable>(), new ArrayList<String>());
+		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, new HashMap<String, Node>(), new HashMap<String, IClass>(), new HashMap<String, Variable>(), new ArrayList<String>(), new Stack<DefaultExpressionVisitor.OclTransformationContext>());
 		expression.processWithVisitor(visitor);
 		return visitor.getObject();
 	}

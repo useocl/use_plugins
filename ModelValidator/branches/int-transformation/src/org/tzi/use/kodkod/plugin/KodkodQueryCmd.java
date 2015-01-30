@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 import java.util.TreeMap;
 
 import kodkod.ast.Formula;
@@ -67,9 +68,7 @@ public class KodkodQueryCmd extends AbstractPlugin implements IPluginShellCmdDel
 
 		Object object = null;
 		try {
-
-			DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model(), variables, variableClasses, new HashMap<String, Variable>(),
-					new ArrayList<String>());
+			DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model(), variables, variableClasses, new HashMap<String, Variable>(), new ArrayList<String>(), new Stack<DefaultExpressionVisitor.OclTransformationContext>());
 			expr.processWithVisitor(visitor);
 
 			object = visitor.getObject();

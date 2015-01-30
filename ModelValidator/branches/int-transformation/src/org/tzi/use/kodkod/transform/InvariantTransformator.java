@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.TreeMap;
 
 import kodkod.ast.Decls;
@@ -64,8 +65,7 @@ public class InvariantTransformator {
 			contextVariables.put(var.trim(), variables.get(var.trim()));
 		}
 
-		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, new HashMap<String, Variable>(),
-				new ArrayList<String>());
+		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, new HashMap<String, Variable>(), new ArrayList<String>(), new Stack<DefaultExpressionVisitor.OclTransformationContext>());
 		mClassInvariant.bodyExpression().processWithVisitor(visitor);
 
 		IInvariant invariant = createInvariant(mClassInvariant.name(), invariantClass, contextVariables.values(), visitor.getObject());

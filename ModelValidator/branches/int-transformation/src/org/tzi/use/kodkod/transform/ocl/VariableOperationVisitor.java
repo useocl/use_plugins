@@ -3,6 +3,7 @@ package org.tzi.use.kodkod.transform.ocl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import kodkod.ast.Node;
 import kodkod.ast.Variable;
@@ -23,6 +24,7 @@ import org.tzi.use.uml.ocl.expr.ExpAttrOp;
 import org.tzi.use.uml.ocl.expr.ExpNavigation;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
+import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.Type;
 
 /**
@@ -35,10 +37,14 @@ import org.tzi.use.uml.ocl.type.Type;
 public class VariableOperationVisitor extends DefaultExpressionVisitor {
 
 	private IClass attributeClass;
+	
+	private Object object;
+	private boolean set;
+	private boolean object_type_nav;
 
 	public VariableOperationVisitor(IModel model, Map<String, Node> variables, Map<String, IClass> variableClasses,
-			Map<String, Variable> replaceVariables, List<String> collectionVariables) {
-		super(model, variables, variableClasses, replaceVariables, collectionVariables);
+			Map<String, Variable> replaceVariables, List<String> collectionVariables, Stack<OclTransformationContext> contextStack) {
+		super(model, variables, variableClasses, replaceVariables, collectionVariables, contextStack);
 	}
 
 	/**
@@ -59,19 +65,17 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 	
 	@Override
 	public void visitAttrOp(ExpAttrOp exp) {
-		exp.objExp().processWithVisitor(this);
+		subExpression(exp.objExp());
 		
 		IAttribute attribute = attributeClass.getAttribute(exp.attr().name());
 		
 		if (attribute != null) {
-			set = attribute.type().isSet();
+			boolean set = attribute.type().isSet();
 
 			List<Object> arguments = new ArrayList<Object>();
 			arguments.add(object);
 			arguments.add(attribute.relation());
 			arguments.add(set);
-
-			invokeMethod("access", arguments, false);
 			
 			// update current type
 			if(attribute.type().isObjectType()){
@@ -81,6 +85,8 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 			else {
 				attributeClass = null;
 			}
+			
+			invokeMethod("access", arguments, false, object_type_nav);
 		} else {
 			throw new TransformationException("Cannot find attribute " + exp.attr().name() + ".");
 		}
@@ -88,7 +94,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 
 	@Override
 	public void visitNavigation(ExpNavigation exp) {
-		exp.getObjectExpression().processWithVisitor(this);
+		subExpression(exp.getObjectExpression());
 		
 		MNavigableElement source = exp.getSource();
 		MNavigableElement destination = exp.getDestination();
@@ -123,7 +129,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 			arguments.add(isAssociationClass);
 			arguments.add(object_type_nav);
 
-			invokeMethod("navigation", arguments, false);
+			invokeMethod("navigation", arguments, false, object_type_nav);
 		} else {
 			throw new TransformationException("Cannot find association " + mAssociation.name() + ".");
 		}
@@ -183,7 +189,6 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 				return i + 1;
 			}
 		}
-
 		return -1;
 	}
 
@@ -225,6 +230,24 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		}
 	}
 
+	/**
+	 * Translates the stack usage of the {@link DefaultExpressionVisitor} to the
+	 * field usage of this visitor.
+	 * 
+	 * FIXME change this visitor to use the stack properly
+	 * a problem are the many methods that use class attributes to interact with on another
+	 */
+	private void subExpression(Expression e){
+		int stackSize = stack.size();
+		e.processWithVisitor(this);
+		if(stack.size() > stackSize){
+			OclTransformationContext ctx = stack.pop();
+			object = ctx.object;
+			set = ctx.set;
+			object_type_nav = ctx.object_type_nav;
+		}
+	}
+	
 	private void getAttributeClass(String varName) {
 		if (variableClasses.containsKey(varName))
 			attributeClass = variableClasses.get(varName);

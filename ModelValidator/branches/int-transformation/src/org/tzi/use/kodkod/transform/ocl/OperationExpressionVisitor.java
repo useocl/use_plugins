@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import kodkod.ast.Expression;
 import kodkod.ast.Formula;
@@ -38,8 +39,8 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 	private Map<String, Variable> opReplaceVariables;
 
 	public OperationExpressionVisitor(IModel model, Map<String, Node> variables, Map<String, IClass> variableClasses,
-			Map<String, Variable> replaceVariables, List<String> collectionVariables) {
-		super(model, variables, variableClasses, replaceVariables, collectionVariables);
+			Map<String, Variable> replaceVariables, List<String> collectionVariables, Stack<OclTransformationContext> contextStack) {
+		super(model, variables, variableClasses, replaceVariables, collectionVariables, contextStack);
 
 		opVariables = new HashMap<String, Node>(variables);
 		opCollectionVariables = new ArrayList<String>(collectionVariables);
@@ -75,18 +76,21 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 			
 			Map<MClass, MOperation> overiddenOperations = getOverriddenOperations(operation.cls(), operation.name());
 			
-			DefaultExpressionVisitor mainVisitor = visitOperation(operation);
+			OclTransformationContext mainCtx = processSubExpression(operation.expression());
+			Object object;
 			if (overiddenOperations.isEmpty()) {
-				object = mainVisitor.getObject();
+				object = mainCtx.object;
 			} else {
 				Iterator<MClass> iterator = overiddenOperations.keySet().iterator();
-				object = handleOveriddenOperation(iterator, overiddenOperations, expression, getAsExpression(mainVisitor.getObject()));
+				object = handleOveriddenOperation(iterator, overiddenOperations, expression, getAsExpression(mainCtx.object));
 			}
 			
-			set = exp.getOperation().resultType().isKindOfCollection(VoidHandling.EXCLUDE_VOID);
-			object_type_nav = mainVisitor.isObject_type_nav();
-			
+			//FIXME kodkod encoding in visitor class
 			object = expression.in(undefined).thenElse(undefined, getAsExpression(object));
+			
+			OclTransformationContext ctx = new OclTransformationContext(object);
+			ctx.set = exp.getOperation().resultType().isKindOfCollection(VoidHandling.EXCLUDE_VOID);
+			ctx.object_type_nav = mainCtx.object_type_nav;
 			
 			opVariables.remove("self");
 			opVariableClasses.remove("self");
@@ -112,7 +116,9 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 			opVariableClasses.put("self", model.getClass(cls.name()));
 			
 			Formula inFormula = selfExpression.in(model.getClass(cls.name()).relation());
-			Expression expression = getAsExpression(visitOperation(overiddenOperations.get(cls)).getObject());
+			MOperation op = overiddenOperations.get(cls);
+			OclTransformationContext opCtx = processSubExpression(op.expression());
+			Expression expression = getAsExpression(opCtx.object);
 			
 			opVariableClasses.put("self", baseVariableClass);
 			
@@ -142,21 +148,6 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 	}
 
 	/**
-	 * Visit the operation.
-	 * 
-	 * @param operation
-	 * @return
-	 */
-
-	private DefaultExpressionVisitor visitOperation(MOperation operation) {
-		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, opVariables, opVariableClasses, opReplaceVariables,
-				opCollectionVariables);
-		operation.expression().processWithVisitor(visitor);
-
-		return visitor;
-	}
-
-	/**
 	 * Visit the parameters of an operation.
 	 * 
 	 * @param operation
@@ -170,7 +161,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 		if (params.size() > 0) {
 			VarDecl currentParam;
 			for (int i = 0; i < params.size(); i++) {
-				visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
+				visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables, stack);
 				arguments[i + 1].processWithVisitor(visitor);
 
 				currentParam = params.varDecl(i);
@@ -181,8 +172,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 					MClass type = (MClass) currentParam.type();
 					opVariableClasses.put(currentParam.name(),model.getClass(type.name()));
 				}
-
-				if (currentParam.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
+				else if (currentParam.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID)) {
 					opCollectionVariables.add(currentParam.name());
 				}
 			}
@@ -196,8 +186,8 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 	 */
 
 	private void visitOperationVariable(org.tzi.use.uml.ocl.expr.Expression operationVariable) {
-		VariableOperationVisitor variableVisitor = new VariableOperationVisitor(model, variables, variableClasses, replaceVariables,
-				collectionVariables);
+		//TODO
+		VariableOperationVisitor variableVisitor = new VariableOperationVisitor(model, variables, variableClasses, replaceVariables, collectionVariables, stack);
 		operationVariable.processWithVisitor(variableVisitor);
 		
 		opVariables.put("self", (Node) variableVisitor.getObject());

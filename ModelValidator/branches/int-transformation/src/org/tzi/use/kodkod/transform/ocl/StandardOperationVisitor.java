@@ -3,6 +3,7 @@ package org.tzi.use.kodkod.transform.ocl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.UUID;
 
 import kodkod.ast.Node;
@@ -28,8 +29,8 @@ public class StandardOperationVisitor extends DefaultExpressionVisitor {
 	private List<Object> arguments;
 
 	public StandardOperationVisitor(IModel model, Map<String, Node> variables, Map<String, IClass> variableClasses,
-			Map<String, Variable> replaceVariables, List<String> collectionVariables) {
-		super(model, variables, variableClasses, replaceVariables, collectionVariables);
+			Map<String, Variable> replaceVariables, List<String> collectionVariables, Stack<OclTransformationContext> contextStack) {
+		super(model, variables, variableClasses, replaceVariables, collectionVariables, contextStack);
 		id = UUID.randomUUID();
 	}
 
@@ -38,16 +39,17 @@ public class StandardOperationVisitor extends DefaultExpressionVisitor {
 		arguments = new ArrayList<Object>();
 
 		LOG.debug(id + " - op: " + exp.opname());
+		boolean set = false;
+		boolean object_type_nav = false;
 		for (org.tzi.use.uml.ocl.expr.Expression expArg : exp.args()) {
 			LOG.debug(id + " - arg: " + expArg);
-			DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
-			expArg.processWithVisitor(visitor);
-			arguments.add(visitor.getObject());
-			set = set || visitor.isSet();
-			object_type_nav = object_type_nav || visitor.isObject_type_nav();
+			OclTransformationContext argumentCtx = processSubExpression(expArg);
+			arguments.add(argumentCtx.object);
+			set = set || argumentCtx.set;
+			object_type_nav = object_type_nav || argumentCtx.object_type_nav;
 		}
 
-		invokeMethod(exp.opname(), arguments, set);
+		invokeMethod(exp.opname(), arguments, set, object_type_nav);
 	}
 	
 //	private void handleMinus() {

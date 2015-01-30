@@ -297,7 +297,7 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 			ExpConstUnlimitedNatural expressionConstUnlimitedNatural) {
 		throw new TransformationException("UnlimitedNatural not supported");
 	}
-
+	
 	@Override
 	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
 		throw new TransformationException("selectByKind not supported");
