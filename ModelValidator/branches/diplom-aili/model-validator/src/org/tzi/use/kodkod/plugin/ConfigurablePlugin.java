@@ -28,7 +28,12 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 	 */
 	protected PropertyConfigurationVisitor configureModel(File file) throws ConfigurationException {
 		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
-		String section = (String) hierarchicalINIConfiguration.getSections().iterator().next();
+		String section;
+		if (hierarchicalINIConfiguration.getSections().iterator().hasNext()) {
+			section = (String) hierarchicalINIConfiguration.getSections().iterator().next();
+		} else {
+			section = "default"; //from here on, it doesn't matter, what the content of this section string is
+		}
 		return configureModel(file, section);
 	}
 	
@@ -68,15 +73,26 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 	}
 	
 	private PropertiesConfiguration getConfigurationFromSector(File file, String section) throws ConfigurationException {
-		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
 		PropertiesConfiguration sectorConfiguration = new PropertiesConfiguration();
-		SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
-		Iterator<?> keysIterator = sectionConfigurations.getKeys();
-		while (keysIterator.hasNext()) {
-			String key = (String) keysIterator.next();
-			if (!key.startsWith("--"))
-				sectorConfiguration.addProperty(key, sectionConfigurations.getString(key));
+		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
+
+		if (!hierarchicalINIConfiguration.getSections().isEmpty()) {
+			SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
+			Iterator<?> keysIterator = sectionConfigurations.getKeys();
+			while (keysIterator.hasNext()) {
+				String key = (String) keysIterator.next();
+				if (!key.startsWith("--"))
+					sectorConfiguration.addProperty(key, sectionConfigurations.getString(key));
+			}
+		} else {
+			Iterator<?> keysIterator = hierarchicalINIConfiguration.getKeys();
+			while (keysIterator.hasNext()) {
+				String key = (String) keysIterator.next();
+				if (!key.startsWith("--"))
+					sectorConfiguration.addProperty(key, hierarchicalINIConfiguration.getString(key));
+			}
 		}
+		
 		return sectorConfiguration;
 	}
 	
