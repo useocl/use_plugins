@@ -123,7 +123,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 				}
 			}
 
-			solutionFormula = solutionFormula.and(formula.comprehension(globDecl).no());
+			solutionFormula = solutionFormula.and(formula.forSome(globDecl).not());
 		} catch (Exception e) {
 			LOG.error(LogMessages.solutionForbidError);
 			LOG.error(e.getMessage());
