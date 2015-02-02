@@ -28,8 +28,12 @@ public abstract class Settings {
 	}
 	
 	public void setValues(String values) {
-		this.values = ChangeString.toArrayList((String)values);
-		this.configurationSettings.setChanged(true);
+		if (!(values.equals("") || values == null)) {
+			this.values = ChangeString.toArrayList((String)values);
+			this.configurationSettings.setChanged(true);
+		} else {
+			deleteValues();
+		}
 	}
 	
 	public void setValues(List<String> values) {

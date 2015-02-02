@@ -43,11 +43,7 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 		String [] arguments = pluginCommand.getCmdArgumentList();
 		
 		if (arguments.length >= 1) {
-			if (arguments.length < 2) {
-				handleArguments(arguments[0]);
-			} else {
-				handleArguments(arguments[0], arguments[1]);
-			}
+			handleArguments(arguments);
 		} else {
 			noArguments();
 		}
@@ -68,36 +64,25 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	}
 
 	/**
-	 * Handling of the cmd call with a path to a configuration file.
-	 * 
-	 * @param fileName
-	 */
-	protected void handleArguments(String fileName) {
-		String filepath = Shell.getInstance().getFilenameToOpen(fileName.trim(), false);
-		filepath = Options.getFilenameToOpen(filepath);
-		File file = new File(filepath);
-
-		if (file.exists() && file.canRead() && !file.isDirectory()) {
-			LOG.warn(LogMessages.PROPERTIES_NO_CONFIGURATION_WARNING);
-			extractConfigureAndValidate(file);
-		} else {
-			LOG.error(LogMessages.fileCmdError(file));
-		}
-	}
-	
-	/**
 	 * Handling of the cmd call with a path to a configuration file and
 	 * the sector selected from it.
 	 * 
 	 * @param arguments
 	 */
-	protected void handleArguments(String fileName, String section) {
+	protected void handleArguments(String[] arguments) {
+		String fileName = arguments[0];
 		String filepath = Shell.getInstance().getFilenameToOpen(fileName.trim(), false);
 		filepath = Options.getFilenameToOpen(filepath);
 		File file = new File(filepath);
 
 		if (file.exists() && file.canRead() && !file.isDirectory()) {
-			extractConfigureAndValidate(file, section);
+			if (arguments.length >= 2) {
+				String section = arguments[1];
+				extractConfigureAndValidate(file, section);
+			} else {
+				LOG.warn(LogMessages.PROPERTIES_NO_CONFIGURATION_WARNING);
+				extractConfigureAndValidate(file);
+			}
 		} else {
 			LOG.error(LogMessages.fileCmdError(file));
 		}
@@ -179,7 +164,6 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	        	LOG.info(LogMessages.modelConfigurationSuccessful);
         	} else { 
         		shouldValidate = false;
-        		System.out.println("Validation aborted.");
         	}
         } else {
         	JOptionPane.showMessageDialog(MainWindow.instance(), new JLabel("No Configuration loaded!"));
