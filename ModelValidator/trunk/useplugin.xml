@@ -33,6 +33,14 @@
 			class="org.tzi.use.kodkod.plugin.KodkodScrollingAllValidateCmd" help="Similar to -scrolling, but collects (and counts) all available solutions in advance."
 			label="KodkodScrollingAllValidateCmd" shellcmd="kodkod -scrollingAll">
 		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodCTScrollingValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodCTScrollingValidateCmd" help="Paging of all solutions for a configured search space. Parameters: 'next' or 'previous' for the next or previous solution; 'show(i)' selects the ith solution."
+			label="KodkodCTScrollingValidateCmd" shellcmd="kodkod -scrollingCT">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodCTScrollingAllValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodCTScrollingAllValidateCmd" help="Similar to -scrollingCT, but collects (and counts) all available solutions in advance."
+			label="KodkodCTScrollingAllValidateCmd" shellcmd="kodkod -scrollingAllCT">
+		</command>
 		<command id="org.tzi.use.kodkod.plugin.KodkodQueryCmd"
 			class="org.tzi.use.kodkod.plugin.KodkodQueryCmd" help="internal (OCL expressions are evaluated in the context of the relational solution.)"
 			label="KodkodQueryCmd" shellcmd="kodkod ?">

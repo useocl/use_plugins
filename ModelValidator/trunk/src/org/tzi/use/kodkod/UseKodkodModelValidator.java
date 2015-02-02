@@ -49,7 +49,7 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 	 */
 	protected void handleSolution() {
 		if(createObjectDiagram(solution.instance().relationTuples())){
-			LOG.info("USE found errors in the solution. Try to find a new solution!");
+			LOG.info("USE found errors in the solution. Trying to find a new solution!");
 			
 			session.reset();
 			newSolution(solution.instance().relationTuples());
@@ -98,7 +98,8 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 	}
 
 	/**
-	 * Starts a model validation to find a new solution.
+	 * Set up the model to forbid previous solutions and start a model
+	 * validation to find a new solution.
 	 */
 	protected void newSolution(Map<Relation, TupleSet> relationTuples) {
 		ModelConfigurator modelConfigurator = (ModelConfigurator) model.getConfigurator();

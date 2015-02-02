@@ -1,11 +1,16 @@
 package org.tzi.kodkod.model.config.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import kodkod.ast.Decl;
+import kodkod.ast.Decls;
 import kodkod.ast.Expression;
 import kodkod.ast.Formula;
 import kodkod.ast.Relation;
+import kodkod.ast.Variable;
 import kodkod.instance.Tuple;
 import kodkod.instance.TupleSet;
 
@@ -36,6 +41,9 @@ public class ModelConfigurator extends Configurator<IModel> {
 	private Formula solutionFormula;
 	private boolean aggregationcyclefree;
 	private boolean forbiddensharing;
+
+	private Map<IClass, List<Variable>> classVariables = new HashMap<IClass, List<Variable>>();
+	private Map<String, Variable> literalMapper = new HashMap<String, Variable>();
 	
 	public ModelConfigurator(IModel model) {
 		this.model = model;
@@ -51,6 +59,10 @@ public class ModelConfigurator extends Configurator<IModel> {
 		return formula.and(solutionFormula);
 	}
 
+	public void setSolutionFormula(Formula formula){
+		solutionFormula = formula;
+	}
+	
 	/**
 	 * Creates a formula to forbid the given solution.
 	 * 
@@ -58,10 +70,31 @@ public class ModelConfigurator extends Configurator<IModel> {
 	 */
 	public void forbid(Map<Relation, TupleSet> relationTuples) {
 		Formula formula = Formula.TRUE;
-
+		
 		Relation relation;
 		TupleSet tupleSet;
 
+		Decls globDecl = null;
+		classVariables.clear();
+		literalMapper.clear();
+		
+		for(IClass cls : model.classes()){
+			int clsNum = relationTuples.get(cls.relation()).size();
+			
+			List<Variable> varList = new ArrayList<Variable>(clsNum);
+			
+			for(int i = 0; i < clsNum; i++){
+				Variable obj = Variable.unary(cls.name().charAt(0) + String.valueOf(i));
+				Decl decl = obj.oneOf(cls.relation());
+				
+				varList.add(obj);
+				
+				globDecl = (globDecl == null) ? decl : globDecl.and(decl);
+			}
+			
+			classVariables.put(cls, varList);
+		}
+		
 		try {
 			for (IClass clazz : model.classes()) {
 				relation = clazz.relation();
@@ -90,7 +123,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 				}
 			}
 
-			solutionFormula = solutionFormula.and(formula.not());
+			solutionFormula = solutionFormula.and(formula.forSome(globDecl).not());
 		} catch (Exception e) {
 			LOG.error(LogMessages.solutionForbidError);
 			LOG.error(e.getMessage());
@@ -111,12 +144,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 		Expression relationExpression = null;
 		for (Tuple tuple : tupleSet) {
 			Expression objectLiteral = getObjectLiteral(tuple.atom(0));
-
-			if (relationExpression == null) {
-				relationExpression = objectLiteral;
-			} else {
-				relationExpression = relationExpression.union(objectLiteral);
-			}
+			relationExpression = (relationExpression == null) ? objectLiteral : relationExpression.union(objectLiteral);
 		}
 		return relationExpression;
 	}
@@ -141,11 +169,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 			Expression valueLiteral = getValueLiteral(attributeType, tuple);
 
 			Expression tupleExpression = objectLiteral.product(valueLiteral);
-			if (relationExpression == null) {
-				relationExpression = tupleExpression;
-			} else {
-				relationExpression = relationExpression.union(tupleExpression);
-			}
+			relationExpression = (relationExpression == null) ? tupleExpression : relationExpression.union(tupleExpression);
 		}
 		return relationExpression;
 	}
@@ -172,19 +196,9 @@ public class ModelConfigurator extends Configurator<IModel> {
 			Expression linkExpression = null;
 			for (int j = 0; j < tuple.arity(); j++) {
 				Expression objectLiteral = getObjectLiteral(tuple.atom(j));
-
-				if (linkExpression == null) {
-					linkExpression = objectLiteral;
-				} else {
-					linkExpression = linkExpression.product(objectLiteral);
-				}
+				linkExpression = (linkExpression == null) ? objectLiteral : linkExpression.product(objectLiteral) ;
 			}
-
-			if (relationExpression == null) {
-				relationExpression = linkExpression;
-			} else {
-				relationExpression = relationExpression.union(linkExpression);
-			}
+			relationExpression = (relationExpression == null) ? linkExpression : relationExpression.union(linkExpression) ;
 		}
 		return relationExpression;
 	}
@@ -201,40 +215,64 @@ public class ModelConfigurator extends Configurator<IModel> {
 		if (objectAtom.toString().equals(TypeConstants.UNDEFINED)) {
 			return model.typeFactory().undefinedType().expression();
 		}
-		
-		String[] split = objectAtom.toString().split("_");
-		
-		String className;
-		String object;
-		if(split.length == 2){
-			className = split[0];
-			object = split[1];
+		if(literalMapper.containsKey(objectAtom)){
+			return literalMapper.get(objectAtom);
 		}
-		else {
-			int middle = split.length/2;
-			StringBuilder left = new StringBuilder(split[0]);
-			StringBuilder right = new StringBuilder(split[middle]);
-			for(int i = 1; i < middle; i++){
-				left.append("_");
-				left.append(split[i]);
-				right.append("_");
-				right.append(split[(middle)+i]);
-			}
-			
-			className = left.toString();
-			object = right.toString();
-		}
-
-
-		IClass clazz = model.getClass(className);
-		if (clazz != null) {
-			clazz.objectType().addTypeLiteral(object);
-			return clazz.objectType().getTypeLiteral(object);
-		} else {
+		
+		IClass clazz = extractClassFromAtom(objectAtom.toString());
+		if (clazz == null) {
 			throw new Exception("Could not map object atom "
 					+ StringUtil.inQuotes(objectAtom.toString())
 					+ " to a class from the model.");
 		}
+		
+		if(!classVariables.containsKey(clazz)){
+			throw new Exception("Class variable initialization failed during encoding of previous solutions.");
+		}
+		
+		Variable placeHolder;
+		try {
+			placeHolder = classVariables.get(clazz).remove(0);
+		}
+		catch(IndexOutOfBoundsException ex){
+			throw new Exception("More solution instances than placeholders for class " + clazz.name(), ex);
+		}
+		literalMapper.put(objectAtom.toString(), placeHolder);
+		return placeHolder;
+	}
+
+	/**
+	 * Searches for a class in the model that prefixes (by string comparison)
+	 * the object atom.
+	 * <p>
+	 * This process is not deterministic, i. e. classes can hide other classes
+	 * if they contain underscores and share prefixes. Example: Class
+	 * {@code Car} hides class {@code Car_BMW}.
+	 * 
+	 * @return class of the object atom, null if no class could be determined
+	 */
+	private IClass extractClassFromAtom(String objectAtom) {
+		String[] split = objectAtom.toString().split("_");
+		
+		if(split.length <= 1){
+			return model.getClass(objectAtom);
+		}
+		
+		StringBuilder className = new StringBuilder();
+		boolean first = true;
+		for(int i = 0; i < split.length; i++){
+			if(!first){
+				className.append("_");
+			}
+			className.append(split[i]);
+			first = false;
+			
+			IClass cls = model.getClass(className.toString());
+			if(cls != null){
+				return cls;
+			}
+		}
+		return null;
 	}
 
 	/**
