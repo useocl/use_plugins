@@ -67,7 +67,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 					
 					resetValidator();
 					try {
-						if(!readObservationTermAndSetValidator()){
+						if(!readClassifyingTerms()){
 							System.out.println("Aborting.");
 							return;
 						}
@@ -84,12 +84,12 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 		}
 	}
 
-	private boolean readObservationTermAndSetValidator() throws IOException {
+	private boolean readClassifyingTerms() throws IOException {
 		Expression result = null;
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		UseCTScrollingKodkodModelValidator v = (UseCTScrollingKodkodModelValidator) validator;
 		int terms = 1;
-		System.out.println("Input classifying terms (leave empty to abort, type `v' or `validate' to start validation)");
+		System.out.println("Input classifying terms (leave empty to abort, enter `v' or `validate' to start validation)");
 		
 		do {
 			System.out.print("Term " + terms + ": ");

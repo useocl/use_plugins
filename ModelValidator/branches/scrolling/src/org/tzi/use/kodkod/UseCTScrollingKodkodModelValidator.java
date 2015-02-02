@@ -2,10 +2,8 @@ package org.tzi.use.kodkod;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import kodkod.ast.Formula;
 import kodkod.ast.IntConstant;
@@ -24,6 +22,7 @@ import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.ocl.value.IntegerValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MSystemState;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Class for the model validation with scrolling functionality using classifier terms.
@@ -48,28 +47,10 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		public Node expressionKodkod() {
 			return exprKodkod;
 		}
-		
-		@Override
-		public int hashCode() {
-			return expr.hashCode();
-		}
-		
-		@Override
-		public boolean equals(Object obj) {
-			if(obj == null){
-				return false;
-			}
-			else if(obj instanceof ClassifierTerm){
-				return expr.equals(((ClassifierTerm) obj).expr);
-			}
-			else {
-				return false;
-			}
-		}
 	}
 
 	protected List<ClassifierTerm> classifierTerms = new ArrayList<ClassifierTerm>();
-	protected Map<ClassifierTerm, Set<Value>> cTermSolutions = new HashMap<>();
+	protected List<Map<ClassifierTerm, Value>> termSolutions = new ArrayList<>();
 
 	public UseCTScrollingKodkodModelValidator(Session session) {
 		super(session);
@@ -91,62 +72,74 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		}
 	}
 
+	private Formula encodeSolutionValue(kodkod.ast.Node exp, Value value) {
+		Formula currF;
+		if(exp instanceof kodkod.ast.Expression){
+			if(value instanceof IntegerValue){
+				currF = ((kodkod.ast.Expression) exp).eq(IntConstant.constant(((IntegerValue) value).value()).toExpression());
+			}
+			else if(value instanceof BooleanValue) {
+				Map<String, kodkod.ast.Expression> typeLiterals = model.typeFactory().booleanType().typeLiterals();
+				if(((BooleanValue) value).value()){
+					currF = ((kodkod.ast.Expression) exp).eq(typeLiterals.get(TypeConstants.BOOLEAN_TRUE));
+				} else {
+					currF = ((kodkod.ast.Expression) exp).eq(typeLiterals.get(TypeConstants.BOOLEAN_FALSE));
+				}
+			}
+			else {
+				throw new RuntimeException("Unsupported expression type found. (" + exp.getClass().toString() + " --- " + value.getClass().toString() + ")");
+			}
+		}
+		else if(exp instanceof Formula){
+			currF = ((BooleanValue) value).value() ? (Formula) exp : ((Formula) exp).not() ;
+		}
+		else if(exp instanceof IntExpression){
+			currF = ((IntExpression) exp).eq(IntConstant.constant(((IntegerValue) value).value()));
+		}
+		else {
+			throw new RuntimeException("Unsupported expression type found. (" + exp.getClass().toString() + " --- " + value.getClass().toString() + ")");
+		}
+		
+		return currF;
+	}
+	
 	@Override
 	protected void newSolution(Map<Relation, TupleSet> relationTuples) {
 		Formula f = null;
 		
-		for (ClassifierTerm ct : classifierTerms) {
-			Set<Value> solutions = cTermSolutions.get(ct);
-			Formula ctF = null;
+		for (Map<ClassifierTerm, Value> solutions : termSolutions) {
+			Formula currSolution = null;
 			
-			for (Value value : solutions) {
-				Formula currF;
-				if(ct.exprKodkod instanceof kodkod.ast.Expression){
-					if(value instanceof IntegerValue){
-						currF = ((kodkod.ast.Expression) ct.exprKodkod).eq(IntConstant.constant(((IntegerValue) value).value()).toExpression()).not();
-					}
-					else if(value instanceof BooleanValue) {
-						Map<String, kodkod.ast.Expression> typeLiterals = model.typeFactory().booleanType().typeLiterals();
-						if(((BooleanValue) value).value()){
-							currF = ((kodkod.ast.Expression) ct.exprKodkod).eq(typeLiterals.get(TypeConstants.BOOLEAN_TRUE)).not();
-						} else {
-							currF = ((kodkod.ast.Expression) ct.exprKodkod).eq(typeLiterals.get(TypeConstants.BOOLEAN_FALSE)).not();
-						}
-					}
-					else {
-						throw new RuntimeException("Unsupported expression type found. (" + ct.exprKodkod.getClass().toString() + " --- " + value.getClass().toString() + ")");
-					}
-				}
-				else if(ct.exprKodkod instanceof Formula){
-					currF = ((BooleanValue) value).value() ? ((Formula) ct.exprKodkod).not() : (Formula) ct.exprKodkod;
-				}
-				else if(ct.exprKodkod instanceof IntExpression){
-					currF = ((IntExpression) ct.exprKodkod).eq(IntConstant.constant(((IntegerValue) value).value())).not();
-				}
-				else {
-					throw new RuntimeException("Unsupported expression type found. (" + ct.exprKodkod.getClass().toString() + " --- " + value.getClass().toString() + ")");
-				}
-				ctF = (ctF == null) ? currF : ctF.and(currF);
+			for (ClassifierTerm ct : classifierTerms) {
+				Value value = solutions.get(ct);
+				Formula solFormula = encodeSolutionValue(ct.exprKodkod, value);
+				currSolution = (currSolution == null) ? solFormula : currSolution.and( solFormula ) ;
 			}
-			f = (f == null) ? ctF : f.or(ctF);
+			
+			f = (f == null) ? currSolution.not() : f.and(currSolution.not()) ;
 		}
 		
-		((ModelConfigurator)model.getConfigurator()).setSolutionFormula(f);
+		((ModelConfigurator) model.getConfigurator()).setSolutionFormula(f);
 		validate(model);
 	}
 
 	protected void readSolutionTerms(MSystemState state) {
 		Evaluator eval = new Evaluator();
+		Map<ClassifierTerm, Value> solutionMap = new HashMap<>();
+		int i = 1;
+		List<String> solutionPrints = new ArrayList<String>(classifierTerms.size());
 		for (ClassifierTerm ct : classifierTerms) {
 			Value val = eval.eval(ct.expr, state);
-			cTermSolutions.get(ct).add(val);
+			solutionMap.put(ct, val);
+			solutionPrints.add("Term " + i++ + ": " + val);
 		}
+		LOG.info("Term values for this solution: " + StringUtil.fmtSeq(solutionPrints, "; "));
+		termSolutions.add(solutionMap);
 	}
 	
 	public void addObservationTerm(Expression term, Node termKodkod){
 		ClassifierTerm ct = new ClassifierTerm(term, termKodkod);
 		classifierTerms.add(ct);
-		cTermSolutions.put(ct, new HashSet<Value>());
 	}
 	
 }

@@ -226,19 +226,19 @@ public class ModelConfigurator extends Configurator<IModel> {
 					+ " to a class from the model.");
 		}
 		
-		if(classVariables.containsKey(clazz)){
-			Variable placeHolder;
-			try {
-				placeHolder = classVariables.get(clazz).remove(0);
-			}
-			catch(IndexOutOfBoundsException ex){
-				throw new Exception("More solution instances than placeholders for class " + clazz.name(), ex);
-			}
-			literalMapper.put(objectAtom.toString(), placeHolder);
-			return placeHolder;
+		if(!classVariables.containsKey(clazz)){
+			throw new Exception("Class variable initialization failed during encoding of previous solutions.");
 		}
 		
-		throw new Exception("DUNNO :(");
+		Variable placeHolder;
+		try {
+			placeHolder = classVariables.get(clazz).remove(0);
+		}
+		catch(IndexOutOfBoundsException ex){
+			throw new Exception("More solution instances than placeholders for class " + clazz.name(), ex);
+		}
+		literalMapper.put(objectAtom.toString(), placeHolder);
+		return placeHolder;
 	}
 
 	/**
