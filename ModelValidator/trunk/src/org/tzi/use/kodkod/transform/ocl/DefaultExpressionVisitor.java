@@ -15,6 +15,7 @@ import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.EnumType;
+import org.tzi.kodkod.model.type.ObjectType;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.kodkod.model.type.TypeLiterals;
 import org.tzi.kodkod.ocl.OCLMethodInvoker;
@@ -138,7 +139,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	public void visitAsType(ExpAsType exp) {
 		super.visitAsType(exp);
 		try {
-			visitTypeOperation("oclAsType", exp.getSourceExpr(), exp.getTargetType());
+			visitTypeOperation("oclAsType", exp.getSourceExpr(), exp.getTargetType(), false);
 		} catch (NoSuchMethodError e) {
 			throw new TransformationException(LogMessages.noSuchMethodError, e);
 		}
@@ -270,13 +271,13 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitIsKindOf(ExpIsKindOf exp) {
 		super.visitIsKindOf(exp);
-		visitTypeOperation("oclIsKindOf", exp.getSourceExpr(), exp.getTargetType());
+		visitTypeOperation("oclIsKindOf", exp.getSourceExpr(), exp.getTargetType(), true);
 	}
 
 	@Override
 	public void visitIsTypeOf(ExpIsTypeOf exp) {
 		super.visitIsTypeOf(exp);
-		visitTypeOperation("oclIsTypeOf", exp.getSourceExpr(), exp.getTargetType());
+		visitTypeOperation("oclIsTypeOf", exp.getSourceExpr(), exp.getTargetType(), false);
 	}
 
 	@Override
@@ -434,7 +435,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	 * @param sourceExpression
 	 * @param targetType
 	 */
-	private void visitTypeOperation(String opName, org.tzi.use.uml.ocl.expr.Expression sourceExpression, Type targetType) {
+	private void visitTypeOperation(String opName, org.tzi.use.uml.ocl.expr.Expression sourceExpression, Type targetType, boolean isKindOfOperation) {
 		List<Object> arguments = new ArrayList<Object>();
 
 		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
@@ -444,7 +445,19 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		object_type_nav = visitor.isObject_type_nav();
 
 		TypeConverter typeConverter = new TypeConverter(model);
-		Expression typeExpression = typeConverter.convertToExpression(targetType);
+		org.tzi.kodkod.model.type.Type type = typeConverter.convert(targetType);
+		Expression typeExpression;
+		if(type instanceof ObjectType){
+			IClass cls = ((ObjectType) type).clazz();
+			if(isKindOfOperation && cls.existsInheritance()){
+				typeExpression = cls.inheritanceRelation();
+			} else {
+				typeExpression = cls.relation();
+			}
+		} else {
+			typeExpression = typeConverter.typeToExpression(type);
+		}
+		
 		if (typeExpression != null) {
 			arguments.add(typeExpression);
 		} else {

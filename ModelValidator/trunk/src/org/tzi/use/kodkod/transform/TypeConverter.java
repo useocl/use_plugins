@@ -38,9 +38,13 @@ public class TypeConverter {
 	 */
 	public Expression convertToExpression(org.tzi.use.uml.ocl.type.Type type) {
 		Type t = convert(type);
+		return typeToExpression(t);
+	}
+
+	public Expression typeToExpression(Type t){
 		if (t.isSet()) {
 			Expression typeExpression = t.expression();
-
+			
 			if (typeExpression != null) {
 				Relation undefined = typeFactory.undefinedType().relation();
 				Relation undefined_Set = typeFactory.undefinedSetType().relation();
@@ -49,7 +53,7 @@ public class TypeConverter {
 		}
 		return t.expression();
 	}
-
+	
 	/**
 	 * Converts the given type to a type of the model validator.
 	 * 
