@@ -2,9 +2,9 @@ package org.tzi.use.kodkod;
 
 import org.tzi.use.main.Session;
 
-public class UseScrollingAllKodkodModelValidator extends UseScrollingKodkodModelValidator {
+public class UseCTScrollingAllKodkodModelValidator extends UseCTScrollingKodkodModelValidator {
 
-	public UseScrollingAllKodkodModelValidator(Session session) {
+	public UseCTScrollingAllKodkodModelValidator(Session session) {
 		super(session);
 	}
 
@@ -12,6 +12,7 @@ public class UseScrollingAllKodkodModelValidator extends UseScrollingKodkodModel
 	protected void handleSolution() {
 		boolean errors = createObjectDiagram(solution.instance().relationTuples());
 		if (!errors) {
+			readSolutionTerms(session.system().state());
 			solutions.add(solution.instance().relationTuples());
 		} else {
 			session.reset();

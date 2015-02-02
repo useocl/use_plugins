@@ -1,40 +1,24 @@
 package org.tzi.use.kodkod;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import kodkod.ast.Formula;
-import kodkod.ast.IntConstant;
 import kodkod.ast.Relation;
 import kodkod.instance.TupleSet;
 
 import org.tzi.kodkod.helper.LogMessages;
-import org.tzi.kodkod.model.config.impl.ModelConfigurator;
 import org.tzi.use.main.Session;
-import org.tzi.use.uml.ocl.expr.Evaluator;
-import org.tzi.use.uml.ocl.expr.Expression;
-import org.tzi.use.uml.ocl.value.CollectionValue;
-import org.tzi.use.uml.ocl.value.IntegerValue;
-import org.tzi.use.uml.ocl.value.Value;
 
 /**
  * Class for the model validation with scrolling functionality.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 
 	protected int solutionIndex = 0;
 	protected List<Map<Relation, TupleSet>> solutions;
-	
-	protected Expression obsTerm;
-	protected kodkod.ast.Expression obsTermKodkod;
-	protected boolean obsTermInteger;
-	protected Set<Value> termSolutions = new HashSet<Value>();
 
 	public UseScrollingKodkodModelValidator(Session session) {
 		super(session);
@@ -45,8 +29,6 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 	protected void handleSolution() {
 		boolean errors = createObjectDiagram(solution.instance().relationTuples());
 		if (!errors) {
-			readSolutionTerm();
-			
 			solutions.add(solution.instance().relationTuples());
 			LOG.info(LogMessages.pagingNext);
 			previousLog();
@@ -54,12 +36,6 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 			session.reset();
 			newSolution(solution.instance().relationTuples());
 		}
-	}
-
-	protected void readSolutionTerm() {
-		Evaluator eval = new Evaluator();
-		Value val = eval.eval(obsTerm, session.system().state());
-		termSolutions.add(val);
 	}
 
 	@Override
@@ -74,7 +50,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 		previousLog();
 	}
 
-	private void previousLog() {
+	protected void previousLog() {
 		if (solutions.size() > 0) {
 			LOG.info(LogMessages.pagingPrevious);
 		}
@@ -117,38 +93,4 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 		solutionIndex = index-1;
 		createObjectDiagram(solutions.get(solutionIndex));
 	}
-	
-	/* 
-	 * Overwrite Observation Terms.
-	 * Comment out to use default scrolling.
-	 */
-	@Override
-	protected void newSolution(Map<Relation, TupleSet> relationTuples) {
-		Formula f = Formula.TRUE;
-		for(Value v : termSolutions){
-			kodkod.ast.Expression resVal;
-			if(obsTermInteger){
-				resVal = IntConstant.constant(((IntegerValue)v).value()).toExpression();
-			} else {
-				Set<kodkod.ast.Expression> literals = new HashSet<kodkod.ast.Expression>();
-				for(Value v2 : ((CollectionValue)v).collection()){
-					literals.add(IntConstant.constant(((IntegerValue)v2).value()).toExpression());
-				}
-				resVal = kodkod.ast.Expression.union(literals);
-			}
-			f = f.and(obsTermKodkod.eq(resVal).not());
-		}
-		((ModelConfigurator)model.getConfigurator()).setSolutionFormula(f);
-		validate(model);
-	}
-
-	public void setObservationTerm(Expression term) {
-		obsTerm = term;
-		obsTermInteger = term.type().isTypeOfInteger();
-	}
-	
-	public void setObservationTermKodkod(kodkod.ast.Expression observationTermKodkod) {
-		obsTermKodkod = observationTermKodkod;
-	}
-	
 }

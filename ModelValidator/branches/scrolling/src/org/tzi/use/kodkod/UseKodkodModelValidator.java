@@ -49,7 +49,7 @@ public class UseKodkodModelValidator extends KodkodModelValidator {
 	 */
 	protected void handleSolution() {
 		if(createObjectDiagram(solution.instance().relationTuples())){
-			LOG.info("USE found errors in the solution. Try to find a new solution!");
+			LOG.info("USE found errors in the solution. Trying to find a new solution!");
 			
 			session.reset();
 			newSolution(solution.instance().relationTuples());

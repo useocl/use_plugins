@@ -37,7 +37,7 @@ public class KodkodSolver {
 	public Solution solve(IModel model) throws Exception {
 		Bounds bounds = createBounds(model);
 		Formula constraint = createConstraint(model);
-				
+
 		KodkodModelValidatorConfiguration configuration = KodkodModelValidatorConfiguration.INSTANCE;
 
 		final Solver solver = new Solver();
