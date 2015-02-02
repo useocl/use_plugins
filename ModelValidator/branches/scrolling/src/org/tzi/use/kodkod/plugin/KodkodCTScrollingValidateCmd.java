@@ -68,11 +68,11 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 					resetValidator();
 					try {
 						if(!readClassifyingTerms()){
-							System.out.println("Aborting.");
+							LOG.info("Aborting.");
 							return;
 						}
 					} catch (IOException e) {
-						e.printStackTrace();
+						LOG.error(e.getMessage(), e);
 						return;
 					}
 					
@@ -84,7 +84,11 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 		}
 	}
 
-	private boolean readClassifyingTerms() throws IOException {
+	/**
+	 * Reads classifying terms from the shell, checks and converts them and adds
+	 * them to the validator.
+	 */
+	protected boolean readClassifyingTerms() throws IOException {
 		Expression result = null;
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		UseCTScrollingKodkodModelValidator v = (UseCTScrollingKodkodModelValidator) validator;
@@ -108,14 +112,12 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 
 			// error checking
 			if(result == null){
-				System.out.println(err.toString());
-				System.out.println();
+				LOG.error(err.toString());
 				continue;
 			}
 			
 			if(!result.type().isTypeOfInteger() && !result.type().isTypeOfBoolean()){
-				System.out.println("The expression must result in type `Boolean' or `Integer'.");
-				System.out.println();
+				LOG.error("The expression must result in type `Boolean' or `Integer'.");
 				continue;
 			}
 			
@@ -130,9 +132,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 				obsTermKodkod = (Node) ev.getObject();
 			}
 			catch(TransformationException ex){
-				System.out.println("The expression cannot be transformed by the model validator.");
-				System.out.println("Reason: " + ex.getMessage());
-				System.out.println();
+				LOG.error("The expression cannot be transformed by the model validator. Reason: " + ex.getMessage());
 				continue;
 			}
 			

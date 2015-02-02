@@ -2,6 +2,11 @@ package org.tzi.use.kodkod;
 
 import org.tzi.use.main.Session;
 
+/**
+ * Class for the model validation with scrolling functionality using classifier terms.
+ * 
+ * @author Frank Hilken
+ */
 public class UseCTScrollingAllKodkodModelValidator extends UseCTScrollingKodkodModelValidator {
 
 	public UseCTScrollingAllKodkodModelValidator(Session session) {

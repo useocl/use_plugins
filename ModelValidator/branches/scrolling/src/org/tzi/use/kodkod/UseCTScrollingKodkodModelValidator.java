@@ -15,6 +15,7 @@ import kodkod.instance.TupleSet;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.ModelConfigurator;
 import org.tzi.kodkod.model.type.TypeConstants;
+import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.main.Session;
 import org.tzi.use.uml.ocl.expr.Evaluator;
 import org.tzi.use.uml.ocl.expr.Expression;
@@ -32,20 +33,20 @@ import org.tzi.use.util.StringUtil;
 public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelValidator {
 
 	protected static class ClassifierTerm {
-		private final Expression expr;
-		private final Node exprKodkod;
+		private final Expression oclExpr;
+		private final Node kodkodExpr;
 		
-		public ClassifierTerm(Expression expr, Node exprKodkod) {
-			this.expr = expr;
-			this.exprKodkod = exprKodkod;
+		public ClassifierTerm(Expression oclExpr, Node kodkodExpr) {
+			this.oclExpr = oclExpr;
+			this.kodkodExpr = kodkodExpr;
 		}
 
-		public Expression expression() {
-			return expr;
+		public Expression oclExpression() {
+			return oclExpr;
 		}
 
-		public Node expressionKodkod() {
-			return exprKodkod;
+		public Node kodkodExpression() {
+			return kodkodExpr;
 		}
 	}
 
@@ -72,35 +73,34 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		}
 	}
 
+	/**
+	 * Constructs a Kodkod {@link Formula} checking the equality of the given
+	 * expression and value.
+	 */
 	private Formula encodeSolutionValue(kodkod.ast.Node exp, Value value) {
-		Formula currF;
 		if(exp instanceof kodkod.ast.Expression){
 			if(value instanceof IntegerValue){
-				currF = ((kodkod.ast.Expression) exp).eq(IntConstant.constant(((IntegerValue) value).value()).toExpression());
+				return ((kodkod.ast.Expression) exp).eq(IntConstant.constant(((IntegerValue) value).value()).toExpression());
 			}
 			else if(value instanceof BooleanValue) {
 				Map<String, kodkod.ast.Expression> typeLiterals = model.typeFactory().booleanType().typeLiterals();
 				if(((BooleanValue) value).value()){
-					currF = ((kodkod.ast.Expression) exp).eq(typeLiterals.get(TypeConstants.BOOLEAN_TRUE));
+					return ((kodkod.ast.Expression) exp).eq(typeLiterals.get(TypeConstants.BOOLEAN_TRUE));
 				} else {
-					currF = ((kodkod.ast.Expression) exp).eq(typeLiterals.get(TypeConstants.BOOLEAN_FALSE));
+					return ((kodkod.ast.Expression) exp).eq(typeLiterals.get(TypeConstants.BOOLEAN_FALSE));
 				}
 			}
 			else {
-				throw new RuntimeException("Unsupported expression type found. (" + exp.getClass().toString() + " --- " + value.getClass().toString() + ")");
+				throw new TransformationException("Unsupported expression type found. (" + exp.getClass().toString() + " --- " + value.getClass().toString() + ")");
 			}
 		}
 		else if(exp instanceof Formula){
-			currF = ((BooleanValue) value).value() ? (Formula) exp : ((Formula) exp).not() ;
+			return ((BooleanValue) value).value() ? (Formula) exp : ((Formula) exp).not() ;
 		}
 		else if(exp instanceof IntExpression){
-			currF = ((IntExpression) exp).eq(IntConstant.constant(((IntegerValue) value).value()));
+			return ((IntExpression) exp).eq(IntConstant.constant(((IntegerValue) value).value()));
 		}
-		else {
-			throw new RuntimeException("Unsupported expression type found. (" + exp.getClass().toString() + " --- " + value.getClass().toString() + ")");
-		}
-		
-		return currF;
+		throw new TransformationException("Unsupported expression type found. (" + exp.getClass().toString() + " --- " + value.getClass().toString() + ")");
 	}
 	
 	@Override
@@ -112,7 +112,7 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 			
 			for (ClassifierTerm ct : classifierTerms) {
 				Value value = solutions.get(ct);
-				Formula solFormula = encodeSolutionValue(ct.exprKodkod, value);
+				Formula solFormula = encodeSolutionValue(ct.kodkodExpr, value);
 				currSolution = (currSolution == null) ? solFormula : currSolution.and( solFormula ) ;
 			}
 			
@@ -129,7 +129,7 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		int i = 1;
 		List<String> solutionPrints = new ArrayList<String>(classifierTerms.size());
 		for (ClassifierTerm ct : classifierTerms) {
-			Value val = eval.eval(ct.expr, state);
+			Value val = eval.eval(ct.oclExpr, state);
 			solutionMap.put(ct, val);
 			solutionPrints.add("Term " + i++ + ": " + val);
 		}
@@ -138,8 +138,7 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 	}
 	
 	public void addObservationTerm(Expression term, Node termKodkod){
-		ClassifierTerm ct = new ClassifierTerm(term, termKodkod);
-		classifierTerms.add(ct);
+		classifierTerms.add(new ClassifierTerm(term, termKodkod));
 	}
 	
 }
