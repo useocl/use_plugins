@@ -78,7 +78,7 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 		File file = new File(filepath);
 
 		if (file.exists() && file.canRead() && !file.isDirectory()) {
-			LOG.warn("Using first configuration sector of the file.");
+			LOG.warn(LogMessages.PROPERTIES_NO_CONFIGURATION_WARNING);
 			extractConfigureAndValidate(file);
 		} else {
 			LOG.error(LogMessages.fileCmdError(file));

@@ -27,16 +27,9 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 	 * @throws ConfigurationException
 	 */
 	protected PropertyConfigurationVisitor configureModel(File file) throws ConfigurationException {
-		model().reset();
-		PropertyConfigurationVisitor newConfigurationVisitor = new PropertyConfigurationVisitor(getFirstSectorConfiguration(file));
-		model().accept(newConfigurationVisitor);
-		
-		if (newConfigurationVisitor.containErrors()) {
-			throw new ConfigurationException();
-		}
-		
-		LOG.info(LogMessages.modelConfigurationSuccessful);
-		return newConfigurationVisitor;
+		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
+		String section = (String) hierarchicalINIConfiguration.getSections().iterator().next();
+		return configureModel(file, section);
 	}
 	
 	/**
@@ -72,21 +65,6 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 		LOG.info(LogMessages.modelConfigurationSuccessful);
 
 		return configurationVisitor.getFile();
-	}
-	
-	private PropertiesConfiguration getFirstSectorConfiguration(File file) throws ConfigurationException {
-		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
-		Iterator<?> sectionsIterator = hierarchicalINIConfiguration.getSections().iterator();
-		PropertiesConfiguration firstSectorConfiguration = new PropertiesConfiguration();
-		String section = (String) sectionsIterator.next();
-		SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
-		Iterator<?> keysIterator = sectionConfigurations.getKeys();
-		while (keysIterator.hasNext()) {
-			String key = (String) keysIterator.next();
-			if (!key.startsWith("--"))
-				firstSectorConfiguration.addProperty(key, sectionConfigurations.getString(key));
-		}
-		return firstSectorConfiguration;
 	}
 	
 	private PropertiesConfiguration getConfigurationFromSector(File file, String section) throws ConfigurationException {

@@ -33,6 +33,8 @@ public final class LogMessages {
 	public static final String objDiagramCreation = "Create object diagram";
 
 	public static final String objDiagramCreationError = "Error during object diagram creation";
+	
+	public static final String PROPERTIES_NO_CONFIGURATION_WARNING = "No configuration name given. Using first configuration of the file.";
 
 	public static final String propertiesConfigurationReadError = "Error while reading .properties file";
 
