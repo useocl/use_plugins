@@ -26,6 +26,7 @@ import org.tzi.use.uml.ocl.expr.ExpIsUnique;
 import org.tzi.use.uml.ocl.expr.ExpIterate;
 import org.tzi.use.uml.ocl.expr.ExpLet;
 import org.tzi.use.uml.ocl.expr.ExpNavigation;
+import org.tzi.use.uml.ocl.expr.ExpNavigationClassifierSource;
 import org.tzi.use.uml.ocl.expr.ExpObjAsSet;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpObjRef;
@@ -178,6 +179,11 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 		LOG.debug("ExpNavigation");
 	}
 
+	@Override
+	public void visitNavigationClassifierSource(ExpNavigationClassifierSource exp) {
+		LOG.debug("ExpNavigationClassifierSource");
+	}
+	
 	@Override
 	public void visitObjAsSet(ExpObjAsSet exp) {
 		LOG.debug("ExpObjAsSet");
