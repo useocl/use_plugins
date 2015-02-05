@@ -182,6 +182,7 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 	@Override
 	public void visitNavigationClassifierSource(ExpNavigationClassifierSource exp) {
 		LOG.debug("ExpNavigationClassifierSource");
+		throw new TransformationException("ExpNavigationClassifierSource not supported");
 	}
 	
 	@Override
