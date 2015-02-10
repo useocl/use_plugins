@@ -13,9 +13,12 @@ public class SettingsAttribute extends Settings {
 	public SettingsAttribute(MAttribute attribute, SettingsClass classSettings, Boolean inherited, SettingsConfiguration configurationSettings) {
 		super(configurationSettings);
 		this.getBounds().setLower(DefaultConfigurationValues.attributesPerClassMin);
+		this.getBounds().setLowerLimited(false);
 		this.getBounds().setUpper(DefaultConfigurationValues.attributesPerClassMax);
+		this.getBounds().setUpperLimited(false);
 		this.getCollectionSize().setLower(DefaultConfigurationValues.attributesColSizeMin);
 		this.getCollectionSize().setUpper(DefaultConfigurationValues.attributesColSizeMax);
+		this.getCollectionSize().setUpperLimited(false);
 		this.attribute = attribute;
 		this.classSettings = classSettings;
 		this.inherited = inherited;

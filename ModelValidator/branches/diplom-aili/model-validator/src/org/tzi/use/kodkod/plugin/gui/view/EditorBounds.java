@@ -24,9 +24,9 @@ public class EditorBounds extends DefaultCellEditor {
 	JTextField textField;
 	boolean valueSet;
 	
-	public EditorBounds() {
+	public EditorBounds(int minimum) {
 		super(new JTextField());
-		spinner = new JSpinner(new SpinnerNumberModel(1, -1, Integer.MAX_VALUE, 1));
+		spinner = new JSpinner(new SpinnerNumberModel(1, minimum, Integer.MAX_VALUE, 1));
 		editor = (NumberEditor) spinner.getEditor();
 		textField = editor.getTextField();
 		textField.addFocusListener(new FocusListener() {

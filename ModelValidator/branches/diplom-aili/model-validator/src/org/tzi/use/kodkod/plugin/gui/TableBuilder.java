@@ -115,6 +115,7 @@ public class TableBuilder {
 		
 			@Override
 			public TableCellEditor getCellEditor(int row, int column) {
+				String colHeader = (String) getColumnModel().getColumn(column).getHeaderValue();
 				if ((column == getColumnCount()-1) 
 						&& this.getName() != ConfigurationTerms.OPTIONS
 						&& this.getName() != ConfigurationTerms.INVARIANTS) {
@@ -122,13 +123,19 @@ public class TableBuilder {
 				} else if (getName().equals(TypeConstants.REAL)) {
 					if (column > 0 && column < getColumnCount()-2) {
 						return new EditorReal();
-					} else if (getColumnModel().getColumn(column).getHeaderValue().equals(ConfigurationTerms.REAL_STEP)) {
+					} else if (colHeader.equals(ConfigurationTerms.REAL_STEP)) {
 						return new EditorRealStep();
 					}
 				} else if (getName().equals(TypeConstants.INTEGER) && column > 0) {
 					return new EditorInteger();
 				} else if (column > 0 && column < getColumnCount()-1 && this.getName() != ConfigurationTerms.INVARIANTS) {
-					return new EditorBounds();
+					if (	colHeader.equals(ConfigurationTerms.ATTRIBUTES_MIN) ||
+							colHeader.equals(ConfigurationTerms.ATTRIBUTES_MAX) ||
+							colHeader.equals(ConfigurationTerms.ATTRIBUTES_MAXSIZE) ||
+							colHeader.equals(ConfigurationTerms.ASSOCIATIONS_MAX)) {
+						return new EditorBounds(-1);
+					}
+					return new EditorBounds(0);
 				}
 				return super.getCellEditor(row, column);
 			}

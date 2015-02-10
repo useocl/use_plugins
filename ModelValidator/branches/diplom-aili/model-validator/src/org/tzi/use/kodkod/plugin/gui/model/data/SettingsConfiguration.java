@@ -20,14 +20,6 @@ public class SettingsConfiguration {
 	private Map<MClassInvariant, SettingsInvariant> invariantSettingsMap = new HashMap<>();
 	private boolean changed = false;
 
-	public boolean isChanged() {
-		return changed;
-	}
-
-	public void setChanged(boolean changed) {
-		this.changed = changed;
-	}
-
 	public SettingsConfiguration(MModel model) {
 		super();
 		this.model = model;
@@ -39,6 +31,14 @@ public class SettingsConfiguration {
 		for (MClassInvariant inv : model.classInvariants()) {
 			invariantSettingsMap.put(inv, new SettingsInvariant(inv, this));
 		}
+	}
+	
+	public boolean isChanged() {
+		return changed;
+	}
+	
+	public void setChanged(boolean changed) {
+		this.changed = changed;
 	}
 
 	public SettingsInteger getIntegerTypeSettings() {

@@ -12,6 +12,7 @@ public class SettingsAssociation extends Settings {
 		super(settingsConfiguration);
 		this.getBounds().setLower(DefaultConfigurationValues.linksPerAssocMin);
 		this.getBounds().setUpper(DefaultConfigurationValues.linksPerAssocMax);
+		this.getBounds().setUpperLimited(false);
 		this.association = association;
 		this.isAssociationClass = isAC;
 	}
