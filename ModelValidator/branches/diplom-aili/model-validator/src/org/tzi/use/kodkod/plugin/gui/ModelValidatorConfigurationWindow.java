@@ -613,10 +613,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		leftUpper.add(stringScroll);
 
 		JPanel leftLower = new JPanel(new BorderLayout()); 
-		JTextArea abstractClassesText = new JTextArea();
+		/*JTextArea abstractClassesText = new JTextArea();
 		abstractClassesText.setBackground(this.getBackground());
 		abstractClassesText.setText(abstractClassesChildren(this.model));
-		leftLower.add(abstractClassesText, BorderLayout.CENTER);
+		JScrollPane abstractClsScrollPane = new JScrollPane(abstractClassesText);
+		leftLower.add(abstractClsScrollPane, BorderLayout.CENTER);*/
 		
 		JPanel rightUpper = new JPanel(new BorderLayout());
 		rightUpper.add(new JScrollPane(options), BorderLayout.CENTER);
@@ -642,17 +643,27 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private JSplitPane buildClassesAndAssociationsTab() {
+		JTextArea abstractClassesText = new JTextArea();
+		abstractClassesText.setBackground(this.getBackground());
+		abstractClassesText.setText(abstractClassesChildren(this.model));
+		abstractClassesText.setLineWrap(true);
+		abstractClassesText.setWrapStyleWord(true);
+		abstractClassesText.setCaretPosition(0);
+		
 		JScrollPane classesScrollPane = new JScrollPane(classes);
+		JScrollPane abstractClsScrollPane = new JScrollPane(abstractClassesText);
         JScrollPane attributesScrollPane = new JScrollPane(attributes);
         JScrollPane associationsScrollPane = new JScrollPane(associations);
         JPanel classesPanel = new JPanel(new BorderLayout());
         JPanel attributesPanel = new JPanel(new BorderLayout());
         JPanel associationsPanel = new JPanel(new BorderLayout());
         JPanel attributeLabelPanel = new JPanel();
+        JSplitPane caaTabMainSplitPane;
         JSplitPane caaTabLeftSplitPane;
         JSplitPane caaTabRightSplitPane;
         
-        classesScrollPane.setPreferredSize(new Dimension(this.getWidth()/2,this.getHeight()));
+        classesScrollPane.setPreferredSize(new Dimension(this.getWidth()/2,(this.getHeight())));
+        abstractClsScrollPane.setPreferredSize(new Dimension(this.getWidth()/2,this.getHeight()/4));
         attributesScrollPane.setPreferredSize(new Dimension(this.getWidth()/2,this.getHeight()/2));
         associationsScrollPane.setPreferredSize(new Dimension(this.getWidth()/2,this.getHeight()/2));
         classesPanel.add(new JLabel("Classes"), BorderLayout.NORTH);
@@ -666,8 +677,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         associationsPanel.add(new JLabel("Associations"), BorderLayout.NORTH);
         associationsPanel.add(associationsScrollPane, BorderLayout.CENTER);
         caaTabRightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, attributesPanel, associationsPanel);
-        caaTabLeftSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, classesPanel, caaTabRightSplitPane);
-		return caaTabLeftSplitPane;
+        caaTabLeftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, classesPanel, abstractClsScrollPane);
+        caaTabMainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, caaTabLeftSplitPane, caaTabRightSplitPane);
+		return caaTabMainSplitPane;
 	}
 	
 	private JPanel buildInvariantsTab() {
@@ -745,4 +757,5 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		
 		return abstractText;
 	}
+
 }
