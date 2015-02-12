@@ -1,10 +1,9 @@
-<project name="useKodkodPlugin" default="fatjar" basedir=".">
+<project name="useKodkodPlugin" default="jar" basedir=".">
 
 	<property name="compiler" value="1.7" />
 	<property name="use.path" value="../use" />
-	<property name="use.classes" value="${use.path}/build/classes" />
-	<property name="filename_thin" value="ModelValidatorPlugin_thin.jar" />
-	<property name="filename_fat" value="ModelValidator_fat.jar" />
+	<property name="use.classes" value="${use.path}/build" />
+	<property name="filename" value="ModelValidatorPlugin.jar" />
 
 	<path id="classpath">
 		<fileset dir="lib" includes="*.jar" />
@@ -12,7 +11,7 @@
 		<pathelement location="${use.classes}"/>
 	</path>
 
-	<target name="use-jar">
+	<target name="compile-use">
 		<subant target="compile-use" buildpath="${use.path}" />
 	</target>
 
@@ -20,7 +19,7 @@
 		<delete dir="build" />
 	</target>
 
-	<target name="compile" depends="use-jar">
+	<target name="compile" depends="compile-use">
 		<property name="debug" value="false" />
 		<mkdir dir="build" />
 		<copy todir="build/resources">
@@ -39,13 +38,7 @@
 	</target>
 
 	<target name="jar" depends="compile">
-		<jar destfile="dist/${filename_thin}" basedir="build" manifest="META-INF/MANIFEST.MF">
-			<fileset dir="." includes="useplugin.xml" />
-		</jar>
-	</target>
-
-	<target name="fatjar" depends="compile">
-		<jar destfile="dist/${filename_fat}" basedir="build" manifest="META-INF/MANIFEST.MF">
+		<jar destfile="dist/${filename}" basedir="build" manifest="META-INF/MANIFEST.MF">
 			<fileset dir="." includes="useplugin.xml" />
 			<zipfileset src="lib/commons-collections-3.2.1.jar" />
 			<zipfileset src="lib/commons-configuration-1.6.jar" />
@@ -58,7 +51,7 @@
 		</jar>
 	</target>
 
-	<target name="deployDebug" depends="fatjar">
-		<copy file="dist/${filename_fat}" todir="${use.path}/lib/plugins"/>
+	<target name="deployDebug" depends="jar">
+		<copy file="dist/${filename}" todir="${use.path}/lib/plugins"/>
 	</target>
 </project>
