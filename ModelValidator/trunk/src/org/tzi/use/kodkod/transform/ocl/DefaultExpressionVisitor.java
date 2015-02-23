@@ -43,6 +43,8 @@ import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
 import org.tzi.use.uml.ocl.expr.ExpRange;
+import org.tzi.use.uml.ocl.expr.ExpSelectByKind;
+import org.tzi.use.uml.ocl.expr.ExpSelectByType;
 import org.tzi.use.uml.ocl.expr.ExpSequenceLiteral;
 import org.tzi.use.uml.ocl.expr.ExpSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpStdOp;
@@ -314,6 +316,18 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		object = visitor.getObject();
 		set = visitor.isSet();
 		object_type_nav = visitor.isObject_type_nav();
+	}
+	
+	@Override
+	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
+		super.visitSelectByKind(expSelectByKind);
+		visitTypeOperation("selectByKind", expSelectByKind.getSourceExpression(), expSelectByKind.type().elemType(), true);
+	}
+	
+	@Override
+	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
+		super.visitExpSelectByType(expSelectByType);
+		visitTypeOperation("selectByType", expSelectByType.getSourceExpression(), expSelectByType.type().elemType(), false);
 	}
 
 	@Override

@@ -307,12 +307,12 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
-		throw new TransformationException("selectByKind not supported");
+		LOG.debug("ExpSelectByKind");
 	}
 
 	@Override
 	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
-		throw new TransformationException("selectByType not supported");
+		LOG.debug("ExpSelectByType");
 	}
 
 	@Override

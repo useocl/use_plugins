@@ -7,6 +7,7 @@ import kodkod.ast.Decls;
 import kodkod.ast.Expression;
 import kodkod.ast.Formula;
 import kodkod.ast.IntConstant;
+import kodkod.ast.Relation;
 import kodkod.ast.Variable;
 
 import org.tzi.kodkod.model.type.TypeFactory;
@@ -36,6 +37,8 @@ public class SetOperationGroup extends OCLOperationGroup {
 		operationsReturningSet.add("including");
 		operationsReturningSet.add("intersection");
 		operationsReturningSet.add("select");
+		operationsReturningSet.add("selectByKind");
+		operationsReturningSet.add("selectByType");
 		operationsReturningSet.add("reject");
 		operationsReturningSet.add("symmetricDifference");
 		operationsReturningSet.add("union");
@@ -352,6 +355,15 @@ public class SetOperationGroup extends OCLOperationGroup {
 		return body.eq(booleanTrue).comprehension(var.oneOf(src));
 	}
 
+	public final Expression selectByKind(Expression src, Expression type){
+		return src.intersection(type);
+	}
+	
+	public final Expression selectByType(Expression src, Expression type){
+		// type must be the inheritance type
+		return src.intersection(type);
+	}
+	
 	// OCL: srcExpr->size()
 
 	public final Expression size(Expression src, Boolean object_type_nav) {

@@ -28,7 +28,7 @@ public class LinkStrategy extends ElementStrategy {
 
 	@Override
 	public boolean canDo() {
-		return mAssociation != null;
+		return mAssociation != null && !mAssociation.isDerived();
 	}
 
 	@Override
