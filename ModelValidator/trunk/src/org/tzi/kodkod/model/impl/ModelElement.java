@@ -43,4 +43,22 @@ public abstract class ModelElement implements IModelElement {
 		return name;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this )
+            return true;
+    	if (obj == null)
+    		return false;
+    	
+        if (obj instanceof ModelElement)
+            return name.equals(((ModelElement) obj).name());
+        
+        return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+	
 }
