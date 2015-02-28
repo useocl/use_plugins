@@ -2,6 +2,7 @@ package org.tzi.use.kodkod.plugin.gui.model;
 
 import javax.swing.table.DefaultTableModel;
 
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsOption;
 
@@ -55,9 +56,17 @@ public class TableModelOption extends DefaultTableModel {
 		case 1:
 			switch(row) {
 			case 0:
-				return settings.getAggregationcyclefreeness();
+				if (settings.getAggregationcyclefreeness() != null) {
+					return settings.getAggregationcyclefreeness();
+				} else {
+					return DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS;
+				}
 			case 1:
-				return settings.getForbiddensharing();
+				if (settings.getForbiddensharing() != null) {
+					return settings.getForbiddensharing();
+				} else {
+					return DefaultConfigurationValues.FORBIDDENSHARING;
+				}
 			}
 		default:
 			return null;

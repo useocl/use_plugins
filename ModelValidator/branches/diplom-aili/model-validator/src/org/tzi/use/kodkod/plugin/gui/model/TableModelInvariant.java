@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
 
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsInvariant;
 
@@ -58,9 +59,17 @@ public class TableModelInvariant extends DefaultTableModel {
 		case 0: 
 			return settings.get(row).getInvariant().cls().name() + "::" + settings.get(row).getInvariant().name();
 		case 1:
-			return settings.get(row).getActive();
+			if (settings.get(row).getActive() != null) {
+				return settings.get(row).getActive();
+			} else {
+				return DefaultConfigurationValues.INVARIANT_ACTIVE;
+			}
 		case 2:
-			return settings.get(row).getNegate();
+			if (settings.get(row).getNegate() != null) {
+				return settings.get(row).getNegate();
+			} else {
+				return DefaultConfigurationValues.INVARIANT_NEGATE;
+			}
 		}
 		return null;
 	}

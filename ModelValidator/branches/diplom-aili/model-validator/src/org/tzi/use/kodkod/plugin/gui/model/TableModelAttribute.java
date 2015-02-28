@@ -71,13 +71,29 @@ public class TableModelAttribute extends DefaultTableModel {
 		case 0: 
 			return set.getAttribute().name();
 		case 1:
-			return set.getBounds().getLower();
+			if (set.getBounds().getLower() != null) {
+				return set.getBounds().getLower();
+			} else {
+				return "";
+			}
 		case 2:
-			return set.getBounds().getUpper();
+			if (set.getBounds().getUpper() != null) {
+				return set.getBounds().getUpper();
+			} else {
+				return "";
+			}
 		case 3:
-			return set.getCollectionSize().getLower();
+			if (set.getCollectionSize().getLower() != null) {
+				return set.getCollectionSize().getLower();
+			} else {
+				return "";
+			}
 		case 4:
-			return set.getCollectionSize().getUpper();
+			if (set.getCollectionSize().getUpper() != null) {
+				return set.getCollectionSize().getUpper();
+			} else {
+				return "";
+			}
 		case 5:
 			return StringUtil.fmtSeq(set.getValues(), ",");
 		default:

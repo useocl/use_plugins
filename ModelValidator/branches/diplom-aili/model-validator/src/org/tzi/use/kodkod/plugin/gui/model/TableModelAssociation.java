@@ -65,9 +65,17 @@ public class TableModelAssociation extends DefaultTableModel {
 		case 0: 
 			return set.getAssociation().name();
 		case 1:
-			return set.getBounds().getLower();
+			if (set.getBounds().getLower() != null) {
+				return set.getBounds().getLower();
+			} else {
+				return "";
+			}
 		case 2:
-			return set.getBounds().getUpper();
+			if (set.getBounds().getUpper() != null) {
+				return set.getBounds().getUpper();
+			} else {
+				return "";
+			}
 		case 3:
 			return StringUtil.fmtSeq(set.getValues(), ",");
 		default:

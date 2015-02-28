@@ -1,6 +1,5 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.use.uml.mm.MClassInvariant;
 
 public class SettingsInvariant {
@@ -16,8 +15,6 @@ public class SettingsInvariant {
 
 	public SettingsInvariant(MClassInvariant invariant, SettingsConfiguration configurationSettings) {
 		this.invariant = invariant;
-		this.active = DefaultConfigurationValues.INVARIANT_ACTIVE;
-		this.negate = DefaultConfigurationValues.INVARIANT_NEGATE;
 		this.configurationSettings = configurationSettings;
 	}
 

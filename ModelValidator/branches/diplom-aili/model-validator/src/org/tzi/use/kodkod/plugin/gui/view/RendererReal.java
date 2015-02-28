@@ -29,8 +29,19 @@ public class RendererReal extends DefaultTableCellRenderer {
 			setBackground(table.getBackground());
 		}
 		
-		Double value = (Double) table.getValueAt(row, column);
-		this.setText(""+value);
+		Object value = table.getValueAt(row, column);
+		if (value != null) {
+			if (value.equals("")) {
+				this.setText("");
+			} else if (value instanceof String) {
+				value = Double.parseDouble((String)value);
+			} else {
+				this.setText(""+(Double)value);
+			}
+		} else {
+			this.setText("");
+		}
+		
 		this.setHorizontalAlignment(RIGHT);
 		
 		return this;

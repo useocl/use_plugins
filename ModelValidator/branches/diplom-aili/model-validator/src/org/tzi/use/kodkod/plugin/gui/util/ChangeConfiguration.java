@@ -39,8 +39,10 @@ final public class ChangeConfiguration {
 		List<SettingsClass> classesSettings = settings.getAllClassesSettings();
 		List<SettingsInvariant> invariantsSettings = settings.getAllInvariantsSettings();
 		
-		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMin, integerSettings.getMinimum());
-		pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMax, integerSettings.getMaximum());
+		if (integerSettings.getMinimum() != null)
+			pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMin, integerSettings.getMinimum());
+		if (integerSettings.getMaximum() != null)
+			pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMax, integerSettings.getMaximum());
 		if (!integerSettings.getValues().isEmpty()) {
 			Iterator<String> integerValues = ChangeString.formatSettingValuesForProperty(integerSettings.getValues()).iterator();
 			if (integerValues.hasNext()) {
@@ -53,9 +55,12 @@ final public class ChangeConfiguration {
 			pc.clearProperty(integerSettings.name());
 		}
 		
-		pc.setProperty(realSettings.name()+PropertyEntry.realValueMin,  realSettings.getMinimum());
-		pc.setProperty(realSettings.name()+PropertyEntry.realValueMax,  realSettings.getMaximum());
-		pc.setProperty(realSettings.name()+PropertyEntry.realStep,  realSettings.getStep());
+		if (realSettings.getMinimum() != null)
+			pc.setProperty(realSettings.name()+PropertyEntry.realValueMin,  realSettings.getMinimum());
+		if (realSettings.getMaximum() != null)
+			pc.setProperty(realSettings.name()+PropertyEntry.realValueMax,  realSettings.getMaximum());
+		if (realSettings.getStep() != null)
+			pc.setProperty(realSettings.name()+PropertyEntry.realStep,  realSettings.getStep());
 		if (!realSettings.getValues().isEmpty()) {
 			Iterator<String> realValues = ChangeString.formatSettingValuesForProperty(realSettings.getValues()).iterator();
 			if (realValues.hasNext()) {
@@ -68,8 +73,10 @@ final public class ChangeConfiguration {
 			pc.clearProperty(realSettings.name());
 		}
 		
-		pc.setProperty(stringSettings.name()+PropertyEntry.stringValuesMin, stringSettings.getBounds().getLower());
-		pc.setProperty(stringSettings.name()+PropertyEntry.stringValuesMax, stringSettings.getBounds().getUpper());
+		if (stringSettings.getBounds().getLower() != null)
+			pc.setProperty(stringSettings.name()+PropertyEntry.stringValuesMin, stringSettings.getBounds().getLower());
+		if (stringSettings.getBounds().getUpper() != null)
+			pc.setProperty(stringSettings.name()+PropertyEntry.stringValuesMax, stringSettings.getBounds().getUpper());
 		if (!stringSettings.getValues().isEmpty()) {
 			Iterator<String> stringValues = ChangeString.formatSettingValuesForProperty(stringSettings.getValues()).iterator();
 			if (stringValues.hasNext()) {
@@ -82,23 +89,29 @@ final public class ChangeConfiguration {
 			pc.clearProperty(stringSettings.name());
 		}
 		
-		if (optionsSettings.getAggregationcyclefreeness()) {
-			pc.setProperty(PropertyEntry.aggregationcyclefreeness, "on");
-		} else {
-			pc.setProperty(PropertyEntry.aggregationcyclefreeness, "off");
+		if (optionsSettings.getAggregationcyclefreeness() != null) {
+			if (optionsSettings.getAggregationcyclefreeness()) {
+				pc.setProperty(PropertyEntry.aggregationcyclefreeness, "on");
+			} else {
+				pc.setProperty(PropertyEntry.aggregationcyclefreeness, "off");
+			}
 		}
-		if (optionsSettings.getForbiddensharing()) {
-			pc.setProperty(PropertyEntry.forbiddensharing, "on");
-		} else {
-			pc.setProperty(PropertyEntry.forbiddensharing, "off");
+		if (optionsSettings.getForbiddensharing() != null) {
+			if (optionsSettings.getForbiddensharing()) {
+				pc.setProperty(PropertyEntry.forbiddensharing, "on");
+			} else {
+				pc.setProperty(PropertyEntry.forbiddensharing, "off");
+			}
 		}
 		
 		Iterator<SettingsClass> classesIterator = classesSettings.iterator();
 		while (classesIterator.hasNext()) {
 			SettingsClass classSettings = classesIterator.next();
 			if (!classSettings.isAssociationClass()) {
-				pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMin, classSettings.getBounds().getLower());
-				pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMax, classSettings.getBounds().getUpper());
+				if (classSettings.getBounds().getLower() != null)
+					pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMin, classSettings.getBounds().getLower());
+				if (classSettings.getBounds().getUpper() != null)
+					pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMax, classSettings.getBounds().getUpper());
 				if (!classSettings.getValues().isEmpty()) {
 					Iterator<String> classValues = ChangeString.formatSettingValuesForProperty(classSettings.getValues()).iterator();
 					if (classValues.hasNext()) {
@@ -127,10 +140,14 @@ final public class ChangeConfiguration {
 			while (attributesIterator.hasNext()) {
 				SettingsAttribute attributeSettings = attributesIterator.next();
 				String attribute = attributeSettings.getAttribute().owner().name()+"_"+attributeSettings.getAttribute().name();
-				pc.setProperty(attribute+PropertyEntry.attributeDefValuesMin, attributeSettings.getBounds().getLower());
-				pc.setProperty(attribute+PropertyEntry.attributeDefValuesMax, attributeSettings.getBounds().getUpper());
-				pc.setProperty(attribute+PropertyEntry.attributeColSizeMin, attributeSettings.getCollectionSize().getLower());
-				pc.setProperty(attribute+PropertyEntry.attributeColSizeMax, attributeSettings.getCollectionSize().getUpper());
+				if (attributeSettings.getBounds().getLower() != null)
+					pc.setProperty(attribute+PropertyEntry.attributeDefValuesMin, attributeSettings.getBounds().getLower());
+				if (attributeSettings.getBounds().getUpper() != null)
+					pc.setProperty(attribute+PropertyEntry.attributeDefValuesMax, attributeSettings.getBounds().getUpper());
+				if (attributeSettings.getCollectionSize().getLower() != null)
+					pc.setProperty(attribute+PropertyEntry.attributeColSizeMin, attributeSettings.getCollectionSize().getLower());
+				if (attributeSettings.getCollectionSize().getUpper() != null)
+					pc.setProperty(attribute+PropertyEntry.attributeColSizeMax, attributeSettings.getCollectionSize().getUpper());
 				if (!attributeSettings.getValues().isEmpty()) {
 					Iterator<String> attributeValues = ChangeString.formatSettingValuesForProperty(attributeSettings.getValues()).iterator();
 					if (attributeValues.hasNext()) {
@@ -147,8 +164,10 @@ final public class ChangeConfiguration {
 			while (associationsIterator.hasNext()) {
 				SettingsAssociation associationSettings = associationsIterator.next();
 				String association = associationSettings.getAssociation().name();
-				pc.setProperty(association+PropertyEntry.linksMin, associationSettings.getBounds().getLower());
-				pc.setProperty(association+PropertyEntry.linksMax, associationSettings.getBounds().getUpper());
+				if (associationSettings.getBounds().getLower() != null)
+					pc.setProperty(association+PropertyEntry.linksMin, associationSettings.getBounds().getLower());
+				if (associationSettings.getBounds().getUpper() != null)
+					pc.setProperty(association+PropertyEntry.linksMax, associationSettings.getBounds().getUpper());
 				if (!associationSettings.getValues().isEmpty()) {
 					Iterator<String> associationValues = ChangeString.formatSettingValuesForProperty(associationSettings.getValues()).iterator();
 					if (associationValues.hasNext()) {
@@ -167,12 +186,14 @@ final public class ChangeConfiguration {
 		while (invariantsIterator.hasNext()) {
 			SettingsInvariant invariantSettings = invariantsIterator.next();
 			String set = PropertyEntry.INVARIANT_INACTIVE;
-			if (invariantSettings.getActive() && invariantSettings.getNegate()){
-				set = PropertyEntry.INVARIANT_NEGATE;
-			} else if (invariantSettings.getActive() && !invariantSettings.getNegate()) {
-				set = PropertyEntry.INVARIANT_ACTIVE;
+			if (invariantSettings.getActive() != null || invariantSettings.getNegate() != null) {
+				if (invariantSettings.getActive() && invariantSettings.getNegate()){
+					set = PropertyEntry.INVARIANT_NEGATE;
+				} else if (invariantSettings.getActive() && !invariantSettings.getNegate()) {
+					set = PropertyEntry.INVARIANT_ACTIVE;
+				}
+				pc.setProperty(invariantSettings.getInvariant().cls().name()+"_"+invariantSettings.getInvariant().name(), set);
 			}
-			pc.setProperty(invariantSettings.getInvariant().cls().name()+"_"+invariantSettings.getInvariant().name(), set);
 		}
 		
 		return pc;
@@ -186,7 +207,8 @@ final public class ChangeConfiguration {
 		List<String> invariants = new ArrayList<>();
 		
 		//from this point on, the possible keys which could appear in the PropertiesConfiguration are collected
-		//from the model
+		//from the model. Additionally, if there are no values set in the properties, the regarding setting will
+		//be set to null.
 		Iterator<?> classesIterator = model.classes().iterator();
 		while (classesIterator.hasNext()) {
 			MClass clazz = (MClass) classesIterator.next();
@@ -200,9 +222,8 @@ final public class ChangeConfiguration {
 				classes.add(cls);
 				classes.add(cls+PropertyEntry.objMin);
 				classes.add(cls+PropertyEntry.objMax);
-				if (!pc.containsKey(cls)) {
+				if (!pc.containsKey(cls))
 					settings.getClassSettings(cls).deleteValues();
-				}
 			}
 
 			Iterator<MAttribute> attributesIterator = clazz.allAttributes().iterator();
@@ -468,7 +489,7 @@ final public class ChangeConfiguration {
 		}
 	}
 	
-	public static void clearSettings(SettingsConfiguration settings) {
+	public static void toDefaultSettings(SettingsConfiguration settings) {
 		settings.getIntegerTypeSettings().setMinimum(DefaultConfigurationValues.integerMin);
 		settings.getIntegerTypeSettings().setMaximum(DefaultConfigurationValues.integerMax);
 		settings.getIntegerTypeSettings().deleteValues();;
@@ -512,6 +533,53 @@ final public class ChangeConfiguration {
 			SettingsInvariant invariantSettings = invariantSettingsIterator.next();
 			invariantSettings.setActive(DefaultConfigurationValues.INVARIANT_ACTIVE);
 			invariantSettings.setNegate(DefaultConfigurationValues.INVARIANT_NEGATE);
+		}
+	}
+	
+	public static void clearSettings(SettingsConfiguration settings) {
+		settings.getIntegerTypeSettings().setMinimum(null);
+		settings.getIntegerTypeSettings().setMaximum(null);
+		settings.getIntegerTypeSettings().deleteValues();;
+		settings.getRealTypeSettings().setMinimum(null);
+		settings.getRealTypeSettings().setMaximum(null);
+		settings.getRealTypeSettings().setStep(null);
+		settings.getRealTypeSettings().deleteValues();;
+		settings.getStringTypeSettings().getBounds().setLower(null);
+		settings.getStringTypeSettings().getBounds().setUpper(null);
+		settings.getStringTypeSettings().deleteValues();
+		
+		settings.getOptionSettings().setAggregationcyclefreeness(null);
+		settings.getOptionSettings().setForbiddensharing(null);
+		
+		Iterator<SettingsClass> classSettingsIterator = settings.getAllClassesSettings().iterator();
+		while (classSettingsIterator.hasNext()) {
+			SettingsClass classSettings = classSettingsIterator.next();
+			classSettings.getBounds().setLower(null);
+			classSettings.getBounds().setUpper(null);
+			classSettings.deleteValues();
+			Iterator<SettingsAttribute> attributeSettingsIterator = classSettings.getAttributeSettings().values().iterator();
+			while (attributeSettingsIterator.hasNext()) {
+				SettingsAttribute attributeSettings = attributeSettingsIterator.next();
+				attributeSettings.getBounds().setLower(null);
+				attributeSettings.getBounds().setUpper(null);
+				attributeSettings.getCollectionSize().setLower(null);
+				attributeSettings.getCollectionSize().setUpper(null);
+				attributeSettings.deleteValues();
+			}
+			Iterator<SettingsAssociation> associationSettingsIterator = classSettings.getAssociationSettings().values().iterator();
+			while (associationSettingsIterator.hasNext()) {
+				SettingsAssociation associationSettings = associationSettingsIterator.next();
+				associationSettings.getBounds().setLower(null);
+				associationSettings.getBounds().setUpper(null);
+				associationSettings.deleteValues();
+			}
+		}
+		
+		Iterator<SettingsInvariant> invariantSettingsIterator = settings.getAllInvariantsSettings().iterator();
+		while (invariantSettingsIterator.hasNext()) {
+			SettingsInvariant invariantSettings = invariantSettingsIterator.next();
+			invariantSettings.setActive(null);
+			invariantSettings.setNegate(null);
 		}
 	}
 

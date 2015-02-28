@@ -3,7 +3,6 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClassImpl;
 import org.tzi.use.uml.mm.MAttribute;
@@ -18,8 +17,6 @@ public class SettingsClass extends Settings {
 
 	public SettingsClass(MClass cls, SettingsConfiguration configurationSettings) {
 		super(configurationSettings);
-		this.getBounds().setLower(DefaultConfigurationValues.objectsPerClassMin);
-		this.getBounds().setUpper(DefaultConfigurationValues.objectsPerClassMax);
 		this.clazz = cls;
 		this.isAssociationClass = cls instanceof MAssociationClassImpl;
 		

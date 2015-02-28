@@ -29,10 +29,23 @@ public class RendererInteger extends DefaultTableCellRenderer {
 			setBackground(table.getBackground());
 		}
 		
-		
 		this.setHorizontalAlignment(RIGHT);
-		Integer value = (Integer) table.getValueAt(row, column);
-		this.setText(""+value);
+		
+		Object value = table.getValueAt(row, column);
+		if (value != null) {
+			if (value instanceof String) {
+				if (value.equals("")) {
+					this.setText("");
+				} else {
+					value = Integer.valueOf((String) value);
+				}
+			} else {
+				value = (Integer) value;
+			}
+			this.setText(""+value);
+		} else {
+			this.setText("");
+		}
 		
 		return this;
 	}

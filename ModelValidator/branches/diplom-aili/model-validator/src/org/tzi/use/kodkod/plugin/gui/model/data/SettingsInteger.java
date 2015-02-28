@@ -3,15 +3,14 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 
 public class SettingsInteger {
 	
 	private String name = TypeConstants.INTEGER;
-	private int minimum = DefaultConfigurationValues.integerMin;
-	private int maximum = DefaultConfigurationValues.integerMax;
+	private Integer minimum;
+	private Integer maximum;
 	private List<String> values = new ArrayList<>();
 	protected SettingsConfiguration configurationSettings;
 	
@@ -27,20 +26,38 @@ public class SettingsInteger {
 		return configurationSettings;
 	}
 	
-	public int getMinimum() {
+	public Integer getMinimum() {
 		return this.minimum;
 	}
 	
-	public void setMinimum(int minimum) {
-		this.minimum = minimum;
+	public void setMinimum(Object minimum) {
+		if (minimum == null) {
+			this.minimum = null;
+		} else {
+			if (minimum.equals("")) {
+				this.minimum = null;
+			} else {
+				this.minimum = (Integer) minimum;
+			}
+			this.configurationSettings.setChanged(true);
+		}
 	}
 	
-	public int getMaximum() {
+	public Integer getMaximum() {
 		return this.maximum;
 	}
 	
-	public void setMaximum(int maximum) {
-		this.maximum = maximum;
+	public void setMaximum(Object maximum) {
+		if (maximum == null) {
+			this.maximum = null;
+		} else {
+			if (maximum.equals("")) {
+				this.maximum = null;
+			} else {
+				this.maximum = (Integer) maximum;
+			}
+			this.configurationSettings.setChanged(true);
+		}
 	}
 		
 	public List<String> getValues() {

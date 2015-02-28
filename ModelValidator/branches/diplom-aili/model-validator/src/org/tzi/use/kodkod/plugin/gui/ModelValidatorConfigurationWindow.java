@@ -129,6 +129,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			//settingsConfiguration are switched when the configuration is exchanged via the Configuration ComboBox. The information
 			//if it's actually changed are lost after the switch, thus it's saved here before the switching and is recovered after.
 			boolean beforeChange = settingsConfiguration.isChanged();
+			ChangeConfiguration.clearSettings(settingsConfiguration);
 			ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
 			settingsConfiguration.setChanged(beforeChange);
 			TableBuilder.repaintAllTables(tables.iterator());
@@ -187,10 +188,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		tables.add(associations);
 		tables.add(invariants);
 		
-		attributeColumnsToHide = new ArrayList<>();
-		for (int i = 1; i < 5; i++) {
-			attributeColumnsToHide.add( attributes.getColumnModel().getColumn(i));
-		}
 		
 		classTableSelectionListener = classes.getSelectionModel();
 		classTableSelectionListener.addListSelectionListener(new ClassTableSelectionHandler());
@@ -219,6 +216,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         sectionSelectionComboBox = new JComboBox<String>();
         comboBoxActionListener = new ComboBoxActionListener();  
         sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+
+        attributeColumnsToHide = new ArrayList<>();
+        for (int i = 1; i < 5; i++) {
+        	attributeColumnsToHide.add( attributes.getColumnModel().getColumn(i));
+        }
         
         attributeCheckBox = new JCheckBox("Hide defined and collection bounds", true);
 		attributeCheckBox.addActionListener(new ActionListener() {
@@ -293,11 +295,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         
         if (file.exists()) {
         	extractConfigurations(file);
-        } else {
         	ChangeConfiguration.clearSettings(settingsConfiguration);
-        	createDefaultConfigurations();
+        	ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
+        } else {
+        	setAllDefault();
         }
-        ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
         TableBuilder.repaintAllTables(tables.iterator());
 
         if (file.exists()) {
@@ -386,7 +388,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			JOptionPane.showMessageDialog(getParent(), new JLabel("Not a proper .properties File! Choose another or delete it!"), "Error!", JOptionPane.ERROR_MESSAGE);
 		} else {
 				PropertiesConfiguration propertiesConfiguration = new PropertiesConfiguration();
-				String section = "default";
+				String section = "config";
 				Iterator<?> keysIterator = hierarchicalINIConfiguration.getKeys();
 				while (keysIterator.hasNext()) {
 					String key = (String) keysIterator.next();
@@ -401,15 +403,16 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 	}
 	
-	private void createDefaultConfigurations() {
+	private void setAllDefault() {
 		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 		sectionSelectionComboBox.removeAllItems();
-		
 		selectedSection = "default";
+		
+		ChangeConfiguration.toDefaultSettings(settingsConfiguration);
 		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
+		
 		propertiesConfigurationSections.put(selectedSection, propertiesConfiguration);
 		sectionSelectionComboBox.addItem(selectedSection);
-		
 		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 	}
 
@@ -448,6 +451,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         		if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
         			file = fileChooser.getSelectedFile();
         			extractConfigurations(file);
+        			ChangeConfiguration.clearSettings(settingsConfiguration);
         			ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
         			TableBuilder.repaintAllTables(tables.iterator());
         			settingsConfiguration.setChanged(false);
@@ -483,16 +487,18 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         		String newName = JOptionPane.showInputDialog(
         				"Please input the new name of this configuration:", 
         				selectedSection);
-        		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
-        		propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
-        		propertiesConfigurationSections.remove(sectionToDelete);
-        		selectedSection = newName;
-        		settingsConfiguration.setChanged(true);
-        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
-        		sectionSelectionComboBox.addItem(newName);
-        		sectionSelectionComboBox.removeItem(sectionToDelete);
-        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
-        		sectionSelectionComboBox.setSelectedItem(newName);
+        		if (newName != null && !newName.equals("")) {
+	        		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
+	        		propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
+	        		propertiesConfigurationSections.remove(sectionToDelete);
+	        		selectedSection = newName;
+	        		settingsConfiguration.setChanged(true);
+	        		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+	        		sectionSelectionComboBox.addItem(newName);
+	        		sectionSelectionComboBox.removeItem(sectionToDelete);
+	        		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+	        		sectionSelectionComboBox.setSelectedItem(newName);
+        		}
         	}
         });
 		
@@ -511,6 +517,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	        		}
 	        		futureSection = sectionSelectionComboBox.getItemAt(futureIndex);
 	        		selectedSection = futureSection;
+	        		ChangeConfiguration.clearSettings(settingsConfiguration);
 	        		ChangeConfiguration.toSettings(model, propertiesConfigurationSections.get(selectedSection), settingsConfiguration);
 	        		propertiesConfigurationSections.remove(currentSection);
 	        		sectionSelectionComboBox.setSelectedItem(selectedSection);
@@ -520,7 +527,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         		} else { 
         			propertiesConfigurationSections.clear();
         			selectedSection = "default";
-					ChangeConfiguration.clearSettings(settingsConfiguration);
+					ChangeConfiguration.toDefaultSettings(settingsConfiguration);
 					propertiesConfigurationSections.put(selectedSection, 
 							(ChangeConfiguration.toProperties(settingsConfiguration, model)));
 					sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
@@ -542,18 +549,16 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				if (newName != null && !newName.equals("")) {
 					PropertiesConfiguration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
 					propertiesConfigurationSections.put(selectedSection,pc);
-					ChangeConfiguration.clearSettings(settingsConfiguration);
+					ChangeConfiguration.toDefaultSettings(settingsConfiguration);
 					propertiesConfigurationSections.put(newName, 
 							(ChangeConfiguration.toProperties(settingsConfiguration, model)));
-				} else {
-					return;
+					selectedSection = newName;
+					settingsConfiguration.setChanged(true);
+					sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+					sectionSelectionComboBox.addItem(newName);
+					sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+					sectionSelectionComboBox.setSelectedItem(newName);
 				}
-				selectedSection = newName;
-				settingsConfiguration.setChanged(true);
-				sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
-				sectionSelectionComboBox.addItem(newName);
-				sectionSelectionComboBox.addActionListener(comboBoxActionListener);
-				sectionSelectionComboBox.setSelectedItem(newName);
 			}
 		});
 		

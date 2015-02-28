@@ -52,9 +52,17 @@ public class TableModelString extends DefaultTableModel {
 		case 0: 
 			return settings.name();
 		case 1:
-			return settings.getBounds().getLower();
+			if (settings.getBounds().getLower() != null) {
+				return settings.getBounds().getLower();
+			} else {
+				return "";
+			}
 		case 2:
-			return settings.getBounds().getUpper();
+			if (settings.getBounds().getUpper() != null) {
+				return settings.getBounds().getUpper();
+			} else {
+				return "";
+			}
 		case 3:
 			return StringUtil.fmtSeq(settings.getValues(), ",");
 		default:

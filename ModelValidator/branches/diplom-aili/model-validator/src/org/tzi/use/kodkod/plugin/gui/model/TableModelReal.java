@@ -53,11 +53,23 @@ public class TableModelReal extends DefaultTableModel {
 		case 0: 
 			return settings.name();
 		case 1:
-			return settings.getMinimum();
+			if (settings.getMinimum() != null) {
+				return settings.getMinimum();
+			} else {
+				return "";
+			}
 		case 2:
-			return settings.getMaximum();
+			if (settings.getMaximum() != null) {
+				return settings.getMaximum();
+			} else {
+				return "";
+			}
 		case 3:
-			return settings.getStep();
+			if (settings.getStep() != null) {
+				return settings.getStep();
+			} else {
+				return "";
+			}
 		case 4:
 			return StringUtil.fmtSeq(settings.getValues(), ",");
 		default:
@@ -69,11 +81,11 @@ public class TableModelReal extends DefaultTableModel {
 	public void setValueAt(Object aValue, int row, int column) {
 		switch (column) {
 		case 1:
-			settings.setMinimum((Double) aValue);
+			settings.setMinimum(aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			settings.setMaximum((Double) aValue);
+			settings.setMaximum(aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		case 3:

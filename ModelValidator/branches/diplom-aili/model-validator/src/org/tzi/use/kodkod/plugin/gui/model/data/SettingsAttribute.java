@@ -1,6 +1,5 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.use.uml.mm.MAttribute;
 
 public class SettingsAttribute extends Settings {
@@ -12,12 +11,8 @@ public class SettingsAttribute extends Settings {
 
 	public SettingsAttribute(MAttribute attribute, SettingsClass classSettings, Boolean inherited, SettingsConfiguration configurationSettings) {
 		super(configurationSettings);
-		this.getBounds().setLower(DefaultConfigurationValues.attributesPerClassMin);
 		this.getBounds().setLowerLimited(false);
-		this.getBounds().setUpper(DefaultConfigurationValues.attributesPerClassMax);
 		this.getBounds().setUpperLimited(false);
-		this.getCollectionSize().setLower(DefaultConfigurationValues.attributesColSizeMin);
-		this.getCollectionSize().setUpper(DefaultConfigurationValues.attributesColSizeMax);
 		this.getCollectionSize().setUpperLimited(false);
 		this.attribute = attribute;
 		this.classSettings = classSettings;

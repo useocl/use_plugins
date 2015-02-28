@@ -4,8 +4,8 @@ import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 
 public class Bounds {
 	
-	private int lower = 1;
-	private int upper = 1;
+	private Integer lower;
+	private Integer upper;
 	private boolean lowerLimited = true;
 	private boolean upperLimited = true;
 	
@@ -51,7 +51,7 @@ public class Bounds {
 	/**
 	 * @return the lower
 	 */
-	public int getLower() {
+	public Integer getLower() {
 		return lower;
 	}
 	/**
@@ -59,7 +59,9 @@ public class Bounds {
 	 */
 	public void setLower(Object lower) {
 		if (lower instanceof String) {
-			if (ChangeString.isInteger((String)lower)) {
+			if (lower.equals("")) {
+				this.lower = null;
+			} else	if (ChangeString.isInteger((String)lower)) {
 				int low = Integer.parseInt((String) lower);
 				if (!(lowerIsLimited() && low < 0)) {
 					this.lower = low;
@@ -75,7 +77,7 @@ public class Bounds {
 	/**
 	 * @return the upper
 	 */
-	public int getUpper() {
+	public Integer getUpper() {
 		return upper;
 	}
 	
@@ -84,11 +86,18 @@ public class Bounds {
 	 */
 	public void setUpper(Object upper) {
 		if (upper instanceof String) {
-			if (ChangeString.isInteger((String)upper)) {
-				this.upper = Integer.parseInt((String) upper);
+			if (upper.equals("")) {
+				upper = null;
+			} else if (ChangeString.isInteger((String)upper)) {
+				int upp = Integer.parseInt((String)upper);
+				if (!(upperIsLimited() && upp < 0)) {
+					this.upper = Integer.parseInt((String) upper);
+				}
 			}
 		} else if (upper instanceof Integer) {
-			this.upper = (int) upper;
+			if (!(upperIsLimited() && (int) upper < 0)) {
+				this.upper = (int) upper;
+			}
 		}
 	}
 }
