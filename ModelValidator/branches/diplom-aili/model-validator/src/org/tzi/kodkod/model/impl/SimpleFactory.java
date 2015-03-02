@@ -40,8 +40,8 @@ public class SimpleFactory implements IModelFactory {
 	}
 
 	@Override
-	public IAssociationEnd createAssociationEnd(String name, Multiplicity multiplicity, IClass associatedClass) {
-		return new AssociationEnd(name, multiplicity, associatedClass);
+	public IAssociationEnd createAssociationEnd(String name, Multiplicity multiplicity, int aggregationKind, IClass associatedClass) {
+		return new AssociationEnd(name, multiplicity, aggregationKind, associatedClass);
 	}
 
 	@Override

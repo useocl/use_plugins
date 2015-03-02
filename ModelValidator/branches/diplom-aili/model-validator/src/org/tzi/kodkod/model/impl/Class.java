@@ -1,14 +1,18 @@
 package org.tzi.kodkod.model.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import kodkod.ast.Decls;
 import kodkod.ast.Expression;
 import kodkod.ast.Formula;
 import kodkod.ast.Relation;
+import kodkod.ast.Variable;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
 
@@ -16,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.PrintHelper;
 import org.tzi.kodkod.model.config.impl.ClassConfigurator;
 import org.tzi.kodkod.model.config.impl.Configurator;
+import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
@@ -132,7 +137,18 @@ public class Class extends ModelElement implements IClass {
 	public Collection<IClass> parents() {
 		return parents.values();
 	}
-
+	
+	@Override
+	public Collection<IClass> allParents() {
+		Set<IClass> parents = new HashSet<IClass>();
+		parents.addAll(parents());
+		
+		for(IClass p : parents()){
+			parents.addAll(p.allParents());
+		}
+		return parents;
+	}
+	
 	@Override
 	public void addChild(IClass child) {
 		children.put(child.name(), child);
@@ -143,6 +159,17 @@ public class Class extends ModelElement implements IClass {
 		return children.values();
 	}
 
+	@Override
+	public Collection<IClass> allChildren() {
+		Set<IClass> children = new HashSet<IClass>();
+		children.addAll(children());
+		
+		for(IClass p : children()){
+			children.addAll(p.allChildren());
+		}
+		return children;
+	}
+	
 	@Override
 	public boolean isAbstract() {
 		return abstractC;
@@ -155,9 +182,9 @@ public class Class extends ModelElement implements IClass {
 
 	@Override
 	public Formula constraints() {
-		Formula formula = Formula.TRUE;
+		Formula formula = forbiddingSharingDefinition();
 		if (existsInheritance()) {
-			formula = inheritanceDefinition();
+			formula = formula.and(inheritanceDefinition());
 		}
 		return formula.and(configurator.constraints(this));
 	}
@@ -218,7 +245,53 @@ public class Class extends ModelElement implements IClass {
 		LOG.debug("Inheritance for " + name() + ": " + PrintHelper.prettyKodkod(formula));
 		return formula;
 	}
-
+	
+	private Formula forbiddingSharingDefinition() {
+		List<IAssociation> assocs = new ArrayList<IAssociation>();
+		
+		for (IAssociation assoc : model.associations()) {
+			if(assoc.isBinaryAssociation() && assoc.associationClass() == null) {
+				if(assoc.associationEnds().get(1).associatedClass().equals(this)){
+					assocs.add(assoc);
+				}
+			}
+		}
+		
+		if(assocs.size() < 2){
+			return Formula.TRUE;
+		}
+		
+		/*
+		 * all self : (inh)Relation | (join( self, composition1 ) = undefined and ... and join( self, compositionN ) = undefined)
+		 *                              or (join( self, composition1 ) <> undefined and ... and join( self, compositionN ) = undefined)
+		 *                              ...
+		 *                              or (join( self, composition1 ) = undefined and ... and join( self, compositionN ) <> undefined)
+		 */
+		final Expression undefined = model.typeFactory().undefinedType().relation();
+		final Variable self = Variable.unary("self");
+		final Expression rel = existsInheritance() ? inheritanceRelation() : relation();
+		
+		Formula matrix = null;
+		
+		for(int i = 0; i < assocs.size()+1; i++){
+			Formula current = Formula.TRUE;
+			for(int j = 0; j < assocs.size(); j++){
+				IAssociation assoc = assocs.get(j);
+				Expression joined = assoc.relation().join(self);
+				
+				if(i == j){
+					current = current.and(joined.eq(undefined).not());
+				} else {
+					current = current.and(joined.eq(undefined));
+				}
+			}
+			matrix = (matrix == null) ? current : matrix.or(current);
+		}
+		
+		Decls vars = self.oneOf(rel);
+		return matrix.forAll(vars);
+	}
+	
 	@Override
 	public ObjectType objectType() {
 		return objectType;

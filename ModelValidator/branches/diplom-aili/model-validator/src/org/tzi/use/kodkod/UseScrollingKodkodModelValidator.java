@@ -14,7 +14,6 @@ import org.tzi.use.main.Session;
  * Class for the model validation with scrolling functionality.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 
@@ -51,7 +50,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 		previousLog();
 	}
 
-	private void previousLog() {
+	protected void previousLog() {
 		if (solutions.size() > 0) {
 			LOG.info(LogMessages.pagingPrevious);
 		}
@@ -94,5 +93,4 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 		solutionIndex = index-1;
 		createObjectDiagram(solutions.get(solutionIndex));
 	}
-
 }

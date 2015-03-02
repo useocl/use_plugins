@@ -69,8 +69,52 @@ public class Association extends ModelElement implements IAssociation {
 
 	@Override
 	public Formula constraints() {
-		Formula formula = Formula.and(typeDefinitions(), multiplicityDefinitions());
+		Formula formula = Formula.and(typeDefinitions(), multiplicityDefinitions(), cycleFreenessDefinitions());
 		return formula.and(configurator.constraints(this));
+	}
+
+	private Formula cycleFreenessDefinitions() {
+		if(associationClass != null || !isBinaryAssociation()){
+			return Formula.TRUE;
+		}
+		
+		IAssociationEnd aggregateEnd = null;
+		IAssociationEnd otherEnd = null;
+		for(IAssociationEnd ae : associationEnds){
+			if(ae.aggregationKind() != IAssociationEnd.REGULAR){
+				aggregateEnd = ae;
+			} else {
+				otherEnd = ae;
+			}
+		}
+		
+		if(aggregateEnd == null || otherEnd == null){
+			return Formula.TRUE;
+		}
+		
+		if (aggregateEnd.associatedClass().equals(otherEnd.associatedClass())
+				|| aggregateEnd.associatedClass().allParents().contains(otherEnd.associatedClass())
+				|| aggregateEnd.associatedClass().allChildren().contains(otherEnd.associatedClass())) {
+			// construct simple constraint
+			Relation startRelation = aggregateEnd.associatedClass().existsInheritance() ?
+					aggregateEnd.associatedClass().inheritanceRelation() : 
+					aggregateEnd.associatedClass().relation();
+			
+			// startRelation->forAll( s | s->closure( relation )->excludes( s ))
+			// all c : one startRelation { c \notin c->closure( c' | c'.relation ) }
+			
+			Variable y = Variable.unary("y");
+			Variable cls = Variable.unary("cls");
+			Expression closureExp = cls.join(relation());
+			
+			Expression generalClosure = y.in(closureExp).comprehension(cls.oneOf(startRelation).and(y.oneOf(startRelation))).closure();
+			Variable start = Variable.unary("start");
+			Formula forAllExp = start.in(start.join(generalClosure)).not();
+			
+			return forAllExp.forAll( start.oneOf(startRelation) );
+		}
+		
+		return Formula.TRUE;
 	}
 
 	/**
@@ -79,7 +123,6 @@ public class Association extends ModelElement implements IAssociation {
 	 * @return
 	 */
 	private Formula typeDefinitions() {
-		ConstraintHelper helper = new ConstraintHelper();
 		List<Formula> formulas = new ArrayList<Formula>();
 
 		ArrayList<IAssociationEnd> temporary = new ArrayList<IAssociationEnd>();
@@ -95,7 +138,7 @@ public class Association extends ModelElement implements IAssociation {
 		for (int i = 0; i < temporary.size(); i++) {
 			associationEnd = temporary.get(i);
 
-			expression = helper.univ_l(relation(), i);
+			expression = ConstraintHelper.univLeftN(relation(), i);
 			for (int j = 0; j < temporary.size() - i - 1; j++) { // helper.univ_r
 				expression = expression.join(Expression.UNIV);
 			}

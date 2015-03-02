@@ -7,6 +7,6 @@ package org.tzi.kodkod.model.iface;
  * @author Hendrik Reitmann
  * 
  */
-public interface IAssociationClass extends IClass, IAssociationEnd{
+public interface IAssociationClass extends IClass, IAssociationEnd {
 
 }

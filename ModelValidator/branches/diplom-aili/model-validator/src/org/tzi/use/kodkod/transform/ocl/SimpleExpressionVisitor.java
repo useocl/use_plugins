@@ -26,6 +26,7 @@ import org.tzi.use.uml.ocl.expr.ExpIsUnique;
 import org.tzi.use.uml.ocl.expr.ExpIterate;
 import org.tzi.use.uml.ocl.expr.ExpLet;
 import org.tzi.use.uml.ocl.expr.ExpNavigation;
+import org.tzi.use.uml.ocl.expr.ExpNavigationClassifierSource;
 import org.tzi.use.uml.ocl.expr.ExpObjAsSet;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpObjRef;
@@ -179,6 +180,12 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 	}
 
 	@Override
+	public void visitNavigationClassifierSource(ExpNavigationClassifierSource exp) {
+		LOG.debug("ExpNavigationClassifierSource");
+		throw new TransformationException("ExpNavigationClassifierSource not supported");
+	}
+	
+	@Override
 	public void visitObjAsSet(ExpObjAsSet exp) {
 		LOG.debug("ExpObjAsSet");
 	}
@@ -300,12 +307,12 @@ public class SimpleExpressionVisitor implements ExpressionVisitor {
 
 	@Override
 	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
-		throw new TransformationException("selectByKind not supported");
+		LOG.debug("ExpSelectByKind");
 	}
 
 	@Override
 	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
-		throw new TransformationException("selectByType not supported");
+		LOG.debug("ExpSelectByType");
 	}
 
 	@Override

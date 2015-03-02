@@ -15,6 +15,7 @@ import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.EnumType;
+import org.tzi.kodkod.model.type.ObjectType;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.kodkod.model.type.TypeLiterals;
 import org.tzi.kodkod.ocl.OCLMethodInvoker;
@@ -42,6 +43,8 @@ import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpQuery;
 import org.tzi.use.uml.ocl.expr.ExpRange;
+import org.tzi.use.uml.ocl.expr.ExpSelectByKind;
+import org.tzi.use.uml.ocl.expr.ExpSelectByType;
 import org.tzi.use.uml.ocl.expr.ExpSequenceLiteral;
 import org.tzi.use.uml.ocl.expr.ExpSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpStdOp;
@@ -138,7 +141,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	public void visitAsType(ExpAsType exp) {
 		super.visitAsType(exp);
 		try {
-			visitTypeOperation("oclAsType", exp.getSourceExpr(), exp.getTargetType());
+			visitTypeOperation("oclAsType", exp.getSourceExpr(), exp.getTargetType(), false);
 		} catch (NoSuchMethodError e) {
 			throw new TransformationException(LogMessages.noSuchMethodError, e);
 		}
@@ -270,13 +273,13 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitIsKindOf(ExpIsKindOf exp) {
 		super.visitIsKindOf(exp);
-		visitTypeOperation("oclIsKindOf", exp.getSourceExpr(), exp.getTargetType());
+		visitTypeOperation("oclIsKindOf", exp.getSourceExpr(), exp.getTargetType(), true);
 	}
 
 	@Override
 	public void visitIsTypeOf(ExpIsTypeOf exp) {
 		super.visitIsTypeOf(exp);
-		visitTypeOperation("oclIsTypeOf", exp.getSourceExpr(), exp.getTargetType());
+		visitTypeOperation("oclIsTypeOf", exp.getSourceExpr(), exp.getTargetType(), false);
 	}
 
 	@Override
@@ -313,6 +316,18 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		object = visitor.getObject();
 		set = visitor.isSet();
 		object_type_nav = visitor.isObject_type_nav();
+	}
+	
+	@Override
+	public void visitSelectByKind(ExpSelectByKind expSelectByKind) {
+		super.visitSelectByKind(expSelectByKind);
+		visitTypeOperation("selectByKind", expSelectByKind.getSourceExpression(), expSelectByKind.type().elemType(), true);
+	}
+	
+	@Override
+	public void visitExpSelectByType(ExpSelectByType expSelectByType) {
+		super.visitExpSelectByType(expSelectByType);
+		visitTypeOperation("selectByType", expSelectByType.getSourceExpression(), expSelectByType.type().elemType(), false);
 	}
 
 	@Override
@@ -434,7 +449,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	 * @param sourceExpression
 	 * @param targetType
 	 */
-	private void visitTypeOperation(String opName, org.tzi.use.uml.ocl.expr.Expression sourceExpression, Type targetType) {
+	private void visitTypeOperation(String opName, org.tzi.use.uml.ocl.expr.Expression sourceExpression, Type targetType, boolean isKindOfOperation) {
 		List<Object> arguments = new ArrayList<Object>();
 
 		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
@@ -444,7 +459,19 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		object_type_nav = visitor.isObject_type_nav();
 
 		TypeConverter typeConverter = new TypeConverter(model);
-		Expression typeExpression = typeConverter.convertToExpression(targetType);
+		org.tzi.kodkod.model.type.Type type = typeConverter.convert(targetType);
+		Expression typeExpression;
+		if(type instanceof ObjectType){
+			IClass cls = ((ObjectType) type).clazz();
+			if(isKindOfOperation && cls.existsInheritance()){
+				typeExpression = cls.inheritanceRelation();
+			} else {
+				typeExpression = cls.relation();
+			}
+		} else {
+			typeExpression = typeConverter.typeToExpression(type);
+		}
+		
 		if (typeExpression != null) {
 			arguments.add(typeExpression);
 		} else {

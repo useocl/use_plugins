@@ -69,7 +69,7 @@ public final class LogMessages {
 	public static final String pagingCmdError = "Set a configuration file or enter next for a new solution respectively previous for the last solution.";
 
 	public static final String pagingCmdFileFirst = "Set a configuration file first!";
-
+	
 	public static final String enrichWithLoadedInvariants = "Enrich the model with loaded invariants";
 
 	public static final String errorWithLoadedInvariants = "Error while enriching the model with loaded invariants";

@@ -13,11 +13,13 @@ public class AssociationEnd implements IAssociationEnd {
 
 	private String name;
 	private Multiplicity multiplicity;
+	private int aggregationKind;
 	private IClass associatedClass;
 
-	AssociationEnd(String name, Multiplicity multiplicity, IClass associatedClass) {
+	AssociationEnd(String name, Multiplicity multiplicity, int aggregationKind, IClass associatedClass) {
 		this.name = name;
 		this.multiplicity = multiplicity;
+		this.aggregationKind = aggregationKind;
 		this.associatedClass = associatedClass;
 	}
 
@@ -34,6 +36,11 @@ public class AssociationEnd implements IAssociationEnd {
 	@Override
 	public IClass associatedClass() {
 		return associatedClass;
+	}
+	
+	@Override
+	public int aggregationKind() {
+		return aggregationKind;
 	}
 
 	@Override

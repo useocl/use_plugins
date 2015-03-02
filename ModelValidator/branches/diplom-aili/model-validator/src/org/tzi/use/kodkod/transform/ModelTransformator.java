@@ -17,6 +17,7 @@ import org.tzi.kodkod.model.iface.IModelFactory;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeFactory;
 import org.tzi.use.graph.DirectedGraph;
+import org.tzi.use.uml.mm.MAggregationKind;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationEnd;
@@ -141,11 +142,23 @@ public class ModelTransformator {
 		IAssociation association = factory.createAssociation(model, mAssociation.name());
 		for (MAssociationEnd mAssociationEnd : mAssociation.associationEnds()) {
 
-			IAssociationEnd end = factory.createAssociationEnd(mAssociationEnd.name(), multTransformator.transform(mAssociationEnd.multiplicity()),
+			IAssociationEnd end = factory.createAssociationEnd(mAssociationEnd.name(),
+					multTransformator.transform(mAssociationEnd.multiplicity()),
+					transformAggregationKind(mAssociationEnd.aggregationKind()),
 					model.getClass(mAssociationEnd.cls().name()));
 			association.addAssociationEnd(end);
 		}
 		return association;
+	}
+
+	private int transformAggregationKind(int useAggregationKind) {
+		if(useAggregationKind == MAggregationKind.COMPOSITION){
+			return IAssociationEnd.COMPOSITION;
+		} else if(useAggregationKind == MAggregationKind.AGGREGATION){
+			return IAssociationEnd.AGGREGATION;
+		} else {
+			return IAssociationEnd.REGULAR;
+		}
 	}
 
 	private void transformAssociationClasses(IModel model, Collection<MAssociationClass> mAssociationClasses) {

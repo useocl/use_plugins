@@ -1,6 +1,7 @@
 package org.tzi.kodkod.model.impl;
 
 import org.tzi.kodkod.model.iface.IAssociationClass;
+import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 
@@ -24,6 +25,11 @@ public class AssociationClass extends Class implements IAssociationClass{
 	@Override
 	public IClass associatedClass() {
 		return this;
+	}
+
+	@Override
+	public int aggregationKind() {
+		return IAssociationEnd.REGULAR;
 	}
 
 }

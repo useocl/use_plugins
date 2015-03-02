@@ -44,31 +44,33 @@ public interface IClass extends IModelElement, IGeneralization {
 
 	/**
 	 * Adds a parent class.
-	 * 
-	 * @param parent
 	 */
 	public void addParent(IClass parent);
 
 	/**
 	 * Returns a collection of all direct parent classes.
-	 * 
-	 * @return
 	 */
 	public Collection<IClass> parents();
+	
+	/**
+	 * Returns a collection of all parent classes.
+	 */
+	public Collection<IClass> allParents();
 
 	/**
 	 * Adds a child for this class.
-	 * 
-	 * @param child
 	 */
 	public void addChild(IClass child);
 
 	/**
 	 * Returns all direct child classes.
-	 * 
-	 * @return
 	 */
 	public Collection<IClass> children();
+	
+	/**
+	 * Returns all child classes.
+	 */
+	public Collection<IClass> allChildren();
 
 	/**
 	 * Returns ture if this class is abstract.

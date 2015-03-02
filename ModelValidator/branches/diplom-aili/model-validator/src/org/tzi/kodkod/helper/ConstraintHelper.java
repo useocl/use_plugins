@@ -9,16 +9,16 @@ import kodkod.ast.Expression;
  */
 public class ConstraintHelper {
 
-	public Expression univ_r(Expression expression, int n) {
-		if (n > 0) {
-			return univ_r(expression, n - 1).join(Expression.UNIV);
+	public static Expression univRightN(Expression expression, int n) {
+		for(int i = 0; i < n; i++){
+			expression = expression.join(Expression.UNIV);
 		}
 		return expression;
 	}
 
-	public Expression univ_l(Expression expression, int n) {
-		if (n > 0) {
-			return Expression.UNIV.join(univ_l(expression, n - 1));
+	public static Expression univLeftN(Expression expression, int n) {
+		for(int i = 0; i < n; i++){
+			expression = Expression.UNIV.join(expression);
 		}
 		return expression;
 	}

@@ -3,19 +3,19 @@ package org.tzi.use.kodkod.plugin;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.use.kodkod.UseScrollingKodkodModelValidator;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Cmd-Class for the scrolling in the solutions.
  * 
  * @author Hendrik Reitmann
- * 
+ * @author Frank Hilken
  */
 public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 
-	protected static UseScrollingKodkodModelValidator validator;
+	protected static UseScrollingKodkodModelValidator validator = null;
 
 	@Override
 	protected void noArguments() {
@@ -26,27 +26,35 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 	protected void handleArguments(String[] arguments) {
 		String firstArgument = arguments[0];
 		
-		if (firstArgument.equals("next")) {
+		if (firstArgument.equalsIgnoreCase("next")) {
 			if (checkValidatorPresent()) {
 				validator.nextSolution();
 			}
-		} else if (firstArgument.equals("previous")) {
+		} else if (firstArgument.equalsIgnoreCase("previous")) {
 			if (checkValidatorPresent()) {
 				validator.previousSolution();
 			}
-		} else if (firstArgument.startsWith("show")) {
-			Pattern showPattern = Pattern.compile("show\\s*\\(\\s*(\\d+)\\s*\\)");
-			Matcher m = showPattern.matcher(firstArgument);
-			if (checkValidatorPresent()) {
-				int index = Integer.parseInt(m.group(1));
-				validator.showSolution(index);
-			}
 		} else {
-			super.handleArguments(arguments);
+			String argumentsAsString = StringUtil.fmtSeq(arguments, " ");
+			Pattern showPattern = Pattern.compile("show\\s*\\(\\s*(\\d+)\\s*\\)", Pattern.CASE_INSENSITIVE);
+			Matcher m = showPattern.matcher(argumentsAsString);
+			
+			if (m.matches()) {
+				if (checkValidatorPresent()) {
+					int index = Integer.parseInt(m.group(1));
+					validator.showSolution(index);
+				}
+			} else {
+				super.handleArguments(arguments);
+			}
 		}
 	}
 
-	private boolean checkValidatorPresent() {
+	protected void resetValidator() {
+		validator = new UseScrollingKodkodModelValidator(session);
+	}
+
+	protected boolean checkValidatorPresent() {
 		if (validator == null) {
 			LOG.error(LogMessages.pagingCmdFileFirst);
 			return false;
@@ -55,8 +63,7 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 	}
 
 	@Override
-	protected KodkodModelValidator createValidator() {
-		validator = new UseScrollingKodkodModelValidator(session);
+	protected UseScrollingKodkodModelValidator createValidator() {
 		return validator;
 	}
 }

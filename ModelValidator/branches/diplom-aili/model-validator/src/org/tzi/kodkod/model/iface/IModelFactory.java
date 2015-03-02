@@ -61,7 +61,7 @@ public interface IModelFactory {
 	 * @param associatedClass
 	 * @return
 	 */
-	public IAssociationEnd createAssociationEnd(String name, Multiplicity multiplicity, IClass associatedClass);
+	public IAssociationEnd createAssociationEnd(String name, Multiplicity multiplicity, int aggregationKind, IClass associatedClass);
 
 	/**
 	 * Creates an instance of IAssociationClass.
