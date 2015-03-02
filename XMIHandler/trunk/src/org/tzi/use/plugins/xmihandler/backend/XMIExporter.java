@@ -32,6 +32,7 @@ import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MClassifier;
 import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
@@ -39,323 +40,319 @@ import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.EnumType;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
-//@SuppressWarnings("unused")
 public class XMIExporter {
 
-  /**********************************************************************************************
-   ** export helper methods **
-   **********************************************************************************************/
-
-  private static Model createModel(String name) {
-    Model model = UMLFactory.eINSTANCE.createModel();
-    model.setName(name);
-
-    return model;
-  }
-
-  private static Type getOrCreateType(
-      org.eclipse.uml2.uml.Package package_, String name) {
-    
-    Type theType = package_.getOwnedType(name);
-
-    if (theType == null) {
-      theType = package_
-          .createOwnedPrimitiveType(name);
-    }    
-
-    return theType;
-  }
-
-  private static Enumeration createEnumeration(
-      org.eclipse.uml2.uml.Package package_, String name) {
-    Enumeration enumeration = (Enumeration) package_
-        .createOwnedEnumeration(name);
-
-    return enumeration;
-  }
-
-  private static EnumerationLiteral createEnumerationLiteral(
-      Enumeration enumeration, String name) {
-    EnumerationLiteral enumerationLiteral = enumeration
-        .createOwnedLiteral(name);
-
-    return enumerationLiteral;
-  }
-
-  private static org.eclipse.uml2.uml.Class createClass(
-      org.eclipse.uml2.uml.Package package_, String name, boolean isAbstract) {
-    org.eclipse.uml2.uml.Class class_ = package_.createOwnedClass(name,
-        isAbstract);
-
-    return class_;
-  }
-
-  private static Generalization createGeneralization(
-      Classifier specificClassifier, Classifier generalClassifier) {
-    Generalization generalization = specificClassifier
-        .createGeneralization(generalClassifier);
-
-    return generalization;
-  }
-
-  private static Property createAttribute(org.eclipse.uml2.uml.Class class_,
-      String name, Type type, boolean isUnique, boolean isOrdered,
-      int lowerBound, int upperBound) {
-
-    Property attribute = class_.createOwnedAttribute(name, type, lowerBound,
-        upperBound);
-
-    attribute.setIsUnique(isUnique);
-    attribute.setIsOrdered(isOrdered);
-
-    return attribute;
-  }
-
-  private static Association createAssociation(Model umlModel, String name) {
-    Association association = (Association) umlModel.createOwnedType(name,
-        UMLPackage.Literals.ASSOCIATION);
-    return association;
-  }
-
-  private static Property createAssociationEnd(Association association,
-      Type type, boolean isNavigable, boolean isOrdered,
-      AggregationKind aggregationKind, String name, int lower, int upper) {
-
-    Property associationEnd = isNavigable ? association
-        .createNavigableOwnedEnd(name, type) : association.createOwnedEnd(name,
-        type);
-
-    associationEnd.setName(name);
-    associationEnd.setType(type);
-    associationEnd.setIsNavigable(isNavigable);
-    associationEnd.setIsOrdered(isOrdered);
-    associationEnd.setAggregation(aggregationKind);
-    associationEnd.setLower(lower);
-    associationEnd.setUpper(upper);
-
-    return associationEnd;
-  }
-
-  private static void createEnumerations(Model umlModel, MModel useModel) {
-    for (EnumType enumType : useModel.enumTypes()) {
-      Enumeration enumeration = createEnumeration(umlModel, enumType
-          .shortName());
-      for (String literal : enumType.getLiterals()) {
-        createEnumerationLiteral(enumeration, literal);
-      }
-    }
-  }
-
-  private static void createClasses(Model umlModel, MModel useModel) {
-    for (MClass useClass : useModel.classes()) {
-      createClass(umlModel, useClass.name(), useClass.isAbstract());
-    }
-  }
-
-  private static void createAttributes(Model umlModel, MModel useModel) {
-    for (MClass useClass : useModel.classes()) {
-
-      org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) umlModel
-          .getOwnedType(useClass.name());
-
-      for (MAttribute useAttribute : useClass.attributes()) {
-
-        String typeName = useAttribute.type().shortName();
-        int lowerBound = 1;
-        int upperBound = 1;
-        boolean isUnique = true;
-        boolean isOrdered = false;
-
-        if (useAttribute.type().isSet() || useAttribute.type().isBag()) {
-          typeName = ((CollectionType) useAttribute.type()).elemType()
-              .shortName();
-          upperBound = LiteralUnlimitedNatural.UNLIMITED;
-          if (useAttribute.type().isBag()) {
-            isUnique = false;
-          }
-        }
-
-        if (useAttribute.type().isOrderedSet()) {
-          isOrdered = true;
-        }
-
-        Type theType = getOrCreateType(umlModel, typeName);
-
-        createAttribute(umlClass, useAttribute.name(), theType, isUnique,
-            isOrdered, lowerBound, upperBound);
-
-      }
-
-    }
-  }
-  
-  private static void createOperations(Model umlModel, MModel useModel) {
-    for (MClass useClass : useModel.classes()) {
-
-      org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) umlModel
-          .getOwnedType(useClass.name());
-
-      for (MOperation useOperation : useClass.operations()) {
-        
-        VarDeclList varDeclList = useOperation.paramList();
-        
-        EList<String> parameterNames = new BasicEList<String>();
-        EList<Type> parameterTypes = new BasicEList<Type>();
-
-        for (int i = 0; i < varDeclList.size(); i++) {
-          VarDecl varDecl = varDeclList.varDecl(i);
-          parameterNames.add(varDecl.name());
-          parameterTypes.add(getOrCreateType(umlModel, varDecl.type().shortName()));
-        }
-        
-        Operation operation = null;
-        
-        if (useOperation.resultType() != null) {
-          Type returnType = getOrCreateType(umlModel, useOperation.resultType().shortName());
-          operation = umlClass.createOwnedOperation(useOperation.name(), parameterNames, parameterTypes, returnType);          
-        } else {
-          operation = umlClass.createOwnedOperation(useOperation.name(), parameterNames, parameterTypes);
-        }
-        
-        if (operation != null) {
-          Constraint constr = operation.createBodyCondition(null);
-          LiteralString valueSpec = (LiteralString) constr.createSpecification(null, null, UMLPackage.Literals.LITERAL_STRING);
-          valueSpec.setValue(useOperation.expression().toString());
-        }
-      }
-    }
-  }
-
-  private static void createGeneralizations(Model umlModel, MModel useModel) {
-    DirectedGraph<MClass, MGeneralization> genGraph = useModel
-        .generalizationGraph();
-
-    for (MClass useClass : useModel.classes()) {
-
-      org.eclipse.uml2.uml.Class parentClass = (org.eclipse.uml2.uml.Class) umlModel
-          .getOwnedType(useClass.name());
-
-      Set<MGeneralization> genEdges = genGraph.allEdges(useClass);
-
-      for (MGeneralization gen : genEdges) {
-
-        org.eclipse.uml2.uml.Class childClass = (org.eclipse.uml2.uml.Class) umlModel
-            .getOwnedType(gen.target().name());
-
-        if (!parentClass.getName().equals(childClass.getName())) {
-          createGeneralization(parentClass, childClass);
-        }
-
-      }
-    }
-  }
-
-  private static void createAssociations(Model umlModel, MModel useModel) {
-
-    for (MAssociation mAssociation : useModel.associations()) {
+	/**********************************************************************************************
+	 ** export helper methods **
+	 **********************************************************************************************/
+
+	private static Model createModel(String name) {
+		Model model = UMLFactory.eINSTANCE.createModel();
+		model.setName(name);
+
+		return model;
+	}
+
+	private static Type getOrCreateType(
+			org.eclipse.uml2.uml.Package package_, String name) {
+
+		Type theType = package_.getOwnedType(name);
+
+		if (theType == null) {
+			theType = package_.createOwnedPrimitiveType(name);
+		}
+
+		return theType;
+	}
+
+	private static Enumeration createEnumeration(
+			org.eclipse.uml2.uml.Package package_, String name) {
+		Enumeration enumeration = package_.createOwnedEnumeration(name);
+
+		return enumeration;
+	}
+
+	private static EnumerationLiteral createEnumerationLiteral(
+			Enumeration enumeration, String name) {
+		EnumerationLiteral enumerationLiteral = enumeration
+				.createOwnedLiteral(name);
+
+		return enumerationLiteral;
+	}
+
+	private static org.eclipse.uml2.uml.Class createClass(
+			org.eclipse.uml2.uml.Package package_, String name, boolean isAbstract) {
+		org.eclipse.uml2.uml.Class class_ = package_.createOwnedClass(name,
+				isAbstract);
+
+		return class_;
+	}
+
+	private static Generalization createGeneralization(
+			Classifier specificClassifier, Classifier generalClassifier) {
+		Generalization generalization = specificClassifier
+				.createGeneralization(generalClassifier);
 
-      Association umlAssoc = createAssociation(umlModel, mAssociation.name());
+		return generalization;
+	}
 
-      for (MAssociationEnd useAssocEnd : mAssociation.associationEnds()) {
+	private static Property createAttribute(org.eclipse.uml2.uml.Class class_,
+			String name, Type type, boolean isUnique, boolean isOrdered,
+			int lowerBound, int upperBound) {
 
-        org.eclipse.uml2.uml.Class umlAssocEndClass = (org.eclipse.uml2.uml.Class) umlModel
-            .getOwnedMember(useAssocEnd.cls().name());
+		Property attribute = class_.createOwnedAttribute(name, type, lowerBound,
+				upperBound);
 
-        AggregationKind umlAssocEndAggregationKind = AggregationKind.NONE_LITERAL;
-        switch (useAssocEnd.aggregationKind()) {
-        case MAggregationKind.COMPOSITION:
-          umlAssocEndAggregationKind = AggregationKind.COMPOSITE_LITERAL;
-          break;
-        case MAggregationKind.AGGREGATION:
-          umlAssocEndAggregationKind = AggregationKind.SHARED_LITERAL;
-          break;
-        }
+		attribute.setIsUnique(isUnique);
+		attribute.setIsOrdered(isOrdered);
 
-        int umlAssocEndLower = 1;
-        int umlAssocEndUpper = 1;
+		return attribute;
+	}
 
-        ArrayList<Integer> umlAssocEndMultiplicity = parseMultiplicity(useAssocEnd
-            .multiplicity().toString());
+	private static Association createAssociation(Model umlModel, String name) {
+		Association association = (Association) umlModel.createOwnedType(name,
+				UMLPackage.Literals.ASSOCIATION);
+		return association;
+	}
 
-        if (umlAssocEndMultiplicity != null) {
-          umlAssocEndLower = umlAssocEndMultiplicity.get(0);
-          umlAssocEndUpper = umlAssocEndMultiplicity.get(1);
-        }
+	private static Property createAssociationEnd(Association association,
+			Type type, boolean isNavigable, boolean isOrdered,
+			AggregationKind aggregationKind, String name, int lower, int upper) {
 
-        createAssociationEnd(umlAssoc, umlAssocEndClass, useAssocEnd
-            .isNavigable(), useAssocEnd.isOrdered(),
-            umlAssocEndAggregationKind, useAssocEnd.nameAsRolename(),
-            umlAssocEndLower, umlAssocEndUpper);
-      }
+		Property associationEnd = isNavigable ? association
+				.createNavigableOwnedEnd(name, type) : association.createOwnedEnd(name,
+						type);
+
+				associationEnd.setName(name);
+				associationEnd.setType(type);
+				associationEnd.setIsNavigable(isNavigable);
+				associationEnd.setIsOrdered(isOrdered);
+				associationEnd.setAggregation(aggregationKind);
+				associationEnd.setLower(lower);
+				associationEnd.setUpper(upper);
 
-    }
-  }
+				return associationEnd;
+	}
 
-  private static ArrayList<Integer> parseMultiplicity(String multiplicity) {
-    String[] splitted = multiplicity.split("\\.\\.");
-    if (splitted.length < 1 || splitted.length > 2) {
-      return null;
-    }
+	private static void createEnumerations(Model umlModel, MModel useModel) {
+		for (EnumType enumType : useModel.enumTypes()) {
+			Enumeration enumeration = createEnumeration(umlModel, enumType
+					.shortName());
+			for (String literal : enumType.getLiterals()) {
+				createEnumerationLiteral(enumeration, literal);
+			}
+		}
+	}
 
-    ArrayList<Integer> res = new ArrayList<Integer>();
+	private static void createClasses(Model umlModel, MModel useModel) {
+		for (MClass useClass : useModel.classes()) {
+			createClass(umlModel, useClass.name(), useClass.isAbstract());
+		}
+	}
 
-    if (splitted.length == 1) {
-      if (splitted[0].equals("*")) {
-        res.add(0);
-      } else {
-        res.add(Integer.valueOf(splitted[0]));
-      }
+	private static void createAttributes(Model umlModel, MModel useModel) {
+		for (MClass useClass : useModel.classes()) {
 
-      res.add(splitted[0].equals("*") ? LiteralUnlimitedNatural.UNLIMITED
-          : Integer.valueOf(splitted[0]));
-    } else if (splitted.length == 2) {
-      res.add(Integer.valueOf(splitted[0]));
-      res.add(splitted[1].equals("*") ? LiteralUnlimitedNatural.UNLIMITED
-          : Integer.valueOf(splitted[1]));
-    }
+			org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) umlModel
+					.getOwnedType(useClass.name());
 
-    return res;
-  }
+			for (MAttribute useAttribute : useClass.attributes()) {
 
-  /**********************************************************************************************
-   ** xmi export **
-   **********************************************************************************************/
+				String typeName = useAttribute.type().shortName();
+				int lowerBound = 1;
+				int upperBound = 1;
+				boolean isUnique = true;
+				boolean isOrdered = false;
 
-  public static void exportToXMI(File file, Session session) 
-      throws Exception {
+				if (useAttribute.type().isKindOfSet(VoidHandling.EXCLUDE_VOID) || useAttribute.type().isKindOfBag(VoidHandling.EXCLUDE_VOID)) {
+					typeName = ((CollectionType) useAttribute.type()).elemType().shortName();
+					upperBound = LiteralUnlimitedNatural.UNLIMITED;
+					if (useAttribute.type().isKindOfBag(VoidHandling.EXCLUDE_VOID)) {
+						isUnique = false;
+					}
+				}
 
-    // Get the URI of the model file.
-    URI fileURI = URI.createFileURI(file.getAbsolutePath());
+				if (useAttribute.type().isKindOfOrderedSet(VoidHandling.EXCLUDE_VOID)) {
+					isOrdered = true;
+				}
 
-    // Create a resource for this file.
-    Resource resource = Utils.getResource(fileURI);
+				Type theType = getOrCreateType(umlModel, typeName);
 
-    Utils.out("Exporting to file: " + resource.getURI().path());
+				createAttribute(umlClass, useAttribute.name(), theType, isUnique,
+						isOrdered, lowerBound, upperBound);
 
-    final MModel useModel = session.system().model();
+			}
 
-    final Model umlModel = createModel(useModel.name());
+		}
+	}
 
-    createEnumerations(umlModel, useModel);
+	private static void createOperations(Model umlModel, MModel useModel) {
+		for (MClass useClass : useModel.classes()) {
 
-    createClasses(umlModel, useModel);
+			org.eclipse.uml2.uml.Class umlClass = (org.eclipse.uml2.uml.Class) umlModel
+					.getOwnedType(useClass.name());
 
-    createAttributes(umlModel, useModel);
-    
-    //createOperations(umlModel, useModel);
+			for (MOperation useOperation : useClass.operations()) {
 
-    createGeneralizations(umlModel, useModel);
+				VarDeclList varDeclList = useOperation.paramList();
 
-    createAssociations(umlModel, useModel);
+				EList<String> parameterNames = new BasicEList<String>();
+				EList<Type> parameterTypes = new BasicEList<Type>();
 
-    resource.getContents().add(umlModel);
+				for (int i = 0; i < varDeclList.size(); i++) {
+					VarDecl varDecl = varDeclList.varDecl(i);
+					parameterNames.add(varDecl.name());
+					parameterTypes.add(getOrCreateType(umlModel, varDecl.type().shortName()));
+				}
 
-    // Save the contents of the resource to the file system.
-    resource.save(Collections.EMPTY_MAP);
+				Operation operation = null;
 
-    Utils.out("Exported: " + umlModel.getName());
+				if (useOperation.resultType() != null) {
+					Type returnType = getOrCreateType(umlModel, useOperation.resultType().shortName());
+					operation = umlClass.createOwnedOperation(useOperation.name(), parameterNames, parameterTypes, returnType);
+				} else {
+					operation = umlClass.createOwnedOperation(useOperation.name(), parameterNames, parameterTypes);
+				}
 
-  }
+				if (operation != null) {
+					Constraint constr = operation.createBodyCondition(null);
+					LiteralString valueSpec = (LiteralString) constr.createSpecification(null, null, UMLPackage.Literals.LITERAL_STRING);
+					valueSpec.setValue(useOperation.expression().toString());
+				}
+			}
+		}
+	}
+
+	private static void createGeneralizations(Model umlModel, MModel useModel) {
+		DirectedGraph<MClassifier, MGeneralization> genGraph = useModel.generalizationGraph();
+
+		for (MClass useClass : useModel.classes()) {
+
+			org.eclipse.uml2.uml.Class parentClass = (org.eclipse.uml2.uml.Class) umlModel
+					.getOwnedType(useClass.name());
+
+			Set<MGeneralization> genEdges = genGraph.allEdges(useClass);
+
+			for (MGeneralization gen : genEdges) {
+
+				org.eclipse.uml2.uml.Class childClass = (org.eclipse.uml2.uml.Class) umlModel
+						.getOwnedType(gen.target().name());
+
+				if (!parentClass.getName().equals(childClass.getName())) {
+					createGeneralization(parentClass, childClass);
+				}
+
+			}
+		}
+	}
+
+	private static void createAssociations(Model umlModel, MModel useModel) {
+
+		for (MAssociation mAssociation : useModel.associations()) {
+
+			Association umlAssoc = createAssociation(umlModel, mAssociation.name());
+
+			for (MAssociationEnd useAssocEnd : mAssociation.associationEnds()) {
+
+				org.eclipse.uml2.uml.Class umlAssocEndClass = (org.eclipse.uml2.uml.Class) umlModel
+						.getOwnedMember(useAssocEnd.cls().name());
+
+				AggregationKind umlAssocEndAggregationKind = AggregationKind.NONE_LITERAL;
+				switch (useAssocEnd.aggregationKind()) {
+				case MAggregationKind.COMPOSITION:
+					umlAssocEndAggregationKind = AggregationKind.COMPOSITE_LITERAL;
+					break;
+				case MAggregationKind.AGGREGATION:
+					umlAssocEndAggregationKind = AggregationKind.SHARED_LITERAL;
+					break;
+				}
+
+				int umlAssocEndLower = 1;
+				int umlAssocEndUpper = 1;
+
+				ArrayList<Integer> umlAssocEndMultiplicity = parseMultiplicity(useAssocEnd
+						.multiplicity().toString());
+
+				if (umlAssocEndMultiplicity != null) {
+					umlAssocEndLower = umlAssocEndMultiplicity.get(0);
+					umlAssocEndUpper = umlAssocEndMultiplicity.get(1);
+				}
+
+				createAssociationEnd(umlAssoc, umlAssocEndClass, useAssocEnd
+						.isNavigable(), useAssocEnd.isOrdered(),
+						umlAssocEndAggregationKind, useAssocEnd.nameAsRolename(),
+						umlAssocEndLower, umlAssocEndUpper);
+			}
+
+		}
+	}
+
+	private static ArrayList<Integer> parseMultiplicity(String multiplicity) {
+		String[] splitted = multiplicity.split("\\.\\.");
+		if (splitted.length < 1 || splitted.length > 2) {
+			return null;
+		}
+
+		ArrayList<Integer> res = new ArrayList<Integer>();
+
+		if (splitted.length == 1) {
+			if (splitted[0].equals("*")) {
+				res.add(0);
+			} else {
+				res.add(Integer.valueOf(splitted[0]));
+			}
+
+			res.add(splitted[0].equals("*") ? LiteralUnlimitedNatural.UNLIMITED
+					: Integer.valueOf(splitted[0]));
+		} else if (splitted.length == 2) {
+			res.add(Integer.valueOf(splitted[0]));
+			res.add(splitted[1].equals("*") ? LiteralUnlimitedNatural.UNLIMITED
+					: Integer.valueOf(splitted[1]));
+		}
+
+		return res;
+	}
+
+	/**********************************************************************************************
+	 ** xmi export **
+	 **********************************************************************************************/
+
+	public static void exportToXMI(File file, Session session)
+			throws Exception {
+
+		// Get the URI of the model file.
+		URI fileURI = URI.createFileURI(file.getAbsolutePath());
+
+		// Create a resource for this file.
+		Resource resource = Utils.getResource(fileURI);
+
+		Utils.out("Exporting to file: " + resource.getURI().path());
+
+		final MModel useModel = session.system().model();
+
+		final Model umlModel = createModel(useModel.name());
+
+		createEnumerations(umlModel, useModel);
+
+		createClasses(umlModel, useModel);
+
+		createAttributes(umlModel, useModel);
+
+		//createOperations(umlModel, useModel);
+
+		createGeneralizations(umlModel, useModel);
+
+		createAssociations(umlModel, useModel);
+
+		resource.getContents().add(umlModel);
+
+		// Save the contents of the resource to the file system.
+		resource.save(Collections.EMPTY_MAP);
+
+		Utils.out("Exported: " + umlModel.getName());
+
+	}
 
 }

@@ -8,11 +8,11 @@ import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
 
 public class ImportXMICmd implements IPluginShellCmdDelegate {
 
-  @Override
-  public final void performCommand(IPluginShellCmd pluginCommand) {
-    File xmiFile = new File(pluginCommand.getCmdArguments().trim());
-    XMIHandlerPlugin.getXMIHandlerPluginInstance().importFromXMI(xmiFile,
-        pluginCommand.getSession(), null);
-  }
+	@Override
+	public final void performCommand(IPluginShellCmd pluginCommand) {
+		File xmiFile = new File(pluginCommand.getCmdArguments().trim());
+		XMIHandlerPlugin.getXMIHandlerPluginInstance().importFromXMI(xmiFile,
+				pluginCommand.getSession(), null);
+	}
 
 }

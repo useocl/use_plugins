@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/use_trunk"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.emf.common_2.5.0.v200906151043.jar" sourcepath="lib/org.eclipse.emf.common.source_2.5.0.v200906151043.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.emf.ecore_2.5.0.v200906151043.jar" sourcepath="lib/org.eclipse.emf.ecore.source_2.5.0.v200906151043.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.emf.ecore.xmi_2.5.0.v200906151043.jar" sourcepath="lib/org.eclipse.emf.ecore.xmi.source_2.5.0.v200906151043.jar"/>
@@ -10,6 +9,6 @@
 	<classpathentry kind="lib" path="lib/org.eclipse.uml2.uml_3.0.1.v200908281330.jar" sourcepath="lib/org.eclipse.uml2.uml.source_3.0.1.v200908281330.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.uml2.uml.resources_3.0.0.v200906011111.jar" sourcepath="lib/org.eclipse.uml2.uml.resources.source_3.0.0.v200906011111.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.emf.mapping.ecore2xml_2.5.0.v200906151043.jar" sourcepath="lib/org.eclipse.emf.mapping.ecore2xml.source_2.5.0.v200906151043.jar"/>
-	<classpathentry kind="lib" path="/use_trunk/lib/antlr-3.4-complete.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/use"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

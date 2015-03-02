@@ -11,37 +11,37 @@ import org.tzi.use.runtime.impl.Plugin;
 
 public class XMIHandlerPlugin extends Plugin {
 
-  private static String PLUGIN_NAME = "XMIHandler";
-  
-  private static XMIHandlerPlugin xmiHandlerPlugin = new XMIHandlerPlugin();
+	private static String PLUGIN_NAME = "XMIHandler";
 
-  public static XMIHandlerPlugin getXMIHandlerPluginInstance() {
-    return xmiHandlerPlugin;
-  }
+	private static XMIHandlerPlugin xmiHandlerPlugin = new XMIHandlerPlugin();
 
-  @Override
-  public String getName() {
-    return PLUGIN_NAME;
-  }
+	public static XMIHandlerPlugin getXMIHandlerPluginInstance() {
+		return xmiHandlerPlugin;
+	}
 
-  public void exportToXMI(File file, Session session, PrintWriter logWriter) {
-    Utils.setLogWriter(logWriter);
-    try {
-      XMIExporter.exportToXMI(file, session);      
-    } catch (Exception ex) {
-      Utils.error(ex);
-      Utils.out("Export failed.");
-    }
-  }
-  
-  public void importFromXMI(File file, Session session, PrintWriter logWriter) {
-    Utils.setLogWriter(logWriter);
-    try {
-      XMIImporter.importFromXMI(file, session);      
-    } catch (Exception ex) {
-      Utils.error(ex);
-      Utils.out("Import failed.");
-    }
-  }
-  
+	@Override
+	public String getName() {
+		return PLUGIN_NAME;
+	}
+
+	public void exportToXMI(File file, Session session, PrintWriter logWriter) {
+		Utils.setLogWriter(logWriter);
+		try {
+			XMIExporter.exportToXMI(file, session);
+		} catch (Exception ex) {
+			Utils.error(ex);
+			Utils.out("Export failed.");
+		}
+	}
+
+	public void importFromXMI(File file, Session session, PrintWriter logWriter) {
+		Utils.setLogWriter(logWriter);
+		try {
+			XMIImporter.importFromXMI(file, session);
+		} catch (Exception ex) {
+			Utils.error(ex);
+			Utils.out("Import failed.");
+		}
+	}
+
 }

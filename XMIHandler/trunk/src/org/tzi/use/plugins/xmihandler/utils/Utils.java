@@ -16,116 +16,116 @@ import org.tzi.use.util.Log;
 
 public class Utils {
 
-  private static ResourceSet resourceSet = null;
+	private static ResourceSet resourceSet = null;
 
-  private static ModelFactory modelFactory = null;
+	private static ModelFactory modelFactory = null;
 
-  private static PrintWriter logWriter = null;
-  
-  private static File currentDirectory = null;
-  
+	private static PrintWriter logWriter = null;
 
-  public static void out(String output) {
-    Log.println(output);
-    if (logWriter != null) {
-      logWriter.println(output);
-    }
-  }
+	private static File currentDirectory = null;
 
-  public static void error(Exception error) {
-    error.printStackTrace();
-    String errMsg = error.getMessage();
-    if (errMsg == null || errMsg.isEmpty()) {
-       errMsg = "Unknown Error";
-    } else {
-       errMsg = "Error: " + errMsg;
-    }
-    if (Log.isDebug()) {
-      Log.error(error);
-    } else {
-      Log.error(errMsg);      
-    }
-    if (logWriter != null) {
-      logWriter.println(errMsg);
-    }
-  }
 
-  public static void setLogWriter(PrintWriter theLogWriter) {
-    logWriter = theLogWriter;
-  }
+	public static void out(String output) {
+		Log.println(output);
+		if (logWriter != null) {
+			logWriter.println(output);
+		}
+	}
 
-  public static ModelFactory getModelFactory() {
-    if (modelFactory == null) {
-      modelFactory = new ModelFactory();
-    }
-    return modelFactory;
-  }
+	public static void error(Exception error) {
+		error.printStackTrace();
+		String errMsg = error.getMessage();
+		if (errMsg == null || errMsg.isEmpty()) {
+			errMsg = "Unknown Error";
+		} else {
+			errMsg = "Error: " + errMsg;
+		}
+		if (Log.isDebug()) {
+			Log.error(error);
+		} else {
+			Log.error(errMsg);
+		}
+		if (logWriter != null) {
+			logWriter.println(errMsg);
+		}
+	}
 
-  private static ResourceSet getResourceSet() throws Exception {
+	public static void setLogWriter(PrintWriter theLogWriter) {
+		logWriter = theLogWriter;
+	}
 
-    if (resourceSet == null) {
-      resourceSet = new ResourceSetImpl();
+	public static ModelFactory getModelFactory() {
+		if (modelFactory == null) {
+			modelFactory = new ModelFactory();
+		}
+		return modelFactory;
+	}
 
-      UMLResourcesUtil.init(resourceSet);
-    }
+	private static ResourceSet getResourceSet() throws Exception {
 
-    return resourceSet;
+		if (resourceSet == null) {
+			resourceSet = new ResourceSetImpl();
 
-  }
+			UMLResourcesUtil.init(resourceSet);
+		}
 
-  public static Resource getResource(URI uri) throws Exception {
+		return resourceSet;
 
-    if (!"xmi".equals(uri.fileExtension())
-        && !"uml".equals(uri.fileExtension())) {
-      // Make sure we have a recognized file extension
-      uri = uri.appendFileExtension("xmi");
-    }
+	}
 
-    ResourceSet rs = getResourceSet();
+	public static Resource getResource(URI uri) throws Exception {
 
-    if (rs == null) {
-      throw new Exception("Failed to create resource set");
-    }
+		if (!"xmi".equals(uri.fileExtension())
+				&& !"uml".equals(uri.fileExtension())) {
+			// Make sure we have a recognized file extension
+			uri = uri.appendFileExtension("xmi");
+		}
 
-    Resource r = rs.createResource(uri);
+		ResourceSet rs = getResourceSet();
 
-    if (r == null) {
-      throw new Exception("Failed to create resource for URI " + uri);
-    }
+		if (rs == null) {
+			throw new Exception("Failed to create resource set");
+		}
 
-    return r;
-  }
-  
-  public static String getXmiId(EObject x) {
-    Resource resource = x.eResource();
-    if (resource instanceof XMLResource) {
-      XMLResource xmlResource = (XMLResource)resource;
-      return xmlResource.getID(x);
-    }
-    return "";
-  }
+		Resource r = rs.createResource(uri);
 
-  public static boolean canWrite(File file) {
-    try {
-      new FileOutputStream(file, true).close();
-    } catch (IOException e) {
-      return false;
-    }
-    return true;
-  }
-  
-  public static File getCurrentDirectory() {
-    if (currentDirectory == null) {
-      currentDirectory = new File (System.getProperty("user.home"));
-    }
-    if (!currentDirectory.isDirectory()) {
-      currentDirectory = currentDirectory.getParentFile();
-    }
-    return currentDirectory;
-  }
-  
-  public static void setCurrentDirectory(File theCurrentDirectory) {
-    currentDirectory = theCurrentDirectory;
-  }
+		if (r == null) {
+			throw new Exception("Failed to create resource for URI " + uri);
+		}
+
+		return r;
+	}
+
+	public static String getXmiId(EObject x) {
+		Resource resource = x.eResource();
+		if (resource instanceof XMLResource) {
+			XMLResource xmlResource = (XMLResource)resource;
+			return xmlResource.getID(x);
+		}
+		return "";
+	}
+
+	public static boolean canWrite(File file) {
+		try {
+			new FileOutputStream(file, true).close();
+		} catch (IOException e) {
+			return false;
+		}
+		return true;
+	}
+
+	public static File getCurrentDirectory() {
+		if (currentDirectory == null) {
+			currentDirectory = new File (System.getProperty("user.home"));
+		}
+		if (!currentDirectory.isDirectory()) {
+			currentDirectory = currentDirectory.getParentFile();
+		}
+		return currentDirectory;
+	}
+
+	public static void setCurrentDirectory(File theCurrentDirectory) {
+		currentDirectory = theCurrentDirectory;
+	}
 
 }

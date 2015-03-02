@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?use version="3.0.4"?>
 <plugin name="XMIHandler" version="1.1" publisher="Emil Huseynli">
-    <actions>
-      <action label="Export to XMI" icon="resources/export.png"
-      class="org.tzi.use.plugins.xmihandler.gui.ActionExportXMI" tooltip="Export to XMI"
-      menu="XMI" menuitem="Export to XMI" toolbaritem="Export to XMI"
-      id="org.tzi.use.plugins.xmihandler.gui.ActionExportXMI">
-    </action>    
-      <action label="Import from XMI" icon="resources/import.png"
-      class="org.tzi.use.plugins.xmihandler.gui.ActionImportXMI" tooltip="Import from XMI"
-      menu="XMI" menuitem="Import from XMI" toolbaritem="Import from XMI"
-      id="org.tzi.use.plugins.xmihandler.gui.ActionImportXMI">
-    </action>
-    </actions>
+	<actions>
+		<action label="Export to XMI" icon="resources/export.png"
+			class="org.tzi.use.plugins.xmihandler.gui.ActionExportXMI" tooltip="Export to XMI"
+			menu="XMI" menuitem="Export to XMI" toolbaritem="Export to XMI"
+			id="org.tzi.use.plugins.xmihandler.gui.ActionExportXMI">
+		</action>
+		<action label="Import from XMI" icon="resources/import.png"
+			class="org.tzi.use.plugins.xmihandler.gui.ActionImportXMI" tooltip="Import from XMI"
+			menu="XMI" menuitem="Import from XMI" toolbaritem="Import from XMI"
+			id="org.tzi.use.plugins.xmihandler.gui.ActionImportXMI">
+		</action>
+	</actions>
 	<commands>
-	   <command class="org.tzi.use.plugins.xmihandler.cmd.ExportXMICmd"
-      id="org.tzi.use.xmihandler.cmd.ExportXMICmd" shellcmd="export xmi"
-      label="Export to XMI" help="Exports USE Model to XMI File">
-    </command>
-     <command class="org.tzi.use.plugins.xmihandler.cmd.ImportXMICmd"
-      id="org.tzi.use.xmihandler.cmd.ImportXMICmd" shellcmd="import xmi"
-      label="Import from XMI" help="Imports UML Model from XMI File">
-    </command>
+		<command class="org.tzi.use.plugins.xmihandler.cmd.ExportXMICmd"
+			id="org.tzi.use.plugins.xmihandler.cmd.ExportXMICmd" shellcmd="export xmi"
+			label="Export to XMI" help="Exports USE Model to XMI File">
+		</command>
+		<command class="org.tzi.use.plugins.xmihandler.cmd.ImportXMICmd"
+			id="org.tzi.use.plugins.xmihandler.cmd.ImportXMICmd" shellcmd="import xmi"
+			label="Import from XMI" help="Imports UML Model from XMI File">
+		</command>
 	</commands>
 </plugin>
