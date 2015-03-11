@@ -6,7 +6,6 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.tzi.kodkod.InvariantIndepChecker;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
-import org.tzi.use.config.Options;
 import org.tzi.use.main.shell.Shell;
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
@@ -41,7 +40,6 @@ public class InvariantIndepCmd extends ConfigurablePlugin implements IPluginShel
 		}
 		
 		String filenameToOpen = Shell.getInstance().getFilenameToOpen(arguments[0], false);
-		filenameToOpen = Options.getFilenameToOpen(filenameToOpen);
 		try {
 			PropertyConfigurationVisitor configurationVisitor = configureModel(new File(filenameToOpen));
 			configurationVisitor.printWarnings();

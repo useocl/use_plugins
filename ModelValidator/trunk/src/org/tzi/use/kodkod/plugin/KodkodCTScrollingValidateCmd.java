@@ -16,7 +16,6 @@ import kodkod.ast.Variable;
 
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
-import org.tzi.use.config.Options;
 import org.tzi.use.kodkod.UseCTScrollingKodkodModelValidator;
 import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.kodkod.transform.ocl.DefaultExpressionVisitor;
@@ -60,7 +59,6 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 				}
 			} else {
 				String fileToOpen = Shell.getInstance().getFilenameToOpen(arguments, false);
-				fileToOpen = Options.getFilenameToOpen(fileToOpen);
 				File file = new File(fileToOpen);
 	
 				if (file.exists() && file.canRead() && !file.isDirectory()) {
