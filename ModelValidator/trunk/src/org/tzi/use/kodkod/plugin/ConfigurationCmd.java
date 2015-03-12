@@ -46,8 +46,8 @@ public class ConfigurationCmd implements IPluginShellCmdDelegate {
 								LOG.error(LogMessages.solverConfigBitwidthError);
 							}
 						} else if (name.equalsIgnoreCase(configuration.DIAGRAMEXTREACTION_KEY) || name.equalsIgnoreCase(configuration.DIAGRAMEXTREACTION_KEY_SHORT)) {
-							if (split[1].equals("on") || split[1].equals("off")) {
-								Boolean value = split[1].equals("on") ? true : false;
+							if (split[1].equalsIgnoreCase("on") || split[1].equalsIgnoreCase("off")) {
+								Boolean value = split[1].equalsIgnoreCase("on") ? true : false;
 
 								configuration.setAutomaticDiagramExtraction(value);
 							} else {

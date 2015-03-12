@@ -7,7 +7,6 @@ import kodkod.ast.Decls;
 import kodkod.ast.Expression;
 import kodkod.ast.Formula;
 import kodkod.ast.IntConstant;
-import kodkod.ast.Relation;
 import kodkod.ast.Variable;
 
 import org.tzi.kodkod.model.type.TypeFactory;
