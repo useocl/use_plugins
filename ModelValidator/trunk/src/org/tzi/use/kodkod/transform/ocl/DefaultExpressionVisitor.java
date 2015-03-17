@@ -139,13 +139,14 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 				arguments.add(clazz.inheritanceRelation());
 			}
 		}
+		// collect cannot handle vars with arity > 1, but assoc relations are arity = #(associationEnds)
 //		else if(exp.getSourceType().isTypeOfAssociation()){
 //			// <Association>.allInstances()
 //			IAssociation assoc = model.getAssociation(exp.getSourceType().name());
 //			arguments.add(assoc.relation());
 //		}
 		else {
-			throw new TransformationException("allInstances() not supported for type " + StringUtil.inQuotes(exp.getSourceType()));
+			throw new TransformationException("allInstances() not supported for type " + StringUtil.inQuotes(exp.getSourceType().name()));
 		}
 
 		invokeMethod("allInstances", arguments, false);
