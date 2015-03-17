@@ -14,7 +14,6 @@ import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.use.kodkod.transform.TransformationException;
-import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.expr.ExpAny;
 import org.tzi.use.uml.ocl.expr.ExpClosure;
@@ -30,7 +29,6 @@ import org.tzi.use.uml.ocl.expr.ExpSelect;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.CollectionType;
-import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
 /**
@@ -103,13 +101,13 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 		exp.getRangeExpression().processWithVisitor(visitor);
 		arguments.add(0, visitor.getObject());
 
-		List<String> replacedVariables = createVariables(exp.getVariableDeclarations());
+		List<String> replacedVariables = createVariables(exp.getVariableDeclarations(), ((Expression) visitor.getObject()).arity());
 
 		DefaultExpressionVisitor visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getQueryExpression().processWithVisitor(visitor2);
 		arguments.add(1, visitor2.getObject());
 
-		replacedVariables.addAll(createVariables(exp.getVariableDeclarations()));
+		replacedVariables.addAll(createVariables(exp.getVariableDeclarations(), ((Expression) visitor.getObject()).arity()));
 
 		visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getQueryExpression().processWithVisitor(visitor2);
@@ -141,7 +139,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 		sourceType = exp.getRangeExpression().type();
 		arguments.add(0, visitor.getObject());
 
-		List<String> replacedVariables = createVariables(exp.getVariableDeclarations());
+		List<String> replacedVariables = createVariables(exp.getVariableDeclarations(), ((Expression) visitor.getObject()).arity());
 
 		DefaultExpressionVisitor visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getQueryExpression().processWithVisitor(visitor2);
@@ -167,7 +165,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	 * 
 	 * @param varDeclList
 	 */
-	private List<String> createVariables(VarDeclList varDeclList) {
+	private List<String> createVariables(VarDeclList varDeclList, int arity) {
 		VarDecl varDecl;
 		List<String> replaced = new ArrayList<String>();
 
@@ -193,21 +191,12 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 				replaced.add(varDecl.name());
 			} else {
 				varName = varDecl.name();
-				int arity = arityOfType(varDecl.type());
 				variables.put(varName, createKodkodVariable(varName, arity));
 			}
 
 			objectVariable(varDecl, varName);
 		}
 		return replaced;
-	}
-
-	private int arityOfType(Type type) {
-		if(type.isKindOfAssociation(VoidHandling.EXCLUDE_VOID)){
-			return ((MAssociation) type).associationEnds().size();
-		} else {
-			return 1;
-		}
 	}
 
 	/**

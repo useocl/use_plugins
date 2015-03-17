@@ -70,14 +70,18 @@ public class VariableOperationGroup extends OCLOperationGroup {
 	}
 
 	public final Expression navigationClassifier(Expression src, Expression classifier, Integer toRole, Boolean isAssocClass){
-		Expression res = src;
+		Expression res;
 		
 		if(isAssocClass){
-			src.join(ConstraintHelper.univRightN(classifier, classifier.arity()-1));
+			res = src.join(classifier);
+		} else {
+			res = src;
 		}
 		
+		int totalArity = isAssocClass ? classifier.arity() - 1 : classifier.arity();
+		
 		res = ConstraintHelper.univLeftN(res, toRole - 1);
-		res = ConstraintHelper.univRightN(res, src.arity() - toRole);
+		res = ConstraintHelper.univRightN(res, totalArity - toRole);
 		
 		returnsSet = true;
 		return res;
