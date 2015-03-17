@@ -110,11 +110,13 @@ public class SetOperationGroup extends OCLOperationGroup {
 	}
 
 	public final Expression collect(Expression src, Formula body, Variable var) {
+		// optimized encoding using only a single comprehension variable
 		final Expression select = select(src, body, var);
 		return src.eq(undefined_Set).thenElse(
 				undefined_Set,
 				src.no().thenElse(Expression.NONE,
-						src.eq(select).thenElse(booleanTrue, select.some().thenElse(booleanTrue.union(booleanFalse), booleanFalse))));
+						src.eq(select).thenElse(booleanTrue,
+								select.some().thenElse(booleanTrue.union(booleanFalse), booleanFalse))));
 	}
 
 	public final Expression collectNested(Expression src, Expression body, Variable var) {
@@ -172,12 +174,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 	}
 
 	public Formula exists(Expression src, Expression bodyExpression, Variable... vars) {
-		Decls d = vars[0].oneOf(src);
-		for (int i = 1; i < vars.length; i++) {
-			d = d.and(vars[i].oneOf(src));
-		}
-
-		return src.eq(undefined_Set).not().and(src.some().and(bodyExpression.eq(booleanTrue).forSome(d)));
+		return exists(src, bodyExpression.eq(booleanTrue), vars);
 	}
 
 	// OCL: srcExpr->flatten()
@@ -197,11 +194,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 	}
 
 	public Formula forAll(Expression src, Expression body, Variable... vars) {
-		Decls d = vars[0].oneOf(src);
-		for (int i = 1; i < vars.length; i++) {
-			d = d.and(vars[i].oneOf(src));
-		}
-		return src.eq(undefined_Set).not().and(src.no().or(body.eq(booleanTrue).forAll(d)));
+		return forAll(src, body.eq(booleanTrue), vars);
 	}
 
 	// OCL: srcExpr->includes(argExpr)
@@ -324,42 +317,40 @@ public class SetOperationGroup extends OCLOperationGroup {
 	// OCL: srcExpr->one(var | bodyExpr)
 
 	public Formula one(Expression src, Formula body, Variable var) {
-		final Expression select = body.comprehension(var.oneOf(src));
+		final Expression select = select(src, body, var);
 		return src.eq(undefined_Set).not().and(select.one());
 	}
 
 	public Formula one(Expression src, Expression body, Variable var) {
-		return src.eq(undefined_Set).not().and(src.one()).and(body.eq(booleanTrue).forSome(var.oneOf(src)));
+		return one(src, body.eq(booleanTrue), var);
 	}
 
 	// OCL: srcExpr->reject(var | bodyExpr)
 
 	public final Expression reject(Expression src, Formula body, Variable var) {
-		return src.eq(undefined_Set).thenElse(undefined_Set, body.not().comprehension(var.oneOf(src)));
+		return select(src, body.not(), var);
 	}
 
 	public final Expression reject(Expression src, Expression body, Variable var) {
-		return src.eq(undefined_Set).thenElse(undefined_Set, body.eq(booleanTrue).not().comprehension(var.oneOf(src)));
+		return reject(src, body.eq(booleanTrue), var);
 	}
 
 	// OCL: srcExpr->select(var | bodyExpr)
 
 	public final Expression select(Expression src, Formula body, Variable var) {
-		//return src.eq(undefined_Set).thenElse(undefined_Set, body.comprehension(var.oneOf(src)));
-		return body.comprehension(var.oneOf(src));
+		return src.eq(undefined_Set).thenElse(undefined_Set, body.comprehension(var.oneOf(src)));
 	}
 
 	public final Expression select(Expression src, Expression body, Variable var) {
-		//return src.eq(undefined_Set).thenElse(undefined_Set, body.eq(booleanTrue).comprehension(var.oneOf(src)));
-		return body.eq(booleanTrue).comprehension(var.oneOf(src));
+		return select(src, body.eq(booleanTrue), var);
 	}
 
 	public final Expression selectByKind(Expression src, Expression type){
+		// type must be the inheritance type
 		return src.intersection(type);
 	}
 	
 	public final Expression selectByType(Expression src, Expression type){
-		// type must be the inheritance type
 		return src.intersection(type);
 	}
 	

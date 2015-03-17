@@ -38,6 +38,7 @@ import org.tzi.use.uml.ocl.expr.ExpIsTypeOf;
 import org.tzi.use.uml.ocl.expr.ExpIterate;
 import org.tzi.use.uml.ocl.expr.ExpLet;
 import org.tzi.use.uml.ocl.expr.ExpNavigation;
+import org.tzi.use.uml.ocl.expr.ExpNavigationClassifierSource;
 import org.tzi.use.uml.ocl.expr.ExpObjAsSet;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpOrderedSetLiteral;
@@ -67,6 +68,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	protected IModel model;
 	protected Relation undefined;
 	protected Relation undefined_Set;
+	//TODO make variables a Map<String, Expression>
 	protected Map<String, Node> variables;
 	protected List<String> collectionVariables;
 	protected Map<String, IClass> variableClasses;
@@ -126,14 +128,26 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	@Override
 	public void visitAllInstances(ExpAllInstances exp) {
 		super.visitAllInstances(exp);
-		IClass clazz = model.getClass(exp.getSourceType().name());
-
 		List<Object> arguments = new ArrayList<Object>();
-		if (!clazz.existsInheritance()) {
-			arguments.add(clazz.relation());
-		} else {
-			arguments.add(clazz.inheritanceRelation());
+		
+		if(exp.getSourceType().isTypeOfClass()){
+			// <Class>.allInstances()
+			IClass clazz = model.getClass(exp.getSourceType().name());
+			if (!clazz.existsInheritance()) {
+				arguments.add(clazz.relation());
+			} else {
+				arguments.add(clazz.inheritanceRelation());
+			}
 		}
+//		else if(exp.getSourceType().isTypeOfAssociation()){
+//			// <Association>.allInstances()
+//			IAssociation assoc = model.getAssociation(exp.getSourceType().name());
+//			arguments.add(assoc.relation());
+//		}
+		else {
+			throw new TransformationException("allInstances() not supported for type " + StringUtil.inQuotes(exp.getSourceType()));
+		}
+
 		invokeMethod("allInstances", arguments, false);
 	}
 
@@ -294,6 +308,12 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		visitVariableOperation(exp);
 	}
 
+	@Override
+	public void visitNavigationClassifierSource(ExpNavigationClassifierSource exp) {
+		super.visitNavigationClassifierSource(exp);
+		visitVariableOperation(exp);
+	}
+	
 	@Override
 	public void visitObjAsSet(ExpObjAsSet exp) {
 		super.visitObjAsSet(exp);

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import kodkod.ast.Expression;
 import kodkod.ast.Node;
 import kodkod.ast.Relation;
 import kodkod.ast.Variable;
@@ -13,6 +14,7 @@ import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.use.kodkod.transform.TransformationException;
+import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.ocl.expr.ExpAny;
 import org.tzi.use.uml.ocl.expr.ExpClosure;
@@ -28,6 +30,7 @@ import org.tzi.use.uml.ocl.expr.ExpSelect;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.CollectionType;
+import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
 /**
@@ -131,8 +134,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	public void visitSelect(ExpSelect exp) {
 		visitQueryAndInvoke(exp);
 	}
-
-	@Override
+	
 	public void visitQuery(ExpQuery exp) {
 		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getRangeExpression().processWithVisitor(visitor);
@@ -144,10 +146,10 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 		DefaultExpressionVisitor visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getQueryExpression().processWithVisitor(visitor2);
 		arguments.add(1, visitor2.getObject());
-
+		
 		removeReplaceVariable(replacedVariables);
 	}
-
+	
 	private void visitQueryAndInvoke(ExpQuery exp) {
 		visitQuery(exp);
 
@@ -184,21 +186,28 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 
 			String varName;
 			if (variables.containsKey(varDecl.name())) {
+				Expression otherVar = (Expression) variables.get(varDecl.name());
 				varName = UUID.randomUUID().toString();
-				// varName = varDecl.name()+"_"+(int) (Math.random() * (100 - 2)
-				// + 2);
-				Variable v = createKodkodVariable(varName);
+				Variable v = createKodkodVariable(varName, otherVar.arity());
 				replaceVariables.put(varDecl.name(), v);
 				replaced.add(varDecl.name());
 			} else {
 				varName = varDecl.name();
-				variables.put(varName, createKodkodVariable(varName));
-
+				int arity = arityOfType(varDecl.type());
+				variables.put(varName, createKodkodVariable(varName, arity));
 			}
 
 			objectVariable(varDecl, varName);
 		}
 		return replaced;
+	}
+
+	private int arityOfType(Type type) {
+		if(type.isKindOfAssociation(VoidHandling.EXCLUDE_VOID)){
+			return ((MAssociation) type).associationEnds().size();
+		} else {
+			return 1;
+		}
 	}
 
 	/**
@@ -212,8 +221,8 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 		}
 	}
 
-	private Variable createKodkodVariable(String name) {
-		Variable var = Variable.unary(name);
+	private Variable createKodkodVariable(String name, int arity) {
+		Variable var = Variable.nary(name, arity);
 		arguments.add(var);
 		return var;
 	}

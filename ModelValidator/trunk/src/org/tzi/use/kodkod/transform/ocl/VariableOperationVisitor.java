@@ -21,9 +21,12 @@ import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.ExpAny;
 import org.tzi.use.uml.ocl.expr.ExpAttrOp;
 import org.tzi.use.uml.ocl.expr.ExpNavigation;
+import org.tzi.use.uml.ocl.expr.ExpNavigationClassifierSource;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Extension of DefaultExpressionVisitor to visit the variable operations of an
@@ -127,7 +130,34 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 
 			invokeMethod("navigation", arguments, false);
 		} else {
-			throw new TransformationException("Cannot find association " + mAssociation.name() + ".");
+			throw new TransformationException("Cannot find association " + StringUtil.inQuotes(mAssociation.name()) + ".");
+		}
+	}
+	
+	@Override
+	public void visitNavigationClassifierSource(ExpNavigationClassifierSource exp) {
+		
+		exp.getObjectExpression().processWithVisitor(this);
+		
+		List<Object> arguments = new ArrayList<Object>();
+		
+		Type t = exp.getObjectExpression().type();
+		
+		if(t.isKindOfAssociation(VoidHandling.EXCLUDE_VOID)){
+			IAssociation assoc = model.getAssociation(((MAssociation) t).name());
+			boolean isAssociationClass = assoc.associationClass() != null;
+			
+			int toRole = findAssociationEndIndex(exp.getDestination(), assoc, true);
+			
+			arguments.add(object);
+			arguments.add(assoc.relation());
+			arguments.add(toRole);
+			arguments.add(isAssociationClass);
+			
+			invokeMethod("navigationClassifier", arguments, false);
+		}
+		else {
+			throw new TransformationException("Cannot handle navigation on type " + StringUtil.inQuotes(t) + ".");
 		}
 	}
 
