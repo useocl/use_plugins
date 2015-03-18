@@ -21,6 +21,7 @@ import org.tzi.kodkod.helper.PrintHelper;
 import org.tzi.kodkod.model.config.impl.ClassConfigurator;
 import org.tzi.kodkod.model.config.impl.Configurator;
 import org.tzi.kodkod.model.iface.IAssociation;
+import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
@@ -249,11 +250,18 @@ public class Class extends ModelElement implements IClass {
 	private Formula forbiddingSharingDefinition() {
 		List<IAssociation> assocs = new ArrayList<IAssociation>();
 		
+		/*
+		 * Collect all associations that fulfill all of the following properties:
+		 * - binary
+		 * - not an association class
+		 * - is a composition
+		 * - part navigation points to this class
+		 */
 		for (IAssociation assoc : model.associations()) {
-			if(assoc.isBinaryAssociation() && assoc.associationClass() == null) {
-				if(assoc.associationEnds().get(1).associatedClass().equals(this)){
-					assocs.add(assoc);
-				}
+			if(assoc.isBinaryAssociation() && assoc.associationClass() == null
+					&& assoc.associationEnds().get(0).aggregationKind() == IAssociationEnd.COMPOSITION
+					&& assoc.associationEnds().get(1).associatedClass().equals(this)){
+				assocs.add(assoc);
 			}
 		}
 		
