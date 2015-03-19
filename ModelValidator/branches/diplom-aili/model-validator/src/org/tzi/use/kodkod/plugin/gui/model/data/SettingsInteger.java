@@ -12,7 +12,7 @@ public class SettingsInteger {
 	private Integer minimum;
 	private Integer maximum;
 	private List<String> values = new ArrayList<>();
-	protected SettingsConfiguration configurationSettings;
+	private SettingsConfiguration configurationSettings;
 	
 	public SettingsInteger(SettingsConfiguration configurationSettings) {
 		this.configurationSettings = configurationSettings;

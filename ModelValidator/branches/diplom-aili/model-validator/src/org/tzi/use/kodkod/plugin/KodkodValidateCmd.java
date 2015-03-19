@@ -30,7 +30,7 @@ import org.tzi.use.uml.mm.MClassInvariant;
 public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShellCmdDelegate {
 
 	private PropertyConfigurationVisitor configurationVisitor;
-	private Boolean shouldValidate;
+	private Boolean readyToValidate;
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
@@ -128,7 +128,7 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	protected final void getConfigurationOverGUIAndValidate(IPluginAction pluginAction) {
 		try {
 			configureModel(pluginAction);
-			if (shouldValidate) {
+			if (readyToValidate) {
 				enrichModel();
 				validate(createValidator());
 				configurationVisitor.printWarnings();
@@ -153,17 +153,17 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
         ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
         		new ModelValidatorConfigurationWindow(MainWindow.instance(), mModel);
         if (modelValidatorConfigurationWindow.getChosenPropertiesConfiguration() != null) {
-        	if (modelValidatorConfigurationWindow.isValidatable()) {
+        	if (modelValidatorConfigurationWindow.isReadyToValidate()) {
 	        	configurationVisitor = new PropertyConfigurationVisitor(modelValidatorConfigurationWindow.getChosenPropertiesConfiguration());
 	        	modelValidatorConfigurationWindow.dispose();
 	        	model().accept(configurationVisitor);
-	        	shouldValidate = true;
+	        	readyToValidate = true;
 	        	if (configurationVisitor.containErrors()) {
 	        		throw new ConfigurationException();
 	        	}
 	        	LOG.info(LogMessages.modelConfigurationSuccessful);
         	} else { 
-        		shouldValidate = false;
+        		readyToValidate = false;
         	}
         } else {
         	JOptionPane.showMessageDialog(MainWindow.instance(), new JLabel("No Configuration loaded!"));

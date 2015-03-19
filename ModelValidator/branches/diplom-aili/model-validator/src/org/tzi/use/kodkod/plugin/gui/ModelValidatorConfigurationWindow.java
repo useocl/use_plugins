@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -92,7 +94,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private List<TableColumn> attributeColumnsToHide;
 
 	private String selectedClass;
-	private Boolean validatable;
+	private Boolean readyToValidate;
 	
 	private JTabbedPane center;
 	private JPanel main;
@@ -161,12 +163,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	public ModelValidatorConfigurationWindow(final JFrame parent, final MModel model) {
 		super(parent, "Model-Validator Configuration");
 		
-		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		this.setModalityType(ModalityType.APPLICATION_MODAL);
 		this.setResizable(true);
 		this.setSize(1024,300);
-
 		this.model = model;
+
 		settingsConfiguration = new SettingsConfiguration(model);
 		tableBuilder = new TableBuilder(settingsConfiguration);
 		
@@ -200,7 +202,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			currentFileLabel = new JLabel("");
 		}
 		propertiesConfigurationSections = new Hashtable<String, PropertiesConfiguration>();
-		validatable = false;
+		readyToValidate = false;
     	
     	center = new JTabbedPane(JTabbedPane.TOP);
     	main = new JPanel();
@@ -260,7 +262,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
     				}
         		}
         		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
-        		validatable = true;
+        		readyToValidate = true;
         		setVisible(false);
         	}
         };
@@ -313,6 +315,27 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			attributes.removeColumn(attributeColumnsToHide.get(i));
 		}
         
+        this.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e){
+				boolean isToBeClosed = true;
+				if (settingsConfiguration.isChanged()) {
+					int result = JOptionPane.showConfirmDialog(parent, 
+        					"Do you want to save before closing?", 
+        					"Configurations are not saved yet!", 
+        					JOptionPane.YES_NO_CANCEL_OPTION);
+    				if (result == 2) {
+    					isToBeClosed = false;
+    				} else if (result == 0) {
+    					saveConfigurationsToFile(file);
+    					propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
+    				}
+				}
+				if (isToBeClosed) {
+					readyToValidate = false;
+					setVisible(false);
+				}
+			}
+		});
         this.setJMenuBar(buildMenuBar(parent));
         this.setContentPane(main);
     	this.setLocationRelativeTo(parent);
@@ -420,8 +443,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		return propertiesConfiguration;
 	}
 	
-	public Boolean isValidatable() {
-		return validatable;
+	public Boolean isReadyToValidate() {
+		return readyToValidate;
 	}
 	
 	private JMenuBar buildMenuBar(final JFrame parent) {

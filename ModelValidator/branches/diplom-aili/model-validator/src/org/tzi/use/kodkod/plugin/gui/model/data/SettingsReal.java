@@ -13,7 +13,7 @@ public class SettingsReal {
 	private Double maximum;
 	private Double realStep;
 	private List<String> values = new ArrayList<>();
-	protected SettingsConfiguration configurationSettings;
+	private SettingsConfiguration configurationSettings;
 	
 	public SettingsReal(SettingsConfiguration configurationSettings) {
 		this.configurationSettings = configurationSettings;
@@ -23,6 +23,10 @@ public class SettingsReal {
 		return this.name;
 	}
 	
+	public SettingsConfiguration getConfigurationSettings() {
+		return configurationSettings;
+	}
+
 	public Double getMinimum() {
 		return this.minimum;
 	}

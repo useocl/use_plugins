@@ -9,10 +9,11 @@ public abstract class Settings {
 	
 	private Bounds bounds = new Bounds();
 	private List<String> values = new ArrayList<>();
-	protected SettingsConfiguration configurationSettings;
+	private SettingsConfiguration configurationSettings;
 	
 	public Settings(SettingsConfiguration configurationSettings) {
 		this.configurationSettings = configurationSettings;
+		bounds.setConfigurationSettings(configurationSettings);
 	}
 	
 	public SettingsConfiguration getConfigurationSettings() {

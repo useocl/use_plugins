@@ -8,6 +8,7 @@ public class Bounds {
 	private Integer upper;
 	private boolean lowerLimited = true;
 	private boolean upperLimited = true;
+	private SettingsConfiguration configurationSettings;
 	
 	/**
 	 * Constructs a new instance using the 
@@ -72,6 +73,9 @@ public class Bounds {
 				this.lower = (int) lower;
 			}
 		}
+		if (this.configurationSettings != null) {
+			this.configurationSettings.setChanged(true);
+		}
 	}
 	
 	/**
@@ -99,5 +103,16 @@ public class Bounds {
 				this.upper = (int) upper;
 			}
 		}
+		if (this.configurationSettings != null) {
+			this.configurationSettings.setChanged(true);
+		}
+	}
+
+	public SettingsConfiguration getConfigurationSettings() {
+		return configurationSettings;
+	}
+
+	public void setConfigurationSettings(SettingsConfiguration configurationSettings) {
+		this.configurationSettings = configurationSettings;
 	}
 }
