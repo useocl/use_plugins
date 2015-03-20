@@ -72,6 +72,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	int defaultNameCount = 0;
 	String selectedSection;
 	JLabel currentFileLabel;
+	JLabel attributesLabel;
+	JLabel associationsLabel;
 	JTextArea statusArea;
 	
 	private JTable invariants;
@@ -154,6 +156,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	                }
 	            }
 	            selectedClass = (String) classes.getValueAt(selectedRow, 0);
+	            attributesLabel.setText(ConfigurationTerms.ATTRIBUTES+" of "+selectedClass);
+	            associationsLabel.setText(ConfigurationTerms.ASSOCIATIONS+" of "+selectedClass);
 	            updateClassAttributes(selectedClass);
 	            updateClassAssociations(selectedClass);
 	        }
@@ -224,7 +228,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         	attributeColumnsToHide.add( attributes.getColumnModel().getColumn(i));
         }
         
-        attributeCheckBox = new JCheckBox("Hide defined and collection bounds", true);
+        attributeCheckBox = new JCheckBox("Hide specific bounds", true);
 		attributeCheckBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed( ActionEvent e ) {
@@ -266,6 +270,21 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         		setVisible(false);
         	}
         };
+        
+        if (file.exists()) {
+        	extractConfigurations(file);
+        	ChangeConfiguration.clearSettings(settingsConfiguration);
+        	ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
+        } else {
+        	setAllDefault();
+        }
+        TableBuilder.repaintAllTables(tables.iterator());
+        
+        if (file.exists()) {
+        	settingsConfiguration.setChanged(false);
+        } else {
+        	settingsConfiguration.setChanged(true);
+        }
 		
         validateButton = new JButton("Validate");
         validateButton.addActionListener(validateActionListener);
@@ -295,20 +314,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         main.add(center, BorderLayout.CENTER); 
         main.add(south, BorderLayout.SOUTH);
         
-        if (file.exists()) {
-        	extractConfigurations(file);
-        	ChangeConfiguration.clearSettings(settingsConfiguration);
-        	ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
-        } else {
-        	setAllDefault();
-        }
-        TableBuilder.repaintAllTables(tables.iterator());
-
-        if (file.exists()) {
-        	settingsConfiguration.setChanged(false);
-        } else {
-        	settingsConfiguration.setChanged(true);
-        }
 
         //Hiding the min-/maxDefined and min-/maxElements of the attributes table
         for (int i = 0; i < 4; i++) {
@@ -320,7 +325,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				boolean isToBeClosed = true;
 				if (settingsConfiguration.isChanged()) {
 					int result = JOptionPane.showConfirmDialog(parent, 
-        					"Do you want to save before closing?", 
+        					"Do you want to save changes before closing?", 
         					"Configurations are not saved yet!", 
         					JOptionPane.YES_NO_CANCEL_OPTION);
     				if (result == 2) {
@@ -641,12 +646,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		leftUpper.add(stringScroll);
 
 		JPanel leftLower = new JPanel(new BorderLayout()); 
-		/*JTextArea abstractClassesText = new JTextArea();
-		abstractClassesText.setBackground(this.getBackground());
-		abstractClassesText.setText(abstractClassesChildren(this.model));
-		JScrollPane abstractClsScrollPane = new JScrollPane(abstractClassesText);
-		leftLower.add(abstractClsScrollPane, BorderLayout.CENTER);*/
-		
 		JPanel rightUpper = new JPanel(new BorderLayout());
 		rightUpper.add(new JScrollPane(options), BorderLayout.CENTER);
 
@@ -677,6 +676,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		abstractClassesText.setLineWrap(true);
 		abstractClassesText.setWrapStyleWord(true);
 		abstractClassesText.setCaretPosition(0);
+		attributesLabel = new JLabel(ConfigurationTerms.ATTRIBUTES);
+        associationsLabel = new JLabel(ConfigurationTerms.ASSOCIATIONS);
 		
 		JScrollPane classesScrollPane = new JScrollPane(classes);
 		JScrollPane abstractClsScrollPane = new JScrollPane(abstractClassesText);
@@ -697,12 +698,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         classesPanel.add(new JLabel("Classes"), BorderLayout.NORTH);
         classesPanel.add(classesScrollPane, BorderLayout.CENTER);
         attributeLabelPanel.setLayout(new BoxLayout(attributeLabelPanel, BoxLayout.LINE_AXIS));
-        attributeLabelPanel.add(new JLabel("Attributes"));
+        attributeLabelPanel.add(attributesLabel);
         attributeLabelPanel.add(Box.createHorizontalGlue());
         attributeLabelPanel.add(attributeCheckBox);
         attributesPanel.add(attributeLabelPanel, BorderLayout.NORTH);
         attributesPanel.add(attributesScrollPane, BorderLayout.CENTER);
-        associationsPanel.add(new JLabel("Associations"), BorderLayout.NORTH);
+        associationsPanel.add(associationsLabel, BorderLayout.NORTH);
         associationsPanel.add(associationsScrollPane, BorderLayout.CENTER);
         caaTabRightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, attributesPanel, associationsPanel);
         caaTabLeftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, classesPanel, abstractClsScrollPane);
