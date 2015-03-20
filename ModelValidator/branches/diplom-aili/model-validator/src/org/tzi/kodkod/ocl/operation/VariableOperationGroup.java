@@ -2,6 +2,7 @@ package org.tzi.kodkod.ocl.operation;
 
 import kodkod.ast.Expression;
 
+import org.tzi.kodkod.helper.ConstraintHelper;
 import org.tzi.kodkod.model.type.TypeFactory;
 import org.tzi.kodkod.ocl.OCLOperationGroup;
 
@@ -68,6 +69,24 @@ public class VariableOperationGroup extends OCLOperationGroup {
 		}
 	}
 
+	public final Expression navigationClassifier(Expression src, Expression classifier, Integer toRole, Boolean isAssocClass){
+		Expression res;
+		
+		if(isAssocClass){
+			res = src.join(classifier);
+		} else {
+			res = src;
+		}
+		
+		int totalArity = isAssocClass ? classifier.arity() - 1 : classifier.arity();
+		
+		res = ConstraintHelper.univLeftN(res, toRole - 1);
+		res = ConstraintHelper.univRightN(res, totalArity - toRole);
+		
+		returnsSet = true;
+		return res;
+	}
+	
 	public final Expression access(Expression srcExpr, Expression attribute, Boolean set_type) {
 		if (set_type) {
 			returnsSet = true;

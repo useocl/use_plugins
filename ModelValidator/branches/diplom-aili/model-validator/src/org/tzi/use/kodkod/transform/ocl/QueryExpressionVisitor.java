@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import kodkod.ast.Expression;
 import kodkod.ast.Node;
 import kodkod.ast.Relation;
 import kodkod.ast.Variable;
@@ -100,13 +101,13 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 		exp.getRangeExpression().processWithVisitor(visitor);
 		arguments.add(0, visitor.getObject());
 
-		List<String> replacedVariables = createVariables(exp.getVariableDeclarations());
+		List<String> replacedVariables = createVariables(exp.getVariableDeclarations(), ((Expression) visitor.getObject()).arity());
 
 		DefaultExpressionVisitor visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getQueryExpression().processWithVisitor(visitor2);
 		arguments.add(1, visitor2.getObject());
 
-		replacedVariables.addAll(createVariables(exp.getVariableDeclarations()));
+		replacedVariables.addAll(createVariables(exp.getVariableDeclarations(), ((Expression) visitor.getObject()).arity()));
 
 		visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getQueryExpression().processWithVisitor(visitor2);
@@ -131,23 +132,22 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	public void visitSelect(ExpSelect exp) {
 		visitQueryAndInvoke(exp);
 	}
-
-	@Override
+	
 	public void visitQuery(ExpQuery exp) {
 		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getRangeExpression().processWithVisitor(visitor);
 		sourceType = exp.getRangeExpression().type();
 		arguments.add(0, visitor.getObject());
 
-		List<String> replacedVariables = createVariables(exp.getVariableDeclarations());
+		List<String> replacedVariables = createVariables(exp.getVariableDeclarations(), ((Expression) visitor.getObject()).arity());
 
 		DefaultExpressionVisitor visitor2 = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getQueryExpression().processWithVisitor(visitor2);
 		arguments.add(1, visitor2.getObject());
-
+		
 		removeReplaceVariable(replacedVariables);
 	}
-
+	
 	private void visitQueryAndInvoke(ExpQuery exp) {
 		visitQuery(exp);
 
@@ -165,7 +165,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 	 * 
 	 * @param varDeclList
 	 */
-	private List<String> createVariables(VarDeclList varDeclList) {
+	private List<String> createVariables(VarDeclList varDeclList, int arity) {
 		VarDecl varDecl;
 		List<String> replaced = new ArrayList<String>();
 
@@ -184,16 +184,14 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 
 			String varName;
 			if (variables.containsKey(varDecl.name())) {
+				Expression otherVar = (Expression) variables.get(varDecl.name());
 				varName = UUID.randomUUID().toString();
-				// varName = varDecl.name()+"_"+(int) (Math.random() * (100 - 2)
-				// + 2);
-				Variable v = createKodkodVariable(varName);
+				Variable v = createKodkodVariable(varName, otherVar.arity());
 				replaceVariables.put(varDecl.name(), v);
 				replaced.add(varDecl.name());
 			} else {
 				varName = varDecl.name();
-				variables.put(varName, createKodkodVariable(varName));
-
+				variables.put(varName, createKodkodVariable(varName, arity));
 			}
 
 			objectVariable(varDecl, varName);
@@ -212,8 +210,8 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 		}
 	}
 
-	private Variable createKodkodVariable(String name) {
-		Variable var = Variable.unary(name);
+	private Variable createKodkodVariable(String name, int arity) {
+		Variable var = Variable.nary(name, arity);
 		arguments.add(var);
 		return var;
 	}

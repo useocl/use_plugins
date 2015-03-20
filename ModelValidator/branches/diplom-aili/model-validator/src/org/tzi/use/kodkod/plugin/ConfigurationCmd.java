@@ -45,9 +45,9 @@ public class ConfigurationCmd implements IPluginShellCmdDelegate {
 							} catch (NumberFormatException exception) {
 								LOG.error(LogMessages.solverConfigBitwidthError);
 							}
-						} else if (name.equalsIgnoreCase(configuration.DIAGRAMEXTREACTION_KEY) || name.equalsIgnoreCase("ADE")) {
-							if (split[1].equals("on") || split[1].equals("off")) {
-								Boolean value = split[1].equals("on") ? true : false;
+						} else if (name.equalsIgnoreCase(configuration.DIAGRAMEXTREACTION_KEY) || name.equalsIgnoreCase(configuration.DIAGRAMEXTREACTION_KEY_SHORT)) {
+							if (split[1].equalsIgnoreCase("on") || split[1].equalsIgnoreCase("off")) {
+								Boolean value = split[1].equalsIgnoreCase("on") ? true : false;
 
 								configuration.setAutomaticDiagramExtraction(value);
 							} else {

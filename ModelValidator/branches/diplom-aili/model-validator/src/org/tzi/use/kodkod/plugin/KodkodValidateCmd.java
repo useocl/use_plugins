@@ -10,7 +10,6 @@ import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
 import org.tzi.kodkod.model.iface.IInvariant;
-import org.tzi.use.config.Options;
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.kodkod.UseDefaultConfigKodkodModelValidator;
 import org.tzi.use.kodkod.UseKodkodModelValidator;
@@ -72,7 +71,6 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	protected void handleArguments(String[] arguments) {
 		String fileName = arguments[0];
 		String filepath = Shell.getInstance().getFilenameToOpen(fileName.trim(), false);
-		filepath = Options.getFilenameToOpen(filepath);
 		File file = new File(filepath);
 
 		if (file.exists() && file.canRead() && !file.isDirectory()) {
