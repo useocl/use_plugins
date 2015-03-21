@@ -35,6 +35,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
+import javax.swing.ToolTipManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -319,6 +320,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			attributes.removeColumn(attributeColumnsToHide.get(i));
 		}
         
+        ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE); // increases tooltip display time
         this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e){
 				boolean isToBeClosed = true;
