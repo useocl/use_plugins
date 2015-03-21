@@ -11,20 +11,20 @@ public class ConfigurationTerms {
 	
 	public static final String INTEGER_MIN = "Minimum";
 	public static final String INTEGER_MAX = "Maximum";
-	public static final String INTEGER_VALUES = "Req. Values";
+	public static final String INTEGER_VALUES = "Required Values";
 
 	public static final String REAL_MIN = "Minimum";
 	public static final String REAL_MAX = "Maximum";
 	public static final String REAL_STEP = "Step range";
-	public static final String REAL_VALUES = "Req. Values";
+	public static final String REAL_VALUES = "Required Values";
 	
 	public static final String STRING_MIN = "Min. Div. Values";
 	public static final String STRING_MAX = "Max. Div. Values";
-	public static final String STRING_VALUES = "Req. Values";
+	public static final String STRING_VALUES = "Preferred Values";
 	
-	public static final String CLASSES_MIN = "Min. Obj. Creation";
-	public static final String CLASSES_MAX = "Max. Obj. Creation";
-	public static final String CLASSES_VALUES = "Req. Obj. Identities";
+	public static final String CLASSES_MIN = "Min. Object Quantity";
+	public static final String CLASSES_MAX = "Max. Object Quantity";
+	public static final String CLASSES_VALUES = "Req. Object Identities";
 	
 	public static final String ATTRIBUTES_MIN = "Min. Defined";
 	public static final String ATTRIBUTES_MAX = "Max. Defined";
@@ -36,8 +36,8 @@ public class ConfigurationTerms {
 	public static final String ASSOCIATIONS_MAX = "Max. Links";
 	public static final String ASSOCIATIONS_VALUES = "Req. Links";
 	
-	public static final String OPTION_FORBIDDENSHARING = "Exclusiv composition participation";
-	public static final String OPTION_AGGREGATIONCYCLEFREENESS = "No directed cycles";
+	public static final String OPTION_FORBIDDENSHARING = "Exclusive composition participation";
+	public static final String OPTION_AGGREGATIONCYCLEFREENESS = "Forbid aggregation/composition cycles";
 	
 	public static final String INVARIANTS_ACTIVE = "Active";
 	public static final String INVARIANTS_NEGATE = "Negate";

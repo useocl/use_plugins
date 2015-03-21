@@ -313,7 +313,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         main.add(north, BorderLayout.NORTH);
         main.add(center, BorderLayout.CENTER); 
         main.add(south, BorderLayout.SOUTH);
-        
 
         //Hiding the min-/maxDefined and min-/maxElements of the attributes table
         for (int i = 0; i < 4; i++) {
@@ -664,7 +663,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		right.setDividerSize(OPTIONS_TABLE_DIVIDER_HEIGHT);
 	
 		basicTypesAndOptionsPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
-		basicTypesAndOptionsPanel.setDividerLocation(400);
+		basicTypesAndOptionsPanel.setDividerLocation(512);
 		
 		return basicTypesAndOptionsPanel;
 	}
