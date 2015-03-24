@@ -369,6 +369,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			} else {
 				saveConfigurationsToFile(chosenFileName);
 			}
+			file = chosenFileName;
+			currentFileLabel.setText(file.getAbsolutePath());
 		}
 	}
 		
