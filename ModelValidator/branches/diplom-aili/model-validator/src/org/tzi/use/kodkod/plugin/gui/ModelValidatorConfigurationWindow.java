@@ -158,7 +158,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	            }
 	            selectedClass = (String) classes.getValueAt(selectedRow, 0);
 	            attributesLabel.setText(ConfigurationTerms.ATTRIBUTES+" of "+selectedClass);
-	            associationsLabel.setText(ConfigurationTerms.ASSOCIATIONS+" of "+selectedClass);
+	            associationsLabel.setText(ConfigurationTerms.ASSOCIATIONS+" where the class "+selectedClass+" is the first role");
 	            updateClassAttributes(selectedClass);
 	            updateClassAssociations(selectedClass);
 	        }
