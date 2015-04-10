@@ -1,6 +1,7 @@
 package org.tzi.kodkod.model.config.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	private PropertiesConfiguration pc;
 	private File file;
 
-	public DefaultConfigurationVisitor(String fileName) throws Exception {
+	public DefaultConfigurationVisitor(String fileName) throws IOException {
 		fileName = fileName.replaceAll("\\.use", "");
 		file = new File(fileName + ".properties");
 		file.createNewFile();
@@ -45,17 +46,6 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	public File getFile() {
 		return file;
 	}
-	
-	public PropertiesConfiguration createDefaultProperties(IModel model) {
-		iterate(model.typeFactory().configurableTypes().iterator());
-		for (IClass clazz : model.classes()) {
-			clazz.accept(this);
-			iterate(clazz.attributes().iterator());
-		}
-		iterate(model.associations().iterator());
-		
-		return pc;
-	}
 
 	@Override
 	public void visitModel(IModel model) {
@@ -66,7 +56,13 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		}
 		iterate(model.associations().iterator());
 		
-		PropertiesWriter.writeToFile(file, pc, model);
+		PropertiesWriter pw = new PropertiesWriter(model);
+		pw.setIsDefaultConfiguration(true);
+		try {
+			pw.writeToFile(file, pc);
+		} catch (IOException e) {
+			LOG.error(LogMessages.propertiesConfigurationCreateError);
+		}
 	}
 
 	@Override

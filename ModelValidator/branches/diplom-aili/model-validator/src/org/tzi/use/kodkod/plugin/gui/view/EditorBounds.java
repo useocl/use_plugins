@@ -84,7 +84,6 @@ public class EditorBounds extends DefaultCellEditor {
 	@Override
 	public boolean stopCellEditing() {
 		try {
-			editor.commitEdit();
 			spinner.commitEdit();
 		} catch (java.text.ParseException e) {
 			JOptionPane.showMessageDialog(null,

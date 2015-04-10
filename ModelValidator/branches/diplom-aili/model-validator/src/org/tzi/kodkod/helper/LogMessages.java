@@ -42,8 +42,6 @@ public final class LogMessages {
 
 	public static final String propertiesConfigurationWriteError = "Error while writing .properties file";
 
-	public static final String propertiesConfigurationCloseError = "Error while closing .properties file";
-
 	public static final String className$Error = "Class names starting with a " + inQuotes("$") + " are not allowed!";
 
 	public static final String solverConfigSaveError = "Error while saving KodkodSolver configuration";

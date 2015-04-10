@@ -8,11 +8,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.Box;
@@ -46,6 +49,7 @@ import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.tzi.use.gui.util.ExtFileFilter;
+import org.tzi.use.kodkod.plugin.PluginModelFactory;
 import org.tzi.use.kodkod.plugin.PropertiesWriter;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAssociation;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAttribute;
@@ -53,6 +57,11 @@ import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
 import org.tzi.use.kodkod.plugin.gui.util.ChangeConfiguration;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.util.StringUtil;
+import org.tzi.use.util.collections.CollectionUtil;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
 
 /**
@@ -63,7 +72,6 @@ import org.tzi.use.uml.mm.MModel;
  */
 public class ModelValidatorConfigurationWindow extends JDialog {
 	
-
 	private static final long serialVersionUID = 1L;
 	
 	private static final int OPTIONS_TABLE_DIVIDER_HEIGHT = 2;
@@ -90,7 +98,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 	private MModel model;
 	private File file;
-	private Hashtable<String,PropertiesConfiguration> propertiesConfigurationSections;
+	private Map<String,PropertiesConfiguration> propertiesConfigurationSections;
 	private PropertiesConfiguration propertiesConfiguration;
 	private SettingsConfiguration settingsConfiguration;
 	private TableBuilder tableBuilder;
@@ -206,7 +214,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		} else {
 			currentFileLabel = new JLabel("");
 		}
-		propertiesConfigurationSections = new Hashtable<String, PropertiesConfiguration>();
+		propertiesConfigurationSections = new HashMap<String, PropertiesConfiguration>();
 		readyToValidate = false;
     	
     	center = new JTabbedPane(JTabbedPane.TOP);
@@ -386,12 +394,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(getParent(), new JLabel("Error while loading properties file!"), "Error!", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(getParent(), "Error while loading properties file!", "Error!", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 		sectionSelectionComboBox.removeAllItems();
-		propertiesConfigurationSections = new Hashtable<String, PropertiesConfiguration>();
+		propertiesConfigurationSections = new HashMap<String, PropertiesConfiguration>();
 		if (!hierarchicalINIConfiguration.getSections().isEmpty()) {
 			Iterator<?> sectionsIterator = hierarchicalINIConfiguration.getSections().iterator();
 			Boolean isFirstConfiguration = true;
@@ -401,7 +409,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
 				Iterator<?> keysIterator = sectionConfigurations.getKeys();
 				while (keysIterator.hasNext()) {
-					String key = (String) keysIterator.next().toString();
+					String key = keysIterator.next().toString();
 					if (!key.startsWith("--")){
 						String value = sectionConfigurations.getString(key);
 						propertiesConfiguration.addProperty(key, value);
@@ -490,7 +498,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
         			currentFileLabel.setText(file.getAbsolutePath());
         		}
         		
-        	};
+        	}
 		});
 		
 		saveMenuItem.addActionListener(new ActionListener() {
@@ -741,53 +749,52 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		try {
 			propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
 			propertiesConfigurationSections.put(selectedSection,(PropertiesConfiguration) propertiesConfiguration.clone());
-			PropertiesWriter.writeToFile(propertiesConfigurationSections, file, model);
+			
+			PropertiesWriter pw = new PropertiesWriter(PluginModelFactory.INSTANCE.getModel(model));
+			pw.writeToFile(file, propertiesConfigurationSections);
+			
 			settingsConfiguration.setChanged(false);
 			currentFileLabel.setText(file.getAbsolutePath());
-		} catch (Exception e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(getParent(), new JLabel("Error while saving configuration to file!"), "Error!", JOptionPane.ERROR_MESSAGE);
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(getParent(), "Error while saving configuration to file!", "Error!", JOptionPane.ERROR_MESSAGE);
 		}
-	}
-
-	private Set<MClass> getAbstractClasses(MModel model) {
-		Iterator<MClass> classIterator = model.classes().iterator();
-		Set<MClass> abstractClasses = new HashSet<MClass>();
-		while (classIterator.hasNext()) {
-			MClass clazz = classIterator.next();
-			if (clazz.isAbstract()) {
-				abstractClasses.add(clazz);
-			}
-		}
-		return abstractClasses;
 	}
 	
 	private String abstractClassesChildren(MModel model) {
-		String abstractText = "Abstract Classes: \n";
-		Iterator<MClass> abstractClasses = getAbstractClasses(model).iterator();
-		while (abstractClasses.hasNext()) {
-			MClass abstractClass = abstractClasses.next();
-			abstractText += abstractClass.name();
-			if (abstractClasses.hasNext()) {
-				abstractText += ", ";
-			} else {
-				abstractText += "\n\n";
+		StringBuilder abstractText = new StringBuilder("Abstract Classes:");
+		abstractText.append(StringUtil.NEWLINE);
+		
+		Collection<MClass> abstractClasses = Collections2.filter(model.classes(), new Predicate<MClass>() {
+			@Override
+			public boolean apply(MClass input) {
+				return input.isAbstract();
 			}
+		});
+		if(abstractClasses.isEmpty()){
+			abstractText.append("None.");
+			return abstractText.toString();
 		}
-		abstractClasses = getAbstractClasses(model).iterator();
-		if (abstractClasses.hasNext()) {
-			abstractText += "Inheriting Classes:\n";
-		}
-		while (abstractClasses.hasNext()) {
-			MClass abstractClass = abstractClasses.next();
-			Set<? extends MClass> inheritingClasses = abstractClass.allChildren();
-			Iterator<? extends MClass> inheritingClassesIterator = inheritingClasses.iterator();
-			while (inheritingClassesIterator.hasNext()) {
-				abstractText += abstractClass.name()+" > "+inheritingClassesIterator.next().name()+"\n";
+		StringUtil.fmtSeq(abstractText, abstractClasses, ", ");
+		
+		if(abstractClasses.size() > 0){
+			abstractText.append(StringUtil.NEWLINE);
+			abstractText.append(StringUtil.NEWLINE);
+			abstractText.append("Inheriting Classes:");
+			abstractText.append(StringUtil.NEWLINE);
+			
+			for(final MClass abstractClass : abstractClasses){
+				Set<MClass> inheritingClasses = CollectionUtil.downCastUnsafe(abstractClass.allChildren());
+				StringUtil.fmtSeq(abstractText, inheritingClasses, StringUtil.NEWLINE, new StringUtil.IElementFormatter<MClass>() {
+					@Override
+					public String format(MClass element) {
+						return abstractClass.name() + " > " + element.name();
+					}
+				});
+				
 			}
 		}
 		
-		return abstractText;
+		return abstractText.toString();
 	}
 
 }
