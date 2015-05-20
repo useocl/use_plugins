@@ -13,23 +13,23 @@ public class SettingsConfiguration {
 
 	private final MModel model;
 	
-	private SettingsInteger integerTypeSettings = new SettingsInteger(this);
-	private SettingsString stringTypeSettings = new SettingsString(this);
-	private SettingsReal realTypeSettings = new SettingsReal(this);
-	private SettingsOption optionSettings = new SettingsOption(this);
-	private Map<MClass, SettingsClass> classSettingsMap = new HashMap<>();
-	private Map<MClassInvariant, SettingsInvariant> invariantSettingsMap = new HashMap<>();
+	private IntegerSettings integerTypeSettings = new IntegerSettings(this);
+	private StringSettings stringTypeSettings = new StringSettings(this);
+	private RealSettings realTypeSettings = new RealSettings(this);
+	private OptionSettings optionSettings = new OptionSettings(this);
+	private Map<MClass, ClassSettings> classSettingsMap = new HashMap<>();
+	private Map<MClassInvariant, InvariantSettings> invariantSettingsMap = new HashMap<>();
 	private boolean changed = false;
 
 	public SettingsConfiguration(MModel model) {
 		this.model = model;
 		
 		for (MClass cls : model.classes()) {
-			classSettingsMap.put(cls, new SettingsClass(cls, this));
+			classSettingsMap.put(cls, new ClassSettings(cls, this));
 		}
 		
 		for (MClassInvariant inv : model.classInvariants()) {
-			invariantSettingsMap.put(inv, new SettingsInvariant(inv, this));
+			invariantSettingsMap.put(inv, new InvariantSettings(inv, this));
 		}
 	}
 	
@@ -41,56 +41,56 @@ public class SettingsConfiguration {
 		this.changed = changed;
 	}
 
-	public SettingsInteger getIntegerTypeSettings() {
+	public IntegerSettings getIntegerTypeSettings() {
 		return integerTypeSettings;
 	}
 	
-	public void setIntegerTypeSettings(SettingsInteger integerTypeSettings) {
+	public void setIntegerTypeSettings(IntegerSettings integerTypeSettings) {
 		this.integerTypeSettings = integerTypeSettings;
 	}
 	
-	public SettingsString getStringTypeSettings() {
+	public StringSettings getStringTypeSettings() {
 		return stringTypeSettings;
 	}
 	
-	public void setStringTypeSettings(SettingsString stringTypeSettings) {
+	public void setStringTypeSettings(StringSettings stringTypeSettings) {
 		this.stringTypeSettings = stringTypeSettings;
 	}
 	
-	public SettingsReal getRealTypeSettings() {
+	public RealSettings getRealTypeSettings() {
 		return realTypeSettings;
 	}
 	
-	public void setRealTypeSettings(SettingsReal realTypeSettings) {
+	public void setRealTypeSettings(RealSettings realTypeSettings) {
 		this.realTypeSettings = realTypeSettings;
 	}
 	
-	public SettingsClass getClassSettings(String clsName) {
+	public ClassSettings getClassSettings(String clsName) {
 		return getClassSettings(model.getClass(clsName));
 	}
 	
-	public SettingsClass getClassSettings(MClass cls) {
+	public ClassSettings getClassSettings(MClass cls) {
 		return classSettingsMap.get(cls);
 	}
 	
-	public List<SettingsClass> getAllClassesSettings() {
-		return new ArrayList<SettingsClass>(classSettingsMap.values());
+	public List<ClassSettings> getAllClassesSettings() {
+		return new ArrayList<ClassSettings>(classSettingsMap.values());
 	}
 
-	public SettingsOption getOptionSettings() {
+	public OptionSettings getOptionSettings() {
 		return optionSettings;
 	}
 
-	public SettingsInvariant getInvariantSetting(String invName) {
+	public InvariantSettings getInvariantSetting(String invName) {
 		return getInvariantSetting(model.getClassInvariant(invName));
 	}
 	
-	public SettingsInvariant getInvariantSetting(MClassInvariant inv) {
+	public InvariantSettings getInvariantSetting(MClassInvariant inv) {
 		return invariantSettingsMap.get(inv);
 	}
 	
-	public List<SettingsInvariant> getAllInvariantsSettings() {
-		return new ArrayList<SettingsInvariant>(invariantSettingsMap.values());
+	public List<InvariantSettings> getAllInvariantsSettings() {
+		return new ArrayList<InvariantSettings>(invariantSettingsMap.values());
 	}
 	
 }

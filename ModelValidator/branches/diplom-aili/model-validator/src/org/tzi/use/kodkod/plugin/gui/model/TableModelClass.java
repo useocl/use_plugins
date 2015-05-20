@@ -6,13 +6,13 @@ import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
+import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.util.StringUtil;
 
 public class TableModelClass extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	private List<SettingsClass> classesSettings = Collections.emptyList();
+	private List<ClassSettings> classesSettings = Collections.emptyList();
 	
 	private static String[] columnNames = new String[] {
 			ConfigurationTerms.CLASSES,
@@ -20,7 +20,7 @@ public class TableModelClass extends DefaultTableModel {
 			ConfigurationTerms.CLASSES_MAX,
 			ConfigurationTerms.CLASSES_VALUES };
 	
-	public TableModelClass(List<SettingsClass> classesSettings) {
+	public TableModelClass(List<ClassSettings> classesSettings) {
 		super();
 		if (classesSettings != null) {
 			this.classesSettings = classesSettings;
@@ -61,7 +61,7 @@ public class TableModelClass extends DefaultTableModel {
 
 	@Override
 	public Object getValueAt(int row, int col) {
-		SettingsClass set = classesSettings.get(row);
+		ClassSettings set = classesSettings.get(row);
 		
 		switch(col) {
 		case 0: 
@@ -87,7 +87,7 @@ public class TableModelClass extends DefaultTableModel {
 
 	@Override
 	public void setValueAt(Object aValue, int row, int column) {
-		SettingsClass set = this.classesSettings.get(row);
+		ClassSettings set = this.classesSettings.get(row);
 		
 		switch (column) {
 		case 1:
@@ -107,7 +107,7 @@ public class TableModelClass extends DefaultTableModel {
 		}
 	}
 
-	public List<SettingsClass> getClassesSettings() {
+	public List<ClassSettings> getClassesSettings() {
 		return classesSettings;
 	}
 

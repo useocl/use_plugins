@@ -8,32 +8,32 @@ import org.tzi.use.uml.mm.MAssociationClassImpl;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 
-public class SettingsClass extends Settings {
+public class ClassSettings extends InstanceSettings {
 	
 	private final MClass clazz;
-	private final Map<MAttribute,SettingsAttribute> attributeSettings = new HashMap<>();
-	private final Map<MAssociation,SettingsAssociation> associationSettings = new HashMap<>();
+	private final Map<MAttribute,AttributeSettings> attributeSettings = new HashMap<>();
+	private final Map<MAssociation,AssociationSettings> associationSettings = new HashMap<>();
 	private final Boolean isAssociationClass;
 
-	public SettingsClass(MClass cls, SettingsConfiguration configurationSettings) {
+	public ClassSettings(MClass cls, SettingsConfiguration configurationSettings) {
 		super(configurationSettings);
 		this.clazz = cls;
 		this.isAssociationClass = cls instanceof MAssociationClassImpl;
 		
 		for (MAttribute attr : cls.allAttributes()) {
-			attributeSettings.put(attr, new SettingsAttribute(attr, this, !clazz.attributes().contains(attr), configurationSettings));
+			attributeSettings.put(attr, new AttributeSettings(attr, this, !clazz.attributes().contains(attr), configurationSettings));
 		}
 		
 		for (MAssociation assoc : cls.allAssociations()) {
 			if (!(assoc instanceof MAssociationClassImpl)) {
 				if (assoc.associationEnds().iterator().next().cls().equals(this.clazz)) {
-					associationSettings.put(assoc,  new SettingsAssociation(assoc, false, configurationSettings));
+					associationSettings.put(assoc,  new AssociationSettings(assoc, false, configurationSettings));
 				}
 			}
 		}
 		
 		if (this.isAssociationClass) {
-			associationSettings.put((MAssociation) this.clazz, new SettingsAssociation((MAssociation) this.clazz, true, configurationSettings));
+			associationSettings.put((MAssociation) this.clazz, new AssociationSettings((MAssociation) this.clazz, true, configurationSettings));
 		}
 	}
 
@@ -41,11 +41,11 @@ public class SettingsClass extends Settings {
 		return isAssociationClass;
 	}
 
-	public Map<MAttribute,SettingsAttribute> getAttributeSettings() {
+	public Map<MAttribute,AttributeSettings> getAttributeSettings() {
 		return attributeSettings;
 	}
 	
-	public Map<MAssociation,SettingsAssociation> getAssociationSettings() {
+	public Map<MAssociation,AssociationSettings> getAssociationSettings() {
 		return associationSettings;
 	}
 

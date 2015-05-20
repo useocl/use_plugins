@@ -5,13 +5,13 @@ import java.util.List;
 
 import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 
-public abstract class Settings {
+public abstract class InstanceSettings {
 	
 	private Bounds bounds = new Bounds();
 	private List<String> values = new ArrayList<>();
 	private SettingsConfiguration configurationSettings;
 	
-	public Settings(SettingsConfiguration configurationSettings) {
+	public InstanceSettings(SettingsConfiguration configurationSettings) {
 		this.configurationSettings = configurationSettings;
 		bounds.setConfigurationSettings(configurationSettings);
 	}

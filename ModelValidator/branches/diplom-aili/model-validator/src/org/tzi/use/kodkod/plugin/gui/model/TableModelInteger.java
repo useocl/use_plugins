@@ -3,20 +3,20 @@ package org.tzi.use.kodkod.plugin.gui.model;
 import javax.swing.table.DefaultTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsInteger;
+import org.tzi.use.kodkod.plugin.gui.model.data.IntegerSettings;
 import org.tzi.use.util.StringUtil;
 
 public class TableModelInteger extends DefaultTableModel{
 	private static final long serialVersionUID = 1L;
 	
-	private SettingsInteger settings;
+	private IntegerSettings settings;
 	
 	private static String[] columnNames = new String[] {
 		ConfigurationTerms.INTEGER_MIN,
 		ConfigurationTerms.INTEGER_MAX,
 		ConfigurationTerms.INTEGER_VALUES };
 	
-	public TableModelInteger(SettingsInteger set){
+	public TableModelInteger(IntegerSettings set){
 		super();
 		this.settings = set;
 	}
@@ -87,7 +87,7 @@ public class TableModelInteger extends DefaultTableModel{
 		}
 	}
 
-	public SettingsInteger getSettings() {
+	public IntegerSettings getSettings() {
 		return settings;
 	}
 

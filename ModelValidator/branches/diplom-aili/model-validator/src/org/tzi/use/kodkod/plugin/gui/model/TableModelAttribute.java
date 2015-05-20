@@ -6,14 +6,14 @@ import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAttribute;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
+import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.util.StringUtil;
 
 public class TableModelAttribute extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	private List<SettingsAttribute> attributesSettings;
+	private List<AttributeSettings> attributesSettings;
 	
 	private static String[] columnNames = new String[] {
 			ConfigurationTerms.ATTRIBUTES,
@@ -24,7 +24,7 @@ public class TableModelAttribute extends DefaultTableModel {
 			ConfigurationTerms.ATTRIBUTES_VALUES 
 	};
 	
-	public TableModelAttribute(List<SettingsAttribute> settings) {
+	public TableModelAttribute(List<AttributeSettings> settings) {
 		super();
 		this.attributesSettings = settings;
 	}
@@ -50,7 +50,7 @@ public class TableModelAttribute extends DefaultTableModel {
 
 	@Override
 	public boolean isCellEditable(int row, int column) {
-		SettingsAttribute set = attributesSettings.get(row); 
+		AttributeSettings set = attributesSettings.get(row); 
 		if ((set.getClassSettings().isAssociationClass()) && (column == 3 || column == 4)) {
 			return false;
 		} else if (set.isInherited()) {
@@ -64,7 +64,7 @@ public class TableModelAttribute extends DefaultTableModel {
 
 	@Override
 	public Object getValueAt(int row, int col) {
-		SettingsAttribute set = attributesSettings.get(row);
+		AttributeSettings set = attributesSettings.get(row);
 		
 		switch(col) {
 		case 0: 
@@ -102,7 +102,7 @@ public class TableModelAttribute extends DefaultTableModel {
 
 	@Override
 	public void setValueAt(Object aValue, int row, int column) {
-		SettingsAttribute set = this.attributesSettings.get(row);
+		AttributeSettings set = this.attributesSettings.get(row);
 		
 		switch (column) {
 		case 1:
@@ -125,12 +125,12 @@ public class TableModelAttribute extends DefaultTableModel {
 		}
 	}
 
-	public void setClass(SettingsClass classSettings) {
+	public void setClass(ClassSettings classSettings) {
 		this.attributesSettings = new ArrayList<>(classSettings.getAttributeSettings().values());
 		this.fireTableDataChanged();
 	}
 
-	public List<SettingsAttribute> getAttributesSettings() {
+	public List<AttributeSettings> getAttributesSettings() {
 		return attributesSettings;
 	}
 	

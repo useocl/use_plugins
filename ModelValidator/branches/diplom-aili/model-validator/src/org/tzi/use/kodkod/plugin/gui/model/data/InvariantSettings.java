@@ -2,7 +2,7 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 
 import org.tzi.use.uml.mm.MClassInvariant;
 
-public class SettingsInvariant {
+public class InvariantSettings {
 	
 	private MClassInvariant invariant;
 	private Boolean active;
@@ -13,7 +13,7 @@ public class SettingsInvariant {
 		return configurationSettings;
 	}
 
-	public SettingsInvariant(MClassInvariant invariant, SettingsConfiguration configurationSettings) {
+	public InvariantSettings(MClassInvariant invariant, SettingsConfiguration configurationSettings) {
 		this.invariant = invariant;
 		this.configurationSettings = configurationSettings;
 	}

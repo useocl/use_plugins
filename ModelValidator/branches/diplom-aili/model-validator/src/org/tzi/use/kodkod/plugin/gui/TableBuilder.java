@@ -26,9 +26,9 @@ import org.tzi.use.kodkod.plugin.gui.model.TableModelInvariant;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelOption;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelReal;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelString;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAssociation;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAttribute;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
+import org.tzi.use.kodkod.plugin.gui.model.data.AssociationSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
 import org.tzi.use.kodkod.plugin.gui.view.EditorBounds;
 import org.tzi.use.kodkod.plugin.gui.view.EditorInteger;
@@ -67,7 +67,7 @@ public class TableBuilder {
 						switch (tableName) {
 						case ConfigurationTerms.CLASSES: 
 							TableModelClass classModel = (TableModelClass) this.getModel();
-							SettingsClass clsSettings = classModel.getClassesSettings().get(row);
+							ClassSettings clsSettings = classModel.getClassesSettings().get(row);
 							if (clsSettings.getCls().isAbstract()) {
 								if (clsSettings.isAssociationClass()) {
 									return new RendererNameAbstractAssociationClass();
@@ -80,7 +80,7 @@ public class TableBuilder {
 							break;
 						case ConfigurationTerms.ATTRIBUTES:
 							TableModelAttribute attributeModel = (TableModelAttribute) this.getModel();
-							SettingsAttribute attrSettings = attributeModel.getAttributesSettings().get(row);
+							AttributeSettings attrSettings = attributeModel.getAttributesSettings().get(row);
 							if (attrSettings.isInherited()) {
 								return new RendererNameInheritedAttribute();
 							}
@@ -202,7 +202,7 @@ public class TableBuilder {
 	}
 	
 	public JTable attributes(){
-		List<SettingsAttribute> attributes = 
+		List<AttributeSettings> attributes = 
 					new ArrayList<>(allSettings.getAllClassesSettings().get(0).getAttributeSettings().values());
 		JTable table = createConfigurationTable(new TableModelAttribute(attributes));
 		table.setName(ConfigurationTerms.ATTRIBUTES);
@@ -214,7 +214,7 @@ public class TableBuilder {
 	}
 	
 	public JTable associations(){
-		List<SettingsAssociation> associations = 
+		List<AssociationSettings> associations = 
 					new ArrayList<>(allSettings.getAllClassesSettings().get(0).getAssociationSettings().values());
 		JTable table = createConfigurationTable(new TableModelAssociation(associations));
 		table.setName(ConfigurationTerms.ASSOCIATIONS);

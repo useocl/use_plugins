@@ -2,12 +2,12 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 
 import org.tzi.use.uml.mm.MAssociation;
 
-public class SettingsAssociation extends Settings {
+public class AssociationSettings extends InstanceSettings {
 	
 	private final MAssociation association;
 	public final Boolean isAssociationClass;
 	
-	public SettingsAssociation(MAssociation association, Boolean isAC, SettingsConfiguration settingsConfiguration) {
+	public AssociationSettings(MAssociation association, Boolean isAC, SettingsConfiguration settingsConfiguration) {
 		super(settingsConfiguration);
 		this.getBounds().setUpperLimited(false);
 		this.association = association;

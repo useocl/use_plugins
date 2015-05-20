@@ -7,12 +7,12 @@ import javax.swing.table.DefaultTableModel;
 
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsInvariant;
+import org.tzi.use.kodkod.plugin.gui.model.data.InvariantSettings;
 
 public class TableModelInvariant extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	private List<SettingsInvariant> settings = new ArrayList<>();
+	private List<InvariantSettings> settings = new ArrayList<>();
 	
 	private static String[] columnNames = new String[] {
 		ConfigurationTerms.INVARIANTS, 
@@ -20,7 +20,7 @@ public class TableModelInvariant extends DefaultTableModel {
 		ConfigurationTerms.INVARIANTS_NEGATE 
 	};
 	
-	public TableModelInvariant(List<SettingsInvariant> settings) {
+	public TableModelInvariant(List<InvariantSettings> settings) {
 		super();
 		this.settings = settings;
 	}
@@ -88,7 +88,7 @@ public class TableModelInvariant extends DefaultTableModel {
 		}
 	}
 
-	public List<SettingsInvariant> getSettings() {
+	public List<InvariantSettings> getSettings() {
 		return settings;
 	}
 	

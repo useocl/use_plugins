@@ -1,7 +1,7 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
 
-public class SettingsOption {
+public class OptionSettings {
 	
 	private Boolean aggregationcyclefreeness;
 	private Boolean forbiddensharing;
@@ -11,7 +11,7 @@ public class SettingsOption {
 		return configurationSettings;
 	}
 
-	public SettingsOption(SettingsConfiguration configurationSettings) {
+	public OptionSettings(SettingsConfiguration configurationSettings) {
 		this.configurationSettings = configurationSettings;
 	}
 

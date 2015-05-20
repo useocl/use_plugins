@@ -3,20 +3,20 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 
-public class SettingsReal {
+public class IntegerSettings {
 	
-	private String name = TypeConstants.REAL;
+	private String name = TypeConstants.INTEGER;
 	private boolean enabled;
-	private Double minimum;
-	private Double maximum;
-	private Double realStep;
+	private Integer minimum;
+	private Integer maximum;
 	private List<String> values = new ArrayList<>();
 	private SettingsConfiguration configurationSettings;
 	
-	public SettingsReal(SettingsConfiguration configurationSettings) {
+	public IntegerSettings(SettingsConfiguration configurationSettings) {
 		this.configurationSettings = configurationSettings;
 	}
 	
@@ -27,34 +27,41 @@ public class SettingsReal {
 	public SettingsConfiguration getConfigurationSettings() {
 		return configurationSettings;
 	}
-
-	public Double getMinimum() {
+	
+	public Integer getMinimum() {
 		return this.minimum;
 	}
 	
-	public void setMinimum(Double minimum) {
-		this.minimum = minimum;
+	public void setMinimum(Object minimum) {
+		if (minimum == null) {
+			this.minimum = null;
+		} else {
+			if (minimum.equals("")) {
+				this.minimum = null;
+			} else {
+				this.minimum = (Integer) minimum;
+			}
+		}
 		this.configurationSettings.setChanged(true);
 	}
 	
-	public Double getMaximum() {
+	public Integer getMaximum() {
 		return this.maximum;
 	}
 	
-	public void setMaximum(Double maximum) {
-		this.maximum = maximum;
+	public void setMaximum(Object maximum) {
+		if (maximum == null) {
+			this.maximum = null;
+		} else {
+			if (maximum.equals("")) {
+				this.maximum = null;
+			} else {
+				this.maximum = (Integer) maximum;
+			}
+		}
 		this.configurationSettings.setChanged(true);
 	}
-
-	public Double getStep() {
-		return realStep;
-	}
-
-	public void setStep(Double realStep) {
-		this.realStep = realStep;
-		this.configurationSettings.setChanged(true);
-	}
-	
+		
 	public List<String> getValues() {
 		return values;
 	}
@@ -73,4 +80,13 @@ public class SettingsReal {
 		values.clear();
 	}
 
+	/**
+	 * Resets these Settings to default values.
+	 */
+	public void reset() {
+		minimum = DefaultConfigurationValues.integerMin;
+		maximum = DefaultConfigurationValues.integerMax;
+		deleteValues();
+	}
+	
 }

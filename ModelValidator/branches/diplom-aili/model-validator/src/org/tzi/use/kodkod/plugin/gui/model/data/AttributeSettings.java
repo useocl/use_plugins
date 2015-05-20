@@ -2,14 +2,14 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 
 import org.tzi.use.uml.mm.MAttribute;
 
-public class SettingsAttribute extends Settings {
+public class AttributeSettings extends InstanceSettings {
 
 	private final MAttribute attribute;
-	private final SettingsClass classSettings;
+	private final ClassSettings classSettings;
 	private final Boolean inherited;
 	private Bounds collectionSize = new Bounds();
 
-	public SettingsAttribute(MAttribute attribute, SettingsClass classSettings, Boolean inherited, SettingsConfiguration configurationSettings) {
+	public AttributeSettings(MAttribute attribute, ClassSettings classSettings, Boolean inherited, SettingsConfiguration configurationSettings) {
 		super(configurationSettings);
 		this.getBounds().setLowerLimited(false);
 		this.getBounds().setUpperLimited(false);
@@ -19,7 +19,7 @@ public class SettingsAttribute extends Settings {
 		this.inherited = inherited;
 	}
 
-	public SettingsClass getClassSettings() {
+	public ClassSettings getClassSettings() {
 		return classSettings;
 	}
 	

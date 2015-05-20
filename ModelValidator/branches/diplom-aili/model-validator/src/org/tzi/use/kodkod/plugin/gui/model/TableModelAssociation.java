@@ -7,14 +7,14 @@ import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAssociation;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
+import org.tzi.use.kodkod.plugin.gui.model.data.AssociationSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.util.StringUtil;
 
 public class TableModelAssociation extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	private List<SettingsAssociation> associationsSettings = Collections.emptyList();
+	private List<AssociationSettings> associationsSettings = Collections.emptyList();
 	
 	private static String[] columnNames = new String[] {
 			ConfigurationTerms.ASSOCIATIONS,
@@ -22,7 +22,7 @@ public class TableModelAssociation extends DefaultTableModel {
 			ConfigurationTerms.ASSOCIATIONS_MAX,
 			ConfigurationTerms.ASSOCIATIONS_VALUES };
 	
-	public TableModelAssociation(List<SettingsAssociation> settings) {
+	public TableModelAssociation(List<AssociationSettings> settings) {
 		super();
 		if (settings != null) {
 			this.associationsSettings = settings;
@@ -59,7 +59,7 @@ public class TableModelAssociation extends DefaultTableModel {
 
 	@Override
 	public Object getValueAt(int row, int col) {
-		SettingsAssociation set = associationsSettings.get(row);
+		AssociationSettings set = associationsSettings.get(row);
 		
 		switch(col) {
 		case 0: 
@@ -85,7 +85,7 @@ public class TableModelAssociation extends DefaultTableModel {
 
 	@Override
 	public void setValueAt(Object aValue, int row, int column) {
-		SettingsAssociation set = this.associationsSettings.get(row);
+		AssociationSettings set = this.associationsSettings.get(row);
 		
 		switch (column) {
 		case 1:
@@ -102,12 +102,12 @@ public class TableModelAssociation extends DefaultTableModel {
 		}
 	}
 
-	public void setClass(SettingsClass classSettings) {
+	public void setClass(ClassSettings classSettings) {
 		this.associationsSettings = new ArrayList<>(classSettings.getAssociationSettings().values());
 		this.fireTableDataChanged();
 	}
 
-	public List<SettingsAssociation> getAssociationsSettings() {
+	public List<AssociationSettings> getAssociationsSettings() {
 		return associationsSettings;
 	}
 

@@ -9,15 +9,15 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.config.impl.PropertyEntry;
 import org.tzi.kodkod.model.type.TypeConstants;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAssociation;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsAttribute;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsClass;
+import org.tzi.use.kodkod.plugin.gui.model.data.AssociationSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsInteger;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsInvariant;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsOption;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsReal;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsString;
+import org.tzi.use.kodkod.plugin.gui.model.data.IntegerSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.InvariantSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.OptionSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.RealSettings;
+import org.tzi.use.kodkod.plugin.gui.model.data.StringSettings;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClassImpl;
 import org.tzi.use.uml.mm.MAttribute;
@@ -32,12 +32,12 @@ final public class ChangeConfiguration {
 	
 	public static PropertiesConfiguration toProperties(final SettingsConfiguration settings, final MModel model) {
 		PropertiesConfiguration pc = new PropertiesConfiguration();
-		SettingsInteger integerSettings = settings.getIntegerTypeSettings();
-		SettingsReal realSettings = settings.getRealTypeSettings();
-		SettingsString stringSettings = settings.getStringTypeSettings();
-		SettingsOption optionsSettings = settings.getOptionSettings();
-		List<SettingsClass> classesSettings = settings.getAllClassesSettings();
-		List<SettingsInvariant> invariantsSettings = settings.getAllInvariantsSettings();
+		IntegerSettings integerSettings = settings.getIntegerTypeSettings();
+		RealSettings realSettings = settings.getRealTypeSettings();
+		StringSettings stringSettings = settings.getStringTypeSettings();
+		OptionSettings optionsSettings = settings.getOptionSettings();
+		List<ClassSettings> classesSettings = settings.getAllClassesSettings();
+		List<InvariantSettings> invariantsSettings = settings.getAllInvariantsSettings();
 		
 		if (integerSettings.getMinimum() != null)
 			pc.setProperty(integerSettings.name()+PropertyEntry.integerValueMin, integerSettings.getMinimum());
@@ -104,9 +104,9 @@ final public class ChangeConfiguration {
 			}
 		}
 		
-		Iterator<SettingsClass> classesIterator = classesSettings.iterator();
+		Iterator<ClassSettings> classesIterator = classesSettings.iterator();
 		while (classesIterator.hasNext()) {
-			SettingsClass classSettings = classesIterator.next();
+			ClassSettings classSettings = classesIterator.next();
 			if (!classSettings.isAssociationClass()) {
 				if (classSettings.getBounds().getLower() != null)
 					pc.setProperty(classSettings.getCls().name()+PropertyEntry.objMin, classSettings.getBounds().getLower());
@@ -136,9 +136,9 @@ final public class ChangeConfiguration {
 					pc.clearProperty(classSettings.getCls().name()+PropertyEntry.ASSOCIATIONCLASS);
 				}
 			}
-			Iterator<SettingsAttribute> attributesIterator = classSettings.getAttributeSettings().values().iterator();
+			Iterator<AttributeSettings> attributesIterator = classSettings.getAttributeSettings().values().iterator();
 			while (attributesIterator.hasNext()) {
-				SettingsAttribute attributeSettings = attributesIterator.next();
+				AttributeSettings attributeSettings = attributesIterator.next();
 				String attribute = attributeSettings.getAttribute().owner().name()+"_"+attributeSettings.getAttribute().name();
 				if (attributeSettings.getBounds().getLower() != null)
 					pc.setProperty(attribute+PropertyEntry.attributeDefValuesMin, attributeSettings.getBounds().getLower());
@@ -160,9 +160,9 @@ final public class ChangeConfiguration {
 					pc.clearProperty(attribute);
 				}
 			}
-			Iterator<SettingsAssociation> associationsIterator = classSettings.getAssociationSettings().values().iterator();
+			Iterator<AssociationSettings> associationsIterator = classSettings.getAssociationSettings().values().iterator();
 			while (associationsIterator.hasNext()) {
-				SettingsAssociation associationSettings = associationsIterator.next();
+				AssociationSettings associationSettings = associationsIterator.next();
 				String association = associationSettings.getAssociation().name();
 				if (associationSettings.getBounds().getLower() != null)
 					pc.setProperty(association+PropertyEntry.linksMin, associationSettings.getBounds().getLower());
@@ -182,9 +182,9 @@ final public class ChangeConfiguration {
 			}
 		}
 		
-		Iterator<SettingsInvariant> invariantsIterator = invariantsSettings.iterator();
+		Iterator<InvariantSettings> invariantsIterator = invariantsSettings.iterator();
 		while (invariantsIterator.hasNext()) {
-			SettingsInvariant invariantSettings = invariantsIterator.next();
+			InvariantSettings invariantSettings = invariantsIterator.next();
 			String set = PropertyEntry.INVARIANT_INACTIVE;
 			if (invariantSettings.getActive() != null || invariantSettings.getNegate() != null) {
 				if (invariantSettings.getActive() && invariantSettings.getNegate()){
@@ -504,33 +504,33 @@ final public class ChangeConfiguration {
 		settings.getOptionSettings().setAggregationcyclefreeness(DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS);
 		settings.getOptionSettings().setForbiddensharing(DefaultConfigurationValues.FORBIDDENSHARING);
 		
-		Iterator<SettingsClass> classSettingsIterator = settings.getAllClassesSettings().iterator();
+		Iterator<ClassSettings> classSettingsIterator = settings.getAllClassesSettings().iterator();
 		while (classSettingsIterator.hasNext()) {
-			SettingsClass classSettings = classSettingsIterator.next();
+			ClassSettings classSettings = classSettingsIterator.next();
 			classSettings.getBounds().setLower(DefaultConfigurationValues.objectsPerClassMin);
 			classSettings.getBounds().setUpper(DefaultConfigurationValues.objectsPerClassMax);
 			classSettings.deleteValues();
-			Iterator<SettingsAttribute> attributeSettingsIterator = classSettings.getAttributeSettings().values().iterator();
+			Iterator<AttributeSettings> attributeSettingsIterator = classSettings.getAttributeSettings().values().iterator();
 			while (attributeSettingsIterator.hasNext()) {
-				SettingsAttribute attributeSettings = attributeSettingsIterator.next();
+				AttributeSettings attributeSettings = attributeSettingsIterator.next();
 				attributeSettings.getBounds().setLower(DefaultConfigurationValues.attributesPerClassMin);
 				attributeSettings.getBounds().setUpper(DefaultConfigurationValues.attributesPerClassMax);
 				attributeSettings.getCollectionSize().setLower(DefaultConfigurationValues.attributesColSizeMin);
 				attributeSettings.getCollectionSize().setUpper(DefaultConfigurationValues.attributesColSizeMax);
 				attributeSettings.deleteValues();
 			}
-			Iterator<SettingsAssociation> associationSettingsIterator = classSettings.getAssociationSettings().values().iterator();
+			Iterator<AssociationSettings> associationSettingsIterator = classSettings.getAssociationSettings().values().iterator();
 			while (associationSettingsIterator.hasNext()) {
-				SettingsAssociation associationSettings = associationSettingsIterator.next();
+				AssociationSettings associationSettings = associationSettingsIterator.next();
 				associationSettings.getBounds().setLower(DefaultConfigurationValues.linksPerAssocMin);
 				associationSettings.getBounds().setUpper(DefaultConfigurationValues.linksPerAssocMax);
 				associationSettings.deleteValues();
 			}
 		}
 		
-		Iterator<SettingsInvariant> invariantSettingsIterator = settings.getAllInvariantsSettings().iterator();
+		Iterator<InvariantSettings> invariantSettingsIterator = settings.getAllInvariantsSettings().iterator();
 		while (invariantSettingsIterator.hasNext()) {
-			SettingsInvariant invariantSettings = invariantSettingsIterator.next();
+			InvariantSettings invariantSettings = invariantSettingsIterator.next();
 			invariantSettings.setActive(DefaultConfigurationValues.INVARIANT_ACTIVE);
 			invariantSettings.setNegate(DefaultConfigurationValues.INVARIANT_NEGATE);
 		}
@@ -551,33 +551,33 @@ final public class ChangeConfiguration {
 		settings.getOptionSettings().setAggregationcyclefreeness(null);
 		settings.getOptionSettings().setForbiddensharing(null);
 		
-		Iterator<SettingsClass> classSettingsIterator = settings.getAllClassesSettings().iterator();
+		Iterator<ClassSettings> classSettingsIterator = settings.getAllClassesSettings().iterator();
 		while (classSettingsIterator.hasNext()) {
-			SettingsClass classSettings = classSettingsIterator.next();
+			ClassSettings classSettings = classSettingsIterator.next();
 			classSettings.getBounds().setLower(null);
 			classSettings.getBounds().setUpper(null);
 			classSettings.deleteValues();
-			Iterator<SettingsAttribute> attributeSettingsIterator = classSettings.getAttributeSettings().values().iterator();
+			Iterator<AttributeSettings> attributeSettingsIterator = classSettings.getAttributeSettings().values().iterator();
 			while (attributeSettingsIterator.hasNext()) {
-				SettingsAttribute attributeSettings = attributeSettingsIterator.next();
+				AttributeSettings attributeSettings = attributeSettingsIterator.next();
 				attributeSettings.getBounds().setLower(null);
 				attributeSettings.getBounds().setUpper(null);
 				attributeSettings.getCollectionSize().setLower(null);
 				attributeSettings.getCollectionSize().setUpper(null);
 				attributeSettings.deleteValues();
 			}
-			Iterator<SettingsAssociation> associationSettingsIterator = classSettings.getAssociationSettings().values().iterator();
+			Iterator<AssociationSettings> associationSettingsIterator = classSettings.getAssociationSettings().values().iterator();
 			while (associationSettingsIterator.hasNext()) {
-				SettingsAssociation associationSettings = associationSettingsIterator.next();
+				AssociationSettings associationSettings = associationSettingsIterator.next();
 				associationSettings.getBounds().setLower(null);
 				associationSettings.getBounds().setUpper(null);
 				associationSettings.deleteValues();
 			}
 		}
 		
-		Iterator<SettingsInvariant> invariantSettingsIterator = settings.getAllInvariantsSettings().iterator();
+		Iterator<InvariantSettings> invariantSettingsIterator = settings.getAllInvariantsSettings().iterator();
 		while (invariantSettingsIterator.hasNext()) {
-			SettingsInvariant invariantSettings = invariantSettingsIterator.next();
+			InvariantSettings invariantSettings = invariantSettingsIterator.next();
 			invariantSettings.setActive(null);
 			invariantSettings.setNegate(null);
 		}

@@ -3,13 +3,13 @@ package org.tzi.use.kodkod.plugin.gui.model;
 import javax.swing.table.DefaultTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsString;
+import org.tzi.use.kodkod.plugin.gui.model.data.StringSettings;
 import org.tzi.use.util.StringUtil;
 
 public class TableModelString extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	private SettingsString settings;
+	private StringSettings settings;
 	
 	private static String[] columnNames = new String[] {
 		ConfigurationTerms.BASIC_TYPE,
@@ -17,7 +17,7 @@ public class TableModelString extends DefaultTableModel {
 		ConfigurationTerms.STRING_MAX,
 		ConfigurationTerms.STRING_VALUES };
 	
-	public TableModelString(SettingsString settings) {
+	public TableModelString(StringSettings settings) {
 		super();
 		this.settings = settings;
 	}
@@ -90,7 +90,7 @@ public class TableModelString extends DefaultTableModel {
 		}
 	}
 
-	public SettingsString getSettings() {
+	public StringSettings getSettings() {
 		return settings;
 	}
 

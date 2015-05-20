@@ -4,18 +4,18 @@ import javax.swing.table.DefaultTableModel;
 
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
-import org.tzi.use.kodkod.plugin.gui.model.data.SettingsOption;
+import org.tzi.use.kodkod.plugin.gui.model.data.OptionSettings;
 
 public class TableModelOption extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	private SettingsOption settings;
+	private OptionSettings settings;
 	
 	private static String[] columnNames = new String[] {
 		ConfigurationTerms.OPTIONS,
 		"" };
 	
-	public TableModelOption(SettingsOption settings) {
+	public TableModelOption(OptionSettings settings) {
 		this.settings = settings;
 	}
 	
@@ -89,7 +89,7 @@ public class TableModelOption extends DefaultTableModel {
         return getValueAt(0, col).getClass();
     }
 
-	public SettingsOption getSettings() {
+	public OptionSettings getSettings() {
 		return settings;
 	}
 
