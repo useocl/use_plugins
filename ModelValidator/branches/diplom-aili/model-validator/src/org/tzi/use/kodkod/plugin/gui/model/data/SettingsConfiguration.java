@@ -2,6 +2,7 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.tzi.use.uml.mm.MClass;
@@ -13,15 +14,14 @@ public class SettingsConfiguration {
 	private final MModel model;
 	
 	private SettingsInteger integerTypeSettings = new SettingsInteger(this);
-	private SettingsReal realTypeSettings = new SettingsReal(this);
 	private SettingsString stringTypeSettings = new SettingsString(this);
+	private SettingsReal realTypeSettings = new SettingsReal(this);
 	private SettingsOption optionSettings = new SettingsOption(this);
-	private Map<MClass,SettingsClass> classSettingsMap = new HashMap<>();
+	private Map<MClass, SettingsClass> classSettingsMap = new HashMap<>();
 	private Map<MClassInvariant, SettingsInvariant> invariantSettingsMap = new HashMap<>();
 	private boolean changed = false;
 
 	public SettingsConfiguration(MModel model) {
-		super();
 		this.model = model;
 		
 		for (MClass cls : model.classes()) {
@@ -44,25 +44,25 @@ public class SettingsConfiguration {
 	public SettingsInteger getIntegerTypeSettings() {
 		return integerTypeSettings;
 	}
-
+	
 	public void setIntegerTypeSettings(SettingsInteger integerTypeSettings) {
 		this.integerTypeSettings = integerTypeSettings;
 	}
-
-	public SettingsReal getRealTypeSettings() {
-		return realTypeSettings;
-	}
-
-	public void setRealTypeSettings(SettingsReal realTypeSettings) {
-		this.realTypeSettings = realTypeSettings;
-	}
-
+	
 	public SettingsString getStringTypeSettings() {
 		return stringTypeSettings;
 	}
-
+	
 	public void setStringTypeSettings(SettingsString stringTypeSettings) {
 		this.stringTypeSettings = stringTypeSettings;
+	}
+	
+	public SettingsReal getRealTypeSettings() {
+		return realTypeSettings;
+	}
+	
+	public void setRealTypeSettings(SettingsReal realTypeSettings) {
+		this.realTypeSettings = realTypeSettings;
 	}
 	
 	public SettingsClass getClassSettings(String clsName) {
@@ -73,7 +73,7 @@ public class SettingsConfiguration {
 		return classSettingsMap.get(cls);
 	}
 	
-	public ArrayList<SettingsClass> getAllClassesSettings() {
+	public List<SettingsClass> getAllClassesSettings() {
 		return new ArrayList<SettingsClass>(classSettingsMap.values());
 	}
 
@@ -89,7 +89,7 @@ public class SettingsConfiguration {
 		return invariantSettingsMap.get(inv);
 	}
 	
-	public ArrayList<SettingsInvariant> getAllInvariantsSettings() {
+	public List<SettingsInvariant> getAllInvariantsSettings() {
 		return new ArrayList<SettingsInvariant>(invariantSettingsMap.values());
 	}
 	

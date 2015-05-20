@@ -3,12 +3,14 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 
 public class SettingsInteger {
 	
 	private String name = TypeConstants.INTEGER;
+	private boolean enabled;
 	private Integer minimum;
 	private Integer maximum;
 	private List<String> values = new ArrayList<>();
@@ -39,8 +41,8 @@ public class SettingsInteger {
 			} else {
 				this.minimum = (Integer) minimum;
 			}
-			this.configurationSettings.setChanged(true);
 		}
+		this.configurationSettings.setChanged(true);
 	}
 	
 	public Integer getMaximum() {
@@ -56,8 +58,8 @@ public class SettingsInteger {
 			} else {
 				this.maximum = (Integer) maximum;
 			}
-			this.configurationSettings.setChanged(true);
 		}
+		this.configurationSettings.setChanged(true);
 	}
 		
 	public List<String> getValues() {
@@ -65,7 +67,7 @@ public class SettingsInteger {
 	}
 	
 	public void setValues(String values) {
-		this.values = ChangeString.toArrayList((String)values);
+		this.values = ChangeString.toArrayList(values);
 		this.configurationSettings.setChanged(true);
 	}
 	
@@ -78,4 +80,13 @@ public class SettingsInteger {
 		values.clear();
 	}
 
+	/**
+	 * Resets these Settings to default values.
+	 */
+	public void reset() {
+		minimum = DefaultConfigurationValues.integerMin;
+		maximum = DefaultConfigurationValues.integerMax;
+		deleteValues();
+	}
+	
 }

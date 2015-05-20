@@ -9,6 +9,7 @@ import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 public class SettingsReal {
 	
 	private String name = TypeConstants.REAL;
+	private boolean enabled;
 	private Double minimum;
 	private Double maximum;
 	private Double realStep;
@@ -31,55 +32,27 @@ public class SettingsReal {
 		return this.minimum;
 	}
 	
-	public void setMinimum(Object minimum) {
-		if (minimum == null) {
-			this.minimum = null;
-		} else {
-			if (minimum.equals("")) {
-				this.minimum = null;
-			} else {
-				this.minimum = (Double) minimum;
-			}
-			this.configurationSettings.setChanged(true);
-		}
+	public void setMinimum(Double minimum) {
+		this.minimum = minimum;
+		this.configurationSettings.setChanged(true);
 	}
 	
 	public Double getMaximum() {
 		return this.maximum;
 	}
 	
-	public void setMaximum(Object maximum) {
-		if (maximum == null) {
-			this.maximum = null;
-		} else {
-			if (maximum.equals("")) {
-				this.minimum = null;
-			} else {
-				this.maximum = (Double) maximum;
-			}
-			this.configurationSettings.setChanged(true);
-		}
+	public void setMaximum(Double maximum) {
+		this.maximum = maximum;
+		this.configurationSettings.setChanged(true);
 	}
 
 	public Double getStep() {
 		return realStep;
 	}
 
-	public void setStep(Object realStep) {
-		if (realStep == null) {
-			this.realStep = null;
-		} else {
-			if (realStep instanceof String) {
-				if (realStep.equals("")) {
-					this.realStep = null;
-				} else {
-					this.realStep = Double.parseDouble((String)realStep);
-				}
-			} else if (realStep instanceof Double) {
-				this.realStep = (Double) realStep;
-			}
-			this.configurationSettings.setChanged(true);
-		}
+	public void setStep(Double realStep) {
+		this.realStep = realStep;
+		this.configurationSettings.setChanged(true);
 	}
 	
 	public List<String> getValues() {
@@ -87,7 +60,7 @@ public class SettingsReal {
 	}
 	
 	public void setValues(String values) {
-		this.values = ChangeString.toArrayList((String)values);
+		this.values = ChangeString.toArrayList(values);
 		this.configurationSettings.setChanged(true);
 	}
 	

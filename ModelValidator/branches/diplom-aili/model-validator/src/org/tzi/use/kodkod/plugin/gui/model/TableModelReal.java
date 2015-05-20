@@ -81,15 +81,27 @@ public class TableModelReal extends DefaultTableModel {
 	public void setValueAt(Object aValue, int row, int column) {
 		switch (column) {
 		case 1:
-			settings.setMinimum(aValue);
+			if(aValue == null || aValue.equals("")){
+				settings.setMinimum(null);
+			} else {
+				settings.setMinimum((Double) aValue);
+			}
 			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			settings.setMaximum(aValue);
+			if(aValue == null || aValue.equals("")){
+				settings.setMaximum(null);
+			} else {
+				settings.setMaximum((Double) aValue);
+			}
 			fireTableCellUpdated(row, column);
 			break;
 		case 3:
-			settings.setStep(aValue);
+			if(aValue == null){
+				settings.setStep(null);
+			} else {
+				settings.setStep((Double) aValue);
+			}
 			fireTableCellUpdated(row, column);
 			break;
 		case 4:

@@ -30,7 +30,7 @@ public abstract class Settings {
 	
 	public void setValues(String values) {
 		if (!(values.equals("") || values == null)) {
-			this.values = ChangeString.toArrayList((String)values);
+			this.values = ChangeString.toArrayList(values);
 			this.configurationSettings.setChanged(true);
 		} else {
 			deleteValues();
