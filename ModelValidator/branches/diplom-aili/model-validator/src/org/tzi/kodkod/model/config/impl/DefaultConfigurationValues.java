@@ -26,9 +26,9 @@ public class DefaultConfigurationValues {
 	public static final int integerMin = -10;
 	public static final int integerMax = 10;
 
-	public static final int realMin = -2;
-	public static final int realMax = 2;
-	public static final double realStep = 0.5;
+	public static final double realMin = -2d;
+	public static final double realMax = 2d;
+	public static final double realStep = 0.5d;
 	
 	public static final boolean AGGREGATIONCYCLEFREENESS = false;
 	public static final boolean FORBIDDENSHARING = true;

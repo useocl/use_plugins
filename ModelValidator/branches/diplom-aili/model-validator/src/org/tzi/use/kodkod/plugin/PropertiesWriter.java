@@ -153,10 +153,10 @@ public class PropertiesWriter {
 			write(real, propertyToString(pc.getProperty(real)));
 		}
 		if (pc.containsKey(realMin)) {
-			write(realMin, pc.getInt(realMin,DefaultConfigurationValues.realMin));
+			write(realMin, pc.getDouble(realMin, DefaultConfigurationValues.realMin));
 		}
 		if (pc.containsKey(realMax)) {
-			write(realMax, pc.getInt(realMax,DefaultConfigurationValues.realMax));
+			write(realMax, pc.getDouble(realMax, DefaultConfigurationValues.realMax));
 		}
 		if (pc.containsKey(realStep)) {
 			write(realStep, pc.getDouble(realStep,DefaultConfigurationValues.realStep));

@@ -36,7 +36,7 @@ public class RendererReal extends DefaultTableCellRenderer {
 			} else if (value instanceof String) {
 				value = Double.parseDouble((String)value);
 			} else {
-				this.setText(""+(Double)value);
+				this.setText(""+value);
 			}
 		} else {
 			this.setText("");

@@ -1,6 +1,7 @@
 package org.tzi.kodkod.model.config.impl;
 
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Contains the names for the configuration file.
@@ -69,23 +70,22 @@ public class PropertyEntry {
 	public static final String INVARIANT_INACTIVE = "inactive";
 	public static final String INVARIANT_NEGATE = "negate";
 	
-	public static final HashSet<String> allEndings = new HashSet<String>(){
-		private static final long serialVersionUID = 1L;
-	{
-		add(stringValuesMin);
-		add(stringValuesMax);
-		add(realValueMin);
-		add(realValueMax);
-		add(realStep);
-		add(integerValueMin);
-		add(integerValueMax);
-		add(objMin);
-		add(objMax);
-		add(linksMin);
-		add(linksMax);
-		add(attributeDefValuesMin);
-		add(attributeDefValuesMax);
-		add(attributeColSizeMin);
-		add(attributeColSizeMax);
-	}};
+	public static final Set<String> allEndings = new HashSet<String>();
+	static {
+		allEndings.add(stringValuesMin);
+		allEndings.add(stringValuesMax);
+		allEndings.add(realValueMin);
+		allEndings.add(realValueMax);
+		allEndings.add(realStep);
+		allEndings.add(integerValueMin);
+		allEndings.add(integerValueMax);
+		allEndings.add(objMin);
+		allEndings.add(objMax);
+		allEndings.add(linksMin);
+		allEndings.add(linksMax);
+		allEndings.add(attributeDefValuesMin);
+		allEndings.add(attributeDefValuesMax);
+		allEndings.add(attributeColSizeMin);
+		allEndings.add(attributeColSizeMax);
+	}
 }

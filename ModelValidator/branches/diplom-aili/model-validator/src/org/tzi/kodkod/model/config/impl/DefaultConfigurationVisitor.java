@@ -111,8 +111,8 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	@Override
 	public void visitIntegerType(IntegerType integerType) {
 		IntegerConfigurator configurator = new IntegerConfigurator();
-		setRange(configurator, integerType.name() + PropertyEntry.integerValueMin, DefaultConfigurationValues.integerMin, integerType.name()
-				+ PropertyEntry.integerValueMax, DefaultConfigurationValues.integerMax);
+		setRange(configurator, integerType.name() + PropertyEntry.integerValueMin, DefaultConfigurationValues.integerMin,
+				integerType.name() + PropertyEntry.integerValueMax, DefaultConfigurationValues.integerMax);
 		integerType.setConfigurator(configurator);
 
 	}
@@ -121,22 +121,19 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	public void visitRealType(RealType realType) {
 		RealConfigurator configurator = new RealConfigurator();
 		configurator.setStep(DefaultConfigurationValues.realStep);
-		setRange(configurator, realType.name() + PropertyEntry.realValueMin, DefaultConfigurationValues.realMin, realType.name()
-				+ PropertyEntry.realValueMax, DefaultConfigurationValues.realMax);
+		// the model validator tries to treat reals like integers for basic arithmetic support
+		setRange(configurator, realType.name() + PropertyEntry.realValueMin, (int) DefaultConfigurationValues.realMin, 
+				realType.name() + PropertyEntry.realValueMax, (int) DefaultConfigurationValues.realMax);
 		realType.setConfigurator(configurator);
 		write(realType.name() + PropertyEntry.realStep, DefaultConfigurationValues.realStep);
 	}
 
 	private void setRange(TypeConfigurator configurator, String minName, int minValue, String maxName, int maxValue) {
-		try {
-			List<Range> ranges = new ArrayList<Range>();
-			ranges.add(new Range(minValue, maxValue));
-			configurator.setRanges(ranges);
-			write(minName, minValue);
-			write(maxName, maxValue);
-		} catch (Exception e) {
-			LOG.error(e.getMessage());
-		}
+		List<Range> ranges = new ArrayList<Range>();
+		ranges.add(new Range(minValue, maxValue));
+		configurator.setRanges(ranges);
+		write(minName, minValue);
+		write(maxName, maxValue);
 	}
 
 	/**

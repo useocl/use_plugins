@@ -39,8 +39,6 @@ public class RendererInteger extends DefaultTableCellRenderer {
 				} else {
 					value = Integer.valueOf((String) value);
 				}
-			} else {
-				value = (Integer) value;
 			}
 			this.setText(""+value);
 		} else {

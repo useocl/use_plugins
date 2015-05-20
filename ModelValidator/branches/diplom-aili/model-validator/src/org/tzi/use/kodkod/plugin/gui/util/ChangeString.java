@@ -1,6 +1,7 @@
 package org.tzi.use.kodkod.plugin.gui.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 final public class ChangeString {
@@ -29,72 +30,30 @@ final public class ChangeString {
 		}
 	}
 	
-/*	*//**
-	 * @param values in the String must be splitted through ","
-	 * @return an ArrayList with every element of the given String listed
-	 *//*
-	public static List<String> prepareForSettings(String values) {
-		if (values != null) {
-			String [] sepValues = values.split("[,]");
-			sepValues[0] = "Set{" + sepValues[0].trim();
-			for (int i = 1; i < sepValues.length-1; i++) {
-				sepValues[i] = sepValues[i].trim();
-			}
-			sepValues[sepValues.length-1] = sepValues[sepValues.length-1].trim() + "}"; 
-			List<String> listValues = new ArrayList<>();
-			for (String value : sepValues) {
-				listValues.add(value);
-			}
-			return listValues;
-		} else { 
-			return null;
-		}
-	}*/
-	
-	/*public static String prepareForTable(Object arrayList) {
-		String string;
-		if (!(arrayList instanceof String)) {
-			if (arrayList == null) {
-				return "";
-			}
-			string = arrayList.toString().trim();
-			if (!string.equals("[]")){
-				return string.substring(5, string.length()-2);
-			} else {
-				return "";
-			}
-		} else {
-			string = (String) arrayList;
-			string = string.trim();
-			return string.substring(4,string.length()-1);
-		}
-	}*/
-	
 	public static List<String> formatPropertyListForSetting(Object arrayList) {
-		String string;
-		if (!(arrayList instanceof String)) {
-			if (arrayList == null) {
-				string = "";
-			} else {
-				string = arrayList.toString().trim();
-				if (!string.equals("[]")){
-					string = string.substring(5, string.length()-2);
-				} else {
-					string = "";
-				}
-			}
-		} else {
+		//TODO strengthen method (get rid of Object type parameter)
+		
+		String string = "";
+		if(arrayList == null){
+			string = "";
+		} else if(arrayList instanceof String){
 			string = (String) arrayList;
 			string = string.trim();
 			string = string.substring(4,string.length()-1);
+		} else if(arrayList instanceof Collection<?>){
+			//XXX unsafe
+			string = arrayList.toString().trim();
+			if (!string.equals("[]")){
+				string = string.substring(5, string.length()-2);
+			} else {
+				string = "";
+			}
 		}
 		
-		String [] sepValues = string.split("[,]");
-		sepValues[0] = sepValues[0].trim();
-		for (int i = 1; i < sepValues.length-1; i++) {
+		String [] sepValues = string.split(",");
+		for (int i = 0; i < sepValues.length; i++) {
 			sepValues[i] = sepValues[i].trim();
 		}
-		sepValues[sepValues.length-1] = sepValues[sepValues.length-1].trim(); 
 		List<String> listValues = new ArrayList<>();
 		for (String value : sepValues) {
 			listValues.add(value);
@@ -152,10 +111,6 @@ final public class ChangeString {
 	
 	public static String italic(String string) {
 		return "<i>"+string+"</i>";
-	}
-	
-	public static String backward(String string){
-		return new StringBuilder(string).reverse().toString();
 	}
 
 }

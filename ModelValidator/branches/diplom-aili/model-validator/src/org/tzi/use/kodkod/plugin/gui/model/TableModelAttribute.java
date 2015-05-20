@@ -1,7 +1,6 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
@@ -14,7 +13,7 @@ import org.tzi.use.util.StringUtil;
 public class TableModelAttribute extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	
-	private List<SettingsAttribute> attributesSettings = Collections.emptyList();
+	private List<SettingsAttribute> attributesSettings;
 	
 	private static String[] columnNames = new String[] {
 			ConfigurationTerms.ATTRIBUTES,
@@ -41,7 +40,7 @@ public class TableModelAttribute extends DefaultTableModel {
 
 	@Override
 	public int getColumnCount() {
-		return 6;
+		return columnNames.length;
 	}
 
 	@Override

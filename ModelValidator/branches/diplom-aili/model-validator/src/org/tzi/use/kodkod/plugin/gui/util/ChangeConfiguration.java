@@ -492,11 +492,11 @@ final public class ChangeConfiguration {
 	public static void toDefaultSettings(SettingsConfiguration settings) {
 		settings.getIntegerTypeSettings().setMinimum(DefaultConfigurationValues.integerMin);
 		settings.getIntegerTypeSettings().setMaximum(DefaultConfigurationValues.integerMax);
-		settings.getIntegerTypeSettings().deleteValues();;
-		settings.getRealTypeSettings().setMinimum(1.0*DefaultConfigurationValues.realMin);
-		settings.getRealTypeSettings().setMaximum(1.0*DefaultConfigurationValues.realMax);
+		settings.getIntegerTypeSettings().deleteValues();
+		settings.getRealTypeSettings().setMinimum(DefaultConfigurationValues.realMin);
+		settings.getRealTypeSettings().setMaximum(DefaultConfigurationValues.realMax);
 		settings.getRealTypeSettings().setStep(DefaultConfigurationValues.realStep);
-		settings.getRealTypeSettings().deleteValues();;
+		settings.getRealTypeSettings().deleteValues();
 		settings.getStringTypeSettings().getBounds().setLower(DefaultConfigurationValues.stringMin);
 		settings.getStringTypeSettings().getBounds().setUpper(DefaultConfigurationValues.stringMax);
 		settings.getStringTypeSettings().deleteValues();
@@ -539,11 +539,11 @@ final public class ChangeConfiguration {
 	public static void clearSettings(SettingsConfiguration settings) {
 		settings.getIntegerTypeSettings().setMinimum(null);
 		settings.getIntegerTypeSettings().setMaximum(null);
-		settings.getIntegerTypeSettings().deleteValues();;
+		settings.getIntegerTypeSettings().deleteValues();
 		settings.getRealTypeSettings().setMinimum(null);
 		settings.getRealTypeSettings().setMaximum(null);
 		settings.getRealTypeSettings().setStep(null);
-		settings.getRealTypeSettings().deleteValues();;
+		settings.getRealTypeSettings().deleteValues();
 		settings.getStringTypeSettings().getBounds().setLower(null);
 		settings.getStringTypeSettings().getBounds().setUpper(null);
 		settings.getStringTypeSettings().deleteValues();

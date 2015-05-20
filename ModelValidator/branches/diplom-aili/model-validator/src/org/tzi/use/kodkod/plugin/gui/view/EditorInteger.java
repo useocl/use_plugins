@@ -19,7 +19,7 @@ public class EditorInteger extends DefaultCellEditor {
 	
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-		spinner.setValue((Integer) value);
+		spinner.setValue(value);
     	return spinner;
 	}
 	

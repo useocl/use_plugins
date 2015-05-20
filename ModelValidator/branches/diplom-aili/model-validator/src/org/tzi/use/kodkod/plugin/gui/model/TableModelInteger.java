@@ -12,7 +12,6 @@ public class TableModelInteger extends DefaultTableModel{
 	private SettingsInteger settings;
 	
 	private static String[] columnNames = new String[] {
-		ConfigurationTerms.BASIC_TYPE,
 		ConfigurationTerms.INTEGER_MIN,
 		ConfigurationTerms.INTEGER_MAX,
 		ConfigurationTerms.INTEGER_VALUES };
@@ -29,7 +28,7 @@ public class TableModelInteger extends DefaultTableModel{
 
 	@Override
 	public int getColumnCount() {
-		return 4;
+		return columnNames.length;
 	}
 
 	@Override
@@ -49,25 +48,23 @@ public class TableModelInteger extends DefaultTableModel{
 	@Override
 	public Object getValueAt(int row, int col) {
 		switch(col) {
-		case 0: 
-			return settings.name();
-		case 1:
+		case 0:
 			if (settings.getMinimum() != null) {
 				return settings.getMinimum();
 			} else {
 				return "";
 			}
-		case 2:
+		case 1:
 			if (settings.getMaximum() != null) {
 				return settings.getMaximum();
 			} else {
 				return "";
 			}
-		case 3:
+		case 2:
 			return StringUtil.fmtSeq(settings.getValues(), ",");
-		default:
-			return null;
 		}
+		
+		return null;
 	}
 
 	@Override
