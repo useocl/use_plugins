@@ -3,53 +3,57 @@ package org.tzi.use.kodkod.plugin.gui.model.data;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.tzi.use.uml.mm.MAssociation;
-import org.tzi.use.uml.mm.MAssociationClassImpl;
-import org.tzi.use.uml.mm.MAttribute;
-import org.tzi.use.uml.mm.MClass;
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
+import org.tzi.kodkod.model.iface.IAssociation;
+import org.tzi.kodkod.model.iface.IAssociationClass;
+import org.tzi.kodkod.model.iface.IAttribute;
+import org.tzi.kodkod.model.iface.IClass;
 
 public class ClassSettings extends InstanceSettings {
-	
-	private final MClass clazz;
-	private final Map<MAttribute,AttributeSettings> attributeSettings = new HashMap<>();
-	private final Map<MAssociation,AssociationSettings> associationSettings = new HashMap<>();
-	private final Boolean isAssociationClass;
 
-	public ClassSettings(MClass cls, SettingsConfiguration configurationSettings) {
+	protected final IClass clazz;
+	protected final Map<IAttribute, AttributeSettings> attributeSettings = new HashMap<>();
+	protected final Map<IAssociation, AssociationSettings> associationSettings = new HashMap<>();
+
+	public ClassSettings(SettingsConfiguration configurationSettings, IClass cls) {
 		super(configurationSettings);
-		this.clazz = cls;
-		this.isAssociationClass = cls instanceof MAssociationClassImpl;
-		
-		for (MAttribute attr : cls.allAttributes()) {
-			attributeSettings.put(attr, new AttributeSettings(attr, this, !clazz.attributes().contains(attr), configurationSettings));
+		clazz = cls;
+		lowerBound = DefaultConfigurationValues.objectsPerClassMin;
+		upperBound = DefaultConfigurationValues.objectsPerClassMax;
+
+		for (IAttribute attr : cls.allAttributes()) {
+			attributeSettings.put(attr, new AttributeSettings(configurationSettings, attr, !attr.owner().equals(clazz)));
 		}
-		
-		for (MAssociation assoc : cls.allAssociations()) {
-			if (!(assoc instanceof MAssociationClassImpl)) {
-				if (assoc.associationEnds().iterator().next().cls().equals(this.clazz)) {
-					associationSettings.put(assoc,  new AssociationSettings(assoc, false, configurationSettings));
-				}
+
+		for (IAssociation assoc : cls.allAssociations()) {
+			if (!(assoc instanceof IAssociationClass)
+					&& assoc.associationEnds().get(0).associatedClass().equals(clazz)) {
+				associationSettings.put(assoc, new AssociationSettings(configurationSettings, assoc));
 			}
 		}
-		
-		if (this.isAssociationClass) {
-			associationSettings.put((MAssociation) this.clazz, new AssociationSettings((MAssociation) this.clazz, true, configurationSettings));
+
+		if (clazz instanceof IAssociationClass) {
+			associationSettings.put((IAssociation) clazz, new AssociationSettings(configurationSettings, (IAssociation) clazz));
 		}
 	}
 
-	public Boolean isAssociationClass() {
-		return isAssociationClass;
-	}
-
-	public Map<MAttribute,AttributeSettings> getAttributeSettings() {
+	public Map<IAttribute, AttributeSettings> getAttributeSettings() {
 		return attributeSettings;
 	}
-	
-	public Map<MAssociation,AssociationSettings> getAssociationSettings() {
+
+	public Map<IAssociation, AssociationSettings> getAssociationSettings() {
 		return associationSettings;
 	}
 
-	public MClass getCls() {
+	public IClass getCls() {
 		return clazz;
 	}
+	
+	@Override
+	public void reset() {
+		super.reset();
+		lowerBound = DefaultConfigurationValues.objectsPerClassMin;
+		upperBound = DefaultConfigurationValues.objectsPerClassMax;
+	}
+	
 }

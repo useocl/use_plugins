@@ -2,12 +2,11 @@ package org.tzi.use.kodkod.plugin.gui;
 
 public class ConfigurationTerms {
 	
-	public static final String CLASSES = "Classes";
-	public static final String ATTRIBUTES = "Attributes";
-	public static final String ASSOCIATIONS = "Associations";
-	public static final String BASIC_TYPE = "Type";
-	public static final String OPTIONS = "Options";
-	public static final String INVARIANTS = "Invariants";
+	public static final String CLASSES = "Class";
+	public static final String ATTRIBUTES = "Attribute";
+	public static final String ASSOCIATIONS = "Association";
+	public static final String OPTIONS = "Option";
+	public static final String INVARIANTS = "Invariant";
 	
 	public static final String INTEGER_MIN = "Minimum";
 	public static final String INTEGER_MAX = "Maximum";

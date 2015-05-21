@@ -17,6 +17,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
 import org.tzi.kodkod.model.config.impl.PropertyEntry;
+import org.tzi.kodkod.model.iface.IAssociationClass;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAssociation;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAttribute;
@@ -41,7 +42,6 @@ import org.tzi.use.kodkod.plugin.gui.view.RendererNameAbstractAssociationClass;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameAbstractClass;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameAssociation;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameAssociationClass;
-import org.tzi.use.kodkod.plugin.gui.view.RendererNameDerivedAttribute;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNameInheritedAttribute;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNonEditable;
 import org.tzi.use.kodkod.plugin.gui.view.RendererReal;
@@ -68,28 +68,32 @@ public class TableBuilder {
 						case ConfigurationTerms.CLASSES: 
 							TableModelClass classModel = (TableModelClass) this.getModel();
 							ClassSettings clsSettings = classModel.getClassesSettings().get(row);
-							if (clsSettings.getCls().isAbstract()) {
-								if (clsSettings.isAssociationClass()) {
+							if(clsSettings.getCls() instanceof IAssociationClass){
+								if(clsSettings.getCls().isAbstract()) {
 									return new RendererNameAbstractAssociationClass();
+								} else {
+									return new RendererNameAssociationClass();
 								}
+							} else {
 								return new RendererNameAbstractClass();
 							}
-							if (clsSettings.isAssociationClass()) {
-								return new RendererNameAssociationClass();
-							}
-							break;
 						case ConfigurationTerms.ATTRIBUTES:
 							TableModelAttribute attributeModel = (TableModelAttribute) this.getModel();
 							AttributeSettings attrSettings = attributeModel.getAttributesSettings().get(row);
 							if (attrSettings.isInherited()) {
 								return new RendererNameInheritedAttribute();
 							}
-							if (attrSettings.getAttribute().isDerived()) {
-								return new RendererNameDerivedAttribute();
-							}
+							//TODO
+//							if (attrSettings.getAttribute().isDerived()) {
+//								return new RendererNameDerivedAttribute();
+//							}
 							break;
 						case ConfigurationTerms.ASSOCIATIONS:
 							return new RendererNameAssociation();
+						case TypeConstants.INTEGER:
+						case TypeConstants.STRING:
+						case TypeConstants.REAL:
+							return new RendererInteger();
 						}
 					}
 					return super.getCellRenderer(row, column);
@@ -109,7 +113,7 @@ public class TableBuilder {
 					return new RendererBounds();
 				} else {
 					return new RendererString();
-					//return super.getCellRenderer(row, column);
+//					return super.getCellRenderer(row, column);
 				}
 			}
 		
@@ -121,14 +125,14 @@ public class TableBuilder {
 						&& this.getName() != ConfigurationTerms.INVARIANTS) {
 					return new EditorString();
 				} else if (getName().equals(TypeConstants.REAL)) {
-					if (column > 0 && column < getColumnCount()-2) {
+					if (column >= 0 && column < getColumnCount()-2) {
 						return new EditorReal();
 					} else if (colHeader.equals(ConfigurationTerms.REAL_STEP)) {
 						return new EditorRealStep();
 					}
-				} else if (getName().equals(TypeConstants.INTEGER) && column > 0) {
+				} else if (getName().equals(TypeConstants.INTEGER) && column >= 0) {
 					return new EditorInteger();
-				} else if (column > 0 && column < getColumnCount()-1 && this.getName() != ConfigurationTerms.INVARIANTS) {
+				} else if (column >= 0 && column < getColumnCount()-1 && this.getName() != ConfigurationTerms.INVARIANTS) {
 					if (	colHeader.equals(ConfigurationTerms.ATTRIBUTES_MIN) ||
 							colHeader.equals(ConfigurationTerms.ATTRIBUTES_MAX) ||
 							colHeader.equals(ConfigurationTerms.ATTRIBUTES_MAXSIZE) ||

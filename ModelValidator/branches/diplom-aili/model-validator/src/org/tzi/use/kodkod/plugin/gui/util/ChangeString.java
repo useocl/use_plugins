@@ -14,24 +14,25 @@ final public class ChangeString {
 	 * @return an ArrayList with the elements from the given string
 	 */
 	public static List<String> toArrayList(String values) {
-		if (values != null) {
-			String [] sepValues = values.split("[,]");
-			sepValues[0] = sepValues[0].trim();
-			for (int i = 1; i < sepValues.length-1; i++) {
-				sepValues[i] = sepValues[i].trim();
-			}
-			List<String> listValues = new ArrayList<>();
-			for (String value : sepValues) {
-				listValues.add(value);
-			}
-			return listValues;
-		} else { 
+		if (values == null) {
 			return null;
 		}
+		
+		String [] sepValues = values.split("[,]");
+		sepValues[0] = sepValues[0].trim();
+		for (int i = 1; i < sepValues.length-1; i++) {
+			sepValues[i] = sepValues[i].trim();
+		}
+		List<String> listValues = new ArrayList<>();
+		for (String value : sepValues) {
+			listValues.add(value);
+		}
+		return listValues;
 	}
 	
 	public static List<String> formatPropertyListForSetting(Object arrayList) {
 		//TODO strengthen method (get rid of Object type parameter)
+		//TODO return Set (LinkedHashSet) instead of List, then search for occurrences of "Sets.newLinkedHashSet("
 		
 		String string = "";
 		if(arrayList == null){
@@ -62,6 +63,9 @@ final public class ChangeString {
 	}
 	
 	public static List<String> formatSettingValuesForProperty(Object arrayList) {
+		//TODO strengthen method (get rid of Object type parameter)
+		//TODO return Set (LinkedHashSet) instead of List, then search for occurrences of "Sets.newLinkedHashSet("
+		
 		String string;
 		if (!(arrayList instanceof String)) {
 			if (arrayList == null) {
@@ -90,15 +94,6 @@ final public class ChangeString {
 			listValues.add(value);
 		}
 		return listValues;
-	}
-	
-	public static boolean isInteger(String s) {
-	    try { 
-	        Integer.parseInt(s); 
-	    } catch(NumberFormatException e) { 
-	        return false; 
-	    }
-	    return true;
 	}
 	
 	public static String html(String string) {

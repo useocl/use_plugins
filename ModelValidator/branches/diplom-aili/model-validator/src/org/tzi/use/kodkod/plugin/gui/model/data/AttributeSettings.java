@@ -1,38 +1,56 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import org.tzi.use.uml.mm.MAttribute;
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
+import org.tzi.kodkod.model.iface.IAttribute;
 
 public class AttributeSettings extends InstanceSettings {
 
-	private final MAttribute attribute;
-	private final ClassSettings classSettings;
-	private final Boolean inherited;
-	private Bounds collectionSize = new Bounds();
+	protected final IAttribute attribute;
+	protected boolean inherited; //TODO check usefulness
+	protected int collectionSizeMin = DefaultConfigurationValues.attributesColSizeMin;
+	protected int collectionSizeMax = DefaultConfigurationValues.attributesColSizeMax;
 
-	public AttributeSettings(MAttribute attribute, ClassSettings classSettings, Boolean inherited, SettingsConfiguration configurationSettings) {
+	public AttributeSettings(SettingsConfiguration configurationSettings, IAttribute attribute, boolean inherited) {
 		super(configurationSettings);
-		this.getBounds().setLowerLimited(false);
-		this.getBounds().setUpperLimited(false);
-		this.getCollectionSize().setUpperLimited(false);
 		this.attribute = attribute;
-		this.classSettings = classSettings;
 		this.inherited = inherited;
+		lowerBound = DefaultConfigurationValues.attributesPerClassMin;
+		upperBound = DefaultConfigurationValues.attributesPerClassMax;
 	}
 
-	public ClassSettings getClassSettings() {
-		return classSettings;
-	}
-	
-	public Boolean isInherited() {
-		return this.inherited;
-	}
-
-	public MAttribute getAttribute() {
+	public IAttribute getAttribute() {
 		return attribute;
 	}
 
-	public Bounds getCollectionSize() {
-		return collectionSize;
+	public boolean isInherited() {
+		return inherited;
+	}
+	
+	public int getCollectionSizeMin() {
+		return collectionSizeMin;
 	}
 
+	public void setCollectionSizeMin(int collectionSizeMin) {
+		this.collectionSizeMin = collectionSizeMin;
+		settingsConfiguration.setChanged(true);
+	}
+
+	public int getCollectionSizeMax() {
+		return collectionSizeMax;
+	}
+
+	public void setCollectionSizeMax(int collectionSizeMax) {
+		this.collectionSizeMax = collectionSizeMax;
+		settingsConfiguration.setChanged(true);
+	}
+
+	@Override
+	public void reset() {
+		super.reset();
+		lowerBound = DefaultConfigurationValues.attributesPerClassMin;
+		upperBound = DefaultConfigurationValues.attributesPerClassMax;
+		collectionSizeMin = DefaultConfigurationValues.attributesColSizeMin;
+		collectionSizeMax = DefaultConfigurationValues.attributesColSizeMax;
+	}
+	
 }

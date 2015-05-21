@@ -147,6 +147,7 @@ public class ModelTransformator {
 					transformAggregationKind(mAssociationEnd.aggregationKind()),
 					model.getClass(mAssociationEnd.cls().name()));
 			association.addAssociationEnd(end);
+			end.associatedClass().addAssociation(association);
 		}
 		return association;
 	}

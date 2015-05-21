@@ -43,6 +43,21 @@ public interface IClass extends IModelElement, IGeneralization {
 	public IAttribute getAttribute(String name);
 
 	/**
+	 * Add an association to this class.
+	 */
+	public void addAssociation(IAssociation association);
+	
+	/**
+	 * Returns a collection of all associations involving this class.
+	 */
+	public Collection<IAssociation> associations();
+	
+	/**
+	 * Returns a collection of all associations involving this class or its parents.
+	 */
+	public Collection<IAssociation> allAssociations();
+	
+	/**
 	 * Adds a parent class.
 	 */
 	public void addParent(IClass parent);

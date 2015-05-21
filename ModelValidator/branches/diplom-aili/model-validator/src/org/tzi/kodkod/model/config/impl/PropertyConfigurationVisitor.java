@@ -61,16 +61,8 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	}
 	
 	public PropertyConfigurationVisitor(String file) throws ConfigurationException {
-		config = new PropertiesConfiguration(file);
-
-		classSpecificValues = new HashMap<String, List<String>>();
-		classMinObjects = new HashMap<String, Integer>();
-		typeSpecificValues = new HashMap<ConfigurableType, List<String[]>>();
-		typeConfigurators = new HashMap<ConfigurableType, TypeConfigurator>();
-		warnings = new ArrayList<String>();
-		errors = new ArrayList<String>();
+		this(new PropertiesConfiguration(file));
 	}
-	
 
 	@Override
 	public void visitModel(IModel model) {
@@ -195,7 +187,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			min = readSize(type.name() + PropertyEntry.integerValueMin, Integer.MIN_VALUE, true);
 			max = readSize(type.name() + PropertyEntry.integerValueMax, Integer.MIN_VALUE, true);
 			
-			// check for values exceeding bitwith
+			// check for values exceeding bitwidth
 			int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
 			
 			if(!specificValues.isEmpty()){

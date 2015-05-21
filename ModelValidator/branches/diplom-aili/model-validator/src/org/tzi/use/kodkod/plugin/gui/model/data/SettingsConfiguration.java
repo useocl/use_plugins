@@ -5,31 +5,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.tzi.use.uml.mm.MClass;
-import org.tzi.use.uml.mm.MClassInvariant;
-import org.tzi.use.uml.mm.MModel;
+import org.tzi.kodkod.model.iface.IClass;
+import org.tzi.kodkod.model.iface.IInvariant;
+import org.tzi.kodkod.model.iface.IModel;
 
 public class SettingsConfiguration {
 
-	private final MModel model;
+	private final IModel model;
 	
 	private IntegerSettings integerTypeSettings = new IntegerSettings(this);
 	private StringSettings stringTypeSettings = new StringSettings(this);
 	private RealSettings realTypeSettings = new RealSettings(this);
 	private OptionSettings optionSettings = new OptionSettings(this);
-	private Map<MClass, ClassSettings> classSettingsMap = new HashMap<>();
-	private Map<MClassInvariant, InvariantSettings> invariantSettingsMap = new HashMap<>();
+	private Map<IClass, ClassSettings> classSettingsMap = new HashMap<>();
+	private Map<IInvariant, InvariantSettings> invariantSettingsMap = new HashMap<>();
 	private boolean changed = false;
 
-	public SettingsConfiguration(MModel model) {
+	public SettingsConfiguration(IModel model) {
 		this.model = model;
 		
-		for (MClass cls : model.classes()) {
-			classSettingsMap.put(cls, new ClassSettings(cls, this));
+		for (IClass cls : model.classes()) {
+			classSettingsMap.put(cls, new ClassSettings(this, cls));
 		}
 		
-		for (MClassInvariant inv : model.classInvariants()) {
-			invariantSettingsMap.put(inv, new InvariantSettings(inv, this));
+		for (IInvariant inv : model.classInvariants()) {
+			invariantSettingsMap.put(inv, new InvariantSettings(this, inv));
 		}
 	}
 	
@@ -69,7 +69,7 @@ public class SettingsConfiguration {
 		return getClassSettings(model.getClass(clsName));
 	}
 	
-	public ClassSettings getClassSettings(MClass cls) {
+	public ClassSettings getClassSettings(IClass cls) {
 		return classSettingsMap.get(cls);
 	}
 	
@@ -82,10 +82,10 @@ public class SettingsConfiguration {
 	}
 
 	public InvariantSettings getInvariantSetting(String invName) {
-		return getInvariantSetting(model.getClassInvariant(invName));
+		return getInvariantSetting(model.getInvariant(invName));
 	}
 	
-	public InvariantSettings getInvariantSetting(MClassInvariant inv) {
+	public InvariantSettings getInvariantSetting(IInvariant inv) {
 		return invariantSettingsMap.get(inv);
 	}
 	

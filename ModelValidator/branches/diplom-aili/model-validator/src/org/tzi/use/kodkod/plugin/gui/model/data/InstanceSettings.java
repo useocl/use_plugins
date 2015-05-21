@@ -1,49 +1,52 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
+public abstract class InstanceSettings extends Settings {
 
-public abstract class InstanceSettings {
-	
-	private Bounds bounds = new Bounds();
-	private List<String> values = new ArrayList<>();
-	private SettingsConfiguration configurationSettings;
-	
+	protected int lowerBound;
+	protected int upperBound;
+	protected Set<String> instanceNames = new LinkedHashSet<>();
+
 	public InstanceSettings(SettingsConfiguration configurationSettings) {
-		this.configurationSettings = configurationSettings;
-		bounds.setConfigurationSettings(configurationSettings);
-	}
-	
-	public SettingsConfiguration getConfigurationSettings() {
-		return configurationSettings;
+		super(configurationSettings);
 	}
 
-	public Bounds getBounds() {
-		return bounds;
-	}
-		
-	public List<String> getValues() {
-		return values;
-	}
-	
-	public void setValues(String values) {
-		if (!(values.equals("") || values == null)) {
-			this.values = ChangeString.toArrayList(values);
-			this.configurationSettings.setChanged(true);
-		} else {
-			deleteValues();
-		}
-	}
-	
-	public void setValues(List<String> values) {
-		this.values = values;
-		this.configurationSettings.setChanged(true);
-	}
-	
-	public void deleteValues() {
-		values.clear();
+	public int getLowerBound() {
+		return lowerBound;
 	}
 
+	public void setLowerBound(int lowerBound) {
+		this.lowerBound = lowerBound;
+		settingsConfiguration.setChanged(true);
+	}
+
+	public int getUpperBound() {
+		return upperBound;
+	}
+
+	public void setUpperBound(int upperBound) {
+		this.upperBound = upperBound;
+		settingsConfiguration.setChanged(true);
+	}
+
+	public Set<String> getInstanceNames() {
+		return instanceNames;
+	}
+
+	public void setInstanceNames(Set<String> values) {
+		instanceNames = values;
+		settingsConfiguration.setChanged(true);
+	}
+
+	public void clearValues() {
+		instanceNames.clear();
+	}
+
+	@Override
+	public void reset() {
+		clearValues();
+	}
+	
 }

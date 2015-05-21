@@ -1,43 +1,45 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import org.tzi.use.uml.mm.MClassInvariant;
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
+import org.tzi.kodkod.model.iface.IInvariant;
 
-public class InvariantSettings {
-	
-	private MClassInvariant invariant;
-	private Boolean active;
-	private Boolean negate;
-	private SettingsConfiguration configurationSettings;
-	
-	public SettingsConfiguration getConfigurationSettings() {
-		return configurationSettings;
-	}
+public class InvariantSettings extends Settings {
 
-	public InvariantSettings(MClassInvariant invariant, SettingsConfiguration configurationSettings) {
+	protected final IInvariant invariant;
+	protected boolean active = DefaultConfigurationValues.INVARIANT_ACTIVE;
+	protected boolean negate = DefaultConfigurationValues.INVARIANT_NEGATE;
+
+	public InvariantSettings(SettingsConfiguration configurationSettings, IInvariant invariant) {
+		super(configurationSettings);
 		this.invariant = invariant;
-		this.configurationSettings = configurationSettings;
 	}
 
-	public MClassInvariant getInvariant() {
+	public IInvariant getInvariant() {
 		return invariant;
 	}
 
-	public Boolean getActive() {
+	public boolean isActive() {
 		return active;
 	}
 
-	public void setActive(Boolean active) {
+	public void setActive(boolean active) {
 		this.active = active;
-		this.configurationSettings.setChanged(true);
+		settingsConfiguration.setChanged(true);
 	}
 
-	public Boolean getNegate() {
+	public boolean isNegate() {
 		return negate;
 	}
 
-	public void setNegate(Boolean negate) {
+	public void setNegate(boolean negate) {
 		this.negate = negate;
-		this.configurationSettings.setChanged(true);
+		settingsConfiguration.setChanged(true);
+	}
+
+	@Override
+	public void reset() {
+		active = DefaultConfigurationValues.INVARIANT_ACTIVE;
+		negate = DefaultConfigurationValues.INVARIANT_NEGATE;
 	}
 	
 }

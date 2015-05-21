@@ -1,18 +1,32 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import org.tzi.kodkod.model.type.TypeConstants;
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
+
 
 public class StringSettings extends InstanceSettings {
 	
-	private String name = TypeConstants.STRING;
-	private boolean enabled;
+	protected boolean enabled = DefaultConfigurationValues.stringEnabled;
 	
 	public StringSettings(SettingsConfiguration configurationSettings) {
 		super(configurationSettings);
+		lowerBound = DefaultConfigurationValues.stringMin;
+		upperBound = DefaultConfigurationValues.stringMax;
 	}
 	
-	public String name() {
-		return this.name;
+	public boolean isEnabled() {
+		return enabled;
 	}
 
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+	
+	@Override
+	public void reset() {
+		super.reset();
+		lowerBound = DefaultConfigurationValues.stringMin;
+		upperBound = DefaultConfigurationValues.stringMax;
+		enabled = DefaultConfigurationValues.stringEnabled;
+	}
+	
 }

@@ -1,21 +1,28 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import org.tzi.use.uml.mm.MAssociation;
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
+import org.tzi.kodkod.model.iface.IAssociation;
 
 public class AssociationSettings extends InstanceSettings {
 	
-	private final MAssociation association;
-	public final Boolean isAssociationClass;
+	protected final IAssociation association;
 	
-	public AssociationSettings(MAssociation association, Boolean isAC, SettingsConfiguration settingsConfiguration) {
+	public AssociationSettings(SettingsConfiguration settingsConfiguration, IAssociation association) {
 		super(settingsConfiguration);
-		this.getBounds().setUpperLimited(false);
 		this.association = association;
-		this.isAssociationClass = isAC;
+		lowerBound = DefaultConfigurationValues.linksPerAssocMin;
+		upperBound = DefaultConfigurationValues.linksPerAssocMax;
 	}
 
-	public MAssociation getAssociation() {
+	public IAssociation getAssociation() {
 		return association;
+	}
+	
+	@Override
+	public void reset() {
+		super.reset();
+		lowerBound = DefaultConfigurationValues.linksPerAssocMin;
+		upperBound = DefaultConfigurationValues.linksPerAssocMax;
 	}
 	
 }

@@ -149,7 +149,7 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	private void configureModel(IPluginAction pluginAction) throws Exception {
 		model().reset();
         ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
-        		new ModelValidatorConfigurationWindow(MainWindow.instance(), mModel);
+        		new ModelValidatorConfigurationWindow(MainWindow.instance(), model(), mModel.filename());
         if (modelValidatorConfigurationWindow.getChosenPropertiesConfiguration() != null) {
         	if (modelValidatorConfigurationWindow.isReadyToValidate()) {
 	        	configurationVisitor = new PropertyConfigurationVisitor(modelValidatorConfigurationWindow.getChosenPropertiesConfiguration());

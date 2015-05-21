@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -18,26 +19,16 @@ import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.kodkod.model.iface.IModel;
-import org.tzi.kodkod.model.impl.AssociationClass;
 import org.tzi.kodkod.model.type.TypeConstants;
-import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClassImpl;
-import org.tzi.use.uml.mm.MAssociationEnd;
-import org.tzi.use.uml.mm.MAttribute;
-import org.tzi.use.uml.mm.MClass;
-import org.tzi.use.uml.mm.MClassInvariant;
-import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.util.StringUtil;
 
 public class PropertiesWriter {
 	
+	private final IModel iModel;
+	
 	private BufferedWriter writer;
-	private MModel mModel;
-	private IModel iModel;
 	private boolean isDefaultConfiguration = false;
-
-	public PropertiesWriter(MModel model){
-		mModel = model;
-	}
 	
 	public PropertiesWriter(IModel model){
 		iModel = model;
@@ -51,9 +42,6 @@ public class PropertiesWriter {
 	}
 	
 	public void writeToFile(File file, Map<String, PropertiesConfiguration> pCs) throws IOException {
-		if(mModel == null){
-			throw new IllegalArgumentException("MModel has to be provided for this method to work.");
-		}
 		if (file.exists()) {
 			file.delete();
 		} 
@@ -69,16 +57,13 @@ public class PropertiesWriter {
 	}
 	
 	public void writeToFile(File file, PropertiesConfiguration pc) throws IOException {
-		if(iModel == null){
-			throw new IllegalArgumentException("IModel has to be provided for this method to work.");
-		}
 		if (file.exists()) {
 			file.delete();
 		}
 		file.createNewFile();
 		
 		writer = new BufferedWriter(new FileWriter(file));
-		writeIModelSection("default", pc);
+		writeSection("default", pc);
 		writer.close();
 	}
 	
@@ -88,59 +73,27 @@ public class PropertiesWriter {
 		writeBasicTypes(pc);
 		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
 		int i = 0;
-		for (MClass clazz : mModel.classes()) {
+		for (IClass clazz : iModel.classes()) {
 			writeClass(clazz, pc);
 			writeNewLine();
-			writeAttributes(clazz.attributes().iterator(), pc);
-			i++;
-			
-			List<MAssociation> classAssociations = new ArrayList<>();
-			for (MAssociation association : mModel.associations()) {
-				if (association.associationEnds().iterator().next().cls().equals(clazz)) {
-					classAssociations.add(association);
-				}
-			}
-			for (MAssociation association : classAssociations) {
-				writeAssociation(association, pc);
-			}
-			if (!(i >= mModel.classes().size())) writeDivideLine(PropertyEntry.LIGHT_DIVIDE_LINE);
-		}
-		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
-		writeInvariants(mModel.classInvariants().iterator(), pc);
-		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
-		writeOptions(pc);
-		writeNewLine();
-		writeNewLine();
-	}
-	
-	private void writeIModelSection(String section, PropertiesConfiguration pc) throws IOException {
-		writeDivideLine("["+section+"]");
-		writeNewLine();
-		writeBasicTypes(pc);
-		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
-		int i = 0;
-		for (IClass clazz : iModel.classes()) {
-			writeIClass(clazz, pc);
-			writeNewLine();
-			writeIAttributes(clazz.attributes().iterator(), pc);
+			writeAttributes(clazz.attributes(), pc);
 			i++;
 			
 			List<IAssociation> classAssociations = new ArrayList<>();
 			for (IAssociation association : iModel.associations()) {
-				if (association.associationEnds().iterator().next().associatedClass().equals(clazz)) {
+				if (association.associationEnds().get(0).associatedClass().equals(clazz)) {
 					classAssociations.add(association);
 				}
 			}
 			for (IAssociation association : classAssociations) {
-				writeIAssociation(association, pc);
+				writeAssociation(association, pc);
 			}
 			if (!(i >= iModel.classes().size())) writeDivideLine(PropertyEntry.LIGHT_DIVIDE_LINE);
 		}
 		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
-		writeIInvariants(iModel.classInvariants().iterator(), pc);
+		writeInvariants(iModel.classInvariants(), pc);
 		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
 		writeOptions(pc);
-		writeNewLine();
 		writeNewLine();
 	}
 	
@@ -189,7 +142,7 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private void writeClass(MClass clazz, PropertiesConfiguration pc) throws IOException {
+	private void writeClass(IClass clazz, PropertiesConfiguration pc) throws IOException {
 		String cls = clazz.name();
 		String clsMin = cls + PropertyEntry.objMin;
 		String clsMax = cls + PropertyEntry.objMax;
@@ -212,32 +165,8 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private void writeIClass(IClass clazz, PropertiesConfiguration pc) throws IOException {
-				String cls = clazz.name();
-				String clsMin = cls + PropertyEntry.objMin;
-				String clsMax = cls + PropertyEntry.objMax;
-				if (!clazz.isAbstract()) {
-					if ((clazz instanceof AssociationClass) && pc.containsKey(cls+PropertyEntry.ASSOCIATIONCLASS) 
-							&& pc.getProperty(cls+PropertyEntry.ASSOCIATIONCLASS) != null) {
-						write(cls+PropertyEntry.ASSOCIATIONCLASS, propertyToString(pc.getProperty(cls+PropertyEntry.ASSOCIATIONCLASS)));
-					} else if (!(clazz instanceof AssociationClass)) {
-						if (pc.containsKey(cls) && pc.getProperty(cls) != null) {
-							write(cls, propertyToString(pc.getProperty(cls)));
-						}
-						if (pc.containsKey(clsMin) && pc.getProperty(clsMin) != null) {
-							write(clsMin, pc.getInt(clsMin,DefaultConfigurationValues.objectsPerClassMin));
-						}
-						
-						if (!(clazz instanceof AssociationClass) && pc.getProperty(clsMax) != null) {
-							write(clsMax, pc.getInt(clsMax,DefaultConfigurationValues.objectsPerClassMax));
-						}
-					}
-				}
-	}
-	
-	private void writeAttributes(Iterator<MAttribute> iterator, PropertiesConfiguration pc) throws IOException {
-		while (iterator.hasNext()) {
-			MAttribute attribute = iterator.next();
+	private void writeAttributes(Collection<IAttribute> attributes, PropertiesConfiguration pc) throws IOException {
+		for(IAttribute attribute : attributes){
 			String attr = attribute.owner().name() + "_" + attribute.name();
 			String attrMin = attr + PropertyEntry.attributeDefValuesMin;
 			String attrMax = attr + PropertyEntry.attributeDefValuesMax;
@@ -267,40 +196,7 @@ public class PropertiesWriter {
 		}
 	}
 	
-	private void writeIAttributes(Iterator<IAttribute> iterator, PropertiesConfiguration pc) throws IOException {
-		while (iterator.hasNext()) {
-			IAttribute attribute = iterator.next();
-			String attr = attribute.owner().name() + "_" + attribute.name();
-			String attrMin = attr + PropertyEntry.attributeDefValuesMin;
-			String attrMax = attr + PropertyEntry.attributeDefValuesMax;
-			String attrMinSize = attr + PropertyEntry.attributeColSizeMin;
-			String attrMaxSize = attr + PropertyEntry.attributeColSizeMax;
-			
-			if(isDefaultConfiguration){
-				writer.write("-- " + attr + " = Set{ ... }");
-				writeNewLine();
-			} else {
-				if (pc.containsKey(attr) && pc.getProperty(attr) != null) {
-					write(attr, propertyToString(pc.getProperty(attr)));
-				}
-				if (pc.containsKey(attrMin)) {
-					write(attrMin, pc.getInt(attrMin,DefaultConfigurationValues.attributesPerClassMin));
-				}
-				if (pc.containsKey(attrMax)) {
-					write(attrMax, pc.getInt(attrMax,DefaultConfigurationValues.attributesPerClassMax));
-				}
-				if (pc.containsKey(attrMinSize)) {
-					write(attrMinSize, pc.getInt(attrMinSize,DefaultConfigurationValues.attributesColSizeMin));
-				}
-				if (pc.containsKey(attrMaxSize)) {
-					write(attrMaxSize, pc.getInt(attrMaxSize,DefaultConfigurationValues.attributesColSizeMax));
-				}
-			}
-		}
-	}
-	
-	private void writeAssociation(MAssociation givenAssociation, PropertiesConfiguration pc) throws IOException {
-			MAssociation association = givenAssociation;
+	private void writeAssociation(IAssociation association, PropertiesConfiguration pc) throws IOException {
 			String assoc = association.name();
 			String assocMin = assoc+PropertyEntry.linksMin;
 			String assocMax = assoc+PropertyEntry.linksMax;
@@ -317,39 +213,8 @@ public class PropertiesWriter {
 			}
 	}
 	
-	private void writeIAssociation(IAssociation givenAssociation, PropertiesConfiguration pc) throws IOException {
-			IAssociation association = givenAssociation;
-			String assoc = association.name();
-			String assocMin = assoc+PropertyEntry.linksMin;
-			String assocMax = assoc+PropertyEntry.linksMax;
-			writeIAssociationLine(association);
-			writeNewLine();
-			if ((pc.containsKey(assoc) && (pc.getProperty(assoc) != null))) {
-				write(assoc, propertyToString(pc.getProperty(assoc)));
-			}
-			if (pc.containsKey(assocMin) && (pc.getProperty(assocMin) != null)) {
-				write(assocMin, pc.getInt(assocMin, DefaultConfigurationValues.linksPerAssocMin));
-			}
-			if (pc.containsKey(assocMax) && (pc.getProperty(assocMax) != null)) {
-				write(assocMax, pc.getInt(assocMax, DefaultConfigurationValues.linksPerAssocMax));
-			}
-	}
-	
-	private void writeInvariants(Iterator<MClassInvariant> iterator, PropertiesConfiguration pc) throws IOException {
-		while (iterator.hasNext()) {
-			MClassInvariant invariant = iterator.next();
-			
-			String inv = invariant.cls().name()+"_"+invariant.name();
-			if (pc.containsKey(inv) && (pc.getProperty(inv) != null)) {
-				write(inv, pc.getString(inv));
-			}
-		}
-	}
-	
-	private void writeIInvariants(Iterator<IInvariant> iterator, PropertiesConfiguration pc) throws IOException {
-		while (iterator.hasNext()) {
-			IInvariant invariant = iterator.next();
-			
+	private void writeInvariants(Collection<IInvariant> invariants, PropertiesConfiguration pc) throws IOException {
+		for(IInvariant invariant : invariants){
 			String inv = invariant.clazz().name()+"_"+invariant.name();
 			if (pc.containsKey(inv) && (pc.getProperty(inv) != null)) {
 				write(inv, pc.getString(inv));
@@ -402,35 +267,16 @@ public class PropertiesWriter {
 			writer.newLine();
 	}
 	
-	private void writeAssociationLine(MAssociation association) throws IOException {
+	private void writeAssociationLine(IAssociation association) throws IOException {
 		StringBuilder associationString = new StringBuilder();
-		Iterator<MAssociationEnd> aes = association.associationEnds().iterator();
 		associationString.append(association.name());
 		associationString.append("(");
-		while (aes.hasNext()) {
-			MAssociationEnd ae = aes.next();
-			associationString.append(ae.name() + ":" + ae.cls().name());
-			if (aes.hasNext()) {
-				associationString.append(",");
+		StringUtil.fmtSeq(associationString, association.associationEnds(), ",", new StringUtil.IElementFormatter<IAssociationEnd>() {
+			@Override
+			public String format(IAssociationEnd element) {
+				return element.name() + ":" + element.associatedClass().name();
 			}
-		}
-		associationString.append(")");
-		
-		writeLabeledLine(associationString.toString());
-	}
-	
-	private void writeIAssociationLine(IAssociation association) throws IOException {
-		StringBuilder associationString = new StringBuilder();
-		Iterator<IAssociationEnd> aes = association.associationEnds().iterator();
-		associationString.append(association.name());
-		associationString.append("(");
-		while (aes.hasNext()) {
-			IAssociationEnd ae = aes.next();
-			associationString.append(ae.name() + ":" + ae.associatedClass().name());
-			if (aes.hasNext()) {
-				associationString.append(",");
-			}
-		}
+		});
 		associationString.append(")");
 		
 		writeLabeledLine(associationString.toString());

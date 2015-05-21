@@ -1,88 +1,81 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
-import javax.swing.table.DefaultTableModel;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.IntegerSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelInteger extends DefaultTableModel{
+public class TableModelInteger extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
-	
-	private IntegerSettings settings;
-	
-	private static String[] columnNames = new String[] {
+
+	private final IntegerSettings settings;
+
+	private static final String[] COLUMN_NAMES = new String[] {
 		ConfigurationTerms.INTEGER_MIN,
 		ConfigurationTerms.INTEGER_MAX,
-		ConfigurationTerms.INTEGER_VALUES };
-	
+		ConfigurationTerms.INTEGER_VALUES
+	};
+
 	public TableModelInteger(IntegerSettings set){
-		super();
-		this.settings = set;
+		settings = set;
 	}
-	
+
 	@Override
 	public int getRowCount() {
-		return 1; 
+		return 1;
 	}
 
 	@Override
 	public int getColumnCount() {
-		return columnNames.length;
+		return COLUMN_NAMES.length;
 	}
 
 	@Override
 	public String getColumnName(int column) {
-		return columnNames[column];
+		return COLUMN_NAMES[column];
 	}
 
 	@Override
 	public boolean isCellEditable(int row, int column) {
-		if (column > 0) {
-			return true;
-		} else {
-			return false;
-		}
+		return true;
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
 		switch(col) {
 		case 0:
-			if (settings.getMinimum() != null) {
-				return settings.getMinimum();
-			} else {
-				return "";
-			}
+			return settings.getMinimum();
 		case 1:
-			if (settings.getMaximum() != null) {
-				return settings.getMaximum();
-			} else {
-				return "";
-			}
+			return settings.getMaximum();
 		case 2:
 			return StringUtil.fmtSeq(settings.getValues(), ",");
 		}
-		
 		return null;
 	}
 
 	@Override
 	public void setValueAt(Object aValue, int row, int column) {
 		switch (column) {
+		case 0:
+			settings.setMinimum((Integer) aValue);
+			fireTableCellUpdated(row, column);
+			break;
 		case 1:
-			settings.setMinimum(aValue);
+			settings.setMaximum((Integer) aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			settings.setMaximum(aValue);
+			String[] split = ((String) aValue).split(",");
+			Set<Integer> list = new LinkedHashSet<Integer>();
+			for (int i = 0; i < split.length; i++) {
+				list.add(Integer.valueOf(split[i].trim()));
+			}
+			settings.setValues(list);
 			fireTableCellUpdated(row, column);
-			break;
-		case 3:
-			settings.setValues((String) aValue);
-			fireTableCellUpdated(row, column);
-			break;
-		default:
 			break;
 		}
 	}

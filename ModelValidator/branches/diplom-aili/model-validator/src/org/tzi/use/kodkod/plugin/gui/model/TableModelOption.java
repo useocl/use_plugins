@@ -1,52 +1,48 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.AbstractTableModel;
 
-import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.OptionSettings;
 
-public class TableModelOption extends DefaultTableModel {
+public class TableModelOption extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
-	
-	private OptionSettings settings;
-	
-	private static String[] columnNames = new String[] {
+
+	private final OptionSettings settings;
+
+	private static final String[] COLUMN_NAMES = new String[] {
 		ConfigurationTerms.OPTIONS,
-		"" };
-	
+		"Enabled"
+	};
+
 	public TableModelOption(OptionSettings settings) {
 		this.settings = settings;
 	}
-	
-	@Override
-	public int getRowCount() {
-		return 2; 
-	}
 
 	@Override
-	public int getColumnCount() {
+	public int getRowCount() {
 		return 2;
 	}
 
 	@Override
-	public String getColumnName(int column) {
-		return columnNames[column];
+	public int getColumnCount() {
+		return COLUMN_NAMES.length;
 	}
-	
+
+	@Override
+	public String getColumnName(int column) {
+		return COLUMN_NAMES[column];
+	}
+
 	@Override
 	public boolean isCellEditable(int row, int column) {
-		if (column > 0) {
-			return true;
-		} else {
-			return false;
-		}
+		return column == 1;
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
 		switch(col) {
-		case 0: 
+		case 0:
 			switch(row) {
 			case 0:
 				return ConfigurationTerms.OPTION_AGGREGATIONCYCLEFREENESS;
@@ -56,23 +52,14 @@ public class TableModelOption extends DefaultTableModel {
 		case 1:
 			switch(row) {
 			case 0:
-				if (settings.getAggregationcyclefreeness() != null) {
-					return settings.getAggregationcyclefreeness();
-				} else {
-					return DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS;
-				}
+				return settings.getAggregationcyclefreeness();
 			case 1:
-				if (settings.getForbiddensharing() != null) {
-					return settings.getForbiddensharing();
-				} else {
-					return DefaultConfigurationValues.FORBIDDENSHARING;
-				}
+				return settings.getForbiddensharing();
 			}
-		default:
-			return null;
 		}
+		return null;
 	}
-	
+
 	@Override
 	public void setValueAt(Object value, int row, int col) {
 		if (col == 1) {
@@ -83,11 +70,11 @@ public class TableModelOption extends DefaultTableModel {
 			}
 		}
 	}
-	
+
 	@Override
 	public Class<?> getColumnClass(int col) {
-        return getValueAt(0, col).getClass();
-    }
+		return getValueAt(0, col).getClass();
+	}
 
 	public OptionSettings getSettings() {
 		return settings;

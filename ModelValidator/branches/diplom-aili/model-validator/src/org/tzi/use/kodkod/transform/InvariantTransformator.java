@@ -81,6 +81,7 @@ public class InvariantTransformator {
 		IInvariant invariant = transform(model, mClassInvariant);
 		IClass invariantClass = model.getClass(mClassInvariant.cls().name());
 		invariantClass.addInvariant(invariant);
+		model.addInvariant(invariant);
 		return invariant;
 	}
 

@@ -1,91 +1,81 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
-import javax.swing.table.DefaultTableModel;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.StringSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelString extends DefaultTableModel {
+public class TableModelString extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
-	
-	private StringSettings settings;
-	
-	private static String[] columnNames = new String[] {
-		ConfigurationTerms.BASIC_TYPE,
+
+	private final StringSettings settings;
+
+	private static final String[] COLUMNS = new String[] {
 		ConfigurationTerms.STRING_MIN,
 		ConfigurationTerms.STRING_MAX,
-		ConfigurationTerms.STRING_VALUES };
-	
+		ConfigurationTerms.STRING_VALUES
+	};
+
 	public TableModelString(StringSettings settings) {
-		super();
 		this.settings = settings;
 	}
-	
+
 	@Override
 	public int getRowCount() {
-		return 1; 
+		return 1;
 	}
 
 	@Override
 	public int getColumnCount() {
-		return 4;
+		return COLUMNS.length;
 	}
 
 	@Override
 	public String getColumnName(int column) {
-		return columnNames[column];
+		return COLUMNS[column];
 	}
 
 	@Override
 	public boolean isCellEditable(int row, int column) {
-		if (column > 0) {
-			return true;
-		} else {
-			return false;
-		}
+		return true;
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
-		switch(col) {
-		case 0: 
-			return settings.name();
+		switch (col) {
+		case 0:
+			return settings.getLowerBound();
 		case 1:
-			if (settings.getBounds().getLower() != null) {
-				return settings.getBounds().getLower();
-			} else {
-				return "";
-			}
+			return settings.getUpperBound();
 		case 2:
-			if (settings.getBounds().getUpper() != null) {
-				return settings.getBounds().getUpper();
-			} else {
-				return "";
-			}
-		case 3:
-			return StringUtil.fmtSeq(settings.getValues(), ",");
-		default:
-			return null;
+			return StringUtil.fmtSeq(settings.getInstanceNames(), ",");
 		}
+		return null;
 	}
 
 	@Override
 	public void setValueAt(Object aValue, int row, int column) {
 		switch (column) {
+		case 0:
+			settings.setLowerBound((Integer) aValue);
+			fireTableCellUpdated(row, column);
+			break;
 		case 1:
-			settings.getBounds().setLower(aValue);
+			settings.setUpperBound((Integer) aValue);
 			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			settings.getBounds().setUpper(aValue);
+			String[] split = ((String) aValue).split(",");
+			Set<String> list = new LinkedHashSet<String>();
+			for (int i = 0; i < split.length; i++) {
+				list.add(split[i].trim());
+			}
+			settings.setInstanceNames(list);
 			fireTableCellUpdated(row, column);
-			break;
-		case 3:
-			settings.setValues((String) aValue);
-			fireTableCellUpdated(row, column);
-			break;
-		default:
 			break;
 		}
 	}

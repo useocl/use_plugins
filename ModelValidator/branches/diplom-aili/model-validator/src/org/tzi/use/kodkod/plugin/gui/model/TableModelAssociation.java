@@ -2,109 +2,95 @@ package org.tzi.use.kodkod.plugin.gui.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.AssociationSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelAssociation extends DefaultTableModel {
+public class TableModelAssociation extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private List<AssociationSettings> associationsSettings = Collections.emptyList();
-	
-	private static String[] columnNames = new String[] {
-			ConfigurationTerms.ASSOCIATIONS,
-			ConfigurationTerms.ASSOCIATIONS_MIN,
-			ConfigurationTerms.ASSOCIATIONS_MAX,
-			ConfigurationTerms.ASSOCIATIONS_VALUES };
-	
+
+	private static final String[] COLUMN_NAMES = new String[] {
+		ConfigurationTerms.ASSOCIATIONS,
+		ConfigurationTerms.ASSOCIATIONS_MIN,
+		ConfigurationTerms.ASSOCIATIONS_MAX,
+		ConfigurationTerms.ASSOCIATIONS_VALUES
+	};
+
 	public TableModelAssociation(List<AssociationSettings> settings) {
-		super();
-		if (settings != null) {
-			this.associationsSettings = settings;
-		}
+		associationsSettings = settings;
 	}
 
 	@Override
 	public int getRowCount() {
-		if (associationsSettings != null) {
-			return this.associationsSettings.size();
-		} else {
-			return 0;
-		}
+		return associationsSettings.size();
 	}
 
 	@Override
 	public int getColumnCount() {
-		return 4;
+		return COLUMN_NAMES.length;
 	}
 
 	@Override
 	public String getColumnName(int column) {
-		return columnNames[column];
+		return COLUMN_NAMES[column];
 	}
 
 	@Override
 	public boolean isCellEditable(int row, int column) {
-		if (column > 0) {
-			return true;
-		} else {
-			return false;
-		}
+		return column > 0;
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
 		AssociationSettings set = associationsSettings.get(row);
-		
+
 		switch(col) {
-		case 0: 
+		case 0:
 			return set.getAssociation().name();
 		case 1:
-			if (set.getBounds().getLower() != null) {
-				return set.getBounds().getLower();
-			} else {
-				return "";
-			}
+			return set.getLowerBound();
 		case 2:
-			if (set.getBounds().getUpper() != null) {
-				return set.getBounds().getUpper();
-			} else {
-				return "";
-			}
+			return set.getUpperBound();
 		case 3:
-			return StringUtil.fmtSeq(set.getValues(), ",");
-		default:
-			return null;
+			return StringUtil.fmtSeq(set.getInstanceNames(), ",");
 		}
+		return null;
 	}
 
 	@Override
 	public void setValueAt(Object aValue, int row, int column) {
-		AssociationSettings set = this.associationsSettings.get(row);
-		
+		AssociationSettings set = associationsSettings.get(row);
+
 		switch (column) {
 		case 1:
-			set.getBounds().setLower(aValue);
+			set.setLowerBound((Integer) aValue);
 			break;
 		case 2:
-			set.getBounds().setUpper(aValue);
+			set.setUpperBound((Integer) aValue);
 			break;
 		case 3:
-			set.setValues((String) aValue);
-			break;
-		default:
+			String[] split = ((String) aValue).split(",");
+			Set<String> list = new LinkedHashSet<String>();
+			for (int i = 0; i < split.length; i++) {
+				list.add(split[i].trim());
+			}
+			set.setInstanceNames(list);
 			break;
 		}
 	}
 
 	public void setClass(ClassSettings classSettings) {
-		this.associationsSettings = new ArrayList<>(classSettings.getAssociationSettings().values());
-		this.fireTableDataChanged();
+		associationsSettings = new ArrayList<>(classSettings.getAssociationSettings().values());
+		fireTableDataChanged();
 	}
 
 	public List<AssociationSettings> getAssociationsSettings() {

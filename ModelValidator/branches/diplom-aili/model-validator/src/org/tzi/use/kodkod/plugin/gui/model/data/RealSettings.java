@@ -1,76 +1,77 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import org.tzi.kodkod.model.type.TypeConstants;
-import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 
-public class RealSettings {
-	
-	private String name = TypeConstants.REAL;
-	private boolean enabled;
-	private Double minimum;
-	private Double maximum;
-	private Double realStep;
-	private List<String> values = new ArrayList<>();
-	private SettingsConfiguration configurationSettings;
-	
+public class RealSettings extends Settings {
+
+	protected double minimum = DefaultConfigurationValues.realMin;
+	protected double maximum = DefaultConfigurationValues.realMax;
+	protected double realStep = DefaultConfigurationValues.realStep;
+	protected boolean enabled = DefaultConfigurationValues.realEnabled;
+	protected Set<Double> values = new LinkedHashSet<>();
+
 	public RealSettings(SettingsConfiguration configurationSettings) {
-		this.configurationSettings = configurationSettings;
-	}
-	
-	public String name() {
-		return this.name;
-	}
-	
-	public SettingsConfiguration getConfigurationSettings() {
-		return configurationSettings;
+		super(configurationSettings);
 	}
 
-	public Double getMinimum() {
-		return this.minimum;
+	public double getMinimum() {
+		return minimum;
 	}
-	
-	public void setMinimum(Double minimum) {
+
+	public void setMinimum(double minimum) {
 		this.minimum = minimum;
-		this.configurationSettings.setChanged(true);
-	}
-	
-	public Double getMaximum() {
-		return this.maximum;
-	}
-	
-	public void setMaximum(Double maximum) {
-		this.maximum = maximum;
-		this.configurationSettings.setChanged(true);
+		settingsConfiguration.setChanged(true);
 	}
 
-	public Double getStep() {
+	public double getMaximum() {
+		return maximum;
+	}
+
+	public void setMaximum(double maximum) {
+		this.maximum = maximum;
+		settingsConfiguration.setChanged(true);
+	}
+
+	public double getStep() {
 		return realStep;
 	}
 
-	public void setStep(Double realStep) {
+	public void setStep(double realStep) {
 		this.realStep = realStep;
-		this.configurationSettings.setChanged(true);
+		settingsConfiguration.setChanged(true);
 	}
-	
-	public List<String> getValues() {
+
+	public Set<Double> getValues() {
 		return values;
 	}
-	
-	public void setValues(String values) {
-		this.values = ChangeString.toArrayList(values);
-		this.configurationSettings.setChanged(true);
-	}
-	
-	public void setValues(List<String> values) {
+
+	public void setValues(Set<Double> values) {
 		this.values = values;
-		this.configurationSettings.setChanged(true);
+		settingsConfiguration.setChanged(true);
 	}
 	
-	public void deleteValues() {
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+	
+	public void clearValues() {
 		values.clear();
 	}
 
+	@Override
+	public void reset() {
+		minimum = DefaultConfigurationValues.realMin;
+		maximum = DefaultConfigurationValues.realMax;
+		realStep = DefaultConfigurationValues.realStep;
+		enabled = DefaultConfigurationValues.realEnabled;
+		clearValues();
+	}
+	
 }

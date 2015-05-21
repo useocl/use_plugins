@@ -1,92 +1,66 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
-import org.tzi.kodkod.model.type.TypeConstants;
-import org.tzi.use.kodkod.plugin.gui.util.ChangeString;
 
-public class IntegerSettings {
-	
-	private String name = TypeConstants.INTEGER;
-	private boolean enabled;
-	private Integer minimum;
-	private Integer maximum;
-	private List<String> values = new ArrayList<>();
-	private SettingsConfiguration configurationSettings;
-	
+public class IntegerSettings extends Settings {
+
+	protected int minimum = DefaultConfigurationValues.integerMin;
+	protected int maximum = DefaultConfigurationValues.integerMax;
+	protected boolean enabled = DefaultConfigurationValues.integerEnabled;
+	protected Set<Integer> values = new LinkedHashSet<>();
+
 	public IntegerSettings(SettingsConfiguration configurationSettings) {
-		this.configurationSettings = configurationSettings;
+		super(configurationSettings);
 	}
-	
-	public String name() {
-		return this.name;
-	}
-	
-	public SettingsConfiguration getConfigurationSettings() {
-		return configurationSettings;
-	}
-	
+
 	public Integer getMinimum() {
-		return this.minimum;
+		return minimum;
 	}
-	
-	public void setMinimum(Object minimum) {
-		if (minimum == null) {
-			this.minimum = null;
-		} else {
-			if (minimum.equals("")) {
-				this.minimum = null;
-			} else {
-				this.minimum = (Integer) minimum;
-			}
-		}
-		this.configurationSettings.setChanged(true);
+
+	public void setMinimum(int minimum) {
+		this.minimum = minimum;
+		settingsConfiguration.setChanged(true);
 	}
-	
+
 	public Integer getMaximum() {
-		return this.maximum;
+		return maximum;
 	}
-	
-	public void setMaximum(Object maximum) {
-		if (maximum == null) {
-			this.maximum = null;
-		} else {
-			if (maximum.equals("")) {
-				this.maximum = null;
-			} else {
-				this.maximum = (Integer) maximum;
-			}
-		}
-		this.configurationSettings.setChanged(true);
+
+	public void setMaximum(int maximum) {
+		this.maximum = maximum;
+		settingsConfiguration.setChanged(true);
 	}
-		
-	public List<String> getValues() {
+
+	public Set<Integer> getValues() {
 		return values;
 	}
-	
-	public void setValues(String values) {
-		this.values = ChangeString.toArrayList(values);
-		this.configurationSettings.setChanged(true);
-	}
-	
-	public void setValues(List<String> values) {
+
+	public void setValues(Set<Integer> values) {
 		this.values = values;
-		this.configurationSettings.setChanged(true);
+		settingsConfiguration.setChanged(true);
 	}
-	
-	public void deleteValues() {
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public void clearValues() {
 		values.clear();
 	}
 
-	/**
-	 * Resets these Settings to default values.
-	 */
+	@Override
 	public void reset() {
 		minimum = DefaultConfigurationValues.integerMin;
 		maximum = DefaultConfigurationValues.integerMax;
-		deleteValues();
+		enabled = DefaultConfigurationValues.integerEnabled;
+		clearValues();
 	}
-	
+
 }

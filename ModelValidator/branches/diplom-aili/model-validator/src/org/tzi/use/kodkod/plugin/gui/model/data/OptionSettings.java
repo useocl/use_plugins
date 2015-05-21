@@ -1,36 +1,40 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
+import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 
-public class OptionSettings {
-	
-	private Boolean aggregationcyclefreeness;
-	private Boolean forbiddensharing;
-	private SettingsConfiguration configurationSettings;
-	
-	public SettingsConfiguration getConfigurationSettings() {
-		return configurationSettings;
-	}
+
+public class OptionSettings extends Settings {
+
+	protected boolean aggregationcyclefreeness = DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS;
+	protected boolean forbiddensharing = DefaultConfigurationValues.FORBIDDENSHARING;
+	//TODO add bitwidth
 
 	public OptionSettings(SettingsConfiguration configurationSettings) {
-		this.configurationSettings = configurationSettings;
+		super(configurationSettings);
 	}
 
-	public Boolean getAggregationcyclefreeness() {
+	public boolean getAggregationcyclefreeness() {
 		return aggregationcyclefreeness;
 	}
 
-	public void setAggregationcyclefreeness(Boolean aggregationcyclefreeness) {
+	public void setAggregationcyclefreeness(boolean aggregationcyclefreeness) {
 		this.aggregationcyclefreeness = aggregationcyclefreeness;
-		this.configurationSettings.setChanged(true);
+		settingsConfiguration.setChanged(true);
 	}
 
-	public Boolean getForbiddensharing() {
+	public boolean getForbiddensharing() {
 		return forbiddensharing;
 	}
 
-	public void setForbiddensharing(Boolean forbiddensharing) {
+	public void setForbiddensharing(boolean forbiddensharing) {
 		this.forbiddensharing = forbiddensharing;
-		this.configurationSettings.setChanged(true);
+		settingsConfiguration.setChanged(true);
 	}
 
+	@Override
+	public void reset() {
+		aggregationcyclefreeness = DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS;
+		forbiddensharing = DefaultConfigurationValues.FORBIDDENSHARING;
+	}
+	
 }

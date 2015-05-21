@@ -1,137 +1,116 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelAttribute extends DefaultTableModel {
+public class TableModelAttribute extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private List<AttributeSettings> attributesSettings;
-	
-	private static String[] columnNames = new String[] {
-			ConfigurationTerms.ATTRIBUTES,
-			ConfigurationTerms.ATTRIBUTES_MIN,
-			ConfigurationTerms.ATTRIBUTES_MAX,
-			ConfigurationTerms.ATTRIBUTES_MINSIZE,
-			ConfigurationTerms.ATTRIBUTES_MAXSIZE,
-			ConfigurationTerms.ATTRIBUTES_VALUES 
+
+	private static final String[] COLUMN_NAMES = new String[] {
+		ConfigurationTerms.ATTRIBUTES,
+		ConfigurationTerms.ATTRIBUTES_MIN,
+		ConfigurationTerms.ATTRIBUTES_MAX,
+		ConfigurationTerms.ATTRIBUTES_MINSIZE,
+		ConfigurationTerms.ATTRIBUTES_MAXSIZE,
+		ConfigurationTerms.ATTRIBUTES_VALUES
 	};
-	
+
 	public TableModelAttribute(List<AttributeSettings> settings) {
-		super();
-		this.attributesSettings = settings;
+		attributesSettings = settings;
 	}
 
 	@Override
 	public int getRowCount() {
-		if (attributesSettings != null) {
-			return this.attributesSettings.size(); 
-		} else {
-			return 0;
-		}
+		return attributesSettings.size();
 	}
 
 	@Override
 	public int getColumnCount() {
-		return columnNames.length;
+		return COLUMN_NAMES.length;
 	}
 
 	@Override
 	public String getColumnName(int column) {
-		return columnNames[column];
+		return COLUMN_NAMES[column];
 	}
 
 	@Override
 	public boolean isCellEditable(int row, int column) {
-		AttributeSettings set = attributesSettings.get(row); 
-		if ((set.getClassSettings().isAssociationClass()) && (column == 3 || column == 4)) {
+		AttributeSettings set = attributesSettings.get(row);
+		if (set.isInherited()) {
 			return false;
-		} else if (set.isInherited()) {
-			return false;
-		} else if (column > 0) {
-			return true;
 		} else {
-			return false;
+			return column > 0;
 		}
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
 		AttributeSettings set = attributesSettings.get(row);
-		
+
 		switch(col) {
-		case 0: 
+		case 0:
 			return set.getAttribute().name();
 		case 1:
-			if (set.getBounds().getLower() != null) {
-				return set.getBounds().getLower();
-			} else {
-				return "";
-			}
+			return set.getLowerBound();
 		case 2:
-			if (set.getBounds().getUpper() != null) {
-				return set.getBounds().getUpper();
-			} else {
-				return "";
-			}
+			return set.getUpperBound();
 		case 3:
-			if (set.getCollectionSize().getLower() != null) {
-				return set.getCollectionSize().getLower();
-			} else {
-				return "";
-			}
+			return set.getCollectionSizeMin();
 		case 4:
-			if (set.getCollectionSize().getUpper() != null) {
-				return set.getCollectionSize().getUpper();
-			} else {
-				return "";
-			}
+			return set.getCollectionSizeMax();
 		case 5:
-			return StringUtil.fmtSeq(set.getValues(), ",");
-		default:
-			return null;
+			return StringUtil.fmtSeq(set.getInstanceNames(), ",");
 		}
+		return null;
 	}
 
 	@Override
 	public void setValueAt(Object aValue, int row, int column) {
-		AttributeSettings set = this.attributesSettings.get(row);
-		
+		AttributeSettings set = attributesSettings.get(row);
+
 		switch (column) {
 		case 1:
-			set.getBounds().setLower(aValue);
+			set.setLowerBound((Integer) aValue);
 			break;
 		case 2:
-			set.getBounds().setUpper(aValue);
+			set.setUpperBound((Integer) aValue);
 			break;
 		case 3:
-			set.getCollectionSize().setLower(aValue);
+			set.setCollectionSizeMin((Integer) aValue);
 			break;
 		case 4:
-			set.getCollectionSize().setUpper(aValue);
+			set.setCollectionSizeMax((Integer) aValue);
 			break;
 		case 5:
-			set.setValues((String) aValue);
-			break;
-		default:
+			String[] split = ((String) aValue).split(",");
+			Set<String> list = new LinkedHashSet<String>();
+			for (int i = 0; i < split.length; i++) {
+				list.add(split[i].trim());
+			}
+			set.setInstanceNames(list);
 			break;
 		}
 	}
 
 	public void setClass(ClassSettings classSettings) {
-		this.attributesSettings = new ArrayList<>(classSettings.getAttributeSettings().values());
-		this.fireTableDataChanged();
+		attributesSettings = new ArrayList<>(classSettings.getAttributeSettings().values());
+		fireTableDataChanged();
 	}
 
 	public List<AttributeSettings> getAttributesSettings() {
 		return attributesSettings;
 	}
-	
+
 }
