@@ -227,6 +227,10 @@ public final class ChangeConfiguration {
 		//possible keys collected from the model, and than their values are added to the settings
 		Iterator<?> keys = pc.getKeys();
 		
+		boolean integerSettingsExist = false;
+		boolean stringSettingsExist = false;
+		boolean realSettingsExist = false;
+		
 		while (keys.hasNext()) {
 			String propertiesKey = keys.next().toString();
 			String first = "";
@@ -392,41 +396,55 @@ public final class ChangeConfiguration {
 				case TypeConstants.INTEGER:
 					if (pc.getProperty(propertiesKey) != null) {
 						settings.getIntegerTypeSettings().setValues(objectToIntegerSet(pc.getList(propertiesKey)));
+						integerSettingsExist = true;
 					}
 					break;
 				case TypeConstants.INTEGER + PropertyEntry.integerValueMin:
 					settings.getIntegerTypeSettings().setMinimum(pc.getInt(propertiesKey));
+					integerSettingsExist = true;
 					break;
 				case TypeConstants.INTEGER + PropertyEntry.integerValueMax:
 					settings.getIntegerTypeSettings().setMaximum(pc.getInt(propertiesKey));
+					integerSettingsExist = true;
 					break;
 				case TypeConstants.REAL:
 					if (pc.getProperty(propertiesKey) != null) {
 						settings.getRealTypeSettings().setValues(objectToDoubleSet(pc.getList(propertiesKey)));
+						realSettingsExist = true;
 					}
 					break;
 				case TypeConstants.REAL + PropertyEntry.realValueMin:
 					settings.getRealTypeSettings().setMinimum(pc.getDouble(propertiesKey));
+					realSettingsExist = true;
 					break;
 				case TypeConstants.REAL + PropertyEntry.realValueMax:
 					settings.getRealTypeSettings().setMaximum(pc.getDouble(propertiesKey));
+					realSettingsExist = true;
 					break;
 				case TypeConstants.REAL + PropertyEntry.realStep:
 					settings.getRealTypeSettings().setStep(pc.getDouble(propertiesKey));
+					realSettingsExist = true;
 					break;
 				case TypeConstants.STRING:
 					if (pc.getProperty(propertiesKey) != null) {
 						settings.getStringTypeSettings().setInstanceNames(Sets.newLinkedHashSet(ChangeString.formatPropertyListForSetting(pc.getProperty(propertiesKey))));
+						stringSettingsExist = true;
 					}
 					break;
 				case TypeConstants.STRING + PropertyEntry.stringValuesMin:
 					settings.getStringTypeSettings().setLowerBound(pc.getInt(propertiesKey));
+					stringSettingsExist = true;
 					break;
 				case TypeConstants.STRING + PropertyEntry.stringValuesMax:
 					settings.getStringTypeSettings().setUpperBound(pc.getInt(propertiesKey));
+					stringSettingsExist = true;
 					break;
 				}
 			}
+			
+			settings.getIntegerTypeSettings().setEnabled(integerSettingsExist);
+			settings.getStringTypeSettings().setEnabled(stringSettingsExist);
+			settings.getRealTypeSettings().setEnabled(realSettingsExist);
 		}
 	}
 	
