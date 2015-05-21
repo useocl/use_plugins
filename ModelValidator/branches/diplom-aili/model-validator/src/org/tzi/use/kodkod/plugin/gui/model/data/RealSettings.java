@@ -59,6 +59,7 @@ public class RealSettings extends Settings {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+		settingsConfiguration.setChanged(true);
 	}
 	
 	public void clearValues() {

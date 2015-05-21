@@ -19,6 +19,7 @@ public class StringSettings extends InstanceSettings {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+		settingsConfiguration.setChanged(true);
 	}
 	
 	@Override

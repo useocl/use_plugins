@@ -13,8 +13,8 @@ import org.tzi.kodkod.model.iface.IModel;
  */
 public class AssociationClass extends Class implements IAssociationClass{
 
-	AssociationClass(IModel model, String name) {
-		super(model, name, false);
+	AssociationClass(IModel model, String name, boolean abstrac) {
+		super(model, name, abstrac);
 	}
 
 	@Override

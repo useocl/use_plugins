@@ -15,69 +15,36 @@ public interface IModelFactory {
 
 	/**
 	 * Creates an instance of IModel.
-	 * 
-	 * @param name
-	 * @param modelFactory
-	 * @param typeFactory
-	 * @return
 	 */
 	public IModel createModel(String name, IModelFactory modelFactory, TypeFactory typeFactory);
 
 	/**
 	 * Creates an instance of IClass.
-	 * 
-	 * @param model
-	 * @param name
-	 * @param abstractC
-	 * @return
 	 */
 	public IClass createClass(IModel model, String name, boolean abstractC);
 
 	/**
 	 * Creates an instance of IAttribute
-	 * 
-	 * @param model
-	 * @param name
-	 * @param type
-	 * @param kClass
-	 * @return
 	 */
 	public IAttribute createAttribute(IModel model, String name, Type type, IClass kClass);
 
 	/**
 	 * Creates an instance of IAssociation.
-	 * 
-	 * @param model
-	 * @param name
-	 * @return
 	 */
 	public IAssociation createAssociation(IModel model, String name);
 
 	/**
 	 * Creates an instance of IAssociationEnd.
-	 * 
-	 * @param name
-	 * @param multiplicity
-	 * @param associatedClass
-	 * @return
 	 */
 	public IAssociationEnd createAssociationEnd(String name, Multiplicity multiplicity, int aggregationKind, IClass associatedClass);
 
 	/**
 	 * Creates an instance of IAssociationClass.
-	 * 
-	 * @param model
-	 * @param name
-	 * @return
 	 */
-	public IAssociationClass createAssociationClass(IModel model, String name);
+	public IAssociationClass createAssociationClass(IModel model, String name, boolean abstrac);
 
 	/**
 	 * Creates an instance of IInvariant.
-	 * 
-	 * @param name
-	 * @param clazz
-	 * @return
 	 */
 	public IInvariant createInvariant(String name, IClass clazz);
 }

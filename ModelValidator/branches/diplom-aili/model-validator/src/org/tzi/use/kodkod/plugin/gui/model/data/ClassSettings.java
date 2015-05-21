@@ -33,7 +33,8 @@ public class ClassSettings extends InstanceSettings {
 		}
 
 		if (clazz instanceof IAssociationClass) {
-			associationSettings.put((IAssociation) clazz, new AssociationSettings(configurationSettings, (IAssociation) clazz));
+			IAssociation assoc = clazz.model().getAssociation(clazz.name());
+			associationSettings.put(assoc, new AssociationSettings(configurationSettings, assoc));
 		}
 	}
 

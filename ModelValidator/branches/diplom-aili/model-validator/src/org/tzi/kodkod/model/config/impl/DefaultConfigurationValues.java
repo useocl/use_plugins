@@ -22,8 +22,7 @@ public class DefaultConfigurationValues {
 
 	public static final int stringMin = 0;
 	public static final int stringMax = 10;
-	//TODO disable string and real
-	public static final boolean stringEnabled = true;
+	public static final boolean stringEnabled = false;
 
 	public static final int integerMin = -10;
 	public static final int integerMax = 10;
@@ -32,7 +31,7 @@ public class DefaultConfigurationValues {
 	public static final double realMin = -2d;
 	public static final double realMax = 2d;
 	public static final double realStep = 0.5d;
-	public static final boolean realEnabled = true;
+	public static final boolean realEnabled = false;
 	
 	public static final boolean AGGREGATIONCYCLEFREENESS = false;
 	public static final boolean FORBIDDENSHARING = true;
