@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import kodkod.ast.Formula;
 
-import org.tzi.kodkod.model.config.impl.Configurator;
+import org.tzi.kodkod.model.config.IConfigurator;
 import org.tzi.kodkod.model.type.EnumType;
 import org.tzi.kodkod.model.type.TypeFactory;
 
@@ -125,12 +125,12 @@ public interface IModel extends IConfigurableElement {
 	 * 
 	 * @param configurator
 	 */
-	public void setConfigurator(Configurator<IModel> configurator);
+	public void setConfigurator(IConfigurator<IModel> configurator);
 
 	/**
 	 * Returns the configurator of this model.
 	 * 
 	 * @return
 	 */
-	public Configurator<IModel> getConfigurator();
+	public IConfigurator<IModel> getConfigurator();
 }

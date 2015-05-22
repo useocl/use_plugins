@@ -2,6 +2,7 @@ package org.tzi.kodkod.model.config;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import kodkod.ast.Formula;
 import kodkod.instance.TupleFactory;
@@ -54,6 +55,8 @@ public interface IConfigurator<M extends IElement> {
 	 * @throws Exception
 	 */
 	public void setRanges(List<Range> ranges) throws Exception;
+	
+	public abstract List<Range> getRanges();
 
 	/**
 	 * Sets specific values for this element.
@@ -67,6 +70,8 @@ public interface IConfigurator<M extends IElement> {
 	 */
 	public void setSpecificValues(Collection<String[]> specificValues);
 
+	public abstract Set<String[]> getSpecificValues();
+	
 	/**
 	 * Adds a specific value for this element.
 	 * 

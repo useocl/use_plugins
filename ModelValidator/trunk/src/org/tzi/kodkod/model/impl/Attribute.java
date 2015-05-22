@@ -9,8 +9,8 @@ import kodkod.instance.TupleSet;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.PrintHelper;
+import org.tzi.kodkod.model.config.IConfigurator;
 import org.tzi.kodkod.model.config.impl.AttributeConfigurator;
-import org.tzi.kodkod.model.config.impl.Configurator;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
@@ -29,7 +29,7 @@ public class Attribute extends ModelElement implements IAttribute {
 
 	private Type type;
 	private IClass owner;
-	private Configurator<IAttribute> configurator;
+	private IConfigurator<IAttribute> configurator;
 
 	Attribute(IModel model, String name, Type type, IClass owner) {
 		super(model, name);
@@ -131,12 +131,12 @@ public class Attribute extends ModelElement implements IAttribute {
 	}
 
 	@Override
-	public void setConfigurator(Configurator<IAttribute> configurator) {
+	public void setConfigurator(IConfigurator<IAttribute> configurator) {
 		this.configurator = configurator;
 	}
 
 	@Override
-	public Configurator<IAttribute> getConfigurator() {
+	public IConfigurator<IAttribute> getConfigurator() {
 		return configurator;
 	}
 

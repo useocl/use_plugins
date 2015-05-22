@@ -2,6 +2,7 @@ package org.tzi.kodkod.model.config.impl;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import kodkod.ast.Expression;
@@ -10,6 +11,7 @@ import kodkod.ast.IntConstant;
 import kodkod.ast.IntExpression;
 import kodkod.ast.Relation;
 import kodkod.ast.Variable;
+import kodkod.instance.Tuple;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
 
@@ -17,16 +19,21 @@ import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.PrintHelper;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
+import org.tzi.kodkod.model.type.IntegerType;
 import org.tzi.kodkod.model.type.SetType;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeAtoms;
 import org.tzi.kodkod.model.type.TypeConstants;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+
 /**
  * Configurator for attributes.
  * 
  * @author Hendrik Reitmann
- * 
+ * @author Frank Hilken
  */
 public class AttributeConfigurator extends Configurator<IAttribute> {
 
@@ -107,6 +114,30 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 				typeUpperUndefined.add(tupleFactory.tuple(TypeConstants.UNDEFINED_SET));
 			}
 
+			if(attribute.type().isInteger()){
+				IntegerType t = (IntegerType) attribute.type();
+				final int lowerBound = t.getConfigurator().getRanges().get(0).getLower();
+				final int upperBound = t.getConfigurator().getRanges().get(0).getUpper();
+				final Collection<Integer> sValues = Collections2.transform(t.getConfigurator().getSpecificValues(), new Function<String[], Integer>() {
+					@Override
+					public Integer apply(String[] input) {
+						return Integer.valueOf(input[0]);
+					}
+				});
+				TupleSet rawInput = typeUpperUndefined;
+				typeUpperUndefined = tupleFactory.noneOf(1);
+				typeUpperUndefined.addAll(Collections2.filter(rawInput, new Predicate<Tuple>() {
+					@Override
+					public boolean apply(Tuple input) {
+						if(input.atom(0) instanceof Integer){
+							int n = (Integer) input.atom(0);
+							return (n >= lowerBound && n <= upperBound) || sValues.contains(n);
+						}
+						return true;
+					}
+				}));
+			}
+			
 			TupleSet remaining_objectsUpper = remaining.product(typeUpperUndefined);
 			upper = remaining_objectsUpper;
 		} else {
@@ -141,7 +172,7 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 
 	@Override
 	public void setSpecificValues(Collection<String[]> specificValues) {
-		this.specificValues = new HashSet<String[]>(specificValues);
+		this.specificValues = new LinkedHashSet<String[]>(specificValues);
 		countDefinedObjects();
 		setLimits(definedObjects, definedObjects);
 	}

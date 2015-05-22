@@ -2,7 +2,7 @@ package org.tzi.kodkod.model.iface;
 
 import java.util.List;
 
-import org.tzi.kodkod.model.config.impl.Configurator;
+import org.tzi.kodkod.model.config.IConfigurator;
 
 /**
  * Instances of the type IAssocation represent associations in a model.
@@ -52,12 +52,12 @@ public interface IAssociation extends IModelElement {
 	 * 
 	 * @param configurator
 	 */
-	public void setConfigurator(Configurator<IAssociation> configurator);
+	public void setConfigurator(IConfigurator<IAssociation> configurator);
 
 	/**
 	 * Returns the configurator.
 	 * 
 	 * @return
 	 */
-	public Configurator<IAssociation> getConfigurator();
+	public IConfigurator<IAssociation> getConfigurator();
 }

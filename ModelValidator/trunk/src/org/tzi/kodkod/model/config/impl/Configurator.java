@@ -3,6 +3,7 @@ package org.tzi.kodkod.model.config.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -18,8 +19,6 @@ import org.tzi.kodkod.model.impl.Range;
  * Default configurator.
  * 
  * @author Hendrik Reitmann
- * 
- * @param <M>
  */
 public class Configurator<M extends IElement> implements IConfigurator<M> {
 
@@ -53,12 +52,22 @@ public class Configurator<M extends IElement> implements IConfigurator<M> {
 		}
 		this.ranges = ranges;
 	}
+	
+	@Override
+	public List<Range> getRanges() {
+		return ranges;
+	}
 
 	@Override
 	public void setSpecificValues(Collection<String[]> specificValues) {
-		this.specificValues = new HashSet<String[]>(specificValues);
+		this.specificValues = new LinkedHashSet<String[]>(specificValues);
 	}
 
+	@Override
+	public Set<String[]> getSpecificValues() {
+		return specificValues;
+	}
+	
 	@Override
 	public void addSpecificValue(String[] specificValue) {
 		this.specificValues.add(specificValue);

@@ -1,6 +1,6 @@
 package org.tzi.kodkod.model.iface;
 
-import org.tzi.kodkod.model.config.impl.Configurator;
+import org.tzi.kodkod.model.config.IConfigurator;
 import org.tzi.kodkod.model.type.Type;
 
 /**
@@ -30,12 +30,12 @@ public interface IAttribute extends IModelElement {
 	 * 
 	 * @param configurator
 	 */
-	public void setConfigurator(Configurator<IAttribute> configurator);
+	public void setConfigurator(IConfigurator<IAttribute> configurator);
 
 	/**
 	 * Returns the configurator of this attribute.
 	 * 
 	 * @return
 	 */
-	public Configurator<IAttribute> getConfigurator();
+	public IConfigurator<IAttribute> getConfigurator();
 }

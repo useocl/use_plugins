@@ -18,8 +18,8 @@ import kodkod.instance.TupleSet;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.PrintHelper;
+import org.tzi.kodkod.model.config.IConfigurator;
 import org.tzi.kodkod.model.config.impl.ClassConfigurator;
-import org.tzi.kodkod.model.config.impl.Configurator;
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IAttribute;
@@ -46,7 +46,7 @@ public class Class extends ModelElement implements IClass {
 	private Map<String, IClass> children;
 	private Relation inheritanceRelation;
 	private ObjectType objectType;
-	private Configurator<IClass> configurator;
+	private IConfigurator<IClass> configurator;
 
 	Class(IModel model, String name, boolean abstractC) {
 		super(model, name);
@@ -306,12 +306,12 @@ public class Class extends ModelElement implements IClass {
 	}
 
 	@Override
-	public void setConfigurator(Configurator<IClass> configurator) {
+	public void setConfigurator(IConfigurator<IClass> configurator) {
 		this.configurator = configurator;
 	}
 
 	@Override
-	public Configurator<IClass> getConfigurator() {
+	public IConfigurator<IClass> getConfigurator() {
 		return configurator;
 	}
 

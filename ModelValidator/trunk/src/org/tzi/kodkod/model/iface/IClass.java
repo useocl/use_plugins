@@ -2,7 +2,7 @@ package org.tzi.kodkod.model.iface;
 
 import java.util.Collection;
 
-import org.tzi.kodkod.model.config.impl.Configurator;
+import org.tzi.kodkod.model.config.IConfigurator;
 import org.tzi.kodkod.model.type.ObjectType;
 
 /**
@@ -120,12 +120,12 @@ public interface IClass extends IModelElement, IGeneralization {
 	 * 
 	 * @param configurator
 	 */
-	public void setConfigurator(Configurator<IClass> configurator);
+	public void setConfigurator(IConfigurator<IClass> configurator);
 
 	/**
 	 * Returns the configurator of this class.
 	 * 
 	 * @return
 	 */
-	public Configurator<IClass> getConfigurator();
+	public IConfigurator<IClass> getConfigurator();
 }

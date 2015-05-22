@@ -9,7 +9,7 @@ import kodkod.ast.Formula;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
-import org.tzi.kodkod.model.config.impl.Configurator;
+import org.tzi.kodkod.model.config.IConfigurator;
 import org.tzi.kodkod.model.config.impl.ModelConfigurator;
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IClass;
@@ -37,7 +37,7 @@ public final class Model implements IModel {
     private Map<String, IAssociation> associations;
     private IModelFactory modelFactory;
     private TypeFactory typeFactory;
-    private Configurator<IModel> configurator;
+    private IConfigurator<IModel> configurator;
 
     Model(String name, IModelFactory modelFactory,TypeFactory typeFactory){
     	this.name=name;
@@ -130,12 +130,12 @@ public final class Model implements IModel {
 	}
 
 	@Override
-	public void setConfigurator(Configurator<IModel> configurator) {
+	public void setConfigurator(IConfigurator<IModel> configurator) {
 		this.configurator = configurator;
 	}
 
 	@Override
-	public Configurator<IModel> getConfigurator() {
+	public IConfigurator<IModel> getConfigurator() {
 		return configurator;
 	}
 	
