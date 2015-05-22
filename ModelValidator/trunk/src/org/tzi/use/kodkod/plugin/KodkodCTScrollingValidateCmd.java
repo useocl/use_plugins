@@ -122,8 +122,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 			// transform into kodkod
 			Node obsTermKodkod;
 			try {
-				DefaultExpressionVisitor ev = new DefaultExpressionVisitor(
-						PluginModelFactory.INSTANCE.getModel(session.system().model()),
+				DefaultExpressionVisitor ev = new DefaultExpressionVisitor(model(),
 						new HashMap<String, Node>(), new HashMap<String, IClass>(),
 						new HashMap<String, Variable>(), new ArrayList<String>());
 				result.processWithVisitor(ev);
