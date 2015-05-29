@@ -4,8 +4,8 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
 
-import org.tzi.use.gui.util.ExtFileFilter;
 import org.tzi.use.runtime.gui.IPluginAction;
 import org.tzi.use.runtime.gui.IPluginActionDelegate;
 
@@ -34,11 +34,25 @@ public class KodkodValidatePropertyAction extends KodkodValidateCmd implements I
 		} else {
 			fileChooser = new JFileChooser();
 		}
-		fileChooser.setFileFilter(new ExtFileFilter("properties", "Property-Dateien"));
+		fileChooser.setFileFilter(new FileFilter() {
 
-		if (fileChooser.showOpenDialog(pluginAction.getParent()) == JFileChooser.APPROVE_OPTION) {
+			@Override
+			public String getDescription() {
+				return "Property-Dateien";
+			}
+
+			@Override
+			public boolean accept(File f) {
+				if (f.isDirectory())
+					return true;
+				return f.getName().endsWith(".properties");
+			}
+		});
+
+		if (fileChooser.showOpenDialog(null) == 0) {
 			File file = fileChooser.getSelectedFile();
 			extractConfigureAndValidate(file);
 		}
 	}
+
 }

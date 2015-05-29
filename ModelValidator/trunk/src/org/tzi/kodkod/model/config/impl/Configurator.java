@@ -46,7 +46,7 @@ public class Configurator<M extends IElement> implements IConfigurator<M> {
 	}
 
 	@Override
-	public void setRanges(List<Range> ranges) throws Exception {
+	public void setRanges(List<Range> ranges) {
 		if (ranges.size() == 0) {
 			throw new IllegalArgumentException("At least one range has to be defined!");
 		}

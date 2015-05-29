@@ -1,9 +1,8 @@
 package org.tzi.kodkod.model.impl;
 
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import kodkod.ast.Formula;
 
@@ -32,9 +31,10 @@ public final class Model implements IModel {
 	private static final Logger LOG = Logger.getLogger(Model.class);
 	
 	private final String name;
-    private Map<String, EnumType> enums;
-    private Map<String, IClass> classes;
-    private Map<String, IAssociation> associations;
+    private Map<String, EnumType> enums = new HashMap<String, EnumType>();
+    private Map<String, IClass> classes = new HashMap<String, IClass>();
+    private Map<String, IInvariant> invariants = new HashMap<String, IInvariant>();
+    private Map<String, IAssociation> associations = new HashMap<String, IAssociation>();
     private IModelFactory modelFactory;
     private TypeFactory typeFactory;
     private IConfigurator<IModel> configurator;
@@ -43,9 +43,6 @@ public final class Model implements IModel {
     	this.name=name;
     	this.modelFactory=modelFactory;
     	this.typeFactory=typeFactory;
-    	enums=new TreeMap<String, EnumType>();
-    	classes=new TreeMap<String, IClass>();
-    	associations=new TreeMap<String, IAssociation>();
     	resetConfigurator();
     }
 
@@ -75,6 +72,16 @@ public final class Model implements IModel {
 	}
 
 	@Override
+	public void addInvariant(IInvariant inv){
+		invariants.put(inv.clazz().name() + "::" + inv.name(), inv);
+	}
+	
+	@Override
+	public IInvariant getInvariant(String name){
+		return invariants.get(name);
+	}
+	
+	@Override
 	public void addAssociation(IAssociation association) {
 		associations.put(association.name(), association);
 	}
@@ -101,11 +108,7 @@ public final class Model implements IModel {
 
 	@Override
 	public Collection<IInvariant> classInvariants() {
-		LinkedList<IInvariant> invariants = new LinkedList<IInvariant>();
-		for(IClass cls : classes()){
-			invariants.addAll(cls.invariants());
-		}
-		return invariants;
+		return invariants.values();
 	}
 	
 	@Override

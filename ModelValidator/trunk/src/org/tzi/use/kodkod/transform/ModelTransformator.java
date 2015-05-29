@@ -147,6 +147,7 @@ public class ModelTransformator {
 					transformAggregationKind(mAssociationEnd.aggregationKind()),
 					model.getClass(mAssociationEnd.cls().name()));
 			association.addAssociationEnd(end);
+			end.associatedClass().addAssociation(association);
 		}
 		return association;
 	}
@@ -165,7 +166,7 @@ public class ModelTransformator {
 		MultiplicityTransformator multTransformator = new MultiplicityTransformator();
 		for (MAssociationClass mAssociationClass : mAssociationClasses) {
 
-			IAssociationClass associationClass = factory.createAssociationClass(model, mAssociationClass.name());
+			IAssociationClass associationClass = factory.createAssociationClass(model, mAssociationClass.name(), mAssociationClass.isAbstract());
 			transformClassAttributes(model, associationClass, mAssociationClass.attributes());
 			model.addClass(associationClass);
 

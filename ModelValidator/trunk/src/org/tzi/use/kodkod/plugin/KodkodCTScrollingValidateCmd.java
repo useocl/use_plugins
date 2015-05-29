@@ -1,7 +1,6 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -19,10 +18,10 @@ import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.use.kodkod.UseCTScrollingKodkodModelValidator;
 import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.kodkod.transform.ocl.DefaultExpressionVisitor;
-import org.tzi.use.main.shell.Shell;
 import org.tzi.use.parser.ocl.OCLCompiler;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.value.VarBindings;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Cmd-Class for the scrolling in the solutions using classifier terms.
@@ -37,20 +36,21 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 	}
 
 	@Override
-	protected void handleArguments(String arguments) {
-		arguments = arguments.trim();
+	protected void handleArguments(String[] arguments) {
+		String firstArgument = arguments[0];
 		
-		if (arguments.equalsIgnoreCase("next")) {
+		if (firstArgument.equalsIgnoreCase("next")) {
 			if (checkValidatorPresent()) {
 				validator.nextSolution();
 			}
-		} else if (arguments.equalsIgnoreCase("previous")) {
+		} else if (firstArgument.equalsIgnoreCase("previous")) {
 			if (checkValidatorPresent()) {
 				validator.previousSolution();
 			}
 		} else {
+			String argumentsAsString = StringUtil.fmtSeq(arguments, " ");
 			Pattern showPattern = Pattern.compile("show\\s*\\(\\s*(\\d+)\\s*\\)", Pattern.CASE_INSENSITIVE);
-			Matcher m = showPattern.matcher(arguments);
+			Matcher m = showPattern.matcher(argumentsAsString);
 			
 			if (m.matches()) {
 				if (checkValidatorPresent()) {
@@ -58,26 +58,18 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 					validator.showSolution(index);
 				}
 			} else {
-				String fileToOpen = Shell.getInstance().getFilenameToOpen(arguments, false);
-				File file = new File(fileToOpen);
-	
-				if (file.exists() && file.canRead() && !file.isDirectory()) {
-					
-					resetValidator();
-					try {
-						if(!readClassifyingTerms()){
-							LOG.info("Aborting.");
-							return;
-						}
-					} catch (IOException e) {
-						LOG.error(e.getMessage(), e);
+				resetValidator();
+				try {
+					if(!readClassifyingTerms()){
+						LOG.info("Aborting.");
 						return;
 					}
-					
-					extractConfigureAndValidate(file);
-				} else {
-					LOG.error(LogMessages.pagingCmdError);
+				} catch (IOException e) {
+					LOG.error(e.getMessage(), e);
+					return;
 				}
+				
+				super.handleArguments(arguments);
 			}
 		}
 	}

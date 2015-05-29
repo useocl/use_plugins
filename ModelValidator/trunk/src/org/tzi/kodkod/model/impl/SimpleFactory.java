@@ -45,8 +45,8 @@ public class SimpleFactory implements IModelFactory {
 	}
 
 	@Override
-	public IAssociationClass createAssociationClass(IModel model, String name) {
-		return new AssociationClass(model, name);
+	public IAssociationClass createAssociationClass(IModel model, String name, boolean abstrac) {
+		return new AssociationClass(model, name, abstrac);
 	}
 
 	@Override

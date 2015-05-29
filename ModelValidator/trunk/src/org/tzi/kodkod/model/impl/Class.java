@@ -2,11 +2,11 @@ package org.tzi.kodkod.model.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import kodkod.ast.Decls;
 import kodkod.ast.Expression;
@@ -33,17 +33,17 @@ import org.tzi.kodkod.model.visitor.Visitor;
  * Implementation of IClass.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class Class extends ModelElement implements IClass {
 
 	private static final Logger LOG = Logger.getLogger(Class.class);
 
 	private boolean abstractC;
-	private Map<String, IAttribute> attributes;
-	private Map<String, IInvariant> invariants;
-	private Map<String, IClass> parents;
-	private Map<String, IClass> children;
+	private Map<String, IAttribute> attributes = new HashMap<String, IAttribute>();
+	private Set<IAssociation> associations = new HashSet<IAssociation>();
+	private Map<String, IInvariant> invariants = new HashMap<String, IInvariant>();
+	private Set<IClass> parents = new HashSet<IClass>();
+	private Set<IClass> children = new HashSet<IClass>();
 	private Relation inheritanceRelation;
 	private ObjectType objectType;
 	private IConfigurator<IClass> configurator;
@@ -51,11 +51,6 @@ public class Class extends ModelElement implements IClass {
 	Class(IModel model, String name, boolean abstractC) {
 		super(model, name);
 		this.abstractC = abstractC;
-
-		attributes = new TreeMap<String, IAttribute>();
-		invariants = new TreeMap<String, IInvariant>();
-		parents = new TreeMap<String, IClass>();
-		children = new TreeMap<String, IClass>();
 
 		relation = Relation.unary(name());
 
@@ -85,7 +80,7 @@ public class Class extends ModelElement implements IClass {
 	@Override
 	public Collection<IAttribute> allAttributes() {
 		Set<IAttribute> allAttributes = new HashSet<IAttribute>(attributes.values());
-		for (IClass parent : parents.values()) {
+		for (IClass parent : parents) {
 			allAttributes.addAll(parent.allAttributes());
 		}
 		return allAttributes;
@@ -95,7 +90,7 @@ public class Class extends ModelElement implements IClass {
 	public IAttribute getAttribute(String name) {
 		IAttribute attribute = attributes.get(name);
 		if (attribute == null) {
-			for (IClass parent : parents.values()) {
+			for (IClass parent : parents) {
 				if (parent.getAttribute(name) != null) {
 					attribute = parent.getAttribute(name);
 					break;
@@ -105,6 +100,27 @@ public class Class extends ModelElement implements IClass {
 		return attribute;
 	}
 
+	@Override
+	public void addAssociation(IAssociation association) {
+		associations.add(association);
+	}
+	
+	@Override
+	public Collection<IAssociation> associations() {
+		return associations;
+	}
+	
+	@Override
+	public Collection<IAssociation> allAssociations() {
+		Set<IAssociation> res = new HashSet<IAssociation>();
+		res.addAll(associations());
+		
+		for(IClass cls : allParents()){
+			res.addAll(cls.associations());
+		}
+		return res;
+	}
+	
 	@Override
 	public void addInvariant(IInvariant invariant) {
 		invariants.put(invariant.name(), invariant);
@@ -118,7 +134,7 @@ public class Class extends ModelElement implements IClass {
 	@Override
 	public Collection<IInvariant> allInvariants() {
 		Set<IInvariant> allInvariants = new HashSet<IInvariant>(invariants.values());
-		for (IClass parent : parents.values()) {
+		for (IClass parent : parents) {
 			allInvariants.addAll(parent.allInvariants());
 		}
 		return allInvariants;
@@ -131,12 +147,12 @@ public class Class extends ModelElement implements IClass {
 
 	@Override
 	public void addParent(IClass parent) {
-		parents.put(parent.name(), parent);
+		parents.add(parent);
 	}
 
 	@Override
 	public Collection<IClass> parents() {
-		return parents.values();
+		return parents;
 	}
 	
 	@Override
@@ -152,12 +168,12 @@ public class Class extends ModelElement implements IClass {
 	
 	@Override
 	public void addChild(IClass child) {
-		children.put(child.name(), child);
+		children.add(child);
 	}
 
 	@Override
 	public Collection<IClass> children() {
-		return children.values();
+		return children;
 	}
 
 	@Override
@@ -207,7 +223,7 @@ public class Class extends ModelElement implements IClass {
 	public TupleSet inheritanceLowerBound(TupleFactory tupleFactory) {
 		TupleSet inheritanceLowerBound = tupleFactory.noneOf(1);
 		inheritanceLowerBound.addAll(lowerBound(tupleFactory));
-		for (IClass clazz : children.values()) {
+		for (IClass clazz : children) {
 			inheritanceLowerBound.addAll(clazz.inheritanceLowerBound(tupleFactory));
 		}
 
@@ -218,7 +234,7 @@ public class Class extends ModelElement implements IClass {
 	public TupleSet inheritanceUpperBound(TupleFactory tupleFactory) {
 		TupleSet inheritanceUpperBound = tupleFactory.noneOf(1);
 		inheritanceUpperBound.addAll(upperBound(tupleFactory));
-		for (IClass clazz : children.values()) {
+		for (IClass clazz : children) {
 			inheritanceUpperBound.addAll(clazz.inheritanceUpperBound(tupleFactory));
 		}
 
@@ -233,7 +249,7 @@ public class Class extends ModelElement implements IClass {
 	private Formula inheritanceDefinition() {
 		Expression expression = relation();
 
-		for (IClass clazz : children.values()) {
+		for (IClass clazz : children) {
 			if (clazz.existsInheritance()) {
 				expression = expression.union(clazz.inheritanceRelation());
 			} else {

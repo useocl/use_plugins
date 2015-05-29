@@ -33,6 +33,8 @@ public final class LogMessages {
 	public static final String objDiagramCreation = "Create object diagram";
 
 	public static final String objDiagramCreationError = "Error during object diagram creation";
+	
+	public static final String PROPERTIES_NO_CONFIGURATION_WARNING = "No configuration name given. Using first configuration of the file.";
 
 	public static final String propertiesConfigurationReadError = "Error while reading .properties file";
 
@@ -40,8 +42,8 @@ public final class LogMessages {
 
 	public static final String propertiesConfigurationWriteError = "Error while writing .properties file";
 
-	public static final String propertiesConfigurationCloseError = "Error while closing .properties file";
-
+	public static final String configurationError = "Error during model configuration. Please check the log for concrete hints.";
+	
 	public static final String className$Error = "Class names starting with a " + inQuotes("$") + " are not allowed!";
 
 	public static final String solverConfigSaveError = "Error while saving KodkodSolver configuration";
@@ -67,7 +69,7 @@ public final class LogMessages {
 	public static final String pagingCmdError = "Set a configuration file or enter next for a new solution respectively previous for the last solution.";
 
 	public static final String pagingCmdFileFirst = "Set a configuration file first!";
-
+	
 	public static final String enrichWithLoadedInvariants = "Enrich the model with loaded invariants";
 
 	public static final String errorWithLoadedInvariants = "Error while enriching the model with loaded invariants";
@@ -89,7 +91,7 @@ public final class LogMessages {
 	public static final String closureObjectMessage = "Closure is only available for collections with objects.";
 
 	public static final String closureCollectionMessage = "Source type is not a collection.";
-
+	
 	public static String startModelTransform(String name) {
 		return "Start model transformation for " + inQuotes(name);
 	}
@@ -205,12 +207,12 @@ public final class LogMessages {
 	}
 
 	public static String aggregationcyclefreenessInfo() {
-		String status = DefaultConfigurationValues.aggregationcyclefreeness ? "on" : "off";
+		String status = DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS ? "on" : "off";
 		return "Only on and off are possible values of aggregationcyclefreeness! Using default " + inQuotes(status) + ".";
 	}
 
 	public static String forbiddensharingInfo() {
-		String status = DefaultConfigurationValues.forbiddensharing ? "on" : "off";
+		String status = DefaultConfigurationValues.FORBIDDENSHARING ? "on" : "off";
 		return "Only on and off are possible values of forbiddensharing! Using default " + inQuotes(status) + ".";
 	}
 	

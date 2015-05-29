@@ -1,12 +1,11 @@
 package org.tzi.kodkod.model.config.impl;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IAssociation;
@@ -18,6 +17,7 @@ import org.tzi.kodkod.model.type.IntegerType;
 import org.tzi.kodkod.model.type.RealType;
 import org.tzi.kodkod.model.type.StringType;
 import org.tzi.kodkod.model.visitor.SimpleVisitor;
+import org.tzi.use.kodkod.plugin.PropertiesWriter;
 
 /**
  * Visitor to configure the model with the default search space and create the
@@ -27,18 +27,24 @@ import org.tzi.kodkod.model.visitor.SimpleVisitor;
  * 
  */
 public class DefaultConfigurationVisitor extends SimpleVisitor {
-
+	/*
+	 * TODO split creation of default values and configuring the model with them.
+	 * This visitor does not output warnings for unsupported model elements etc.
+	 */
+	
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
-
-	private BufferedWriter writer;
+	private PropertiesConfiguration pc;
 	private File file;
 
-	public DefaultConfigurationVisitor(String fileName) throws Exception {
+	public DefaultConfigurationVisitor(String fileName) throws IOException {
 		fileName = fileName.replaceAll("\\.use", "");
 		file = new File(fileName + ".properties");
 		file.createNewFile();
-
-		writer = new BufferedWriter(new FileWriter(file));
+		pc = new PropertiesConfiguration();
+	}
+	
+	public DefaultConfigurationVisitor() {
+		pc = new PropertiesConfiguration();
 	}
 
 	public File getFile() {
@@ -47,14 +53,19 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 
 	@Override
 	public void visitModel(IModel model) {
-		iterate(model.classes().iterator());
-		iterate(model.associations().iterator());
 		iterate(model.typeFactory().configurableTypes().iterator());
-
+		for (IClass clazz : model.classes()) {
+			clazz.accept(this);
+			iterate(clazz.attributes().iterator());
+		}
+		iterate(model.associations().iterator());
+		
+		PropertiesWriter pw = new PropertiesWriter(model);
+		pw.setIsDefaultConfiguration(true);
 		try {
-			writer.close();
+			pw.writeToFile(file, pc);
 		} catch (IOException e) {
-			LOG.error(LogMessages.propertiesConfigurationCloseError + ". " + e.getMessage());
+			LOG.error(LogMessages.propertiesConfigurationCreateError);
 		}
 	}
 
@@ -104,45 +115,41 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	@Override
 	public void visitIntegerType(IntegerType integerType) {
 		IntegerConfigurator configurator = new IntegerConfigurator();
-		setRange(configurator, integerType.name() + PropertyEntry.integerValueMin, DefaultConfigurationValues.integerMin, integerType.name()
-				+ PropertyEntry.integerValueMax, DefaultConfigurationValues.integerMax);
+		setRange(configurator, integerType.name() + PropertyEntry.integerValueMin, DefaultConfigurationValues.integerMin,
+				integerType.name() + PropertyEntry.integerValueMax, DefaultConfigurationValues.integerMax);
 		integerType.setConfigurator(configurator);
+
 	}
 
 	@Override
 	public void visitRealType(RealType realType) {
 		RealConfigurator configurator = new RealConfigurator();
 		configurator.setStep(DefaultConfigurationValues.realStep);
-		setRange(configurator, realType.name() + PropertyEntry.realValueMin, DefaultConfigurationValues.realMin, realType.name()
-				+ PropertyEntry.realValueMax, DefaultConfigurationValues.realMax);
+		// the model validator tries to treat reals like integers for basic arithmetic support
+		setRange(configurator, realType.name() + PropertyEntry.realValueMin, (int) DefaultConfigurationValues.realMin, 
+				realType.name() + PropertyEntry.realValueMax, (int) DefaultConfigurationValues.realMax);
 		realType.setConfigurator(configurator);
 		write(realType.name() + PropertyEntry.realStep, DefaultConfigurationValues.realStep);
 	}
 
 	private void setRange(TypeConfigurator configurator, String minName, int minValue, String maxName, int maxValue) {
-		try {
-			List<Range> ranges = new ArrayList<Range>();
-			ranges.add(new Range(minValue, maxValue));
-			configurator.setRanges(ranges);
-			write(minName, minValue);
-			write(maxName, maxValue);
-		} catch (Exception e) {
-			LOG.error(e.getMessage());
-		}
+		List<Range> ranges = new ArrayList<Range>();
+		ranges.add(new Range(minValue, maxValue));
+		configurator.setRanges(ranges);
+		write(minName, minValue);
+		write(maxName, maxValue);
 	}
 
 	/**
-	 * Writes the value with the given name to the configuration file.
+	 * Writes the given int value with the given name to the configuration file.
 	 * 
 	 * @param name
 	 * @param value
 	 */
 	private void write(String name, int value) {
 		try {
-			writer.write(name + " = " + value);
-			writer.newLine();
-			writer.newLine();
-		} catch (IOException e) {
+			pc.setProperty(name, value);
+		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
 	}
@@ -156,11 +163,10 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	 */
 	private void write(String name, double value) {
 		try {
-			writer.write(name + " = " + value);
-			writer.newLine();
-			writer.newLine();
-		} catch (IOException e) {
+			pc.setProperty(name, value);
+		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 		}
 	}
+
 }

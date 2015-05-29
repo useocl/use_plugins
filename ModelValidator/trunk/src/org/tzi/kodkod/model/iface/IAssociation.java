@@ -8,7 +8,6 @@ import org.tzi.kodkod.model.config.IConfigurator;
  * Instances of the type IAssocation represent associations in a model.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public interface IAssociation extends IModelElement {
 
@@ -27,7 +26,7 @@ public interface IAssociation extends IModelElement {
 	public List<IAssociationEnd> associationEnds();
 
 	/**
-	 * Sets an assocation class
+	 * Sets an association class
 	 * 
 	 * @param associationClass
 	 */

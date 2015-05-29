@@ -78,8 +78,8 @@ public class ObjectDiagramCreator {
 		if (foundErrors) {
 			String result = buffer.toString();
 
-			boolean aggregationcyclefreeness = DefaultConfigurationValues.aggregationcyclefreeness;
-			boolean forbiddensharing = DefaultConfigurationValues.forbiddensharing;
+			boolean aggregationcyclefreeness = DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS;
+			boolean forbiddensharing = DefaultConfigurationValues.FORBIDDENSHARING;
 			if (model.getConfigurator() instanceof ModelConfigurator) {
 				aggregationcyclefreeness = ((ModelConfigurator) model.getConfigurator()).isAggregationCycleFree();
 				forbiddensharing = ((ModelConfigurator) model.getConfigurator()).isForbiddensharing();

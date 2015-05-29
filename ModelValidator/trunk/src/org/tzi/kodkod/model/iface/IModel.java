@@ -133,4 +133,8 @@ public interface IModel extends IConfigurableElement {
 	 * @return
 	 */
 	public IConfigurator<IModel> getConfigurator();
+
+	public abstract IInvariant getInvariant(String name);
+
+	public abstract void addInvariant(IInvariant inv);
 }

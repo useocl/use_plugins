@@ -48,8 +48,8 @@ public class ModelConfigurator extends Configurator<IModel> {
 	public ModelConfigurator(IModel model) {
 		this.model = model;
 		solutionFormula = Formula.TRUE;
-		aggregationcyclefree = DefaultConfigurationValues.aggregationcyclefreeness;
-		forbiddensharing = DefaultConfigurationValues.forbiddensharing;
+		aggregationcyclefree = DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS;
+		forbiddensharing = DefaultConfigurationValues.FORBIDDENSHARING;
 	}
 
 	@Override

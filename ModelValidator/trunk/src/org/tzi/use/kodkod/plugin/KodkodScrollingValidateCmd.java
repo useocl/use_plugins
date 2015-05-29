@@ -1,12 +1,11 @@
 package org.tzi.use.kodkod.plugin;
 
-import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.use.kodkod.UseScrollingKodkodModelValidator;
-import org.tzi.use.main.shell.Shell;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Cmd-Class for the scrolling in the solutions.
@@ -24,20 +23,21 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 	}
 
 	@Override
-	protected void handleArguments(String arguments) {
-		arguments = arguments.trim();
+	protected void handleArguments(String[] arguments) {
+		String firstArgument = arguments[0];
 		
-		if (arguments.equalsIgnoreCase("next")) {
+		if (firstArgument.equalsIgnoreCase("next")) {
 			if (checkValidatorPresent()) {
 				validator.nextSolution();
 			}
-		} else if (arguments.equalsIgnoreCase("previous")) {
+		} else if (firstArgument.equalsIgnoreCase("previous")) {
 			if (checkValidatorPresent()) {
 				validator.previousSolution();
 			}
 		} else {
+			String argumentsAsString = StringUtil.fmtSeq(arguments, " ");
 			Pattern showPattern = Pattern.compile("show\\s*\\(\\s*(\\d+)\\s*\\)", Pattern.CASE_INSENSITIVE);
-			Matcher m = showPattern.matcher(arguments);
+			Matcher m = showPattern.matcher(argumentsAsString);
 			
 			if (m.matches()) {
 				if (checkValidatorPresent()) {
@@ -45,15 +45,7 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 					validator.showSolution(index);
 				}
 			} else {
-				String fileToOpen = Shell.getInstance().getFilenameToOpen(arguments, false);
-				File file = new File(fileToOpen);
-	
-				if (file.exists() && file.canRead() && !file.isDirectory()) {
-					resetValidator();
-					extractConfigureAndValidate(file);
-				} else {
-					LOG.error(LogMessages.pagingCmdError);
-				}
+				super.handleArguments(arguments);
 			}
 		}
 	}
