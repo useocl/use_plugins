@@ -12,8 +12,10 @@ import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
+import org.tzi.kodkod.model.type.ObjectType;
 import org.tzi.kodkod.model.type.TypeLiterals;
 import org.tzi.use.kodkod.transform.TransformationException;
+import org.tzi.use.kodkod.transform.TypeConverter;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNavigableElement;
@@ -64,6 +66,15 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 	public void visitAttrOp(ExpAttrOp exp) {
 		exp.objExp().processWithVisitor(this);
 		
+		if(attributeClass == null){
+			// try to find the source type
+			org.tzi.kodkod.model.type.Type sourceType = new TypeConverter(model).convert(exp.objExp().type());
+			if(sourceType instanceof ObjectType){
+				attributeClass = ((ObjectType) sourceType).clazz();
+			} else {
+				throw new TransformationException("Cannot determine type of source expression for " + StringUtil.inQuotes(exp.toString()) + ".");
+			}
+		}
 		IAttribute attribute = attributeClass.getAttribute(exp.attr().name());
 		
 		if (attribute != null) {

@@ -15,8 +15,8 @@ import kodkod.instance.TupleSet;
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.ConstraintHelper;
 import org.tzi.kodkod.helper.PrintHelper;
+import org.tzi.kodkod.model.config.IConfigurator;
 import org.tzi.kodkod.model.config.impl.AssociationConfigurator;
-import org.tzi.kodkod.model.config.impl.Configurator;
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationClass;
 import org.tzi.kodkod.model.iface.IAssociationEnd;
@@ -37,7 +37,7 @@ public class Association extends ModelElement implements IAssociation {
 	private int arity = 0;
 	private IAssociationClass associationClass;
 	private List<IAssociationEnd> associationEnds;
-	private Configurator<IAssociation> configurator;
+	private IConfigurator<IAssociation> configurator;
 
 	Association(IModel model, String name) {
 		super(model, name);
@@ -386,12 +386,12 @@ public class Association extends ModelElement implements IAssociation {
 	}
 
 	@Override
-	public void setConfigurator(Configurator<IAssociation> configurator) {
+	public void setConfigurator(IConfigurator<IAssociation> configurator) {
 		this.configurator = configurator;
 	}
 
 	@Override
-	public Configurator<IAssociation> getConfigurator() {
+	public IConfigurator<IAssociation> getConfigurator() {
 		return configurator;
 	}
 

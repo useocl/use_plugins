@@ -49,6 +49,6 @@ public class IntegerConfigurator extends TypeConfigurator {
 			atoms.add(Integer.valueOf(specific[0]));
 		}
 
-		return new LinkedHashSet<Object>(atoms);
+		return atoms;
 	}
 }

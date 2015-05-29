@@ -34,7 +34,7 @@ import com.google.common.eventbus.Subscribe;
  * 
  */
 public enum PluginModelFactory implements ChangeListener {
-
+	
 	INSTANCE;
 
 	private WeakReference<Session> session = new WeakReference<Session>(null);
@@ -42,26 +42,22 @@ public enum PluginModelFactory implements ChangeListener {
 	private boolean reTransform = true;
 
 	private IModel model;
-	private TypeFactory typeFactory;
 	private IModelFactory modelFactory;
 
 	private PluginModelFactory() {
 		setModelFactory(new SimpleFactory());
-		setTypeFactory(new PrimitiveTypeFactory());
-		registerDefaultOperationGroups();
 	}
 
 	/**
 	 * Returns the representing model for the given use model.
-	 * 
-	 * @param mModel
-	 * @return
 	 */
-	public IModel getModel(final MModel mModel) {
+	public IModel getModel(MModel mModel) {
 		if (reTransform) {
 			reTransform = false;
 
-			ModelTransformator transformator = new ModelTransformator(modelFactory, typeFactory);
+			TypeFactory tf = new PrimitiveTypeFactory();
+			registerDefaultOperationGroups(tf);
+			ModelTransformator transformator = new ModelTransformator(modelFactory, tf);
 			model = transformator.transform(mModel);
 		}
 
@@ -78,28 +74,20 @@ public enum PluginModelFactory implements ChangeListener {
 	}
 
 	/**
-	 * Sets the type factory
-	 * 
-	 * @param typeFactory
-	 */
-	public void setTypeFactory(TypeFactory typeFactory) {
-		this.typeFactory = typeFactory;
-	}
-
-	/**
 	 * Registers the default operation groups with the different translation
 	 * methods.
 	 */
-	public void registerDefaultOperationGroups() {
+	private void registerDefaultOperationGroups(TypeFactory tf) {
 		OCLGroupRegistry registry = OCLGroupRegistry.INSTANCE;
-		registry.registerOperationGroup(new VariableOperationGroup(typeFactory));
-		registry.registerOperationGroup(new IntegerOperationGroup(typeFactory));
-		registry.registerOperationGroup(new BooleanOperationGroup(typeFactory));
-		registry.registerOperationGroup(new ClassOperationGroup(typeFactory));
-		registry.registerOperationGroup(new AnyOperationGroup(typeFactory, true));
-		registry.registerOperationGroup(new ConditionalOperationGroup(typeFactory));
-		registry.registerOperationGroup(new SetOperationGroup(typeFactory));
-		registry.registerOperationGroup(new CollectionConstructorGroup(typeFactory));
+		registry.unregisterAll();
+		registry.registerOperationGroup(new VariableOperationGroup(tf));
+		registry.registerOperationGroup(new IntegerOperationGroup(tf));
+		registry.registerOperationGroup(new BooleanOperationGroup(tf));
+		registry.registerOperationGroup(new ClassOperationGroup(tf));
+		registry.registerOperationGroup(new AnyOperationGroup(tf, true));
+		registry.registerOperationGroup(new ConditionalOperationGroup(tf));
+		registry.registerOperationGroup(new SetOperationGroup(tf));
+		registry.registerOperationGroup(new CollectionConstructorGroup(tf));
 	}
 	
 	public void registerForSession(Session s){
