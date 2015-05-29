@@ -62,7 +62,6 @@ import org.tzi.use.kodkod.plugin.gui.model.TableModelAttribute;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
 import org.tzi.use.kodkod.plugin.gui.util.ChangeConfiguration;
 import org.tzi.use.util.StringUtil;
-import org.tzi.use.util.collections.CollectionUtil;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -867,7 +866,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				if(abstractClass.allChildren().isEmpty()){
 					continue;
 				}
-				Collection<IClass> inheritingClasses = CollectionUtil.downCastUnsafe(abstractClass.allChildren());
+				Collection<IClass> inheritingClasses = abstractClass.allChildren();
 				StringUtil.fmtSeq(abstractText, inheritingClasses, StringUtil.NEWLINE, new StringUtil.IElementFormatter<IClass>() {
 					@Override
 					public String format(IClass element) {
