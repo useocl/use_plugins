@@ -27,6 +27,10 @@ import org.tzi.use.kodkod.plugin.PropertiesWriter;
  * 
  */
 public class DefaultConfigurationVisitor extends SimpleVisitor {
+	/*
+	 * TODO split creation of default values and configuring the model with them.
+	 * This visitor does not output warnings for unsupported model elements etc.
+	 */
 	
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
 	private PropertiesConfiguration pc;

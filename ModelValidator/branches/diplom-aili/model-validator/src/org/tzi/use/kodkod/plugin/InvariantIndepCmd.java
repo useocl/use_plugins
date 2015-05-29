@@ -1,11 +1,12 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.tzi.kodkod.InvariantIndepChecker;
 import org.tzi.kodkod.helper.LogMessages;
-import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
 import org.tzi.use.main.shell.Shell;
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
@@ -17,6 +18,7 @@ import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
  * @author Frank Hilken
  */
 public class InvariantIndepCmd extends ConfigurablePlugin implements IPluginShellCmdDelegate {
+	//TODO adapt command to allow configuration section selection
 
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
@@ -41,8 +43,9 @@ public class InvariantIndepCmd extends ConfigurablePlugin implements IPluginShel
 		
 		String filenameToOpen = Shell.getInstance().getFilenameToOpen(arguments[0], false);
 		try {
-			PropertyConfigurationVisitor configurationVisitor = configureModel(new File(filenameToOpen));
-			configurationVisitor.printWarnings();
+			StringWriter errorBuffer = new StringWriter();
+			configureModel(new File(filenameToOpen), new PrintWriter(errorBuffer, true));
+			LOG.warn(errorBuffer.toString());
 		} catch (ConfigurationException e) {
 			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
 			return;

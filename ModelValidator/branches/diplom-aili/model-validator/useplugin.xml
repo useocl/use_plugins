@@ -2,14 +2,23 @@
 <?use version="4.1"?>
 <plugin name="KodkodPlugin" version="1.0" publisher="Hendrik Reitmann">
 	<actions>
-		<action label="Kodkod Property Plugin"
+		<action label="Kodkod Validation"
 			icon="resources/kodkod.png"
 			class="org.tzi.use.kodkod.plugin.KodkodValidatePropertyAction"
-			tooltip="KodkodValidatePropertyAction"
-			menu="Validation"
-			menuitem="Kodkod"
+			tooltip="Choose a properties file and validate the current model."
+			menu="Model Validator"
+			menuitem="Validation"
 			toolbaritem="plugins"
 			id="org.tzi.use.kodkod.plugin.KodkodValidatePropertyAction">
+		</action>
+		<action label="Kodkod Configuration"
+			icon="resources/kodkod-gui.png"
+			class="org.tzi.use.kodkod.plugin.KodkodValidateConfigurationAction"
+			tooltip="Create a configuration and validate the current model."
+			menu="Model Validator"
+			menuitem="Configuration"
+			toolbaritem="plugins"
+			id="org.tzi.use.kodkod.plugin.KodkodValidateConfigurationAction">
 		</action>
 	</actions>
 	<commands>

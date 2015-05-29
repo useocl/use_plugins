@@ -1,5 +1,6 @@
 package org.tzi.kodkod.model.config.impl;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -41,27 +43,22 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
 
-	private org.apache.commons.configuration.Configuration config;
-	private Map<String, List<String>> classSpecificValues;
-	private Map<String, Integer> classMinObjects;
-	private Map<ConfigurableType, List<String[]>> typeSpecificValues;
-	private Map<ConfigurableType, TypeConfigurator> typeConfigurators;
-	private List<String> warnings;
-	private List<String> errors;
+	private final Configuration config;
+	private final Map<String, List<String>> classSpecificValues = new HashMap<String, List<String>>();
+	private final Map<String, Integer> classMinObjects = new HashMap<String, Integer>();
+	private final Map<ConfigurableType, List<String[]>> typeSpecificValues = new HashMap<ConfigurableType, List<String[]>>();
+	private final Map<ConfigurableType, TypeConfigurator> typeConfigurators = new HashMap<ConfigurableType, TypeConfigurator>();
+	private final List<String> warnings = new ArrayList<String>();
+	private final PrintWriter warningsOut;
+	private final List<String> errors = new ArrayList<String>();
 
-	public PropertyConfigurationVisitor(PropertiesConfiguration pc) throws ConfigurationException {
-		config = pc;
-		
-		classSpecificValues = new HashMap<String, List<String>>();
-		classMinObjects = new HashMap<String, Integer>();
-		typeSpecificValues = new HashMap<ConfigurableType, List<String[]>>();
-		typeConfigurators = new HashMap<ConfigurableType, TypeConfigurator>();
-		warnings = new ArrayList<String>();
-		errors = new ArrayList<String>();
+	public PropertyConfigurationVisitor(Configuration c, PrintWriter warningsOut) throws ConfigurationException {
+		config = c;
+		this.warningsOut = warningsOut;
 	}
 	
-	public PropertyConfigurationVisitor(String file) throws ConfigurationException {
-		this(new PropertiesConfiguration(file));
+	public PropertyConfigurationVisitor(String file, PrintWriter warningsOut) throws ConfigurationException {
+		this(new PropertiesConfiguration(file), warningsOut);
 	}
 
 	@Override
@@ -481,7 +478,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	}
 
 	private void complexElementError(String name, String input, String element, String className) {
-		String error = name+": ("+input + ") at element " + element + ": " + LogMessages.complexElementConfigError(className);
+		String error = name + ": (" + input + ") at element " + element + ": " + LogMessages.complexElementConfigError(className);
 		error(error);
 	}
 
@@ -628,22 +625,15 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		return element;
 	}
 	
-	public void printWarnings(){
-		StringBuffer buffer = new StringBuffer();
-		if(!warnings.isEmpty()){
-			buffer.append("Warnings during the configuration:");
-			for(String warning : warnings){
-				buffer.append("\n"+warning);
-			}
-			LOG.warn(buffer.toString());
-		}
-	}
-	
 	public boolean containErrors(){
 		return !errors.isEmpty();
 	}
 	
 	private void warning(String warning){
+		if(warnings.isEmpty()){
+			warningsOut.write("Warnings during the configuration:");
+		}
+		warningsOut.write("\n" + warning);
 		warnings.add(warning);
 		LOG.warn(warning);
 	}

@@ -1,22 +1,17 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.tzi.kodkod.KodkodModelValidator;
 import org.tzi.kodkod.helper.LogMessages;
-import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
 import org.tzi.kodkod.model.iface.IInvariant;
-import org.tzi.use.gui.main.MainWindow;
-import org.tzi.use.kodkod.UseDefaultConfigKodkodModelValidator;
 import org.tzi.use.kodkod.UseKodkodModelValidator;
-import org.tzi.use.kodkod.plugin.gui.ModelValidatorConfigurationWindow;
 import org.tzi.use.main.shell.Shell;
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
-import org.tzi.use.runtime.gui.IPluginAction;
 import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
 import org.tzi.use.uml.mm.MClassInvariant;
 
@@ -28,9 +23,6 @@ import org.tzi.use.uml.mm.MClassInvariant;
  */
 public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShellCmdDelegate {
 
-	private PropertyConfigurationVisitor configurationVisitor;
-	private Boolean readyToValidate;
-
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
 		if(!pluginCommand.getSession().hasSystem()){
@@ -39,7 +31,7 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 		}
 		
 		initialize(pluginCommand.getSession());
-		String [] arguments = pluginCommand.getCmdArgumentList();
+		String[] arguments = pluginCommand.getCmdArgumentList();
 		
 		if (arguments.length >= 1) {
 			handleArguments(arguments);
@@ -53,9 +45,9 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	 */
 	protected void noArguments() {
 		try {
-			File file = configureModel();
+			configureModel();
 			enrichModel();
-			validate(new UseDefaultConfigKodkodModelValidator(session, file));
+			validate(createValidator());
 		} catch (Exception e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
 			e.printStackTrace();
@@ -78,7 +70,7 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 				String section = arguments[1];
 				extractConfigureAndValidate(file, section);
 			} else {
-				LOG.warn(LogMessages.PROPERTIES_NO_CONFIGURATION_WARNING);
+				LOG.info(LogMessages.PROPERTIES_NO_CONFIGURATION_WARNING);
 				extractConfigureAndValidate(file);
 			}
 		} else {
@@ -89,83 +81,42 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	/**
 	 * Configures the model from the first configuration section of the configuration file,
 	 * extracts an object diagram and calls the model validator.
-	 * 
-	 * @param file
 	 */
 	protected final void extractConfigureAndValidate(File file) {
-		try {
-			PropertyConfigurationVisitor configurationVisitor = configureModel(file);
-			enrichModel();
-			validate(createValidator());
-			configurationVisitor.printWarnings();
-		} catch (ConfigurationException e) {
-			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
-		}
+		extractConfigureAndValidate(file, null);
 	}
 
 	/**
 	 * Configures the model from the given configuration section of the configuration file,
 	 * extracts an object diagram and calls the model validator.
-	 * 
-	 * @param file
 	 */
 	protected final void extractConfigureAndValidate(File file, String section) {
 		try {
-			PropertyConfigurationVisitor configurationVisitor = configureModel(file, section);
+			extractConfigureAndValidate(extractConfigFromFile(file, section));
+		} catch (ConfigurationException e) {
+			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
+		}
+	}
+	
+	protected final void extractConfigureAndValidate(Configuration config) {
+		try {
+			StringWriter errorBuffer = new StringWriter();
+			configureModel(config, new PrintWriter(errorBuffer, true));
 			enrichModel();
 			validate(createValidator());
-			configurationVisitor.printWarnings();
+			if(errorBuffer.getBuffer().length() > 0){
+				LOG.warn(errorBuffer.toString());
+			}
 		} catch (ConfigurationException e) {
 			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
 		}
 	}
 	
 	/**
-	 * Opens the GUI for configuration of the Model Validator
-	 */
-	protected final void getConfigurationOverGUIAndValidate(IPluginAction pluginAction) {
-		try {
-			configureModel(pluginAction);
-			if (readyToValidate) {
-				enrichModel();
-				validate(createValidator());
-				configurationVisitor.printWarnings();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(pluginAction.getParent(), new JLabel("Error reading default properties file([Modelname].properties)! Please correct the file or delete it!"));
-		}
-	}
-
-	/**
 	 * Creates the used model validator.
-	 * 
-	 * @return
 	 */
 	protected KodkodModelValidator createValidator() {
 		return new UseKodkodModelValidator(session);
-	}
-	
-	private void configureModel(IPluginAction pluginAction) throws Exception {
-		model().reset();
-        ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
-        		new ModelValidatorConfigurationWindow(MainWindow.instance(), model(), mModel.filename());
-        if (modelValidatorConfigurationWindow.getChosenPropertiesConfiguration() != null) {
-        	if (modelValidatorConfigurationWindow.isReadyToValidate()) {
-	        	configurationVisitor = new PropertyConfigurationVisitor(modelValidatorConfigurationWindow.getChosenPropertiesConfiguration());
-	        	modelValidatorConfigurationWindow.dispose();
-	        	model().accept(configurationVisitor);
-	        	readyToValidate = true;
-	        	if (configurationVisitor.containErrors()) {
-	        		throw new ConfigurationException();
-	        	}
-	        	LOG.info(LogMessages.modelConfigurationSuccessful);
-        	} else { 
-        		readyToValidate = false;
-        	}
-        } else {
-        	JOptionPane.showMessageDialog(MainWindow.instance(), new JLabel("No Configuration loaded!"));
-        }
 	}
 	
 	private void validate(KodkodModelValidator modelValidator) {

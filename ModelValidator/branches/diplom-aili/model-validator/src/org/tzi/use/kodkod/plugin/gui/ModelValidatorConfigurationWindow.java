@@ -52,7 +52,6 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
-import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.TypeConstants;
@@ -73,7 +72,7 @@ import com.google.common.collect.Collections2;
  *  A GUI for adjusting the configurations before giving them to the model validator
  *
  * @author Subi Aili
- *
+ * @author Frank Hilken
  */
 public class ModelValidatorConfigurationWindow extends JDialog {
 
@@ -294,12 +293,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		}
 		TableBuilder.repaintAllTables(tables.iterator());
 
-		if (file.exists()) {
-			settingsConfiguration.setChanged(false);
-		} else {
-			settingsConfiguration.setChanged(true);
-		}
-
+		settingsConfiguration.setChanged(false);
+		
 		validateButton = new JButton("Validate");
 		validateButton.addActionListener(validateActionListener);
 
