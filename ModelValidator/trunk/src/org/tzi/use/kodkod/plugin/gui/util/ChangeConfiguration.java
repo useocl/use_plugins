@@ -395,6 +395,10 @@ public final class ChangeConfiguration {
 					break;
 				case TypeConstants.INTEGER:
 					if (pc.getProperty(propertiesKey) != null) {
+						/*
+						 * TODO update apache configurations library for generics
+						 * incompatible with some other code
+						 */
 						settings.getIntegerTypeSettings().setValues(objectToIntegerSet(pc.getList(propertiesKey)));
 						integerSettingsExist = true;
 					}
