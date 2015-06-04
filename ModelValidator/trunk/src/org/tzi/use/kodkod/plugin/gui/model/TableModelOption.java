@@ -52,9 +52,9 @@ public class TableModelOption extends AbstractTableModel {
 		case 1:
 			switch(row) {
 			case 0:
-				return settings.getAggregationcyclefreeness();
+				return settings.isAggregationcyclefreeness();
 			case 1:
-				return settings.getForbiddensharing();
+				return settings.isForbiddensharing();
 			}
 		}
 		return null;
@@ -73,7 +73,12 @@ public class TableModelOption extends AbstractTableModel {
 
 	@Override
 	public Class<?> getColumnClass(int col) {
-		return getValueAt(0, col).getClass();
+		switch (col) {
+		case 1:
+			return Boolean.class;
+		default:
+			return super.getColumnClass(col);
+		}
 	}
 
 	public OptionSettings getSettings() {

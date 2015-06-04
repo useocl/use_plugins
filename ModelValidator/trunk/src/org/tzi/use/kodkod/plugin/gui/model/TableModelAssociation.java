@@ -9,11 +9,12 @@ import java.util.Set;
 import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
+import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.AssociationSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelAssociation extends AbstractTableModel {
+public class TableModelAssociation extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private List<AssociationSettings> associationsSettings = Collections.emptyList();
@@ -25,6 +26,13 @@ public class TableModelAssociation extends AbstractTableModel {
 		ConfigurationTerms.ASSOCIATIONS_VALUES
 	};
 
+	private static final String[] COLUMN_TOOLTIPS = new String[] {
+		null,
+		LegendEntry.ASSOCIATIONS_MINLINKS,
+		LegendEntry.ASSOCIATIONS_MAXLINKS,
+		LegendEntry.ASSOCIATIONS_PRESENTLINKS
+	};
+	
 	public TableModelAssociation(List<AssociationSettings> settings) {
 		associationsSettings = settings;
 	}
@@ -43,6 +51,11 @@ public class TableModelAssociation extends AbstractTableModel {
 	public String getColumnName(int column) {
 		return COLUMN_NAMES[column];
 	}
+	
+	@Override
+	public String getColumnTooltip(int index) {
+		return COLUMN_TOOLTIPS[index];
+	}
 
 	@Override
 	public boolean isCellEditable(int row, int column) {
@@ -55,7 +68,7 @@ public class TableModelAssociation extends AbstractTableModel {
 
 		switch(col) {
 		case 0:
-			return set.getAssociation().name();
+			return set.getAssociation();
 		case 1:
 			return set.getLowerBound();
 		case 2:

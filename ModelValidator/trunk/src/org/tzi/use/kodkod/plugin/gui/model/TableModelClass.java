@@ -8,10 +8,11 @@ import javax.swing.table.AbstractTableModel;
 
 import org.tzi.kodkod.model.iface.IAssociationClass;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
+import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelClass extends AbstractTableModel {
+public class TableModelClass extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private final List<ClassSettings> classesSettings;
@@ -22,6 +23,13 @@ public class TableModelClass extends AbstractTableModel {
 		ConfigurationTerms.CLASSES_MAX,
 		ConfigurationTerms.CLASSES_VALUES };
 
+	private static final String[] COLUMN_TOOLTIPS = new String[] {
+		null,
+		LegendEntry.CLASS_MININSTANCES,
+		LegendEntry.CLASS_MAXINSTANCES,
+		LegendEntry.CLASS_INSTANCENAMES
+	};
+	
 	public TableModelClass(List<ClassSettings> classesSettings) {
 		this.classesSettings = classesSettings;
 	}
@@ -42,6 +50,11 @@ public class TableModelClass extends AbstractTableModel {
 	}
 
 	@Override
+	public String getColumnTooltip(int index) {
+		return COLUMN_TOOLTIPS[index];
+	}
+	
+	@Override
 	public boolean isCellEditable(int row, int column) {
 		if ((classesSettings.get(row).getCls() instanceof IAssociationClass) && (column == 1 || column == 2)) {
 			// association class bounds are setup via the association table
@@ -59,7 +72,7 @@ public class TableModelClass extends AbstractTableModel {
 
 		switch(col) {
 		case 0:
-			return set.getCls().name();
+			return set.getCls();
 		case 1:
 			return set.getLowerBound();
 		case 2:

@@ -13,12 +13,12 @@ public class SettingsConfiguration {
 
 	private final IModel model;
 	
-	private IntegerSettings integerTypeSettings = new IntegerSettings(this);
-	private StringSettings stringTypeSettings = new StringSettings(this);
-	private RealSettings realTypeSettings = new RealSettings(this);
-	private OptionSettings optionSettings = new OptionSettings(this);
-	private Map<IClass, ClassSettings> classSettingsMap = new HashMap<>();
-	private Map<IInvariant, InvariantSettings> invariantSettingsMap = new HashMap<>();
+	private final IntegerSettings integerTypeSettings = new IntegerSettings(this);
+	private final StringSettings stringTypeSettings = new StringSettings(this);
+	private final RealSettings realTypeSettings = new RealSettings(this);
+	private final OptionSettings optionSettings = new OptionSettings(this);
+	private final Map<IClass, ClassSettings> classSettingsMap = new HashMap<>();
+	private final Map<IInvariant, InvariantSettings> invariantSettingsMap = new HashMap<>();
 	private boolean changed = false;
 
 	public SettingsConfiguration(IModel model) {
@@ -45,24 +45,12 @@ public class SettingsConfiguration {
 		return integerTypeSettings;
 	}
 	
-	public void setIntegerTypeSettings(IntegerSettings integerTypeSettings) {
-		this.integerTypeSettings = integerTypeSettings;
-	}
-	
 	public StringSettings getStringTypeSettings() {
 		return stringTypeSettings;
 	}
 	
-	public void setStringTypeSettings(StringSettings stringTypeSettings) {
-		this.stringTypeSettings = stringTypeSettings;
-	}
-	
 	public RealSettings getRealTypeSettings() {
 		return realTypeSettings;
-	}
-	
-	public void setRealTypeSettings(RealSettings realTypeSettings) {
-		this.realTypeSettings = realTypeSettings;
 	}
 	
 	public ClassSettings getClassSettings(String clsName) {

@@ -7,15 +7,13 @@ public class AttributeSettings extends InstanceSettings {
 
 	protected final IAttribute attribute;
 	protected boolean inherited; //TODO check usefulness
-	protected int collectionSizeMin = DefaultConfigurationValues.attributesColSizeMin;
-	protected int collectionSizeMax = DefaultConfigurationValues.attributesColSizeMax;
+	protected int collectionSizeMin;
+	protected int collectionSizeMax;
 
 	public AttributeSettings(SettingsConfiguration configurationSettings, IAttribute attribute, boolean inherited) {
 		super(configurationSettings);
 		this.attribute = attribute;
 		this.inherited = inherited;
-		lowerBound = DefaultConfigurationValues.attributesPerClassMin;
-		upperBound = DefaultConfigurationValues.attributesPerClassMax;
 	}
 
 	public IAttribute getAttribute() {

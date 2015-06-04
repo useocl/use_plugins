@@ -6,10 +6,11 @@ import java.util.Set;
 import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
+import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.IntegerSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelInteger extends AbstractTableModel {
+public class TableModelInteger extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private final IntegerSettings settings;
@@ -20,6 +21,12 @@ public class TableModelInteger extends AbstractTableModel {
 		ConfigurationTerms.INTEGER_VALUES
 	};
 
+	private static final String[] COLUMN_TOOLTIPS = new String[] {
+		LegendEntry.INT_MINIMUM,
+		LegendEntry.INT_MAXIMUM,
+		LegendEntry.INT_VALUES
+	};
+	
 	public TableModelInteger(IntegerSettings set){
 		settings = set;
 	}
@@ -37,6 +44,11 @@ public class TableModelInteger extends AbstractTableModel {
 	@Override
 	public String getColumnName(int column) {
 		return COLUMN_NAMES[column];
+	}
+	
+	@Override
+	public String getColumnTooltip(int index) {
+		return COLUMN_TOOLTIPS[index];
 	}
 
 	@Override
@@ -69,10 +81,14 @@ public class TableModelInteger extends AbstractTableModel {
 			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			String[] split = ((String) aValue).split(",");
+			String arg = ((String) aValue).trim();
 			Set<Integer> list = new LinkedHashSet<Integer>();
-			for (int i = 0; i < split.length; i++) {
-				list.add(Integer.valueOf(split[i].trim()));
+			if(!arg.isEmpty()){
+				String[] split = arg.split(",");
+				for (int i = 0; i < split.length; i++) {
+					//TODO error handling
+					list.add(Integer.valueOf(split[i].trim()));
+				}
 			}
 			settings.setValues(list);
 			fireTableCellUpdated(row, column);

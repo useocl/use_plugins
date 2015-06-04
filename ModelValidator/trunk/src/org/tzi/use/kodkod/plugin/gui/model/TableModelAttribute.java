@@ -8,11 +8,12 @@ import java.util.Set;
 import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
+import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelAttribute extends AbstractTableModel {
+public class TableModelAttribute extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private List<AttributeSettings> attributesSettings;
@@ -26,6 +27,15 @@ public class TableModelAttribute extends AbstractTableModel {
 		ConfigurationTerms.ATTRIBUTES_VALUES
 	};
 
+	private static final String[] COLUMN_TOOLTIPS = new String[] {
+		null,
+		LegendEntry.ATTRIBUTES_MINDEFINED,
+		LegendEntry.ATTRIBUTES_MAXDEFINED,
+		LegendEntry.ATTRIBUTES_MINELEMENTS,
+		LegendEntry.ATTRIBUTES_MAXELEMENTS,
+		LegendEntry.ATTRIBUTES_ATTRIBUTEVALUES
+	};
+	
 	public TableModelAttribute(List<AttributeSettings> settings) {
 		attributesSettings = settings;
 	}
@@ -45,6 +55,11 @@ public class TableModelAttribute extends AbstractTableModel {
 		return COLUMN_NAMES[column];
 	}
 
+	@Override
+	public String getColumnTooltip(int index) {
+		return COLUMN_TOOLTIPS[index];
+	}
+	
 	@Override
 	public boolean isCellEditable(int row, int column) {
 		AttributeSettings set = attributesSettings.get(row);

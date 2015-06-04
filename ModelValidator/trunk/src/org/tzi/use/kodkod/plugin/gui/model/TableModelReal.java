@@ -6,10 +6,11 @@ import java.util.Set;
 import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
+import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.RealSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelReal extends AbstractTableModel {
+public class TableModelReal extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private final RealSettings settings;
@@ -18,8 +19,16 @@ public class TableModelReal extends AbstractTableModel {
 		ConfigurationTerms.REAL_MIN,
 		ConfigurationTerms.REAL_MAX,
 		ConfigurationTerms.REAL_STEP,
-		ConfigurationTerms.REAL_VALUES };
+		ConfigurationTerms.REAL_VALUES
+	};
 
+	private static final String[] COLUMN_TOOLTIPS = new String[] {
+		LegendEntry.REAL_MINIMUM,
+		LegendEntry.REAL_MAXIMUM,
+		LegendEntry.REAL_STEP,
+		LegendEntry.REAL_VALUES
+	};
+	
 	public TableModelReal(RealSettings settings) {
 		this.settings = settings;
 	}
@@ -39,6 +48,11 @@ public class TableModelReal extends AbstractTableModel {
 		return COLUMN_NAMES[column];
 	}
 
+	@Override
+	public String getColumnTooltip(int index) {
+		return COLUMN_TOOLTIPS[index];
+	}
+	
 	@Override
 	public boolean isCellEditable(int row, int column) {
 		return true;
@@ -71,14 +85,18 @@ public class TableModelReal extends AbstractTableModel {
 			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			settings.setStep((Double) aValue);
+			settings.setStep(Double.valueOf((String) aValue));
 			fireTableCellUpdated(row, column);
 			break;
 		case 3:
-			String[] split = ((String) aValue).split(",");
+			String arg = ((String) aValue).trim();
 			Set<Double> list = new LinkedHashSet<Double>();
-			for (int i = 0; i < split.length; i++) {
-				list.add(Double.valueOf(split[i].trim()));
+			if(!arg.isEmpty()){
+				String[] split = arg.split(",");
+				for (int i = 0; i < split.length; i++) {
+					//TODO error handling
+					list.add(Double.valueOf(split[i].trim()));
+				}
 			}
 			settings.setValues(list);
 			fireTableCellUpdated(row, column);

@@ -5,12 +5,10 @@ import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 
 public class StringSettings extends InstanceSettings {
 	
-	protected boolean enabled = DefaultConfigurationValues.stringEnabled;
+	protected boolean enabled;
 	
 	public StringSettings(SettingsConfiguration configurationSettings) {
 		super(configurationSettings);
-		lowerBound = DefaultConfigurationValues.stringMin;
-		upperBound = DefaultConfigurationValues.stringMax;
 	}
 	
 	public boolean isEnabled() {

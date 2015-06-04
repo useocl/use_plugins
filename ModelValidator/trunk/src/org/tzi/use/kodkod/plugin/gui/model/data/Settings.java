@@ -6,6 +6,7 @@ public abstract class Settings {
 
 	public Settings(SettingsConfiguration settingsConfiguration) {
 		this.settingsConfiguration = settingsConfiguration;
+		reset();
 	}
 
 	public SettingsConfiguration getSettingsConfiguration() {

@@ -7,9 +7,9 @@ import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 
 public class IntegerSettings extends Settings {
 
-	protected int minimum = DefaultConfigurationValues.integerMin;
-	protected int maximum = DefaultConfigurationValues.integerMax;
-	protected boolean enabled = DefaultConfigurationValues.integerEnabled;
+	protected int minimum;
+	protected int maximum;
+	protected boolean enabled;
 	protected Set<Integer> values = new LinkedHashSet<>();
 
 	public IntegerSettings(SettingsConfiguration configurationSettings) {
@@ -53,7 +53,9 @@ public class IntegerSettings extends Settings {
 	}
 
 	public void clearValues() {
-		values.clear();
+		if(values != null){
+			values.clear();
+		}
 	}
 
 	@Override

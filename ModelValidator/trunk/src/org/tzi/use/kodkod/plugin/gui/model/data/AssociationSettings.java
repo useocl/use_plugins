@@ -10,8 +10,6 @@ public class AssociationSettings extends InstanceSettings {
 	public AssociationSettings(SettingsConfiguration settingsConfiguration, IAssociation association) {
 		super(settingsConfiguration);
 		this.association = association;
-		lowerBound = DefaultConfigurationValues.linksPerAssocMin;
-		upperBound = DefaultConfigurationValues.linksPerAssocMax;
 	}
 
 	public IAssociation getAssociation() {

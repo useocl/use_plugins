@@ -82,8 +82,8 @@ public final class ChangeConfiguration {
 		}
 		
 		OptionSettings optionsSettings = settings.getOptionSettings();
-		pc.setProperty(PropertyEntry.aggregationcyclefreeness, optionsSettings.getAggregationcyclefreeness()?"on":"off");
-		pc.setProperty(PropertyEntry.forbiddensharing, optionsSettings.getForbiddensharing()?"on":"off");
+		pc.setProperty(PropertyEntry.aggregationcyclefreeness, optionsSettings.isAggregationcyclefreeness()?"on":"off");
+		pc.setProperty(PropertyEntry.forbiddensharing, optionsSettings.isForbiddensharing()?"on":"off");
 		
 		List<ClassSettings> classesSettings = settings.getAllClassesSettings();
 		for(ClassSettings classSettings : classesSettings){

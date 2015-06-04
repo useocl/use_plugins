@@ -6,8 +6,8 @@ import org.tzi.kodkod.model.iface.IInvariant;
 public class InvariantSettings extends Settings {
 
 	protected final IInvariant invariant;
-	protected boolean active = DefaultConfigurationValues.INVARIANT_ACTIVE;
-	protected boolean negate = DefaultConfigurationValues.INVARIANT_NEGATE;
+	protected boolean active;
+	protected boolean negate;
 
 	public InvariantSettings(SettingsConfiguration configurationSettings, IInvariant invariant) {
 		super(configurationSettings);

@@ -106,7 +106,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private TableBuilder tableBuilder;
 	private List<TableColumn> attributeColumnsToHide;
 
-	private String selectedClass;
+	private IClass selectedClass;
 	private Boolean readyToValidate;
 
 	private JTabbedPane center;
@@ -167,7 +167,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						selectedRow = i;
 					}
 				}
-				selectedClass = (String) classes.getValueAt(selectedRow, 0);
+				selectedClass = (IClass) classes.getValueAt(selectedRow, 0);
 				attributesLabel.setText(ConfigurationTerms.ATTRIBUTES+" of "+selectedClass);
 				associationsLabel.setText(ConfigurationTerms.ASSOCIATIONS+" where the class "+selectedClass+" is the first role");
 				updateClassAttributes(selectedClass);
@@ -815,12 +815,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * updates the attributes table referring to given className and gets them from the SettingsConfiguration
 	 * @param className
 	 */
-	private void updateClassAttributes(String className) {
+	private void updateClassAttributes(IClass className) {
 		TableModelAttribute attributeModel = (TableModelAttribute)attributes.getModel();
 		attributeModel.setClass(settingsConfiguration.getClassSettings(className));
 	}
 
-	private void updateClassAssociations(String className) {
+	private void updateClassAssociations(IClass className) {
 		TableModelAssociation associationModel = (TableModelAssociation)associations.getModel();
 		associationModel.setClass(settingsConfiguration.getClassSettings(className));
 	}

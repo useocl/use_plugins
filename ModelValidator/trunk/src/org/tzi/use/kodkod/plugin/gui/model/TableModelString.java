@@ -6,10 +6,11 @@ import java.util.Set;
 import javax.swing.table.AbstractTableModel;
 
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
+import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.StringSettings;
 import org.tzi.use.util.StringUtil;
 
-public class TableModelString extends AbstractTableModel {
+public class TableModelString extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private final StringSettings settings;
@@ -20,6 +21,12 @@ public class TableModelString extends AbstractTableModel {
 		ConfigurationTerms.STRING_VALUES
 	};
 
+	private static final String[] COLUMN_TOOLTIPS = new String[] {
+		LegendEntry.STRING_MINPRESENT,
+		LegendEntry.STRING_MAXPRESENT,
+		LegendEntry.STRING_PRESENTSTRINGS,
+	};
+	
 	public TableModelString(StringSettings settings) {
 		this.settings = settings;
 	}
@@ -37,6 +44,11 @@ public class TableModelString extends AbstractTableModel {
 	@Override
 	public String getColumnName(int column) {
 		return COLUMNS[column];
+	}
+	
+	@Override
+	public String getColumnTooltip(int index) {
+		return COLUMN_TOOLTIPS[index];
 	}
 
 	@Override

@@ -7,10 +7,10 @@ import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 
 public class RealSettings extends Settings {
 
-	protected double minimum = DefaultConfigurationValues.realMin;
-	protected double maximum = DefaultConfigurationValues.realMax;
-	protected double realStep = DefaultConfigurationValues.realStep;
-	protected boolean enabled = DefaultConfigurationValues.realEnabled;
+	protected double minimum;
+	protected double maximum;
+	protected double realStep;
+	protected boolean enabled;
 	protected Set<Double> values = new LinkedHashSet<>();
 
 	public RealSettings(SettingsConfiguration configurationSettings) {
@@ -63,7 +63,9 @@ public class RealSettings extends Settings {
 	}
 	
 	public void clearValues() {
-		values.clear();
+		if(values != null){
+			values.clear();
+		}
 	}
 
 	@Override

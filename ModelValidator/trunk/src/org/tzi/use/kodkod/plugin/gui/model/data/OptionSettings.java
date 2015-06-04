@@ -5,15 +5,15 @@ import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 
 public class OptionSettings extends Settings {
 
-	protected boolean aggregationcyclefreeness = DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS;
-	protected boolean forbiddensharing = DefaultConfigurationValues.FORBIDDENSHARING;
+	protected boolean aggregationcyclefreeness;
+	protected boolean forbiddensharing;
 	//TODO add bitwidth
 
 	public OptionSettings(SettingsConfiguration configurationSettings) {
 		super(configurationSettings);
 	}
 
-	public boolean getAggregationcyclefreeness() {
+	public boolean isAggregationcyclefreeness() {
 		return aggregationcyclefreeness;
 	}
 
@@ -22,7 +22,7 @@ public class OptionSettings extends Settings {
 		settingsConfiguration.setChanged(true);
 	}
 
-	public boolean getForbiddensharing() {
+	public boolean isForbiddensharing() {
 		return forbiddensharing;
 	}
 

@@ -17,7 +17,7 @@ public class TableModelInvariant extends AbstractTableModel {
 		ConfigurationTerms.INVARIANTS_ACTIVE,
 		ConfigurationTerms.INVARIANTS_NEGATE
 	};
-
+	
 	public TableModelInvariant(List<InvariantSettings> settings) {
 		this.settings = settings;
 	}
@@ -79,7 +79,11 @@ public class TableModelInvariant extends AbstractTableModel {
 
 	@Override
 	public Class<?> getColumnClass(int col) {
-		return getValueAt(0, col).getClass();
+		if(col > 0){
+			return Boolean.class;
+		} else {
+			return super.getColumnClass(col);
+		}
 	}
 
 }

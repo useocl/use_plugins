@@ -13,13 +13,12 @@ public class ClassSettings extends InstanceSettings {
 
 	protected final IClass clazz;
 	protected final Map<IAttribute, AttributeSettings> attributeSettings = new HashMap<>();
+	//TODO move to general settings class, required for full list of associations in GUI
 	protected final Map<IAssociation, AssociationSettings> associationSettings = new HashMap<>();
 
 	public ClassSettings(SettingsConfiguration configurationSettings, IClass cls) {
 		super(configurationSettings);
 		clazz = cls;
-		lowerBound = DefaultConfigurationValues.objectsPerClassMin;
-		upperBound = DefaultConfigurationValues.objectsPerClassMax;
 
 		for (IAttribute attr : cls.allAttributes()) {
 			attributeSettings.put(attr, new AttributeSettings(configurationSettings, attr, !attr.owner().equals(clazz)));

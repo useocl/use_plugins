@@ -41,7 +41,9 @@ public abstract class InstanceSettings extends Settings {
 	}
 
 	public void clearValues() {
-		instanceNames.clear();
+		if(instanceNames != null){
+			instanceNames.clear();
+		}
 	}
 
 	@Override
