@@ -30,8 +30,8 @@ import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
 import org.tzi.use.kodkod.plugin.gui.view.AssociationNameRenderer;
 import org.tzi.use.kodkod.plugin.gui.view.AttributeNameRenderer;
-import org.tzi.use.kodkod.plugin.gui.view.BoundsSpinner;
 import org.tzi.use.kodkod.plugin.gui.view.BoundsSpinner.BoundsSpinnerEditor;
+import org.tzi.use.kodkod.plugin.gui.view.BoundsSpinner.BoundsSpinnerRenderer;
 import org.tzi.use.kodkod.plugin.gui.view.ClassNameRenderer;
 import org.tzi.use.kodkod.plugin.gui.view.RendererNonEditable;
 import org.tzi.use.kodkod.plugin.gui.view.TableCellSpinner.TableCellSpinnerEditor;
@@ -132,8 +132,8 @@ public class TableBuilder {
 
 		TableColumnModel cm = table.getColumnModel();
 		cm.getColumn(0).setCellRenderer(new ClassNameRenderer());
-		cm.getColumn(1).setCellRenderer(new BoundsSpinner(0));
-		cm.getColumn(2).setCellRenderer(new BoundsSpinner(0));
+		cm.getColumn(1).setCellRenderer(new BoundsSpinnerRenderer(0));
+		cm.getColumn(2).setCellRenderer(new BoundsSpinnerRenderer(0));
 		cm.getColumn(3).setCellRenderer(new RendererNonEditable());
 		
 		cm.getColumn(1).setCellEditor(new BoundsSpinnerEditor(0));
@@ -153,10 +153,10 @@ public class TableBuilder {
 		
 		TableColumnModel cm = table.getColumnModel();
 		cm.getColumn(0).setCellRenderer(new AttributeNameRenderer());
-		cm.getColumn(1).setCellRenderer(new BoundsSpinner(-1));
-		cm.getColumn(2).setCellRenderer(new BoundsSpinner(-1));
-		cm.getColumn(3).setCellRenderer(new BoundsSpinner(0));
-		cm.getColumn(4).setCellRenderer(new BoundsSpinner(-1));
+		cm.getColumn(1).setCellRenderer(new BoundsSpinnerRenderer(-1));
+		cm.getColumn(2).setCellRenderer(new BoundsSpinnerRenderer(-1));
+		cm.getColumn(3).setCellRenderer(new BoundsSpinnerRenderer(0));
+		cm.getColumn(4).setCellRenderer(new BoundsSpinnerRenderer(-1));
 		cm.getColumn(5).setCellRenderer(new RendererNonEditable());
 		
 		cm.getColumn(1).setCellEditor(new BoundsSpinnerEditor(-1));
@@ -175,8 +175,8 @@ public class TableBuilder {
 
 		TableColumnModel cm = table.getColumnModel();
 		cm.getColumn(0).setCellRenderer(new AssociationNameRenderer());
-		cm.getColumn(1).setCellRenderer(new BoundsSpinner(0));
-		cm.getColumn(2).setCellRenderer(new BoundsSpinner(-1));
+		cm.getColumn(1).setCellRenderer(new BoundsSpinnerRenderer(0));
+		cm.getColumn(2).setCellRenderer(new BoundsSpinnerRenderer(-1));
 		
 		cm.getColumn(1).setCellEditor(new BoundsSpinnerEditor(0));
 		cm.getColumn(2).setCellEditor(new BoundsSpinnerEditor(-1));

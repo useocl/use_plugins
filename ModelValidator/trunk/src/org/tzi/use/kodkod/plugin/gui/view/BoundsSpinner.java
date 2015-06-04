@@ -7,16 +7,34 @@ import javax.swing.JFormattedTextField.AbstractFormatter;
 import javax.swing.JSpinner;
 import javax.swing.text.DefaultFormatterFactory;
 
+import org.tzi.use.kodkod.plugin.gui.view.TableCellSpinner.TableCellSpinnerEditor;
 import org.tzi.use.kodkod.plugin.gui.view.TableCellSpinner.TableCellSpinnerRenderer;
 
-public class BoundsSpinner extends TableCellSpinnerRenderer {
-	private static final long serialVersionUID = 1L;
+public class BoundsSpinner {
 	
-	public BoundsSpinner(int minValue) {
-		super(0, minValue, Integer.MAX_VALUE);
-		JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner.getEditor(); 
-		JFormattedTextField tf = editor.getTextField();
-		tf.setFormatterFactory(new DefaultFormatterFactory(new BoundsFormatter()));
+	private BoundsSpinner(){}
+	
+	public static class BoundsSpinnerRenderer extends TableCellSpinnerRenderer {
+		private static final long serialVersionUID = 1L;
+		
+		public BoundsSpinnerRenderer(int minValue) {
+			super(0, minValue, Integer.MAX_VALUE);
+			JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner.getEditor(); 
+			JFormattedTextField tf = editor.getTextField();
+			tf.setFormatterFactory(new DefaultFormatterFactory(new BoundsFormatter()));
+		}
+	}
+	
+	public static class BoundsSpinnerEditor extends TableCellSpinnerEditor {
+		private static final long serialVersionUID = 1L;
+		
+		public BoundsSpinnerEditor(int minValue) {
+			super(0, minValue, Integer.MAX_VALUE);
+			JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner.getEditor(); 
+			JFormattedTextField tf = editor.getTextField();
+			tf.setFormatterFactory(new DefaultFormatterFactory(new BoundsFormatter()));
+		}
+		
 	}
 	
 	private static class BoundsFormatter extends AbstractFormatter {
@@ -41,16 +59,5 @@ public class BoundsSpinner extends TableCellSpinnerRenderer {
 		}
 	}
 	
-	public static class BoundsSpinnerEditor extends TableCellSpinnerEditor {
-		private static final long serialVersionUID = 1L;
-		
-		public BoundsSpinnerEditor(int minValue) {
-			super(0, minValue, Integer.MAX_VALUE);
-			JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner.getEditor(); 
-			JFormattedTextField tf = editor.getTextField();
-			tf.setFormatterFactory(new DefaultFormatterFactory(new BoundsFormatter()));
-		}
-		
-	}
 }
 
