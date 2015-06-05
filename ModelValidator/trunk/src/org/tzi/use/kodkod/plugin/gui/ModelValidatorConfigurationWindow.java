@@ -48,10 +48,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.SubnodeConfiguration;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.TypeConstants;
@@ -100,8 +100,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private IModel model;
 	private File useFile;
 	private File file;
-	private Map<String,PropertiesConfiguration> propertiesConfigurationSections;
-	private PropertiesConfiguration propertiesConfiguration;
+	private Map<String, Configuration> propertiesConfigurationSections;
+	private Configuration propertiesConfiguration;
 	private SettingsConfiguration settingsConfiguration;
 	private TableBuilder tableBuilder;
 	private List<TableColumn> attributeColumnsToHide;
@@ -137,10 +137,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		public void actionPerformed(ActionEvent e) {
 			if (propertiesConfiguration != null) {
 				propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
-				propertiesConfigurationSections.put(selectedSection,(PropertiesConfiguration) propertiesConfiguration.clone());
+				propertiesConfigurationSections.put(selectedSection, propertiesConfiguration);
 			}
 			selectedSection = (String) ((JComboBox<?>) e.getSource()).getSelectedItem();
-			propertiesConfiguration = (PropertiesConfiguration) propertiesConfigurationSections.get(selectedSection).clone();
+			propertiesConfiguration = propertiesConfigurationSections.get(selectedSection);
 			//settingsConfiguration are switched when the configuration is exchanged via the Configuration ComboBox. The information
 			//if it's actually changed are lost after the switch, thus it's saved here before the switching and is recovered after.
 			boolean beforeChange = settingsConfiguration.isChanged();
@@ -217,7 +217,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		} else {
 			currentFileLabel = new JLabel("");
 		}
-		propertiesConfigurationSections = new HashMap<String, PropertiesConfiguration>();
+		propertiesConfigurationSections = new HashMap<String, Configuration>();
 		readyToValidate = false;
 
 		center = new JTabbedPane(SwingConstants.TOP);
@@ -333,7 +333,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			public void windowClosing(WindowEvent e){
 				boolean isToBeClosed = true;
 				if (settingsConfiguration.isChanged()) {
-					int result = JOptionPane.showConfirmDialog(parent,
+					int result = JOptionPane.showConfirmDialog(ModelValidatorConfigurationWindow.this,
 							"Do you want to save changes before closing?",
 							"Configurations are not saved yet!",
 							JOptionPane.YES_NO_CANCEL_OPTION);
@@ -350,14 +350,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 			}
 		});
-		setJMenuBar(buildMenuBar(parent));
+		setJMenuBar(buildMenuBar());
 		setContentPane(main);
 		pack();
 		setLocationRelativeTo(parent);
 		setVisible(true);
 	}
 
-	private void openSaveDialog(JFrame parent) {
+	private void openSaveDialog() {
 		JFileChooser fileChooser = new JFileChooser();
 
 		if (useFile != null) {
@@ -368,10 +368,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		fileChooser.setFileFilter(new ExtFileFilter("properties", "Properties files"));
 		fileChooser.setSelectedFile(file);
 
-		if (fileChooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+		if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			File chosenFileName = fileChooser.getSelectedFile();
 			if (chosenFileName.exists()) {
-				int result = JOptionPane.showConfirmDialog(parent, "Do you want to overwrite the existing file?", "File already exists!", JOptionPane.OK_CANCEL_OPTION);
+				int result = JOptionPane.showConfirmDialog(this, "Do you want to overwrite the existing file?", "File already exists!", JOptionPane.OK_CANCEL_OPTION);
 				if (result == 0) {
 					saveConfigurationsToFile(chosenFileName);
 				}
@@ -394,20 +394,19 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		try {
 			hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
 		} catch (ConfigurationException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(getParent(), "Error while loading properties file!", "Error!", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, "Error while loading properties file!", "Error!", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 		sectionSelectionComboBox.removeAllItems();
-		propertiesConfigurationSections = new HashMap<String, PropertiesConfiguration>();
+		propertiesConfigurationSections = new HashMap<String, Configuration>();
 		if (!hierarchicalINIConfiguration.getSections().isEmpty()) {
 			Iterator<?> sectionsIterator = hierarchicalINIConfiguration.getSections().iterator();
 			Boolean isFirstConfiguration = true;
 			while (sectionsIterator.hasNext()) {
 				PropertiesConfiguration propertiesConfiguration = new PropertiesConfiguration();
 				String section = (String) sectionsIterator.next();
-				SubnodeConfiguration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
+				Configuration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
 				Iterator<?> keysIterator = sectionConfigurations.getKeys();
 				while (keysIterator.hasNext()) {
 					String key = keysIterator.next().toString();
@@ -425,7 +424,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				sectionSelectionComboBox.addItem(section.toString());
 			}
 		} else if (!hierarchicalINIConfiguration.getKeys().hasNext()) {
-			JOptionPane.showMessageDialog(getParent(), new JLabel("Not a proper .properties File! Choose another or delete it!"), "Error!", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, "Not a proper .properties File! Choose another or delete it!", "Error!", JOptionPane.ERROR_MESSAGE);
 		} else {
 			PropertiesConfiguration propertiesConfiguration = new PropertiesConfiguration();
 			String section = "config";
@@ -457,7 +456,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 	}
 
-	public PropertiesConfiguration getChosenPropertiesConfiguration() {
+	public Configuration getChosenConfiguration() {
 		return propertiesConfiguration;
 	}
 
@@ -465,7 +464,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		return readyToValidate;
 	}
 
-	private JMenuBar buildMenuBar(final JFrame parent) {
+	private JMenuBar buildMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
 		JMenuItem openMenuItem = new JMenuItem("Open");
@@ -489,7 +488,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 				fileChooser.setFileFilter(new ExtFileFilter("properties", "Properties files"));
 
-				if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+				if (fileChooser.showOpenDialog(ModelValidatorConfigurationWindow.this) == JFileChooser.APPROVE_OPTION) {
 					file = fileChooser.getSelectedFile();
 					extractConfigurations(file);
 					ChangeConfiguration.resetSettings(settingsConfiguration);
@@ -509,7 +508,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				if (file.exists()) {
 					saveConfigurationsToFile(file);
 				} else {
-					openSaveDialog(parent);
+					openSaveDialog();
 				}
 			}
 		});
@@ -517,7 +516,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		saveAsMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				openSaveDialog(parent);
+				openSaveDialog();
 			}
 		});
 
@@ -525,12 +524,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String sectionToDelete = selectedSection;
-				String newName = JOptionPane.showInputDialog(
-						"Please input the new name of this configuration:",
-						selectedSection);
+				String newName = JOptionPane.showInputDialog("Please input the new name of this configuration:", selectedSection);
 				if (newName != null && !newName.equals("")) {
 					propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
-					propertiesConfigurationSections.put(newName, (PropertiesConfiguration) propertiesConfiguration.clone());
+					propertiesConfigurationSections.put(newName, propertiesConfiguration);
 					propertiesConfigurationSections.remove(sectionToDelete);
 					selectedSection = newName;
 					settingsConfiguration.setChanged(true);
@@ -588,7 +585,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						DEFAULT_CONFIG_NAME + defaultNameCount);
 				defaultNameCount++;
 				if (newName != null && !newName.equals("")) {
-					PropertiesConfiguration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
+					Configuration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
 					propertiesConfigurationSections.put(selectedSection,pc);
 					ChangeConfiguration.resetSettings(settingsConfiguration);
 					propertiesConfigurationSections.put(newName,
@@ -606,15 +603,17 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		cloneMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String newName = JOptionPane.showInputDialog("Please input the name of the cloned configuration:",
-						DEFAULT_CONFIG_NAME+defaultNameCount);
+				String newName = JOptionPane.showInputDialog("Please input the name of the cloned configuration:", DEFAULT_CONFIG_NAME+defaultNameCount);
 				defaultNameCount++;
-				if (newName != null && !newName.equals("")) {
-					propertiesConfigurationSections.put(newName,
-							(PropertiesConfiguration) propertiesConfiguration.clone());
-				} else {
+				
+				if (newName == null || newName.isEmpty()) {
 					return;
 				}
+				
+				PropertiesConfiguration conf = new PropertiesConfiguration();
+				conf.append(propertiesConfiguration);
+				propertiesConfigurationSections.put(newName, conf);
+				
 				selectedSection = newName;
 				settingsConfiguration.setChanged(true);
 				sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
@@ -828,7 +827,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private void saveConfigurationsToFile(File file) {
 		try {
 			propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
-			propertiesConfigurationSections.put(selectedSection,(PropertiesConfiguration) propertiesConfiguration.clone());
+			propertiesConfigurationSections.put(selectedSection, propertiesConfiguration);
 
 			PropertiesWriter pw = new PropertiesWriter(model);
 			pw.writeToFile(file, propertiesConfigurationSections);
@@ -836,7 +835,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			settingsConfiguration.setChanged(false);
 			currentFileLabel.setText(file.getAbsolutePath());
 		} catch (IOException e) {
-			JOptionPane.showMessageDialog(getParent(), "Error while saving configuration to file!", "Error!", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, "Error while saving configuration to file!", "Error!", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 

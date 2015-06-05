@@ -57,8 +57,6 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	/**
 	 * Handling of the cmd call with a path to a configuration file and
 	 * the sector selected from it.
-	 * 
-	 * @param arguments
 	 */
 	protected void handleArguments(String[] arguments) {
 		String fileName = arguments[0];
@@ -83,7 +81,11 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	 * extracts an object diagram and calls the model validator.
 	 */
 	protected final void extractConfigureAndValidate(File file) {
-		extractConfigureAndValidate(file, null);
+		try {
+			extractConfigureAndValidate(extractConfigFromFile(file));
+		} catch (ConfigurationException e) {
+			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
+		}
 	}
 
 	/**

@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.tzi.kodkod.model.config.impl.PropertyEntry;
 import org.tzi.kodkod.model.iface.IAssociation;
@@ -33,7 +34,7 @@ public final class ChangeConfiguration {
 	private ChangeConfiguration(){
 	}
 	
-	public static PropertiesConfiguration toProperties(final SettingsConfiguration settings, final IModel model) {
+	public static Configuration toProperties(final SettingsConfiguration settings, final IModel model) {
 		PropertiesConfiguration pc = new PropertiesConfiguration();
 		
 		IntegerSettings integerSettings = settings.getIntegerTypeSettings();
@@ -149,7 +150,7 @@ public final class ChangeConfiguration {
 		return pc;
 	}
 	
-	public static void toSettings(IModel model, final PropertiesConfiguration pc, SettingsConfiguration givenSettings) {
+	public static void toSettings(IModel model, final Configuration pc, SettingsConfiguration givenSettings) {
 		SettingsConfiguration settings = givenSettings;
 		List<String> classes = new ArrayList<>();
 		List<String> attributes = new ArrayList<>();

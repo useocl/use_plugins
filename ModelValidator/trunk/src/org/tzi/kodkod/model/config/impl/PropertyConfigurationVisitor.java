@@ -288,11 +288,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Sets the configurator for a class.
-	 * 
-	 * @param clazz
-	 * @param name
-	 * @param values
-	 * @return
 	 */
 	protected ClassConfigurator setClassConfigurator(IClass clazz, List<String[]> values) {
 		ClassConfigurator configurator;
@@ -314,11 +309,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Sets the configurator for an attribute.
-	 * 
-	 * @param attribute
-	 * @param className
-	 * @param specificValues
-	 * @param domainValues
 	 */
 	protected void setAttributeConfigurator(IAttribute attribute, String className, List<String[]> specificValues, Set<String> domainValues) {
 		String searchName = className + "_" + attribute.name();
@@ -334,9 +324,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Sets a configurator for an association.
-	 * 
-	 * @param association
-	 * @param values
 	 */
 	protected void setAssociationConfigurator(IAssociation association, List<String[]> values) {
 		AssociationConfigurator configurator = new AssociationConfigurator();
@@ -350,11 +337,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Reads a number for the given name.
-	 * 
-	 * @param name
-	 * @param defaultValue
-	 * @param allowNegative
-	 * @return
 	 */
 	private int readSize(String name, int defaultValue, boolean allowNegative) {
 		int limit = 0;
@@ -374,9 +356,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Reads the concrete type values.
-	 * 
-	 * @param type
-	 * @param typeName
 	 */
 	private void readTypeValues(Type type, String typeName) {
 		List<String[]> values = getTypeSpecificValues(type);
@@ -390,9 +369,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Reads a single value for the given name
-	 * 
-	 * @param name
-	 * @return
 	 */
 	private String[] readSingleElements(String name) {
 		String[] elements = config.getStringArray(name);
@@ -414,9 +390,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Reads a set of values.
-	 * 
-	 * @param name
-	 * @return
 	 */
 	private List<String[]> readComplexElements(IAssociation association) {
 		String name = association.name();
@@ -490,9 +463,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Adds the specific values of a type.
-	 * 
-	 * @param type
-	 * @param typeSpecificValues
 	 */
 	private void addTypeSpecificValues(Type type, Collection<String[]> typeSpecificValues) {
 		if (type.isSet()) {
@@ -514,9 +484,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Returns the stored specific values of a type.
-	 * 
-	 * @param type
-	 * @return
 	 */
 	private List<String[]> getTypeSpecificValues(Type type) {
 		if (typeSpecificValues.get(type) == null) {
@@ -528,9 +495,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Returns the stored specific values of a class.
-	 * 
-	 * @param clazz
-	 * @return
 	 */
 	private Map<IClass, List<String>> getClassSpecificValues(IClass clazz) {
 		Map<IClass, List<String>> allSpecificValues = new HashMap<IClass, List<String>>();
@@ -547,11 +511,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Reads the specific values for an attribute.
-	 * 
-	 * @param attribute
-	 * @param owner
-	 * @param specificValues
-	 * @param typeSpecificValues
 	 */
 	private void readSpecificAttributeValues(IAttribute attribute, IClass owner, List<String[]> specificValues, Set<String[]> typeSpecificValues) {
 		Map<IClass, List<String>> specificClassValues = getClassSpecificValues(owner);
@@ -583,11 +542,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Reads the values for an attribute.
-	 * 
-	 * @param type
-	 * @param readName
-	 * @param typeSpecificValues
-	 * @return
 	 */
 	private Set<String> readAttributeValues(Type type, String readName, Set<String[]> typeSpecificValues) {
 		Set<String> values = new HashSet<String>();
@@ -604,10 +558,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 	/**
 	 * Adjust an element.
-	 * 
-	 * @param type
-	 * @param element
-	 * @return
 	 */
 	private String adjustElement(Type type, String element) {
 		element = element.trim();

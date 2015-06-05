@@ -21,27 +21,6 @@ import org.tzi.kodkod.model.config.impl.PropertyConfigurationVisitor;
 public abstract class ConfigurablePlugin extends AbstractPlugin {
 
 	/**
-	 * Configuration of the model with the data from the given file.
-	 */
-	protected void configureModel(File file, PrintWriter warningsOut) throws ConfigurationException {
-		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
-		String section;
-		if (hierarchicalINIConfiguration.getSections().iterator().hasNext()) {
-			section = (String) hierarchicalINIConfiguration.getSections().iterator().next();
-			configureModel(hierarchicalINIConfiguration.getSection(section), warningsOut);
-		} else {
-			configureModel(hierarchicalINIConfiguration.getSection(null), warningsOut);
-		}
-	}
-	
-	/**
-	 * Configuration of the model with the data from the given file and section.
-	 */
-	protected void configureModel(File file, String section, PrintWriter warningsOut) throws ConfigurationException {
-		configureModel(extractConfigFromFile(file, section), warningsOut);
-	}
-
-	/**
 	 * Configuration of the model with the data from the given configuration.
 	 */
 	protected void configureModel(Configuration config, PrintWriter warningsOut) throws ConfigurationException {
@@ -67,10 +46,25 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 		LOG.info(LogMessages.modelConfigurationSuccessful);
 	}
 	
+	protected Configuration extractConfigFromFile(File file) throws ConfigurationException {
+		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
+		if(hierarchicalINIConfiguration.getSections().isEmpty()){
+			return hierarchicalINIConfiguration.getSection(null);
+		} else {
+			String section = hierarchicalINIConfiguration.getSections().iterator().next();
+			return hierarchicalINIConfiguration.getSection(section);
+		}
+	}
+	
 	protected Configuration extractConfigFromFile(File file, String section) throws ConfigurationException {
 		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
-		String theSection = (section == null || hierarchicalINIConfiguration.getSections().isEmpty()) ? null : section;
-		return hierarchicalINIConfiguration.getSection(theSection);
+		if (section != null
+				&& !hierarchicalINIConfiguration.getSections().isEmpty()
+				&& !hierarchicalINIConfiguration.getSections().contains(section)) {
+			// if there is no section in the file, null will be allowed, otherwise throw an exception
+			throw new ConfigurationException("Selected section does not exist in properties file.");
+		}
+		return hierarchicalINIConfiguration.getSection(section);
 	}
 	
 }

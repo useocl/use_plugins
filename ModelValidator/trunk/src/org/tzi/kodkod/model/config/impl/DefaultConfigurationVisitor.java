@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
@@ -33,17 +34,13 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	 */
 	
 	private static final Logger LOG = Logger.getLogger(PropertyConfigurationVisitor.class);
-	private PropertiesConfiguration pc;
+	private Configuration pc;
 	private File file;
 
 	public DefaultConfigurationVisitor(String fileName) throws IOException {
 		fileName = fileName.replaceAll("\\.use", "");
 		file = new File(fileName + ".properties");
 		file.createNewFile();
-		pc = new PropertiesConfiguration();
-	}
-	
-	public DefaultConfigurationVisitor() {
 		pc = new PropertiesConfiguration();
 	}
 

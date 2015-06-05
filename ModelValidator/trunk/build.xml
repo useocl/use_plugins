@@ -3,10 +3,11 @@
 	<property name="compiler" value="1.7" />
 	<property name="use.path" value="../use" />
 	<property name="use.classes" value="${use.path}/build/classes" />
+	<property name="plugin.lib" value="lib" />
 	<property name="filename" value="ModelValidatorPlugin.jar" />
 
 	<path id="classpath">
-		<fileset dir="lib" includes="*.jar" />
+		<fileset dir="${plugin.lib}" includes="*.jar" />
 		<fileset dir="${use.path}/lib" includes="*.jar" excludes="use*" />
 		<pathelement location="${use.classes}"/>
 	</path>
@@ -42,7 +43,7 @@
 		<jar destfile="dist/${filename}" basedir="build" manifest="META-INF/MANIFEST.MF">
 			<fileset dir="." includes="useplugin.xml" />
 			<zipfileset src="lib/commons-collections-3.2.1.jar" />
-			<zipfileset src="lib/commons-configuration-1.6.jar" />
+			<zipfileset src="lib/commons-configuration-1.10.jar" />
 			<zipfileset src="lib/commons-lang-2.6.jar" />
 			<zipfileset src="lib/commons-logging-1.1.1.jar" />
 			<zipfileset src="lib/commons-vfs2-2.0.jar" />

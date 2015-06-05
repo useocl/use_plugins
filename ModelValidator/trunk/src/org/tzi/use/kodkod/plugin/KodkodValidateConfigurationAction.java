@@ -28,9 +28,9 @@ public class KodkodValidateConfigurationAction extends KodkodValidateCmd impleme
 		
 		ModelValidatorConfigurationWindow modelValidatorConfigurationWindow = 
 				new ModelValidatorConfigurationWindow(MainWindow.instance(), model(), mModel.filename());
-		if (modelValidatorConfigurationWindow.getChosenPropertiesConfiguration() != null) {
+		if (modelValidatorConfigurationWindow.getChosenConfiguration() != null) {
 			if (modelValidatorConfigurationWindow.isReadyToValidate()) {
-				extractConfigureAndValidate(modelValidatorConfigurationWindow.getChosenPropertiesConfiguration());
+				extractConfigureAndValidate(modelValidatorConfigurationWindow.getChosenConfiguration());
 			}
 		} else {
 			JOptionPane.showMessageDialog(MainWindow.instance(), "No Configuration loaded!");

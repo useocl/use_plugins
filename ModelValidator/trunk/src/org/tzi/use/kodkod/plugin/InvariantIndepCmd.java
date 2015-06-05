@@ -44,7 +44,7 @@ public class InvariantIndepCmd extends ConfigurablePlugin implements IPluginShel
 		String filenameToOpen = Shell.getInstance().getFilenameToOpen(arguments[0], false);
 		try {
 			StringWriter errorBuffer = new StringWriter();
-			configureModel(new File(filenameToOpen), new PrintWriter(errorBuffer, true));
+			configureModel(extractConfigFromFile(new File(filenameToOpen)), new PrintWriter(errorBuffer, true));
 			LOG.warn(errorBuffer.toString());
 		} catch (ConfigurationException e) {
 			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
