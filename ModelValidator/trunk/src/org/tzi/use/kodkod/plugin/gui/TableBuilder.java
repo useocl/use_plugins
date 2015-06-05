@@ -200,10 +200,4 @@ public class TableBuilder {
 		return table;
 	}
 
-	public static void repaintAllTables(Iterator<JTable> tables) {
-		while (tables.hasNext()) {
-			tables.next().repaint();
-		}
-	}
-
 }

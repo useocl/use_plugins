@@ -14,10 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -45,6 +43,7 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 
 import org.apache.commons.configuration.Configuration;
@@ -94,8 +93,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private JTable integerTable;
 	private JTable realTable;
 	private JTable stringTable;
-	private Set<JTable> tables;
 	private JCheckBox attributeCheckBox;
+	private JCheckBox integerCheckbox;
+	private JCheckBox stringCheckbox;
+	private JCheckBox realCheckbox;
 
 	private IModel model;
 	private File useFile;
@@ -122,9 +123,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 	private JComboBox<String> sectionSelectionComboBox;
 	//ComboBoxActionListener has to be declared and initialized for a functioning update through its removability
-	private ComboBoxActionListener comboBoxActionListener;
+	private ComboBoxItemListener comboBoxActionListener;
 	private ListSelectionModel classTableSelectionListener;
 	private ActionListener validateActionListener;
+
 
 	/*
 	 * Listens for changed selection in the drop down menu, puts previous propertiesConfiguration
@@ -132,22 +134,22 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * selected Section and get its propertiesConfiguration, eventually puts the loaded configurations
 	 * into settingsConfiguration.
 	 */
-	private class ComboBoxActionListener implements ActionListener {
+	private class ComboBoxItemListener implements ItemListener {
 		@Override
-		public void actionPerformed(ActionEvent e) {
-			if (propertiesConfiguration != null) {
-				propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
-				propertiesConfigurationSections.put(selectedSection, propertiesConfiguration);
+		public void itemStateChanged(ItemEvent e) {
+			if(e.getStateChange() == ItemEvent.SELECTED){
+				if (propertiesConfiguration != null) {
+					propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
+					propertiesConfigurationSections.put(selectedSection, propertiesConfiguration);
+				}
+				selectedSection = (String) e.getItem();
+				propertiesConfiguration = propertiesConfigurationSections.get(selectedSection);
+				boolean beforeChange = settingsConfiguration.isChanged();
+				ChangeConfiguration.resetSettings(settingsConfiguration);
+				ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
+				settingsConfiguration.setChanged(beforeChange);
+				update();
 			}
-			selectedSection = (String) ((JComboBox<?>) e.getSource()).getSelectedItem();
-			propertiesConfiguration = propertiesConfigurationSections.get(selectedSection);
-			//settingsConfiguration are switched when the configuration is exchanged via the Configuration ComboBox. The information
-			//if it's actually changed are lost after the switch, thus it's saved here before the switching and is recovered after.
-			boolean beforeChange = settingsConfiguration.isChanged();
-			ChangeConfiguration.resetSettings(settingsConfiguration);
-			ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
-			settingsConfiguration.setChanged(beforeChange);
-			TableBuilder.repaintAllTables(tables.iterator());
 		}
 	}
 
@@ -168,8 +170,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					}
 				}
 				selectedClass = (IClass) classes.getValueAt(selectedRow, 0);
-				attributesLabel.setText(ConfigurationTerms.ATTRIBUTES+" of "+selectedClass);
-				associationsLabel.setText(ConfigurationTerms.ASSOCIATIONS+" where the class "+selectedClass+" is the first role");
+				attributesLabel.setText(ConfigurationTerms.ATTRIBUTES + " of " + selectedClass);
+				associationsLabel.setText(ConfigurationTerms.ASSOCIATIONS + " where the class " + selectedClass + " is the first role");
 				updateClassAttributes(selectedClass);
 				updateClassAssociations(selectedClass);
 			}
@@ -189,7 +191,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		settingsConfiguration = new SettingsConfiguration(model);
 		tableBuilder = new TableBuilder(settingsConfiguration);
 
-		tables = new HashSet<JTable>(); //building all tables and adding them to a HashSet for repainting alltogether purposes
 		integerTable = tableBuilder.integer();
 		realTable = tableBuilder.real();
 		stringTable = tableBuilder.string();
@@ -198,14 +199,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		attributes = tableBuilder.attributes();
 		associations = tableBuilder.associations();
 		invariants = tableBuilder.invariants();
-		tables.add(integerTable);
-		tables.add(realTable);
-		tables.add(stringTable);
-		tables.add(options);
-		tables.add(classes);
-		tables.add(attributes);
-		tables.add(associations);
-		tables.add(invariants);
 
 		classTableSelectionListener = classes.getSelectionModel();
 		classTableSelectionListener.addListSelectionListener(new ClassTableSelectionHandler());
@@ -232,8 +225,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		south = new JPanel(new BorderLayout());
 
 		sectionSelectionComboBox = new JComboBox<String>();
-		comboBoxActionListener = new ComboBoxActionListener();
-		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
+		comboBoxActionListener = new ComboBoxItemListener();
 
 		attributeColumnsToHide = new ArrayList<>();
 		for (int i = 1; i < 5; i++) {
@@ -290,7 +282,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		} else {
 			setAllDefault();
 		}
-		TableBuilder.repaintAllTables(tables.iterator());
 
 		settingsConfiguration.setChanged(false);
 		
@@ -322,6 +313,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		main.add(center, BorderLayout.CENTER);
 		main.add(south, BorderLayout.SOUTH);
 
+		sectionSelectionComboBox.addItemListener(comboBoxActionListener);
+		
 		//Hiding the min-/maxDefined and min-/maxElements of the attributes table
 		for (int i = 0; i < 4; i++) {
 			attributes.removeColumn(attributeColumnsToHide.get(i));
@@ -352,6 +345,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		});
 		setJMenuBar(buildMenuBar());
 		setContentPane(main);
+		update();
 		pack();
 		setLocationRelativeTo(parent);
 		setVisible(true);
@@ -397,7 +391,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			JOptionPane.showMessageDialog(this, "Error while loading properties file!", "Error!", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 		sectionSelectionComboBox.removeAllItems();
 		propertiesConfigurationSections = new LinkedHashMap<String, Configuration>();
 		
@@ -428,12 +421,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		selectedSection = firstSection;
 		propertiesConfiguration = propertiesConfigurationSections.get(firstSection);
 		sectionSelectionComboBox.setSelectedItem(firstSection);
-		
-		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 	}
 
 	private void setAllDefault() {
-		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 		sectionSelectionComboBox.removeAllItems();
 		selectedSection = PropertyEntry.DEFAULT_SECTION_NAME;
 
@@ -442,7 +432,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 		propertiesConfigurationSections.put(selectedSection, propertiesConfiguration);
 		sectionSelectionComboBox.addItem(selectedSection);
-		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 	}
 
 	public Configuration getChosenConfiguration() {
@@ -482,9 +471,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					extractConfigurations(file);
 					ChangeConfiguration.resetSettings(settingsConfiguration);
 					ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
-					TableBuilder.repaintAllTables(tables.iterator());
-					settingsConfiguration.setChanged(false);
 					classes.clearSelection();
+					update();
+					settingsConfiguration.setChanged(false);
 					currentFileLabel.setText(file.getAbsolutePath());
 				}
 
@@ -520,10 +509,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					propertiesConfigurationSections.remove(sectionToDelete);
 					selectedSection = newName;
 					settingsConfiguration.setChanged(true);
-					sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 					sectionSelectionComboBox.addItem(newName);
 					sectionSelectionComboBox.removeItem(sectionToDelete);
-					sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 					sectionSelectionComboBox.setSelectedItem(newName);
 				}
 			}
@@ -548,19 +535,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					ChangeConfiguration.toSettings(model, propertiesConfigurationSections.get(selectedSection), settingsConfiguration);
 					propertiesConfigurationSections.remove(currentSection);
 					sectionSelectionComboBox.setSelectedItem(selectedSection);
-					sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 					sectionSelectionComboBox.removeItem(currentSection);
-					sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 				} else {
 					propertiesConfigurationSections.clear();
 					selectedSection = PropertyEntry.DEFAULT_SECTION_NAME;
 					ChangeConfiguration.resetSettings(settingsConfiguration);
-					propertiesConfigurationSections.put(selectedSection,
-							(ChangeConfiguration.toProperties(settingsConfiguration, model)));
-					sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
+					propertiesConfigurationSections.put(selectedSection, ChangeConfiguration.toProperties(settingsConfiguration, model));
 					sectionSelectionComboBox.removeAllItems();
 					sectionSelectionComboBox.addItem(selectedSection);
-					sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 					sectionSelectionComboBox.setSelectedItem(selectedSection);
 				}
 				settingsConfiguration.setChanged(true);
@@ -570,29 +552,29 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		newMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String newName = JOptionPane.showInputDialog("Please input the name of the new configuration:",
-						DEFAULT_CONFIG_PREFIX + defaultNameCount);
+				String newName = JOptionPane.showInputDialog("Please input the name of the new configuration:", DEFAULT_CONFIG_PREFIX + defaultNameCount);
 				defaultNameCount++;
-				if (newName != null && !newName.equals("")) {
-					Configuration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
-					propertiesConfigurationSections.put(selectedSection,pc);
-					ChangeConfiguration.resetSettings(settingsConfiguration);
-					propertiesConfigurationSections.put(newName,
-							(ChangeConfiguration.toProperties(settingsConfiguration, model)));
-					selectedSection = newName;
-					settingsConfiguration.setChanged(true);
-					sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
-					sectionSelectionComboBox.addItem(newName);
-					sectionSelectionComboBox.addActionListener(comboBoxActionListener);
-					sectionSelectionComboBox.setSelectedItem(newName);
+				
+				if (newName == null || newName.isEmpty()) {
+					return;
 				}
+				
+				Configuration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
+				propertiesConfigurationSections.put(selectedSection, pc);
+				ChangeConfiguration.resetSettings(settingsConfiguration);
+				propertiesConfigurationSections.put(newName, ChangeConfiguration.toProperties(settingsConfiguration, model));
+				
+				selectedSection = newName;
+				settingsConfiguration.setChanged(true);
+				sectionSelectionComboBox.addItem(newName);
+				sectionSelectionComboBox.setSelectedItem(newName);
 			}
 		});
 
 		cloneMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String newName = JOptionPane.showInputDialog("Please input the name of the cloned configuration:", DEFAULT_CONFIG_PREFIX+defaultNameCount);
+				String newName = JOptionPane.showInputDialog("Please input the name of the cloned configuration:", DEFAULT_CONFIG_PREFIX + defaultNameCount);
 				defaultNameCount++;
 				
 				if (newName == null || newName.isEmpty()) {
@@ -605,9 +587,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				
 				selectedSection = newName;
 				settingsConfiguration.setChanged(true);
-				sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 				sectionSelectionComboBox.addItem(newName);
-				sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 				sectionSelectionComboBox.setSelectedItem(newName);
 			}
 		});
@@ -668,7 +648,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 		final JPanel integerPanel = new JPanel(new BorderLayout());
 		final JScrollPane intScroll = new JScrollPane(integerTable);
-		JCheckBox integerCheckbox = new JCheckBox(TypeConstants.INTEGER, settingsConfiguration.getIntegerTypeSettings().isEnabled());
+		integerCheckbox = new JCheckBox(TypeConstants.INTEGER, settingsConfiguration.getIntegerTypeSettings().isEnabled());
 		Font captionFont = integerCheckbox.getFont().deriveFont(Font.BOLD, 12f);
 		integerCheckbox.setFont(captionFont);
 		integerCheckbox.addItemListener(new ItemListener() {
@@ -697,7 +677,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		
 		final JPanel stringPanel = new JPanel(new BorderLayout());
 		final JScrollPane stringScroll = new JScrollPane(stringTable);
-		JCheckBox stringCheckbox = new JCheckBox(TypeConstants.STRING, settingsConfiguration.getStringTypeSettings().isEnabled());
+		stringCheckbox = new JCheckBox(TypeConstants.STRING, settingsConfiguration.getStringTypeSettings().isEnabled());
 		stringCheckbox.setFont(captionFont);
 		stringCheckbox.addItemListener(new ItemListener() {
 			@Override
@@ -724,7 +704,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		
 		final JPanel realPanel = new JPanel(new BorderLayout());
 		final JScrollPane realScroll = new JScrollPane(realTable);
-		JCheckBox realCheckbox = new JCheckBox(TypeConstants.REAL, settingsConfiguration.getRealTypeSettings().isEnabled());
+		realCheckbox = new JCheckBox(TypeConstants.REAL, settingsConfiguration.getRealTypeSettings().isEnabled());
 		realCheckbox.setFont(captionFont);
 		realCheckbox.addItemListener(new ItemListener() {
 			@Override
@@ -803,7 +783,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 	/**
 	 * updates the attributes table referring to given className and gets them from the SettingsConfiguration
-	 * @param className
 	 */
 	private void updateClassAttributes(IClass className) {
 		TableModelAttribute attributeModel = (TableModelAttribute)attributes.getModel();
@@ -830,6 +809,21 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		}
 	}
 
+	private void update() {
+		integerTable.repaint();
+		realTable.repaint();
+		stringTable.repaint();
+		options.repaint();
+		classes.repaint();
+		attributes.repaint();
+		associations.repaint();
+		invariants.repaint();
+		
+		integerCheckbox.setSelected(settingsConfiguration.getIntegerTypeSettings().isEnabled());
+		stringCheckbox.setSelected(settingsConfiguration.getStringTypeSettings().isEnabled());
+		realCheckbox.setSelected(settingsConfiguration.getRealTypeSettings().isEnabled());
+	}
+	
 	private String abstractClassesChildren(IModel model) {
 		StringBuilder abstractText = new StringBuilder("Abstract Classes:");
 		abstractText.append(StringUtil.NEWLINE);
