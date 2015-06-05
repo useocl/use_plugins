@@ -43,7 +43,6 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 
 import org.apache.commons.configuration.Configuration;
@@ -122,7 +121,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private JButton validateButton;
 
 	private JComboBox<String> sectionSelectionComboBox;
-	//ComboBoxActionListener has to be declared and initialized for a functioning update through its removability
 	private ComboBoxItemListener comboBoxActionListener;
 	private ListSelectionModel classTableSelectionListener;
 	private ActionListener validateActionListener;
@@ -156,7 +154,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	/*
 	 * Listens for changed class row selection in the class table
 	 */
-	class ClassTableSelectionHandler implements ListSelectionListener {
+	private class ClassTableSelectionHandler implements ListSelectionListener {
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
 			if (!e.getValueIsAdjusting()) {
