@@ -14,11 +14,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.swing.Box;
@@ -36,6 +34,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -52,6 +51,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.tzi.kodkod.model.config.impl.PropertyEntry;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.TypeConstants;
@@ -77,7 +77,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final String DEFAULT_CONFIG_NAME = "config";
+	private static final String DEFAULT_CONFIG_PREFIX = "config";
 
 	private int defaultNameCount = 0;
 	private String selectedSection;
@@ -100,7 +100,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private IModel model;
 	private File useFile;
 	private File file;
-	private Map<String, Configuration> propertiesConfigurationSections;
+	private LinkedHashMap<String, Configuration> propertiesConfigurationSections;
 	private Configuration propertiesConfiguration;
 	private SettingsConfiguration settingsConfiguration;
 	private TableBuilder tableBuilder;
@@ -217,7 +217,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		} else {
 			currentFileLabel = new JLabel("");
 		}
-		propertiesConfigurationSections = new HashMap<String, Configuration>();
+		propertiesConfigurationSections = new LinkedHashMap<String, Configuration>();
 		readyToValidate = false;
 
 		center = new JTabbedPane(SwingConstants.TOP);
@@ -399,54 +399,43 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		}
 		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 		sectionSelectionComboBox.removeAllItems();
-		propertiesConfigurationSections = new HashMap<String, Configuration>();
-		if (!hierarchicalINIConfiguration.getSections().isEmpty()) {
-			Iterator<?> sectionsIterator = hierarchicalINIConfiguration.getSections().iterator();
-			Boolean isFirstConfiguration = true;
-			while (sectionsIterator.hasNext()) {
-				PropertiesConfiguration propertiesConfiguration = new PropertiesConfiguration();
-				String section = (String) sectionsIterator.next();
-				Configuration sectionConfigurations = hierarchicalINIConfiguration.getSection(section);
-				Iterator<?> keysIterator = sectionConfigurations.getKeys();
-				while (keysIterator.hasNext()) {
-					String key = keysIterator.next().toString();
-					if (!key.startsWith("--")){
-						String value = sectionConfigurations.getString(key);
-						propertiesConfiguration.addProperty(key, value);
-					}
-				}
-				if (isFirstConfiguration) {
-					selectedSection = section;
-					this.propertiesConfiguration = propertiesConfiguration;
-					isFirstConfiguration = false;
-				}
-				propertiesConfigurationSections.put(section.toString(), propertiesConfiguration);
-				sectionSelectionComboBox.addItem(section.toString());
-			}
-		} else if (!hierarchicalINIConfiguration.getKeys().hasNext()) {
-			JOptionPane.showMessageDialog(this, "Not a proper .properties File! Choose another or delete it!", "Error!", JOptionPane.ERROR_MESSAGE);
+		propertiesConfigurationSections = new LinkedHashMap<String, Configuration>();
+		
+		String firstSection = null;
+		if (hierarchicalINIConfiguration.getSections().isEmpty()) {
+			// create default configuration
+			Configuration configuration = hierarchicalINIConfiguration.getSection(null);
+			propertiesConfigurationSections.put(PropertyEntry.DEFAULT_SECTION_NAME, configuration);
+			sectionSelectionComboBox.addItem(PropertyEntry.DEFAULT_SECTION_NAME);
+			firstSection = PropertyEntry.DEFAULT_SECTION_NAME;
 		} else {
-			PropertiesConfiguration propertiesConfiguration = new PropertiesConfiguration();
-			String section = "config";
-			Iterator<?> keysIterator = hierarchicalINIConfiguration.getKeys();
-			while (keysIterator.hasNext()) {
-				String key = (String) keysIterator.next();
-				if (!key.startsWith("--")) {
-					propertiesConfiguration.addProperty(key, hierarchicalINIConfiguration.getString(key));
+			boolean first = true;
+			for (String section : hierarchicalINIConfiguration.getSections()) {
+				Configuration conf = hierarchicalINIConfiguration.getSection(section);
+				if(section == null){
+					//TODO what if there is a default section already? ;)
+					section = PropertyEntry.DEFAULT_SECTION_NAME;
+				}
+				propertiesConfigurationSections.put(section, conf);
+				sectionSelectionComboBox.addItem(section);
+				if(first){
+					firstSection = section;
+					first = false;
 				}
 			}
-			selectedSection = section;
-			this.propertiesConfiguration = propertiesConfiguration;
-			propertiesConfigurationSections.put(section, propertiesConfiguration);
-			sectionSelectionComboBox.addItem(section);
 		}
+		
+		selectedSection = firstSection;
+		propertiesConfiguration = propertiesConfigurationSections.get(firstSection);
+		sectionSelectionComboBox.setSelectedItem(firstSection);
+		
 		sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 	}
 
 	private void setAllDefault() {
 		sectionSelectionComboBox.removeActionListener(comboBoxActionListener);
 		sectionSelectionComboBox.removeAllItems();
-		selectedSection = "default";
+		selectedSection = PropertyEntry.DEFAULT_SECTION_NAME;
 
 		ChangeConfiguration.resetSettings(settingsConfiguration);
 		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
@@ -564,7 +553,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					sectionSelectionComboBox.addActionListener(comboBoxActionListener);
 				} else {
 					propertiesConfigurationSections.clear();
-					selectedSection = "default";
+					selectedSection = PropertyEntry.DEFAULT_SECTION_NAME;
 					ChangeConfiguration.resetSettings(settingsConfiguration);
 					propertiesConfigurationSections.put(selectedSection,
 							(ChangeConfiguration.toProperties(settingsConfiguration, model)));
@@ -582,7 +571,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String newName = JOptionPane.showInputDialog("Please input the name of the new configuration:",
-						DEFAULT_CONFIG_NAME + defaultNameCount);
+						DEFAULT_CONFIG_PREFIX + defaultNameCount);
 				defaultNameCount++;
 				if (newName != null && !newName.equals("")) {
 					Configuration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
@@ -603,7 +592,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		cloneMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String newName = JOptionPane.showInputDialog("Please input the name of the cloned configuration:", DEFAULT_CONFIG_NAME+defaultNameCount);
+				String newName = JOptionPane.showInputDialog("Please input the name of the cloned configuration:", DEFAULT_CONFIG_PREFIX+defaultNameCount);
 				defaultNameCount++;
 				
 				if (newName == null || newName.isEmpty()) {
@@ -628,10 +617,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		fileMenu.add(openMenuItem);
 		fileMenu.add(saveMenuItem);
 		fileMenu.add(saveAsMenuItem);
+		//TODO Add close window menu item
+		configurationMenu.add(newMenuItem);
+		configurationMenu.add(cloneMenuItem);
 		configurationMenu.add(renameMenuItem);
 		configurationMenu.add(deleteMenuItem);
-		configurationMenu.add(cloneMenuItem);
-		configurationMenu.add(newMenuItem);
+		configurationMenu.add(new JSeparator());
 		configurationMenu.add(validateMenuItem);
 		menuBar.add(fileMenu);
 		menuBar.add(configurationMenu);

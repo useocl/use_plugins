@@ -226,14 +226,14 @@ public final class ChangeConfiguration {
 		
 		//from this point on the keys from the given PropertiesConfiguration are compared with the
 		//possible keys collected from the model, and than their values are added to the settings
-		Iterator<?> keys = pc.getKeys();
+		Iterator<String> keys = pc.getKeys();
 		
 		boolean integerSettingsExist = false;
 		boolean stringSettingsExist = false;
 		boolean realSettingsExist = false;
 		
 		while (keys.hasNext()) {
-			String propertiesKey = keys.next().toString();
+			String propertiesKey = keys.next();
 			String first = "";
 			String second = "";
 			String third = "";

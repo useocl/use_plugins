@@ -64,11 +64,11 @@ public class PropertyEntry {
 	
 	public static final String forbiddensharing = "forbiddensharing";
 	
-	public static final String COMMENT_LABEL = "#";
+	public static final String COMMENT_LABEL = "# ";
 	public static final int PUNCHED_CARD_LENGTH = 72;
-	public static final String STRONG_DIVIDE_LINE = "------------------------------------------------------------------------";
-	public static final String LIGHT_DIVIDE_LINE = "-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
-	public static final String DEFAULT_SECTION = "[default]";
+	public static final String STRONG_DIVIDE_LINE = COMMENT_LABEL + "----------------------------------------------------------------------";
+	public static final String LIGHT_DIVIDE_LINE = COMMENT_LABEL + " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
+	public static final String DEFAULT_SECTION_NAME = "default";
 	
 	public static final String ASSOCIATIONCLASS = "_ac";
 	

@@ -23,7 +23,6 @@ import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.util.StringUtil;
 
-//TODO use PropertyEntry.COMMENT_LABEL
 public class PropertiesWriter {
 
 	private final IModel iModel;
@@ -64,7 +63,7 @@ public class PropertiesWriter {
 		file.createNewFile();
 
 		writer = new BufferedWriter(new FileWriter(file));
-		writeSection("default", pc);
+		writeSection(PropertyEntry.DEFAULT_SECTION_NAME, pc);
 		writer.close();
 	}
 
@@ -93,25 +92,33 @@ public class PropertiesWriter {
 				writeDivideLine(PropertyEntry.LIGHT_DIVIDE_LINE);
 			}
 		}
-		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
+		
 		writeInvariants(iModel.classInvariants(), pc);
-		writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
 		writeOptions(pc);
 		writeNewLine();
 	}
 
 	private void writeBasicTypes(Configuration pc) throws IOException {
+		boolean needSeperator = false;
 		String integer = TypeConstants.INTEGER;
 		String integerMin = integer + PropertyEntry.integerValueMin;
 		String integerMax = integer + PropertyEntry.integerValueMax;
 		if (pc.containsKey(integer) && pc.getProperty(integer) != null) {
 			write(integer, propertyToString(pc.getProperty(integer)));
+			needSeperator = true;
 		}
 		if (pc.containsKey(integerMin)) {
 			write(integerMin, pc.getInt(integerMin, DefaultConfigurationValues.integerMin));
+			needSeperator = true;
 		}
 		if (pc.containsKey(integerMax)) {
 			write(integerMax, pc.getInt(integerMax, DefaultConfigurationValues.integerMax));
+			needSeperator = true;
+		}
+
+		if(needSeperator){
+			writeNewLine();
+			needSeperator = false;
 		}
 		
 		String string = TypeConstants.STRING;
@@ -119,14 +126,22 @@ public class PropertiesWriter {
 		String stringMax = string + PropertyEntry.stringValuesMax;
 		if (pc.containsKey(string) && pc.getProperty(string) != null) {
 			write(string, propertyToString(pc.getProperty(string)));
+			needSeperator = true;
 		}
 		if (pc.containsKey(stringMin)) {
 			write(stringMin, pc.getInt(stringMin, DefaultConfigurationValues.stringMin));
+			needSeperator = true;
 		}
 		if (pc.containsKey(stringMax)) {
 			write(stringMax, pc.getInt(stringMax, DefaultConfigurationValues.stringMax));
+			needSeperator = true;
 		}
 
+		if(needSeperator){
+			writeNewLine();
+			needSeperator = false;
+		}
+		
 		String real = TypeConstants.REAL;
 		String realMin = real + PropertyEntry.realValueMin;
 		String realMax = real + PropertyEntry.realValueMax;
@@ -177,7 +192,7 @@ public class PropertiesWriter {
 			String attrMaxSize = attr + PropertyEntry.attributeColSizeMax;
 
 			if(isDefaultConfiguration){
-				writer.write("-- " + attr + " = Set{ ... }");
+				writer.write(PropertyEntry.COMMENT_LABEL + attr + " = Set{ ... }");
 				writeNewLine();
 			} else {
 				if (pc.containsKey(attr) && pc.getProperty(attr) != null) {
@@ -217,19 +232,33 @@ public class PropertiesWriter {
 	}
 
 	private void writeInvariants(Collection<IInvariant> invariants, Configuration pc) throws IOException {
+		boolean first = true;
 		for(IInvariant invariant : invariants){
 			String inv = invariant.clazz().name()+"_"+invariant.name();
 			if (pc.containsKey(inv) && (pc.getProperty(inv) != null)) {
+				if(first){
+					writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
+					first = false;
+				}
 				write(inv, pc.getString(inv));
 			}
 		}
 	}
 
 	private void writeOptions(Configuration pc) throws IOException {
+		boolean first = true;
 		if (pc.containsKey(PropertyEntry.aggregationcyclefreeness) && (pc.getProperty(PropertyEntry.aggregationcyclefreeness) != null)) {
+			if(first){
+				writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
+				first = false;
+			}
 			write(PropertyEntry.aggregationcyclefreeness, pc.getString(PropertyEntry.aggregationcyclefreeness));
 		}
 		if (pc.containsKey(PropertyEntry.forbiddensharing) && (pc.getProperty(PropertyEntry.forbiddensharing) != null)) {
+			if(first){
+				writeDivideLine(PropertyEntry.STRONG_DIVIDE_LINE);
+				first = false;
+			}
 			write(PropertyEntry.forbiddensharing, pc.getString(PropertyEntry.forbiddensharing));
 		}
 	}
@@ -273,8 +302,8 @@ public class PropertiesWriter {
 	private void writeAssociationLine(IAssociation association) throws IOException {
 		StringBuilder associationString = new StringBuilder();
 		associationString.append(association.name());
-		associationString.append("(");
-		StringUtil.fmtSeq(associationString, association.associationEnds(), ",", new StringUtil.IElementFormatter<IAssociationEnd>() {
+		associationString.append(" (");
+		StringUtil.fmtSeq(associationString, association.associationEnds(), ", ", new StringUtil.IElementFormatter<IAssociationEnd>() {
 			@Override
 			public String format(IAssociationEnd element) {
 				return element.name() + ":" + element.associatedClass().name();
@@ -287,7 +316,7 @@ public class PropertiesWriter {
 
 	private void writeLabeledLine(String string) throws IOException {
 		StringBuilder writerString = new StringBuilder();
-		writerString.append("-- ");
+		writerString.append(PropertyEntry.COMMENT_LABEL);
 		writerString.append(string);
 		if (writerString.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
 			if (writerString.length() % 2 == 1) {
