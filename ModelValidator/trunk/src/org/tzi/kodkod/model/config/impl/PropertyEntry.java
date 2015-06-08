@@ -1,7 +1,5 @@
 package org.tzi.kodkod.model.config.impl;
 
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Contains the names for the configuration file.
@@ -24,16 +22,16 @@ public class PropertyEntry {
 	 * "Real" + realValueMax = ...
 	 * "Real" + realStep = ...
 	 */
-	public static final String realValueMin = "_min";
-	public static final String realValueMax = "_max";
+	public static final String realValuesMin = "_min";
+	public static final String realValuesMax = "_max";
 	public static final String realStep = "_step";
 
 	/*
 	 * "Integer" + integerValueMin = ...
 	 * "Integer" + integerValueMax = ...
 	 */
-	public static final String integerValueMin = "_min";
-	public static final String integerValueMax = "_max";
+	public static final String integerValuesMin = "_min";
+	public static final String integerValuesMax = "_max";
 
 	/*
 	 * Classname + objMin = ...
@@ -76,22 +74,4 @@ public class PropertyEntry {
 	public static final String INVARIANT_INACTIVE = "inactive";
 	public static final String INVARIANT_NEGATE = "negate";
 	
-	public static final Set<String> allEndings = new HashSet<String>();
-	static {
-		allEndings.add(stringValuesMin);
-		allEndings.add(stringValuesMax);
-		allEndings.add(realValueMin);
-		allEndings.add(realValueMax);
-		allEndings.add(realStep);
-		allEndings.add(integerValueMin);
-		allEndings.add(integerValueMax);
-		allEndings.add(objMin);
-		allEndings.add(objMax);
-		allEndings.add(linksMin);
-		allEndings.add(linksMax);
-		allEndings.add(attributeDefValuesMin);
-		allEndings.add(attributeDefValuesMax);
-		allEndings.add(attributeColSizeMin);
-		allEndings.add(attributeColSizeMax);
-	}
 }

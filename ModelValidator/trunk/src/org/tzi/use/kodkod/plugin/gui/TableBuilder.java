@@ -24,7 +24,6 @@ import org.tzi.use.kodkod.plugin.gui.model.TableModelOption;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelReal;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelString;
 import org.tzi.use.kodkod.plugin.gui.model.TooltipTableModel;
-import org.tzi.use.kodkod.plugin.gui.model.data.AssociationSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
 import org.tzi.use.kodkod.plugin.gui.view.AssociationNameRenderer;
@@ -167,9 +166,7 @@ public class TableBuilder {
 	}
 
 	public JTable associations(){
-		List<AssociationSettings> associations =
-				new ArrayList<>(allSettings.getAllClassesSettings().get(0).getAssociationSettings().values());
-		JTable table = createBaseTable(new TableModelAssociation(associations));
+		JTable table = createBaseTable(new TableModelAssociation(allSettings.getAllAssociationSettings()));
 		table.setName(ConfigurationTerms.ASSOCIATIONS);
 
 		TableColumnModel cm = table.getColumnModel();

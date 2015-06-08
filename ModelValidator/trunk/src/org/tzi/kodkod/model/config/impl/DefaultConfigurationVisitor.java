@@ -112,8 +112,8 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 	@Override
 	public void visitIntegerType(IntegerType integerType) {
 		IntegerConfigurator configurator = new IntegerConfigurator();
-		setRange(configurator, integerType.name() + PropertyEntry.integerValueMin, DefaultConfigurationValues.integerMin,
-				integerType.name() + PropertyEntry.integerValueMax, DefaultConfigurationValues.integerMax);
+		setRange(configurator, integerType.name() + PropertyEntry.integerValuesMin, DefaultConfigurationValues.integerMin,
+				integerType.name() + PropertyEntry.integerValuesMax, DefaultConfigurationValues.integerMax);
 		integerType.setConfigurator(configurator);
 
 	}
@@ -123,8 +123,8 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		RealConfigurator configurator = new RealConfigurator();
 		configurator.setStep(DefaultConfigurationValues.realStep);
 		// the model validator tries to treat reals like integers for basic arithmetic support
-		setRange(configurator, realType.name() + PropertyEntry.realValueMin, (int) DefaultConfigurationValues.realMin, 
-				realType.name() + PropertyEntry.realValueMax, (int) DefaultConfigurationValues.realMax);
+		setRange(configurator, realType.name() + PropertyEntry.realValuesMin, (int) DefaultConfigurationValues.realMin, 
+				realType.name() + PropertyEntry.realValuesMax, (int) DefaultConfigurationValues.realMax);
 		realType.setConfigurator(configurator);
 		write(realType.name() + PropertyEntry.realStep, DefaultConfigurationValues.realStep);
 	}

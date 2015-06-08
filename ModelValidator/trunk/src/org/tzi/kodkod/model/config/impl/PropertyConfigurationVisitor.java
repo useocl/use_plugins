@@ -181,8 +181,8 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		int min;
 		int max;
 		if (type.isInteger()) {
-			min = readSize(type.name() + PropertyEntry.integerValueMin, Integer.MIN_VALUE, true);
-			max = readSize(type.name() + PropertyEntry.integerValueMax, Integer.MIN_VALUE, true);
+			min = readSize(type.name() + PropertyEntry.integerValuesMin, Integer.MIN_VALUE, true);
+			max = readSize(type.name() + PropertyEntry.integerValuesMax, Integer.MIN_VALUE, true);
 			
 			// check for values exceeding bitwidth
 			int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
@@ -221,8 +221,8 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			min = readSize(type.name() + PropertyEntry.stringValuesMin, Integer.MIN_VALUE, false);
 			max = readSize(type.name() + PropertyEntry.stringValuesMax, Integer.MIN_VALUE, false);
 		} else if (type.isReal()) {
-			min = readSize(type.name() + PropertyEntry.realValueMin, Integer.MIN_VALUE, true);
-			max = readSize(type.name() + PropertyEntry.realValueMax, Integer.MIN_VALUE, true);
+			min = readSize(type.name() + PropertyEntry.realValuesMin, Integer.MIN_VALUE, true);
+			max = readSize(type.name() + PropertyEntry.realValuesMax, Integer.MIN_VALUE, true);
 		}
 		else {
 			error("Unknown Configurable Type");

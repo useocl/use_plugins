@@ -12,10 +12,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -64,7 +62,6 @@ import org.tzi.use.util.StringUtil;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
-
 /**
  *  A GUI for adjusting the configurations before giving them to the model validator
  *
@@ -84,11 +81,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private JLabel associationsLabel;
 	private JTextArea statusArea;
 
-	private JTable invariants;
-	private JTable options;
-	private JTable associations;
-	private JTable attributes;
-	private JTable classes;
+	private JTable invariantsTable;
+	private JTable optionsTable;
+	private JTable associationTable;
+	private JTable attributeTable;
+	private JTable classTable;
 	private JTable integerTable;
 	private JTable realTable;
 	private JTable stringTable;
@@ -100,18 +97,16 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private IModel model;
 	private File useFile;
 	private File file;
+	private SettingsConfiguration settingsConfiguration;
+	//TODO replace with configuration manager
 	private LinkedHashMap<String, Configuration> propertiesConfigurationSections;
 	private Configuration propertiesConfiguration;
-	private SettingsConfiguration settingsConfiguration;
-	private TableBuilder tableBuilder;
-	private List<TableColumn> attributeColumnsToHide;
 
 	private IClass selectedClass;
-	private Boolean readyToValidate;
+	private boolean readyToValidate;
 
 	private JTabbedPane center;
 	private JPanel main;
-	private FlowLayout leftFlowLayout;
 	private JPanel northNorth;
 	private JPanel northSouth;
 	private JPanel north;
@@ -122,7 +117,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 	private JComboBox<String> sectionSelectionComboBox;
 	private ComboBoxItemListener comboBoxActionListener;
-	private ListSelectionModel classTableSelectionListener;
 	private ActionListener validateActionListener;
 
 
@@ -165,11 +159,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				for (int i = minIndex; i <= maxIndex; i++) {
 					if (lsm.isSelectedIndex(i)) {
 						selectedRow = i;
+						break;
 					}
 				}
-				selectedClass = (IClass) classes.getValueAt(selectedRow, 0);
-				attributesLabel.setText(ConfigurationTerms.ATTRIBUTES + " of " + selectedClass);
-				associationsLabel.setText(ConfigurationTerms.ASSOCIATIONS + " where the class " + selectedClass + " is the first role");
+				selectedClass = (IClass) classTable.getValueAt(selectedRow, 0);
+				attributesLabel.setText("Attributes of class " + selectedClass.name());
+				associationsLabel.setText("Associations of class " + selectedClass.name());
 				updateClassAttributes(selectedClass);
 				updateClassAssociations(selectedClass);
 			}
@@ -183,24 +178,21 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		setModalityType(ModalityType.APPLICATION_MODAL);
-		setResizable(true);
 		setSize(1024,300);
 
 		settingsConfiguration = new SettingsConfiguration(model);
-		tableBuilder = new TableBuilder(settingsConfiguration);
+		TableBuilder tableBuilder = new TableBuilder(settingsConfiguration);
 
 		integerTable = tableBuilder.integer();
 		realTable = tableBuilder.real();
 		stringTable = tableBuilder.string();
-		options = tableBuilder.options();
-		classes = tableBuilder.classes();
-		attributes = tableBuilder.attributes();
-		associations = tableBuilder.associations();
-		invariants = tableBuilder.invariants();
+		optionsTable = tableBuilder.options();
+		classTable = tableBuilder.classes();
+		attributeTable = tableBuilder.attributes();
+		associationTable = tableBuilder.associations();
+		invariantsTable = tableBuilder.invariants();
 
-		classTableSelectionListener = classes.getSelectionModel();
-		classTableSelectionListener.addListSelectionListener(new ClassTableSelectionHandler());
-		classes.setSelectionModel(classTableSelectionListener);
+		classTable.getSelectionModel().addListSelectionListener(new ClassTableSelectionHandler());
 
 		file = new File(useFile.replaceAll("\\.use", "") + ".properties");
 		if (file.exists()) {
@@ -212,12 +204,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		readyToValidate = false;
 
 		center = new JTabbedPane(SwingConstants.TOP);
-		main = new JPanel();
-		leftFlowLayout = new FlowLayout(FlowLayout.LEFT);
-		northNorth = new JPanel(leftFlowLayout);
-		northSouth = new JPanel(leftFlowLayout);
+		main = new JPanel(new BorderLayout());
+		northNorth = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		northSouth = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		north = new JPanel(new BorderLayout());
-		southWest = new JPanel(leftFlowLayout);
+		southWest = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		southCenter = new JPanel(new BorderLayout());
 		southCenter.setBorder(new BevelBorder(BevelBorder.LOWERED));
 		south = new JPanel(new BorderLayout());
@@ -225,34 +216,37 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		sectionSelectionComboBox = new JComboBox<String>();
 		comboBoxActionListener = new ComboBoxItemListener();
 
-		attributeColumnsToHide = new ArrayList<>();
-		for (int i = 1; i < 5; i++) {
-			attributeColumnsToHide.add( attributes.getColumnModel().getColumn(i));
-		}
-
-		attributeCheckBox = new JCheckBox("Hide specific bounds", true);
-		attributeCheckBox.addActionListener(new ActionListener() {
+		attributeCheckBox = new JCheckBox("Show specific bounds", true);
+		attributeCheckBox.addItemListener(new ItemListener() {
+			
+			private TableColumn[] attributeColumnsToHide = new TableColumn[]{
+				attributeTable.getColumn(ConfigurationTerms.ATTRIBUTES_MIN),
+				attributeTable.getColumn(ConfigurationTerms.ATTRIBUTES_MAX),
+				attributeTable.getColumn(ConfigurationTerms.ATTRIBUTES_MINSIZE),
+				attributeTable.getColumn(ConfigurationTerms.ATTRIBUTES_MAXSIZE)
+			};
+			private boolean isExpanded = true;
+			
 			@Override
-			public void actionPerformed( ActionEvent e ) {
-				if (!attributeCheckBox.isSelected()) {
-					if (attributes.getColumnCount() < 6) {
-						TableColumn tempColumn = attributes.getColumnModel().getColumn(1);
-						attributes.removeColumn(tempColumn);
-						for (int i = 0; i < 4; i++) {
-							attributes.addColumn(attributeColumnsToHide.get(i));
-						}
-						attributes.addColumn(tempColumn);
+			public void itemStateChanged(ItemEvent e) {
+				if(e.getStateChange() == ItemEvent.SELECTED && !isExpanded) {
+					TableColumn tempColumn = attributeTable.getColumnModel().getColumn(1);
+					attributeTable.removeColumn(tempColumn);
+					for (int i = 0; i < attributeColumnsToHide.length; i++) {
+						attributeTable.addColumn(attributeColumnsToHide[i]);
 					}
-				} else {
-					if (attributes.getColumnCount() > 2) {
-						for (int i = 0; i < 4; i++) {
-							attributes.removeColumn(attributeColumnsToHide.get(i));
-						}
+					attributeTable.addColumn(tempColumn);
+					isExpanded = true;
+				} else if (e.getStateChange() == ItemEvent.DESELECTED && isExpanded) {
+					for (int i = 0; i < attributeColumnsToHide.length; i++) {
+						attributeTable.removeColumn(attributeColumnsToHide[i]);
 					}
+					isExpanded = false;
 				}
 			}
 		});
-
+		attributeCheckBox.setSelected(false);
+		
 		validateActionListener = new ActionListener() {
 			@Override
 			public void actionPerformed( ActionEvent e ) {
@@ -269,7 +263,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 				propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
 				readyToValidate = true;
-				setVisible(false);
+				dispose();
 			}
 		};
 
@@ -306,39 +300,20 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		southCenter.add(statusArea, BorderLayout.CENTER);
 		south.add(southWest, BorderLayout.WEST);
 		south.add(southCenter, BorderLayout.CENTER);
-		main.setLayout(new BorderLayout());
 		main.add(north, BorderLayout.NORTH);
 		main.add(center, BorderLayout.CENTER);
 		main.add(south, BorderLayout.SOUTH);
 
 		sectionSelectionComboBox.addItemListener(comboBoxActionListener);
-		
-		//Hiding the min-/maxDefined and min-/maxElements of the attributes table
-		for (int i = 0; i < 4; i++) {
-			attributes.removeColumn(attributeColumnsToHide.get(i));
+		if(classTable.getModel().getRowCount() > 0){
+			classTable.getSelectionModel().setSelectionInterval(0, 0);
 		}
-
+		
 		ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE); // increases tooltip display time
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e){
-				boolean isToBeClosed = true;
-				if (settingsConfiguration.isChanged()) {
-					int result = JOptionPane.showConfirmDialog(ModelValidatorConfigurationWindow.this,
-							"Do you want to save changes before closing?",
-							"Configurations are not saved yet!",
-							JOptionPane.YES_NO_CANCEL_OPTION);
-					if (result == 2) {
-						isToBeClosed = false;
-					} else if (result == 0) {
-						saveConfigurationsToFile(file);
-						propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
-					}
-				}
-				if (isToBeClosed) {
-					readyToValidate = false;
-					setVisible(false);
-				}
+				close();
 			}
 		});
 		setJMenuBar(buildMenuBar());
@@ -443,16 +418,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private JMenuBar buildMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
-		JMenuItem openMenuItem = new JMenuItem("Open");
-		JMenuItem saveMenuItem = new JMenuItem("Save");
-		JMenuItem saveAsMenuItem = new JMenuItem("Save as...");
-		JMenu configurationMenu = new JMenu("Configuration");
-		JMenuItem renameMenuItem = new JMenuItem("Rename");
-		JMenuItem deleteMenuItem = new JMenuItem("Delete");
-		JMenuItem newMenuItem = new JMenuItem("New");
-		JMenuItem cloneMenuItem = new JMenuItem("Clone");
-		JMenuItem validateMenuItem = new JMenuItem("Validate");
 
+		JMenuItem openMenuItem = new JMenuItem("Open");
 		openMenuItem.addActionListener( new ActionListener() {
 			@Override
 			public void actionPerformed( ActionEvent e ) {
@@ -469,7 +436,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					extractConfigurations(file);
 					ChangeConfiguration.resetSettings(settingsConfiguration);
 					ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
-					classes.clearSelection();
+					classTable.clearSelection();
 					update();
 					settingsConfiguration.setChanged(false);
 					currentFileLabel.setText(file.getAbsolutePath());
@@ -477,7 +444,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 
 			}
 		});
+		fileMenu.add(openMenuItem);
 
+		JMenuItem saveMenuItem = new JMenuItem("Save");
 		saveMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -488,14 +457,76 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 			}
 		});
+		fileMenu.add(saveMenuItem);
 
+		JMenuItem saveAsMenuItem = new JMenuItem("Save as...");
 		saveAsMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				openSaveDialog();
 			}
 		});
+		fileMenu.add(saveAsMenuItem);
+		
+		JMenuItem closeMenuItem = new JMenuItem("Close");
+		closeMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				close();
+			}
+		});
+		fileMenu.add(closeMenuItem);
 
+		JMenu configurationMenu = new JMenu("Configuration");
+		
+		JMenuItem newMenuItem = new JMenuItem("New");
+		newMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String newName = JOptionPane.showInputDialog("Please input the name of the new configuration:", DEFAULT_CONFIG_PREFIX + defaultNameCount);
+				defaultNameCount++;
+				
+				if (newName == null || newName.isEmpty()) {
+					return;
+				}
+				
+				Configuration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
+				propertiesConfigurationSections.put(selectedSection, pc);
+				ChangeConfiguration.resetSettings(settingsConfiguration);
+				propertiesConfigurationSections.put(newName, ChangeConfiguration.toProperties(settingsConfiguration, model));
+				
+				selectedSection = newName;
+				settingsConfiguration.setChanged(true);
+				sectionSelectionComboBox.addItem(newName);
+				sectionSelectionComboBox.setSelectedItem(newName);
+			}
+		});
+		configurationMenu.add(newMenuItem);
+
+		JMenuItem cloneMenuItem = new JMenuItem("Clone");
+		cloneMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String newName = JOptionPane.showInputDialog("Please input the name of the cloned configuration:", DEFAULT_CONFIG_PREFIX + defaultNameCount);
+				defaultNameCount++;
+				
+				if (newName == null || newName.isEmpty()) {
+					return;
+				}
+				
+				PropertiesConfiguration conf = new PropertiesConfiguration();
+				conf.append(propertiesConfiguration);
+				propertiesConfigurationSections.put(newName, conf);
+				
+				selectedSection = newName;
+				settingsConfiguration.setChanged(true);
+				sectionSelectionComboBox.addItem(newName);
+				sectionSelectionComboBox.setSelectedItem(newName);
+			}
+		});
+		configurationMenu.add(cloneMenuItem);
+		
+		JMenuItem renameMenuItem = new JMenuItem("Rename");
 		renameMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -513,7 +544,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				}
 			}
 		});
+		configurationMenu.add(renameMenuItem);
 
+		JMenuItem deleteMenuItem = new JMenuItem("Delete");
 		deleteMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -546,62 +579,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				settingsConfiguration.setChanged(true);
 			}
 		});
-
-		newMenuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String newName = JOptionPane.showInputDialog("Please input the name of the new configuration:", DEFAULT_CONFIG_PREFIX + defaultNameCount);
-				defaultNameCount++;
-				
-				if (newName == null || newName.isEmpty()) {
-					return;
-				}
-				
-				Configuration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
-				propertiesConfigurationSections.put(selectedSection, pc);
-				ChangeConfiguration.resetSettings(settingsConfiguration);
-				propertiesConfigurationSections.put(newName, ChangeConfiguration.toProperties(settingsConfiguration, model));
-				
-				selectedSection = newName;
-				settingsConfiguration.setChanged(true);
-				sectionSelectionComboBox.addItem(newName);
-				sectionSelectionComboBox.setSelectedItem(newName);
-			}
-		});
-
-		cloneMenuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String newName = JOptionPane.showInputDialog("Please input the name of the cloned configuration:", DEFAULT_CONFIG_PREFIX + defaultNameCount);
-				defaultNameCount++;
-				
-				if (newName == null || newName.isEmpty()) {
-					return;
-				}
-				
-				PropertiesConfiguration conf = new PropertiesConfiguration();
-				conf.append(propertiesConfiguration);
-				propertiesConfigurationSections.put(newName, conf);
-				
-				selectedSection = newName;
-				settingsConfiguration.setChanged(true);
-				sectionSelectionComboBox.addItem(newName);
-				sectionSelectionComboBox.setSelectedItem(newName);
-			}
-		});
-
-		validateMenuItem.addActionListener(validateActionListener);
-
-		fileMenu.add(openMenuItem);
-		fileMenu.add(saveMenuItem);
-		fileMenu.add(saveAsMenuItem);
-		//TODO Add close window menu item
-		configurationMenu.add(newMenuItem);
-		configurationMenu.add(cloneMenuItem);
-		configurationMenu.add(renameMenuItem);
 		configurationMenu.add(deleteMenuItem);
+
 		configurationMenu.add(new JSeparator());
+		
+		JMenuItem validateMenuItem = new JMenuItem("Validate");
+		validateMenuItem.addActionListener(validateActionListener);
 		configurationMenu.add(validateMenuItem);
+
 		menuBar.add(fileMenu);
 		menuBar.add(configurationMenu);
 
@@ -614,7 +599,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		JPanel leftUpper = new JPanel(new BorderLayout());
 		leftUpper.add(basicTypesPanel(), BorderLayout.NORTH);
 		JPanel rightUpper = new JPanel(new BorderLayout());
-		rightUpper.add(new JScrollPane(options), BorderLayout.CENTER);
+		rightUpper.add(new JScrollPane(optionsTable), BorderLayout.CENTER);
 
 		JPanel rightLower = new JPanel(new BorderLayout());
 		JTextArea legendText = new JTextArea(LegendEntry.LEGEND);
@@ -734,14 +719,17 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		abstractClassesText.setText(abstractClassesChildren(model));
 		abstractClassesText.setLineWrap(true);
 		abstractClassesText.setWrapStyleWord(true);
-		abstractClassesText.setCaretPosition(0);
-		attributesLabel = new JLabel(ConfigurationTerms.ATTRIBUTES);
-		associationsLabel = new JLabel(ConfigurationTerms.ASSOCIATIONS);
+		attributesLabel = new JLabel("Attributes");
+		associationsLabel = new JLabel("Associations");
+		
+		Font captionFont = attributesLabel.getFont().deriveFont(Font.BOLD, 12f);
+		attributesLabel.setFont(captionFont);
+		associationsLabel.setFont(captionFont);
 
-		JScrollPane classesScrollPane = new JScrollPane(classes);
+		JScrollPane classesScrollPane = new JScrollPane(classTable);
 		JScrollPane abstractClsScrollPane = new JScrollPane(abstractClassesText);
-		JScrollPane attributesScrollPane = new JScrollPane(attributes);
-		JScrollPane associationsScrollPane = new JScrollPane(associations);
+		JScrollPane attributesScrollPane = new JScrollPane(attributeTable);
+		JScrollPane associationsScrollPane = new JScrollPane(associationTable);
 		JPanel classesPanel = new JPanel(new BorderLayout());
 		JPanel attributesPanel = new JPanel(new BorderLayout());
 		JPanel associationsPanel = new JPanel(new BorderLayout());
@@ -754,7 +742,6 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		abstractClsScrollPane.setPreferredSize(new Dimension(getWidth()/2,getHeight()/4));
 		attributesScrollPane.setPreferredSize(new Dimension(getWidth()/2,getHeight()/2));
 		associationsScrollPane.setPreferredSize(new Dimension(getWidth()/2,getHeight()/2));
-		classesPanel.add(new JLabel("Classes"), BorderLayout.NORTH);
 		classesPanel.add(classesScrollPane, BorderLayout.CENTER);
 		attributeLabelPanel.setLayout(new BoxLayout(attributeLabelPanel, BoxLayout.LINE_AXIS));
 		attributeLabelPanel.add(attributesLabel);
@@ -771,7 +758,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private JPanel buildInvariantsTab() {
-		JScrollPane invariantsScrollPane = new JScrollPane(invariants);
+		JScrollPane invariantsScrollPane = new JScrollPane(invariantsTable);
 		invariantsScrollPane.setPreferredSize(new Dimension(getWidth()/2,getHeight()));
 		JPanel invariantsPanel = new JPanel(new BorderLayout());
 		invariantsPanel.add(invariantsScrollPane, BorderLayout.CENTER);
@@ -783,12 +770,12 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * updates the attributes table referring to given className and gets them from the SettingsConfiguration
 	 */
 	private void updateClassAttributes(IClass className) {
-		TableModelAttribute attributeModel = (TableModelAttribute)attributes.getModel();
+		TableModelAttribute attributeModel = (TableModelAttribute)attributeTable.getModel();
 		attributeModel.setClass(settingsConfiguration.getClassSettings(className));
 	}
 
 	private void updateClassAssociations(IClass className) {
-		TableModelAssociation associationModel = (TableModelAssociation)associations.getModel();
+		TableModelAssociation associationModel = (TableModelAssociation)associationTable.getModel();
 		associationModel.setClass(settingsConfiguration.getClassSettings(className));
 	}
 
@@ -811,15 +798,35 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		integerTable.repaint();
 		realTable.repaint();
 		stringTable.repaint();
-		options.repaint();
-		classes.repaint();
-		attributes.repaint();
-		associations.repaint();
-		invariants.repaint();
+		optionsTable.repaint();
+		classTable.repaint();
+		attributeTable.repaint();
+		associationTable.repaint();
+		invariantsTable.repaint();
 		
 		integerCheckbox.setSelected(settingsConfiguration.getIntegerTypeSettings().isEnabled());
 		stringCheckbox.setSelected(settingsConfiguration.getStringTypeSettings().isEnabled());
 		realCheckbox.setSelected(settingsConfiguration.getRealTypeSettings().isEnabled());
+	}
+	
+	private void close() {
+		boolean isToBeClosed = true;
+		if (settingsConfiguration.isChanged()) {
+			int result = JOptionPane.showConfirmDialog(ModelValidatorConfigurationWindow.this,
+					"Do you want to save changes before closing?",
+					"Configurations are not saved yet!",
+					JOptionPane.YES_NO_CANCEL_OPTION);
+			if (result == 2) {
+				isToBeClosed = false;
+			} else if (result == 0) {
+				saveConfigurationsToFile(file);
+				propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
+			}
+		}
+		if (isToBeClosed) {
+			readyToValidate = false;
+			dispose();
+		}
 	}
 	
 	private String abstractClassesChildren(IModel model) {
@@ -835,8 +842,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		if(abstractClasses.isEmpty()){
 			abstractText.append("None.");
 			return abstractText.toString();
+		} else {
+			StringUtil.fmtSeq(abstractText, abstractClasses, ", ");
 		}
-		StringUtil.fmtSeq(abstractText, abstractClasses, ", ");
 
 		if(abstractClasses.size() > 0){
 			abstractText.append(StringUtil.NEWLINE);

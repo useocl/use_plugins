@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.kodkod.model.iface.IModel;
@@ -18,6 +19,7 @@ public class SettingsConfiguration {
 	private final RealSettings realTypeSettings = new RealSettings(this);
 	private final OptionSettings optionSettings = new OptionSettings(this);
 	private final Map<IClass, ClassSettings> classSettingsMap = new HashMap<>();
+	private final Map<IAssociation, AssociationSettings> associationSettings = new HashMap<>();
 	private final Map<IInvariant, InvariantSettings> invariantSettingsMap = new HashMap<>();
 	private boolean changed = false;
 
@@ -26,6 +28,10 @@ public class SettingsConfiguration {
 		
 		for (IClass cls : model.classes()) {
 			classSettingsMap.put(cls, new ClassSettings(this, cls));
+		}
+		
+		for(IAssociation assoc : model.associations()){
+			associationSettings.put(assoc, new AssociationSettings(this, assoc));
 		}
 		
 		for (IInvariant inv : model.classInvariants()) {
@@ -63,6 +69,14 @@ public class SettingsConfiguration {
 	
 	public List<ClassSettings> getAllClassesSettings() {
 		return new ArrayList<ClassSettings>(classSettingsMap.values());
+	}
+
+	public AssociationSettings getAssociationSettings(IAssociation assoc) {
+		return associationSettings.get(assoc);
+	}
+	
+	public List<AssociationSettings> getAllAssociationSettings(){
+		return new ArrayList<AssociationSettings>(associationSettings.values());
 	}
 
 	public OptionSettings getOptionSettings() {
