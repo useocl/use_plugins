@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
@@ -180,9 +181,14 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 
 		int min;
 		int max;
+		int defaultMin;
+		int defaultMax;
 		if (type.isInteger()) {
 			min = readSize(type.name() + PropertyEntry.integerValuesMin, Integer.MIN_VALUE, true);
 			max = readSize(type.name() + PropertyEntry.integerValuesMax, Integer.MIN_VALUE, true);
+			
+			defaultMin = DefaultConfigurationValues.integerMin;
+			defaultMax = DefaultConfigurationValues.integerMax;
 			
 			// check for values exceeding bitwidth
 			int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
@@ -220,9 +226,15 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		} else if (type.isString()) {
 			min = readSize(type.name() + PropertyEntry.stringValuesMin, Integer.MIN_VALUE, false);
 			max = readSize(type.name() + PropertyEntry.stringValuesMax, Integer.MIN_VALUE, false);
+			
+			defaultMin = DefaultConfigurationValues.stringMin;
+			defaultMax = DefaultConfigurationValues.stringMax;
 		} else if (type.isReal()) {
 			min = readSize(type.name() + PropertyEntry.realValuesMin, Integer.MIN_VALUE, true);
 			max = readSize(type.name() + PropertyEntry.realValuesMax, Integer.MIN_VALUE, true);
+			
+			defaultMin = (int) DefaultConfigurationValues.realMin;
+			defaultMax = (int) DefaultConfigurationValues.realMax;
 		}
 		else {
 			error("Unknown Configurable Type");
@@ -231,12 +243,10 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		
 		if(min != Integer.MIN_VALUE || max != Integer.MIN_VALUE){
 			if(min == Integer.MIN_VALUE){
-				// default value for min is 0
-				min = 0;
+				min = defaultMin;
 			}
 			if(max == Integer.MIN_VALUE){
-				// default value for max is 1
-				max = 1;
+				max = defaultMax;
 			}
 			
 			try {
@@ -261,7 +271,8 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			model.setConfigurator(configurator);
 		}
 
-		String cyclefreenessState = config.getString(PropertyEntry.aggregationcyclefreeness, "off");
+		String cyclefreenessState = config.getString(PropertyEntry.aggregationcyclefreeness,
+				DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS ? "on" : "off" );
 		if (cyclefreenessState.equals("on")) {
 			configurator.setAggregationCycleFreeness(true);
 		} else {
@@ -273,7 +284,8 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			}
 		}
 		
-		String forbiddensharingState = config.getString(PropertyEntry.forbiddensharing, "on");
+		String forbiddensharingState = config.getString(PropertyEntry.forbiddensharing,
+				DefaultConfigurationValues.FORBIDDENSHARING ? "on" : "off");
 		if (forbiddensharingState.equals("on")) {
 			configurator.setForbiddensharing(true);
 		} else {
@@ -300,9 +312,9 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		if(values.size() > 0){
 			configurator.setSpecificValues(values);
 		}
-		int min = readSize(clazz.name() + PropertyEntry.objMin, 0, false);
+		int min = readSize(clazz.name() + PropertyEntry.objMin, DefaultConfigurationValues.objectsPerClassMin, false);
 		classMinObjects.put(clazz.name(), min);
-		configurator.setLimits(min, readSize(clazz.name() + PropertyEntry.objMax, min, false));
+		configurator.setLimits(min, readSize(clazz.name() + PropertyEntry.objMax, DefaultConfigurationValues.objectsPerClassMax, false));
 		clazz.setConfigurator(configurator);
 		return configurator;
 	}
@@ -315,10 +327,10 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		AttributeConfigurator configurator = new AttributeConfigurator(attribute);
 		configurator.setSpecificValues(specificValues);
 		configurator.setDomainValues(domainValues);
-		configurator.setLimits(readSize(searchName + PropertyEntry.attributeDefValuesMin, 0, false),
-				readSize(searchName + PropertyEntry.attributeDefValuesMax, -1, false));
-		configurator.setCollectionSize(readSize(searchName + PropertyEntry.attributeColSizeMin, 0, false),
-				readSize(searchName + PropertyEntry.attributeColSizeMax, -1, false));
+		configurator.setLimits(readSize(searchName + PropertyEntry.attributeDefValuesMin, DefaultConfigurationValues.attributesPerClassMin, false),
+				readSize(searchName + PropertyEntry.attributeDefValuesMax, DefaultConfigurationValues.attributesPerClassMax, false));
+		configurator.setCollectionSize(readSize(searchName + PropertyEntry.attributeColSizeMin, DefaultConfigurationValues.attributesColSizeMin, false),
+				readSize(searchName + PropertyEntry.attributeColSizeMax, DefaultConfigurationValues.attributesColSizeMax, false));
 		attribute.setConfigurator(configurator);
 	}
 
@@ -330,8 +342,8 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		if(values.size() > 0){
 			configurator.setSpecificValues(values);
 		}
-		configurator.setLimits(readSize(association.name() + PropertyEntry.linksMin, 0, false),
-				readSize(association.name() + PropertyEntry.linksMax, -1, false));
+		configurator.setLimits(readSize(association.name() + PropertyEntry.linksMin, DefaultConfigurationValues.linksPerAssocMin, false),
+				readSize(association.name() + PropertyEntry.linksMax, DefaultConfigurationValues.linksPerAssocMax, false));
 		association.setConfigurator(configurator);
 	}
 
@@ -348,7 +360,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		} catch (ConversionException e) {
 			warning(name + ": " + LogMessages.sizeConfigWarning(name, defaultValue));
 			limit = defaultValue;
-		} catch (Exception e) {
+		} catch (NoSuchElementException e) {
 			limit = defaultValue;
 		}
 		return limit;

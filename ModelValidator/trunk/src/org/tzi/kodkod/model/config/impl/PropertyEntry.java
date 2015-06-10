@@ -1,6 +1,7 @@
 package org.tzi.kodkod.model.config.impl;
 
 
+
 /**
  * Contains the names for the configuration file.
  * 
@@ -59,7 +60,6 @@ public class PropertyEntry {
 	public static final String attributeColSizeMax = "_maxSize";
 	
 	public static final String aggregationcyclefreeness = "aggregationcyclefreeness";
-	
 	public static final String forbiddensharing = "forbiddensharing";
 	
 	public static final String COMMENT_LABEL = "# ";

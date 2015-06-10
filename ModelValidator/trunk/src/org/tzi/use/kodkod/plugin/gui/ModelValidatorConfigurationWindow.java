@@ -225,17 +225,16 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				attributeTable.getColumn(ConfigurationTerms.ATTRIBUTES_MINSIZE),
 				attributeTable.getColumn(ConfigurationTerms.ATTRIBUTES_MAXSIZE)
 			};
-			private boolean isExpanded = true;
+			private boolean isExpanded = attributeCheckBox.isSelected();
 			
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if(e.getStateChange() == ItemEvent.SELECTED && !isExpanded) {
-					TableColumn tempColumn = attributeTable.getColumnModel().getColumn(1);
-					attributeTable.removeColumn(tempColumn);
 					for (int i = 0; i < attributeColumnsToHide.length; i++) {
 						attributeTable.addColumn(attributeColumnsToHide[i]);
 					}
-					attributeTable.addColumn(tempColumn);
+					// reorder table to place added columns "in the middle"
+					attributeTable.moveColumn(attributeTable.getColumnModel().getColumnIndex(ConfigurationTerms.ATTRIBUTES_VALUES), attributeTable.getColumnCount()-1);
 					isExpanded = true;
 				} else if (e.getStateChange() == ItemEvent.DESELECTED && isExpanded) {
 					for (int i = 0; i < attributeColumnsToHide.length; i++) {

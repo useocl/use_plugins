@@ -88,6 +88,8 @@ public class DefaultConfigurationVisitor extends SimpleVisitor {
 		String propertyName = attribute.owner().name() + "_" + attribute.name();
 		write(propertyName + PropertyEntry.attributeDefValuesMin, DefaultConfigurationValues.attributesPerClassMin);
 		write(propertyName + PropertyEntry.attributeDefValuesMax, DefaultConfigurationValues.attributesPerClassMax);
+		write(propertyName + PropertyEntry.attributeColSizeMin, DefaultConfigurationValues.attributesColSizeMin);
+		write(propertyName + PropertyEntry.attributeColSizeMax, DefaultConfigurationValues.attributesColSizeMax);
 	}
 
 	@Override
