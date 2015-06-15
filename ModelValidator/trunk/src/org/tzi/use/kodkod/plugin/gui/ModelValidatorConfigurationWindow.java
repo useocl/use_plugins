@@ -70,7 +70,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private static final String WINDOW_TITLE = "Model Validator Configuration";
 	
 	private final IModel model;
-	private File file;
+	private File currentFile;
 	private SettingsConfiguration settingsConfiguration;
 	private ConfigurationFileManager configManager;
 	private Configuration propertiesConfiguration;
@@ -116,22 +116,24 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
 			if (!e.getValueIsAdjusting()) {
-				ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-				int selectedRow = 0;
-				int minIndex = lsm.getMinSelectionIndex();
-				int maxIndex = lsm.getMaxSelectionIndex();
-				for (int i = minIndex; i <= maxIndex; i++) {
-					if (lsm.isSelectedIndex(i)) {
-						selectedRow = i;
-						break;
-					}
-				}
-				selectedClass = (IClass) classTable.getValueAt(selectedRow, 0);
-				attributesLabel.setText("Attributes of class " + selectedClass.name());
-				associationsLabel.setText("Associations of class " + selectedClass.name());
-				updateClassAttributes(selectedClass);
-				updateClassAssociations(selectedClass);
+				return;
 			}
+			
+			ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+			int selectedRow = 0;
+			int minIndex = lsm.getMinSelectionIndex();
+			int maxIndex = lsm.getMaxSelectionIndex();
+			for (int i = minIndex; i <= maxIndex; i++) {
+				if (lsm.isSelectedIndex(i)) {
+					selectedRow = i;
+					break;
+				}
+			}
+			selectedClass = (IClass) classTable.getValueAt(selectedRow, 0);
+			attributesLabel.setText("Attributes of class " + selectedClass.name());
+			associationsLabel.setText("Associations of class " + selectedClass.name());
+			updateClassAttributes(selectedClass);
+			updateClassAssociations(selectedClass);
 		}
 	}
 	
@@ -145,8 +147,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
 					return;
-				} else if (result == 0) {
-					saveConfigurationsToFile(file);
+				} else if (result == JOptionPane.YES_OPTION) {
+					saveConfigurationsToFile(currentFile);
 				}
 			}
 			propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
@@ -270,8 +272,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			classTable.getSelectionModel().setSelectionInterval(0, 0);
 		}
 		
-		file = new File(useFile.replaceAll("\\.use", "") + ".properties");
-		loadConfigurations(file);
+		currentFile = new File(useFile.replaceAll("\\.use", "") + ".properties");
+		loadConfigurations(currentFile);
 		ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
 
 		settingsConfiguration.setChanged(false);
@@ -294,26 +296,25 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private void showSaveAsDialog() {
 		JFileChooser fileChooser = new JFileChooser();
 
-		if (file != null) {
-			fileChooser = new JFileChooser(file.getParentFile());
+		if (currentFile != null) {
+			fileChooser = new JFileChooser(currentFile.getParentFile());
 		} else {
 			fileChooser = new JFileChooser();
 		}
 		fileChooser.setFileFilter(new ExtFileFilter("properties", "Properties files"));
-		fileChooser.setSelectedFile(file);
+		fileChooser.setSelectedFile(currentFile);
 
 		if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			File chosenFile = fileChooser.getSelectedFile();
+			int result = JOptionPane.OK_OPTION;
 			if (chosenFile.exists()) {
-				int result = JOptionPane.showConfirmDialog(this, "Do you want to overwrite the existing file?", "File already exists!", JOptionPane.OK_CANCEL_OPTION);
-				if (result == 0) {
-					saveConfigurationsToFile(chosenFile);
-				}
-			} else {
-				saveConfigurationsToFile(chosenFile);
+				result = JOptionPane.showConfirmDialog(this, "Do you want to overwrite the existing file?", "File already exists!", JOptionPane.OK_CANCEL_OPTION);
 			}
-			file = chosenFile;
-			currentFileLabel.setText(file.getAbsolutePath());
+			if (result == JOptionPane.OK_OPTION) {
+				saveConfigurationsToFile(chosenFile);
+				currentFile = chosenFile;
+				currentFileLabel.setText(currentFile.getAbsolutePath());
+			}
 		}
 	}
 
@@ -363,16 +364,16 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			@Override
 			public void actionPerformed( ActionEvent e ) {
 				JFileChooser fileChooser = new JFileChooser();
-				if (file != null) {
-					fileChooser = new JFileChooser(file.getParentFile());
+				if (currentFile != null) {
+					fileChooser = new JFileChooser(currentFile.getParentFile());
 				} else {
 					fileChooser = new JFileChooser();
 				}
 				fileChooser.setFileFilter(new ExtFileFilter("properties", "Properties files"));
 
 				if (fileChooser.showOpenDialog(ModelValidatorConfigurationWindow.this) == JFileChooser.APPROVE_OPTION) {
-					file = fileChooser.getSelectedFile();
-					boolean success = loadConfigurations(file);
+					currentFile = fileChooser.getSelectedFile();
+					boolean success = loadConfigurations(currentFile);
 					if(success){
 						ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
 						classTable.clearSelection();
@@ -389,8 +390,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		saveMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (file.exists()) {
-					saveConfigurationsToFile(file);
+				if (currentFile.exists()) {
+					saveConfigurationsToFile(currentFile);
 				} else {
 					showSaveAsDialog();
 				}
@@ -770,7 +771,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
 				isToBeClosed = false;
 			} else if (result == JOptionPane.YES_OPTION) {
-				saveConfigurationsToFile(file);
+				saveConfigurationsToFile(currentFile);
 				propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
 			}
 		}
