@@ -18,16 +18,16 @@ public class SettingsConfiguration {
 	private final StringSettings stringTypeSettings = new StringSettings(this);
 	private final RealSettings realTypeSettings = new RealSettings(this);
 	private final OptionSettings optionSettings = new OptionSettings(this);
-	private final Map<IClass, ClassSettings> classSettingsMap = new HashMap<>();
+	private final Map<IClass, ClassSettings> classSettings = new HashMap<>();
 	private final Map<IAssociation, AssociationSettings> associationSettings = new HashMap<>();
-	private final Map<IInvariant, InvariantSettings> invariantSettingsMap = new HashMap<>();
+	private final Map<IInvariant, InvariantSettings> invariantSettings = new HashMap<>();
 	private boolean changed = false;
 
 	public SettingsConfiguration(IModel model) {
 		this.model = model;
 		
 		for (IClass cls : model.classes()) {
-			classSettingsMap.put(cls, new ClassSettings(this, cls));
+			classSettings.put(cls, new ClassSettings(this, cls));
 		}
 		
 		for(IAssociation assoc : model.associations()){
@@ -35,7 +35,7 @@ public class SettingsConfiguration {
 		}
 		
 		for (IInvariant inv : model.classInvariants()) {
-			invariantSettingsMap.put(inv, new InvariantSettings(this, inv));
+			invariantSettings.put(inv, new InvariantSettings(this, inv));
 		}
 	}
 	
@@ -64,11 +64,11 @@ public class SettingsConfiguration {
 	}
 	
 	public ClassSettings getClassSettings(IClass cls) {
-		return classSettingsMap.get(cls);
+		return classSettings.get(cls);
 	}
 	
 	public List<ClassSettings> getAllClassesSettings() {
-		return new ArrayList<ClassSettings>(classSettingsMap.values());
+		return new ArrayList<ClassSettings>(classSettings.values());
 	}
 
 	public AssociationSettings getAssociationSettings(IAssociation assoc) {
@@ -88,11 +88,37 @@ public class SettingsConfiguration {
 	}
 	
 	public InvariantSettings getInvariantSetting(IInvariant inv) {
-		return invariantSettingsMap.get(inv);
+		return invariantSettings.get(inv);
 	}
 	
 	public List<InvariantSettings> getAllInvariantsSettings() {
-		return new ArrayList<InvariantSettings>(invariantSettingsMap.values());
+		return new ArrayList<InvariantSettings>(invariantSettings.values());
+	}
+	
+	/**
+	 * Resets the settings to default values.
+	 */
+	public void reset(){
+		integerTypeSettings.reset();
+		stringTypeSettings.reset();
+		realTypeSettings.reset();
+		optionSettings.reset();
+		
+		for (ClassSettings cs : classSettings.values()) {
+			cs.reset();
+			
+			for (AttributeSettings attrS : cs.getAttributeSettings().values()) {
+				attrS.reset();
+			}
+		}
+		
+		for (AssociationSettings as : associationSettings.values()) {
+			as.reset();
+		}
+		
+		for (InvariantSettings is : invariantSettings.values()) {
+			is.reset();
+		}
 	}
 	
 }

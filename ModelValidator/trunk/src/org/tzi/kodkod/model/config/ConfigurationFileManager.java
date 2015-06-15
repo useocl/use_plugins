@@ -42,7 +42,7 @@ public class ConfigurationFileManager {
 	}
 	
 	private void createDefaultConfiguration() {
-		ChangeConfiguration.resetSettings(sc);
+		sc.reset();
 		Configuration c = ChangeConfiguration.toProperties(sc, model);
 		addOrUpdateConfiguration(createDefaultConfigName(), c);
 	}

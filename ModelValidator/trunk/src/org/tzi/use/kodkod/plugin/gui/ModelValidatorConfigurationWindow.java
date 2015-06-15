@@ -430,7 +430,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				
 				Configuration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
 				configManager.addOrUpdateConfiguration(selectedSection, pc);
-				ChangeConfiguration.resetSettings(settingsConfiguration);
+				settingsConfiguration.reset();
 				configManager.addOrUpdateConfiguration(newName, ChangeConfiguration.toProperties(settingsConfiguration, model));
 				
 				settingsConfiguration.setChanged(true);
@@ -473,6 +473,8 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				
 				configManager.addOrUpdateConfiguration(newName, propertiesConfiguration);
 				configManager.removeConfiguration(sectionToDelete);
+				propertiesConfiguration = null;
+				selectedSection = null;
 				
 				settingsConfiguration.setChanged(true);
 				sectionSelectionComboBox.addItem(newName);

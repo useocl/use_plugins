@@ -118,7 +118,7 @@ public final class ChangeConfiguration {
 	}
 	
 	public static void toSettings(IModel model, final Configuration pc, SettingsConfiguration settings) {
-		resetSettings(settings);
+		settings.reset();
 		
 		// Integer
 		boolean integerExist = false;
@@ -256,29 +256,6 @@ public final class ChangeConfiguration {
 		}
 		if(pc.containsKey(PropertyEntry.forbiddensharing)){
 			os.setForbiddensharing(pc.getString(PropertyEntry.forbiddensharing).equalsIgnoreCase("on"));
-		}
-	}
-	
-	public static void resetSettings(SettingsConfiguration settings) {
-		settings.getIntegerTypeSettings().reset();
-		settings.getStringTypeSettings().reset();
-		settings.getRealTypeSettings().reset();
-		settings.getOptionSettings().reset();
-		
-		for (ClassSettings classSettings : settings.getAllClassesSettings()) {
-			classSettings.reset();
-			
-			for (AttributeSettings attributeSettings : classSettings.getAttributeSettings().values()) {
-				attributeSettings.reset();
-			}
-		}
-		
-		for (AssociationSettings associationSettings : settings.getAllAssociationSettings()) {
-			associationSettings.reset();
-		}
-		
-		for (InvariantSettings invariantSettings : settings.getAllInvariantsSettings()) {
-			invariantSettings.reset();
 		}
 	}
 
