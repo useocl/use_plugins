@@ -45,6 +45,7 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 					validator.showSolution(index);
 				}
 			} else {
+				resetValidator();
 				super.handleArguments(arguments);
 			}
 		}
