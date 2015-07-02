@@ -49,7 +49,7 @@ public class KodkodValidatePropertyAction extends KodkodValidateCmd implements I
 			}
 		});
 
-		if (fileChooser.showOpenDialog(null) == 0) {
+		if (fileChooser.showOpenDialog(pluginAction.getParent()) == 0) {
 			File file = fileChooser.getSelectedFile();
 			extractConfigureAndValidate(file);
 		}
