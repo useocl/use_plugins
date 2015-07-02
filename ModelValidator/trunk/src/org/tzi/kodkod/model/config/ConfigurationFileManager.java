@@ -33,6 +33,10 @@ public class ConfigurationFileManager {
 			String sectionName = (section != null) ? section : createDefaultConfigName() ;
 			configurations.put(sectionName, iniFile.getSection(section));
 		}
+		
+		if(configurations.isEmpty()){
+			throw new ConfigurationException("Could not load configurations from file. File is empty or might not exist.");
+		}
 	}
 	
 	public ConfigurationFileManager(IModel model, SettingsConfiguration sc) {

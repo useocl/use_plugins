@@ -1,6 +1,7 @@
 package org.tzi.kodkod.model.config.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -70,6 +71,12 @@ public class Configurator<M extends IElement> implements IConfigurator<M> {
 	
 	@Override
 	public void addSpecificValue(String[] specificValue) {
-		this.specificValues.add(specificValue);
+		// enforce set behavior through array
+		for(String[] value : specificValues){
+			if(Arrays.equals(value, specificValue)){
+				return;
+			}
+		}
+		specificValues.add(specificValue);
 	}
 }

@@ -430,12 +430,13 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				
 				Configuration pc = ChangeConfiguration.toProperties(settingsConfiguration, model);
 				configManager.addOrUpdateConfiguration(selectedSection, pc);
+				
 				settingsConfiguration.reset();
 				configManager.addOrUpdateConfiguration(newName, ChangeConfiguration.toProperties(settingsConfiguration, model));
 				
 				settingsConfiguration.setChanged(true);
 				sectionSelectionComboBox.addItem(newName);
-				sectionSelectionComboBox.setSelectedItem(newName);
+				switchToConfiguration(newName, false);
 			}
 		});
 		menuConfiguration.add(newMenuItem);
@@ -454,7 +455,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				
 				settingsConfiguration.setChanged(true);
 				sectionSelectionComboBox.addItem(newName);
-				sectionSelectionComboBox.setSelectedItem(newName);
+				switchToConfiguration(newName, false);
 			}
 		});
 		menuConfiguration.add(cloneMenuItem);
@@ -473,12 +474,10 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				
 				configManager.addOrUpdateConfiguration(newName, propertiesConfiguration);
 				configManager.removeConfiguration(sectionToDelete);
-				propertiesConfiguration = null;
-				selectedSection = null;
 				
 				settingsConfiguration.setChanged(true);
 				sectionSelectionComboBox.addItem(newName);
-				sectionSelectionComboBox.setSelectedItem(newName);
+				switchToConfiguration(newName, false);
 				sectionSelectionComboBox.removeItem(sectionToDelete);
 			}
 		});
@@ -518,6 +517,14 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		menuBar.add(menuConfiguration);
 
 		return menuBar;
+	}
+
+	private void switchToConfiguration(String newName, boolean saveCurrent) {
+		if(!saveCurrent){
+			propertiesConfiguration = null;
+			selectedSection = null;
+		}
+		sectionSelectionComboBox.setSelectedItem(newName);
 	}
 
 	private JSplitPane buildBasicTypesAndOptionsTab() {
