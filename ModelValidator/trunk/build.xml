@@ -35,7 +35,9 @@
 	</target>
 	
 	<target name="compile-use">
-		<subant target="compile-use" buildpath="${use.path}" />
+		<subant target="compile-use" buildpath="${use.path}">
+			<property name="javac.debug" value="${javac.debug}"/>
+		</subant>
 	</target>
 
 	<target name="clean">
