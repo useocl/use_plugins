@@ -16,7 +16,7 @@
 	<property name="compiler" value="1.7" />
 	<property name="use.path" value="../use" />
 	<property name="useplugin.file" value="useplugin.xml" />
-	<property name="use.classes" value="${use.path}/build" />
+	<property name="use.classes" value="${use.path}/build/classes" />
 	<property name="plugin.lib" value="lib" />
 	<property name="filename" value="ModelValidatorPlugin${build.suffix}.jar" />
 
