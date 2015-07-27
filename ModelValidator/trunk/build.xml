@@ -1,10 +1,24 @@
 <project name="useKodkodPlugin" default="jar" basedir=".">
 
+	<!-- Version Format: <compatible USE version>-r<n-th release for this USE version>
+	     e.g.: 4.0-r1 -->
+	<property name="use.version" value="4.1" />
+	<property name="release.number" value="2" />
+	
+	<property name="version" value="${use.version}-r${release.number}" />
+	
+	<property environment="env"/>
+
+	<condition property="build.suffix" value="-NIGHTLY-r${env.BUILD_NUMBER}" else="-${version}">
+		<isset property="env.BUILD_NUMBER"/>
+	</condition>
+	
 	<property name="compiler" value="1.7" />
 	<property name="use.path" value="../use" />
-	<property name="use.classes" value="${use.path}/build/classes" />
+	<property name="useplugin.file" value="useplugin.xml" />
+	<property name="use.classes" value="${use.path}/build" />
 	<property name="plugin.lib" value="lib" />
-	<property name="filename" value="ModelValidatorPlugin.jar" />
+	<property name="filename" value="ModelValidatorPlugin${build.suffix}.jar" />
 
 	<path id="classpath">
 		<fileset dir="${plugin.lib}" includes="*.jar" />
@@ -12,6 +26,11 @@
 		<pathelement location="${use.classes}"/>
 	</path>
 
+	<target name="setversion">
+		<replaceregexp file="${useplugin.file}" match='&lt;\?use version=".*?"' replace='&lt;\?use version="${use.version}"'/>
+		<replaceregexp file="${useplugin.file}" match='&lt;plugin(.+?)version=".*?"' replace='&lt;plugin\1version="${version}"'/>
+	</target>
+	
 	<target name="compile-use">
 		<subant target="compile-use" buildpath="${use.path}" />
 	</target>
@@ -21,7 +40,7 @@
 		<delete dir="dist" />
 	</target>
 
-	<target name="compile" depends="compile-use">
+	<target name="compile" depends="compile-use, setversion">
 		<property name="debug" value="false" />
 		<mkdir dir="build" />
 		<copy todir="build/resources">
@@ -53,6 +72,21 @@
 		</jar>
 	</target>
 
+    <target name="release" depends="jar" description="Creates plugin release.">
+    	<zip destfile="dist/ModelValidatorPlugin${build.suffix}.zip">
+			<zipfileset dir="." filemode="755">
+    			<include name="README" />
+    		</zipfileset>
+			<zipfileset dir="dist/" filemode="755">
+				<include name="${filename}" />
+			</zipfileset>
+			<zipfileset dir="doc/" filemode="755">
+    			<include name="Usage.pdf" />
+			</zipfileset>
+    	</zip>
+    </target>
+
+	
 	<target name="deployDebug" depends="jar">
 		<copy file="dist/${filename}" todir="${use.path}/lib/plugins"/>
 	</target>

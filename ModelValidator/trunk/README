@@ -1,0 +1,14 @@
+1. Requirements
+===============
+- USE (downloads available here: http://sourceforge.net/projects/useocl/)
+- To be able to use certain SAT solvers, a 32-bit Java environment is required.
+
+2. Installation
+===============
+Please, copy the jar-file into the lib/plugins directory of USE.
+
+3. Usage
+===============
+The shell command 'plugins' shows all available Model Validator commands.
+For further information, please feel free to use our sourceforge forums. A
+quick reference guide is included in the Model Validator ZIP archive.
