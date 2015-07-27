@@ -9,7 +9,7 @@ import org.tzi.use.runtime.impl.Plugin;
 
 public class KodkodPlugin extends Plugin {
 
-	private final String PLUGIN_ID = "KodkodPlugin";
+	private final String PLUGIN_ID = "ModelValidatorPlugin";
 
 	@Override
 	public String getName() {
