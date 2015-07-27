@@ -9,11 +9,14 @@
 	
 	<property environment="env"/>
 
-	<condition property="build.suffix" value="-NIGHTLY-r${env.BUILD_NUMBER}" else="-${version}">
+	<condition property="build.suffix" value="-NIGHTLY-build${env.BUILD_NUMBER}" else="-${version}">
 		<isset property="env.BUILD_NUMBER"/>
 	</condition>
 	
 	<property name="compiler" value="1.7" />
+	<!-- DO NOT ENABLE DEBUG HERE!
+	     To enable debug LOCALLY, run ant with argument '-Djavac.debug=true' -->
+	<property name="javac.debug" value="off" />
 	<property name="use.path" value="../use" />
 	<property name="useplugin.file" value="useplugin.xml" />
 	<property name="use.classes" value="${use.path}/build/classes" />
@@ -41,7 +44,6 @@
 	</target>
 
 	<target name="compile" depends="compile-use, setversion">
-		<property name="debug" value="false" />
 		<mkdir dir="build" />
 		<copy todir="build/resources">
 			<fileset dir="resources" />
@@ -52,7 +54,7 @@
 		<copy todir="build/solver">
 			<fileset dir="solver" />
 		</copy>
-		<javac destdir="build" source="${compiler}" target="${compiler}" debug="true" classpathref="classpath" includeantruntime="false">
+		<javac destdir="build" source="${compiler}" target="${compiler}" debug="${javac.debug}" classpathref="classpath" includeantruntime="false">
 			<src path="src" />
 			<src path="test" />
 		</javac>
