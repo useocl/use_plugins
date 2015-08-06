@@ -113,9 +113,11 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	 * Listens for changed class row selection in the class table
 	 */
 	private class ClassTableSelectionHandler implements ListSelectionListener {
+		private IClass currentClass = null;
+		
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
-			if (!e.getValueIsAdjusting()) {
+			if (e.getValueIsAdjusting()) {
 				return;
 			}
 			
@@ -129,15 +131,20 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					break;
 				}
 			}
+			
 			selectedClass = (IClass) classTable.getValueAt(selectedRow, 0);
+			if(currentClass != null && currentClass.equals(selectedClass)){
+				return;
+			}
 			attributesLabel.setText("Attributes of class " + selectedClass.name());
 			associationsLabel.setText("Associations of class " + selectedClass.name());
 			updateClassAttributes(selectedClass);
 			updateClassAssociations(selectedClass);
+			currentClass = selectedClass;
 		}
 	}
 	
-	private class CloseActionListener implements ActionListener {
+	private class ValidateActionListener implements ActionListener {
 		@Override
 		public void actionPerformed( ActionEvent e ) {
 			if (settingsConfiguration.isChanged()) {
@@ -224,7 +231,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		attributeCheckBox.setSelected(false);
 		
 		validateButton = new JButton("Validate");
-		validateButton.addActionListener(new CloseActionListener());
+		validateButton.addActionListener(new ValidateActionListener());
 
 		statusArea = new JTextArea();
 		statusArea.setEditable(false);
@@ -510,7 +517,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		menuConfiguration.add(new JSeparator());
 		
 		JMenuItem validateMenuItem = new JMenuItem("Validate");
-		validateMenuItem.addActionListener(new CloseActionListener());
+		validateMenuItem.addActionListener(new ValidateActionListener());
 		menuConfiguration.add(validateMenuItem);
 
 		menuBar.add(fileMenu);
