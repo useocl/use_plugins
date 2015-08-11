@@ -1,7 +1,7 @@
 package org.tzi.use.kodkod.plugin.gui.model.data;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,9 +18,9 @@ public class SettingsConfiguration {
 	private final StringSettings stringTypeSettings = new StringSettings(this);
 	private final RealSettings realTypeSettings = new RealSettings(this);
 	private final OptionSettings optionSettings = new OptionSettings(this);
-	private final Map<IClass, ClassSettings> classSettings = new HashMap<>();
-	private final Map<IAssociation, AssociationSettings> associationSettings = new HashMap<>();
-	private final Map<IInvariant, InvariantSettings> invariantSettings = new HashMap<>();
+	private final Map<IClass, ClassSettings> classSettings = new LinkedHashMap<>();
+	private final Map<IAssociation, AssociationSettings> associationSettings = new LinkedHashMap<>();
+	private final Map<IInvariant, InvariantSettings> invariantSettings = new LinkedHashMap<>();
 	private boolean changed = false;
 
 	public SettingsConfiguration(IModel model) {

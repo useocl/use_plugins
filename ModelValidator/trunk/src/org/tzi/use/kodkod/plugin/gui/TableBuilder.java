@@ -8,11 +8,15 @@ import java.util.List;
 
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowSorter;
+import javax.swing.RowSorter.SortKey;
+import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAssociation;
@@ -40,11 +44,49 @@ public class TableBuilder {
 
 	private static final int TABLE_ROW_HEIGHT = 20;
 	private SettingsConfiguration allSettings;
+	
+	private List<RowSorter<?>> sorters = new ArrayList<RowSorter<?>>();
+	
+	private class ManagedTableRowSorter<M extends TableModel> extends TableRowSorter<M> {
+		public ManagedTableRowSorter(M model) {
+			super(model);
+			
+			for(int i = 0; i < model.getColumnCount(); i++){
+				setSortable(i, false);
+			}
+			sorters.add(this);
+		}
+	}
 
 	public TableBuilder(final SettingsConfiguration allSettings){
 		this.allSettings = allSettings;
 	}
 
+	/**
+	 * TODO
+	 * SortOrder.UNSORTED == USE FILE ORDER
+	 * SortOrder.ASCENDING == ALPH ASC
+	 * SortOrder.DESCENDING == ALPH DESC
+	 */
+	public void setSortOrder(SortOrder so){
+		
+		final List<SortKey> keys = new ArrayList<SortKey>(1);
+		switch (so) {
+		case UNSORTED:
+			break;
+		case ASCENDING:
+		case DESCENDING:
+			keys.add(new SortKey(0, so));
+			break;
+		default:
+			return;
+		}
+
+		for (RowSorter<?> s : sorters) {
+			s.setSortKeys(keys);
+		}
+	}
+	
 	private JTable createBaseTable(TableModel model) {
 		final JTable table = new JTable(model);
 
@@ -125,7 +167,8 @@ public class TableBuilder {
 	}
 
 	public JTable classes(){
-		JTable table = createBaseTable(new TableModelClass(allSettings.getAllClassesSettings()));
+		TableModelClass model = new TableModelClass(allSettings.getAllClassesSettings());
+		JTable table = createBaseTable(model);
 		table.setName(ConfigurationTerms.CLASSES);
 
 		TableColumnModel cm = table.getColumnModel();
@@ -137,13 +180,17 @@ public class TableBuilder {
 		cm.getColumn(1).setCellEditor(new BoundsSpinnerEditor(0));
 		cm.getColumn(2).setCellEditor(new BoundsSpinnerEditor(0));
 		
+		TableRowSorter<TableModel> sorter = new ManagedTableRowSorter<TableModel>(model);
+		table.setRowSorter(sorter);
+		
 		return table;
 	}
 
 	public JTable attributes(){
 		List<AttributeSettings> attributes =
 				new ArrayList<>(allSettings.getAllClassesSettings().get(0).getAttributeSettings().values());
-		JTable table = createBaseTable(new TableModelAttribute(attributes));
+		TableModelAttribute model = new TableModelAttribute(attributes);
+		JTable table = createBaseTable(model);
 		table.setName(ConfigurationTerms.ATTRIBUTES);
 		DefaultTableCellRenderer rightAlignment = new DefaultTableCellRenderer();
 		rightAlignment.setHorizontalAlignment( SwingConstants.RIGHT );
@@ -162,11 +209,15 @@ public class TableBuilder {
 		cm.getColumn(3).setCellEditor(new BoundsSpinnerEditor(0));
 		cm.getColumn(4).setCellEditor(new BoundsSpinnerEditor(-1));
 
+		TableRowSorter<TableModel> sorter = new ManagedTableRowSorter<TableModel>(model);
+		table.setRowSorter(sorter);
+		
 		return table;
 	}
 
 	public JTable associations(){
-		JTable table = createBaseTable(new TableModelAssociation(allSettings.getAllAssociationSettings()));
+		TableModelAssociation model = new TableModelAssociation(allSettings.getAllAssociationSettings());
+		JTable table = createBaseTable(model);
 		table.setName(ConfigurationTerms.ASSOCIATIONS);
 
 		TableColumnModel cm = table.getColumnModel();
@@ -176,6 +227,9 @@ public class TableBuilder {
 		
 		cm.getColumn(1).setCellEditor(new BoundsSpinnerEditor(0));
 		cm.getColumn(2).setCellEditor(new BoundsSpinnerEditor(-1));
+		
+		TableRowSorter<TableModel> sorter = new ManagedTableRowSorter<TableModel>(model);
+		table.setRowSorter(sorter);
 		
 		return table;
 	}
@@ -189,10 +243,15 @@ public class TableBuilder {
 	}
 
 	public JTable invariants(){
-		JTable table = createBaseTable(new TableModelInvariant(allSettings.getAllInvariantsSettings()));
+		TableModelInvariant model = new TableModelInvariant(allSettings.getAllInvariantsSettings());
+		JTable table = createBaseTable(model);
 		table.setPreferredScrollableViewportSize(new Dimension(800,table.getRowHeight()*table.getRowCount()));
 		table.getColumnModel().getColumn(0).setPreferredWidth(400);
 		table.setName(ConfigurationTerms.INVARIANTS);
+		
+		TableRowSorter<TableModel> sorter = new ManagedTableRowSorter<TableModel>(model);
+		table.setRowSorter(sorter);
+		
 		return table;
 	}
 

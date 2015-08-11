@@ -1,7 +1,7 @@
 package org.tzi.use.kodkod.transform;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -23,10 +23,12 @@ import org.tzi.use.uml.mm.MAssociationClass;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MClassifier;
 import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.type.EnumType;
+import org.tzi.use.util.uml.sorting.UseFileOrderComparator;
 
 /**
  * Class to transform the use model in a model of the model validator.
@@ -56,14 +58,18 @@ public class ModelTransformator {
 		try {
 			transformEnums(model, mModel.enumTypes());
 
-			Collection<MAssociationClass> associationClasses = mModel.getAssociationClassesOnly();
+			List<MAssociationClass> associationClasses = new ArrayList<MAssociationClass>(mModel.getAssociationClassesOnly());
 
-			Collection<MClass> classes = new ArrayList<MClass>(mModel.classes());
+			List<MClass> classes = new ArrayList<MClass>(mModel.classes());
 			classes.removeAll(associationClasses);
 
-			Collection<MAssociation> simpleAssociations = new ArrayList<MAssociation>(mModel.associations());
+			List<MAssociation> simpleAssociations = new ArrayList<MAssociation>(mModel.associations());
 			simpleAssociations.removeAll(associationClasses);
 
+			Collections.sort(associationClasses, new UseFileOrderComparator());
+			Collections.sort(classes, new UseFileOrderComparator());
+			Collections.sort(simpleAssociations, new UseFileOrderComparator());
+			
 			transformClasses(model, classes);
 
 			transformAssociationClasses(model, associationClasses);
@@ -75,7 +81,10 @@ public class ModelTransformator {
 			transformSimpleAssociations(model, simpleAssociations);
 
 			InvariantTransformator invariantTransformator = new InvariantTransformator(factory, typeFactory);
-			invariantTransformator.transformAndAdd(model, mModel.classInvariants());
+			List<MClassInvariant> classInvariants = new ArrayList<MClassInvariant>(mModel.classInvariants());
+			Collections.sort(classInvariants, new UseFileOrderComparator());
+			
+			invariantTransformator.transformAndAdd(model, classInvariants);
 
 			LOG.info(LogMessages.modelTransformSuccessful);
 			LOG.info(LogMessages.modelTransformTime((System.currentTimeMillis() - startTime)));
@@ -102,7 +111,7 @@ public class ModelTransformator {
 		}
 	}
 
-	private void transformClasses(IModel model, Collection<MClass> mClasses) {
+	private void transformClasses(IModel model, List<MClass> mClasses) {
 		for (MClass mClass : mClasses) {
 			if (!mClass.name().startsWith("$")) {
 				IClass kClass = factory.createClass(model, mClass.name(), mClass.isAbstract());
@@ -113,7 +122,7 @@ public class ModelTransformator {
 		}
 	}
 
-	private void transformAttributes(IModel model, Collection<MClass> mClasses) {
+	private void transformAttributes(IModel model, List<MClass> mClasses) {
 		for (MClass mClass : mClasses) {
 			IClass kClass = model.getClass(mClass.name());
 			transformClassAttributes(model, kClass, mClass.attributes());
@@ -131,7 +140,7 @@ public class ModelTransformator {
 		}
 	}
 
-	private void transformSimpleAssociations(IModel model, Collection<MAssociation> mAssociations) {
+	private void transformSimpleAssociations(IModel model, List<MAssociation> mAssociations) {
 		MultiplicityTransformator multTransformator = new MultiplicityTransformator();
 		for (MAssociation mAssociation : mAssociations) {
 			model.addAssociation(transformAssociation(multTransformator, model, mAssociation));
@@ -162,7 +171,7 @@ public class ModelTransformator {
 		}
 	}
 
-	private void transformAssociationClasses(IModel model, Collection<MAssociationClass> mAssociationClasses) {
+	private void transformAssociationClasses(IModel model, List<MAssociationClass> mAssociationClasses) {
 		MultiplicityTransformator multTransformator = new MultiplicityTransformator();
 		for (MAssociationClass mAssociationClass : mAssociationClasses) {
 

@@ -1,7 +1,7 @@
 package org.tzi.kodkod.model.impl;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import kodkod.ast.Formula;
@@ -31,10 +31,10 @@ public final class Model implements IModel {
 	private static final Logger LOG = Logger.getLogger(Model.class);
 	
 	private final String name;
-    private Map<String, EnumType> enums = new HashMap<String, EnumType>();
-    private Map<String, IClass> classes = new HashMap<String, IClass>();
-    private Map<String, IInvariant> invariants = new HashMap<String, IInvariant>();
-    private Map<String, IAssociation> associations = new HashMap<String, IAssociation>();
+    private Map<String, EnumType> enums = new LinkedHashMap<String, EnumType>();
+    private Map<String, IClass> classes = new LinkedHashMap<String, IClass>();
+    private Map<String, IInvariant> invariants = new LinkedHashMap<String, IInvariant>();
+    private Map<String, IAssociation> associations = new LinkedHashMap<String, IAssociation>();
     private IModelFactory modelFactory;
     private TypeFactory typeFactory;
     private IConfigurator<IModel> configurator;

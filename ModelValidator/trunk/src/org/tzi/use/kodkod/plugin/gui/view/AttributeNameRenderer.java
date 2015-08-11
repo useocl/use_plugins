@@ -17,6 +17,7 @@ public class AttributeNameRenderer extends DefaultTableCellRenderer {
 			boolean isSelected, boolean hasFocus, int row, int column) {
 		Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
+		row = table.getRowSorter().convertRowIndexToModel(row);
 		AttributeSettings attributesSettings = ((TableModelAttribute) table.getModel()).getAttributesSettings().get(row);
 		setDescription(attributesSettings.getAttribute(), attributesSettings.isInherited());
 		

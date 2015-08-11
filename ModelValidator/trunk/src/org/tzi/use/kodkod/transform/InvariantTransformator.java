@@ -132,7 +132,7 @@ public class InvariantTransformator {
 	 * Transform all invariants and add the resulting invariants to the classes
 	 * of the model validator.
 	 */
-	public void transformAndAdd(IModel model, Collection<MClassInvariant> classInvariants) {
+	public void transformAndAdd(IModel model, List<MClassInvariant> classInvariants) {
 		for (MClassInvariant inv : classInvariants) {
 			try {
 				IInvariant invariant = transformAndAdd(model, inv);
@@ -148,7 +148,7 @@ public class InvariantTransformator {
 	/**
 	 * Transformation of all given invariants.
 	 */
-	public List<IInvariant> transform(IModel model, Collection<MClassInvariant> classInvariants) {
+	public List<IInvariant> transform(IModel model, List<MClassInvariant> classInvariants) {
 		List<IInvariant> invariants = new ArrayList<IInvariant>();
 
 		for (MClassInvariant inv : classInvariants) {

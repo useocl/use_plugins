@@ -114,6 +114,7 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 		List<AssociationSettings> associations = new ArrayList<AssociationSettings>(Collections2.filter(allAssociationsSettings, new Predicate<AssociationSettings>() {
 			@Override
 			public boolean apply(AssociationSettings input) {
+				//TODO inheritance?
 				for (IAssociationEnd aEnd : input.getAssociation().associationEnds()) {
 					if(aEnd.associatedClass().equals(selectedClass)){
 						return true;
@@ -129,7 +130,7 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 				boolean o1HasClassFirst = o1.getAssociation().associationEnds().get(0).associatedClass().equals(selectedClass);
 				boolean o2HasClassFirst = o2.getAssociation().associationEnds().get(0).associatedClass().equals(selectedClass);
 				if((o1HasClassFirst && o2HasClassFirst) || (!o1HasClassFirst && !o2HasClassFirst)){
-					return o1.getAssociation().name().compareTo(o2.getAssociation().name());
+					return 0;
 				} else if(o1HasClassFirst) {
 					return -1;
 				} else {

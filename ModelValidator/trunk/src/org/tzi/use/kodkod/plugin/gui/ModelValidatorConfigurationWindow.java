@@ -16,6 +16,7 @@ import java.util.Collection;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -28,6 +29,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
@@ -35,6 +37,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
+import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
 import javax.swing.border.BevelBorder;
@@ -86,6 +89,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	private final JLabel currentFileLabel;
 	private final JTextArea statusArea;
 
+	private final TableBuilder tableBuilder;
 	private final JTable invariantsTable;
 	private final JTable optionsTable;
 	private final JTable associationTable;
@@ -173,7 +177,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		setSize(1024,300);
 
 		settingsConfiguration = new SettingsConfiguration(model);
-		TableBuilder tableBuilder = new TableBuilder(settingsConfiguration);
+		tableBuilder = new TableBuilder(settingsConfiguration);
 
 		integerTable = tableBuilder.integer();
 		realTable = tableBuilder.real();
@@ -342,7 +346,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				// first open of GUI
 				configManager = new ConfigurationFileManager(model, settingsConfiguration);
 				ret = false;
-				JOptionPane.showMessageDialog(null, "Error while loading properties file! Switching to default configuration.", "Error!", JOptionPane.ERROR_MESSAGE);
+				if(file.exists()){
+					JOptionPane.showMessageDialog(null, "Error while loading properties file! Switching to default configuration.", "Error!", JOptionPane.ERROR_MESSAGE);
+				}
 			} else {
 				JOptionPane.showMessageDialog(this, "Error while loading properties file! Staying with current configuration.", "Error!", JOptionPane.ERROR_MESSAGE);
 				return false;
@@ -514,6 +520,41 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		});
 		menuConfiguration.add(deleteMenuItem);
 
+		menuConfiguration.add(new JSeparator());
+		JMenu sortSubMenu = new JMenu("Sort table entries");
+		ButtonGroup orderGroup = new ButtonGroup();
+		
+		JMenuItem useFileOrder = new JRadioButtonMenuItem("in USE file order", true);
+		orderGroup.add(useFileOrder);
+		useFileOrder.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tableBuilder.setSortOrder(SortOrder.UNSORTED);
+			}
+		});
+		sortSubMenu.add(useFileOrder);
+		
+		JMenuItem ascFileOrder = new JRadioButtonMenuItem("in alphabetic order ascending", false);
+		orderGroup.add(ascFileOrder);
+		ascFileOrder.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tableBuilder.setSortOrder(SortOrder.ASCENDING);
+			}
+		});
+		sortSubMenu.add(ascFileOrder);
+		
+		JMenuItem descFileOrder = new JRadioButtonMenuItem("in alphabetic order descending", false);
+		orderGroup.add(descFileOrder);
+		descFileOrder.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tableBuilder.setSortOrder(SortOrder.DESCENDING);
+			}
+		});
+		sortSubMenu.add(descFileOrder);
+		
+		menuConfiguration.add(sortSubMenu);
 		menuConfiguration.add(new JSeparator());
 		
 		JMenuItem validateMenuItem = new JMenuItem("Validate");

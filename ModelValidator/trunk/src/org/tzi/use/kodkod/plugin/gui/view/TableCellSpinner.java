@@ -33,7 +33,7 @@ public abstract class TableCellSpinner extends AbstractCellEditor {
 		
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-			if(!table.getModel().isCellEditable(row, column)){
+			if(!table.isCellEditable(row, column)){
 				return nonEditablePanel(hasFocus);
 			}
 			
