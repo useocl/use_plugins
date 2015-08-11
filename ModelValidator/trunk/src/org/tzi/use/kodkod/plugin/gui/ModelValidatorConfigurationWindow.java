@@ -347,7 +347,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				configManager = new ConfigurationFileManager(model, settingsConfiguration);
 				ret = false;
 				if(file.exists()){
-					JOptionPane.showMessageDialog(null, "Error while loading properties file! Switching to default configuration.", "Error!", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(getParent(), "Error while loading properties file (" + file.getName() + ")! Switching to default configuration.", "Error!", JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
 				JOptionPane.showMessageDialog(this, "Error while loading properties file! Staying with current configuration.", "Error!", JOptionPane.ERROR_MESSAGE);
@@ -496,6 +496,16 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		});
 		menuConfiguration.add(renameMenuItem);
 
+		JMenuItem resetMenuItem = new JMenuItem("Reset");
+		resetMenuItem.setToolTipText("Resets the current configuration by undoing unsaved changes.");
+		resetMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				switchToConfiguration(selectedSection, false, true);
+			}
+		});
+		menuConfiguration.add(resetMenuItem);
+		
 		JMenuItem deleteMenuItem = new JMenuItem("Delete");
 		deleteMenuItem.addActionListener(new ActionListener() {
 			@Override
@@ -568,9 +578,22 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private void switchToConfiguration(String newName, boolean saveCurrent) {
+		switchToConfiguration(newName, saveCurrent, false);
+	}
+	
+	/**
+	 * @param forceSwitch
+	 *            Forces a switch even if the new configuration is the same as
+	 *            the old one. This forces a reload of the configuration from
+	 *            the saved settings and therefore resets unsaved changes.
+	 */
+	private void switchToConfiguration(String newName, boolean saveCurrent, boolean forceSwitch) {
 		if(!saveCurrent){
 			propertiesConfiguration = null;
 			selectedSection = null;
+		}
+		if(forceSwitch){
+			sectionSelectionComboBox.setSelectedItem(null);
 		}
 		sectionSelectionComboBox.setSelectedItem(newName);
 	}
