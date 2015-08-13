@@ -75,13 +75,26 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 		invokeMethod(expClosure.name(), arguments, true);
 	}
 
+	private void collectTypeCheck(ExpQuery exp){
+		if(exp.getRangeExpression().type().isKindOfBag(VoidHandling.EXCLUDE_VOID)
+				|| exp.getRangeExpression().type().isKindOfSet(VoidHandling.EXCLUDE_VOID)){
+			LOG.warn("Collect operation `" + exp.toString() + "' results in unsupported type `Bag'. It will be interpreted as `Set'.");
+		}
+		else if(exp.getRangeExpression().type().isKindOfOrderedSet(VoidHandling.EXCLUDE_VOID)
+				|| exp.getRangeExpression().type().isKindOfSequence(VoidHandling.EXCLUDE_VOID)){
+			LOG.warn("Collect operation `" + exp.toString() + "' results in unsupported type `Sequence'. It will be interpreted as `Set'.");
+		}
+	}
+	
 	@Override
 	public void visitCollect(ExpCollect exp) {
+		collectTypeCheck(exp);
 		visitQueryAndInvoke(exp);
 	}
 
 	@Override
 	public void visitCollectNested(ExpCollectNested exp) {
+		collectTypeCheck(exp);
 		visitQueryAndInvoke(exp);
 	}
 
