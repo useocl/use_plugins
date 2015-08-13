@@ -63,7 +63,7 @@ import org.tzi.use.util.StringUtil;
  */
 public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 
-	private static final Logger LOG = Logger.getLogger(DefaultExpressionVisitor.class);
+	protected static final Logger LOG = Logger.getLogger(DefaultExpressionVisitor.class);
 	
 	protected IModel model;
 	protected Relation undefined;
