@@ -306,10 +306,15 @@ public final class ChangeConfiguration {
 	 * Removes extra 'Set{' and '}' from the first and last list elements.
 	 */
 	private static void fixList(List<Object> values) {
-		String arg1 = values.get(0).toString().replaceFirst("Set\\s*\\{", "");
-		String argL = values.get(values.size()-1).toString().replace("}", "");
+		if(values.size() == 1 && values.get(0).toString().matches("Set\\s*\\{\\}")){
+			values.remove(0);
+			return;
+		}
 		
+		String arg1 = values.get(0).toString().replaceFirst("Set\\s*\\{", "");
 		values.set(0, arg1);
+		
+		String argL = values.get(values.size()-1).toString().replace("}", "");
 		values.set(values.size()-1, argL);
 	}
 	
