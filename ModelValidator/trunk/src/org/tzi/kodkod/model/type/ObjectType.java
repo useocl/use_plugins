@@ -1,7 +1,6 @@
 package org.tzi.kodkod.model.type;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +27,7 @@ public class ObjectType extends TypeLiterals {
 		super(clazz.name());
 		this.clazz = clazz;
 		valueSize = 0;
-		values = new HashSet<String[]>();
+		values = new LinkedHashSet<String[]>();
 	}
 
 	/**
@@ -102,7 +101,7 @@ public class ObjectType extends TypeLiterals {
 	 * @param values
 	 */
 	public void setValues(List<String[]> values) {
-		this.values = new HashSet<String[]>(values);
+		this.values = new LinkedHashSet<String[]>(values);
 		atoms = createAtomList();
 	}
 
