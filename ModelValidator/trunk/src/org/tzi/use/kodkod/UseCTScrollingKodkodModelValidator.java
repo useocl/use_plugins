@@ -55,7 +55,6 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 
 	public UseCTScrollingKodkodModelValidator(Session session) {
 		super(session);
-		solutions = new ArrayList<Map<Relation, TupleSet>>();
 	}
 	
 	@Override
