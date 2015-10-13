@@ -18,8 +18,7 @@ import org.tzi.use.runtime.shell.IPluginShellCmdDelegate;
  * @author Frank Hilken
  */
 public class InvariantIndepCmd extends ConfigurablePlugin implements IPluginShellCmdDelegate {
-	//TODO adapt command to allow configuration section selection
-
+	
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
 		if(!pluginCommand.getSession().hasSystem()){
@@ -34,30 +33,40 @@ public class InvariantIndepCmd extends ConfigurablePlugin implements IPluginShel
 
 		String[] arguments = pluginCommand.getCmdArgumentList();
 
-		// kodkod -invIndep <propertyFile> (all|<className>::<invName>)
-		if(arguments.length != 2){
+		// kodkod -invIndep <propertyFile> [section] (all|<className>::<invName>)
+		if(arguments.length != 2 && arguments.length != 3){
 			LOG.error("Invalid parameters.");
-			LOG.error("Syntax of command is: " + pluginCommand.getCmd() + " <propertyFile> (all|<className>::<invName>)");
+			LOG.error("Syntax of command is: " + pluginCommand.getCmd() + " <propertyFile> [configurationSection] (all|<className>::<invName>)");
 			return;
+		}
+		
+		// determine if configuration section is given
+		final String section;
+		final String invariant;
+		if(arguments.length == 3){
+			section = arguments[1];
+			invariant = arguments[2];
+		} else {
+			section = null;
+			invariant = arguments[1];
 		}
 		
 		String filenameToOpen = Shell.getInstance().getFilenameToOpen(arguments[0], false);
 		try {
 			StringWriter errorBuffer = new StringWriter();
-			configureModel(extractConfigFromFile(new File(filenameToOpen)), new PrintWriter(errorBuffer, true));
+			configureModel(extractConfigFromFile(new File(filenameToOpen), section), new PrintWriter(errorBuffer, true));
 			LOG.warn(errorBuffer.toString());
 		} catch (ConfigurationException e) {
 			LOG.error(LogMessages.propertiesConfigurationReadError + ". " + (e.getMessage() != null ? e.getMessage() : ""));
 			return;
 		}
 		
-		if(arguments[1].equalsIgnoreCase("all")){
+		if(invariant.equalsIgnoreCase("all")){
 			indepChecker.validate(model());
-		}
-		else {
-			String[] split = arguments[1].split("-|:{2}");
+		} else {
+			String[] split = invariant.split("-|:{2}");
 			if (split.length != 2) {
-				LOG.error(LogMessages.invIndepSyntaxError(arguments[1]));
+				LOG.error(LogMessages.invIndepSyntaxError(invariant));
 			} else {
 				indepChecker.validate(model(), split[0], split[1]);
 			}

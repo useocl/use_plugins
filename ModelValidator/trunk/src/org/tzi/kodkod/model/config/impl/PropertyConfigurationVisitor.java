@@ -230,8 +230,8 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			defaultMin = DefaultConfigurationValues.stringMin;
 			defaultMax = DefaultConfigurationValues.stringMax;
 		} else if (type.isReal()) {
-			min = readSize(type.name() + PropertyEntry.realValuesMin, Integer.MIN_VALUE, true);
-			max = readSize(type.name() + PropertyEntry.realValuesMax, Integer.MIN_VALUE, true);
+			min = readSizeDouble(type.name() + PropertyEntry.realValuesMin, Integer.MIN_VALUE, true);
+			max = readSizeDouble(type.name() + PropertyEntry.realValuesMax, Integer.MIN_VALUE, true);
 			
 			defaultMin = (int) DefaultConfigurationValues.realMin;
 			defaultMax = (int) DefaultConfigurationValues.realMax;
@@ -350,7 +350,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	/**
 	 * Reads a number for the given name.
 	 */
-	private int readSize(String name, int defaultValue, boolean allowNegative) {
+	private int readSize(String name, int errorValue, boolean allowNegative) {
 		int limit = 0;
 		try {
 			limit = config.getInt(name);
@@ -358,10 +358,26 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 				limit = 0;
 			}
 		} catch (ConversionException e) {
-			warning(name + ": " + LogMessages.sizeConfigWarning(name, defaultValue));
-			limit = defaultValue;
+			warning(name + ": " + LogMessages.sizeConfigWarning(name));
+			limit = errorValue;
 		} catch (NoSuchElementException e) {
-			limit = defaultValue;
+			limit = errorValue;
+		}
+		return limit;
+	}
+	
+	private int readSizeDouble(String name, int errorValue, boolean allowNegative) {
+		int limit = 0;
+		try {
+			limit = (int) Math.round(config.getDouble(name));
+			if (!allowNegative && limit < -1) {
+				limit = 0;
+			}
+		} catch (ConversionException e) {
+			warning(name + ": " + LogMessages.sizeConfigWarning(name));
+			limit = errorValue;
+		} catch (NoSuchElementException e) {
+			limit = errorValue;
 		}
 		return limit;
 	}

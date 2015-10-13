@@ -1,5 +1,6 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -8,12 +9,15 @@ import javax.swing.table.AbstractTableModel;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.StringSettings;
-import org.tzi.use.util.StringUtil;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser.Result;
+import org.tzi.use.kodkod.plugin.gui.view.InputCheckingCell.Values;
 
 public class TableModelString extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private final StringSettings settings;
+	private final Values<String> editorValues;
 
 	private static final String[] COLUMNS = new String[] {
 		ConfigurationTerms.STRING_MIN,
@@ -29,6 +33,8 @@ public class TableModelString extends AbstractTableModel implements TooltipTable
 	
 	public TableModelString(StringSettings settings) {
 		this.settings = settings;
+		editorValues = new Values<String>();
+		editorValues.values = settings.getInstanceNames();
 	}
 
 	@Override
@@ -64,7 +70,7 @@ public class TableModelString extends AbstractTableModel implements TooltipTable
 		case 1:
 			return settings.getUpperBound();
 		case 2:
-			return StringUtil.fmtSeq(settings.getInstanceNames(), ",");
+			return editorValues;
 		}
 		return null;
 	}
@@ -74,26 +80,44 @@ public class TableModelString extends AbstractTableModel implements TooltipTable
 		switch (column) {
 		case 0:
 			settings.setLowerBound((Integer) aValue);
-			fireTableCellUpdated(row, column);
 			break;
 		case 1:
 			settings.setUpperBound((Integer) aValue);
-			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			String[] split = ((String) aValue).split(",");
-			Set<String> list = new LinkedHashSet<String>();
-			for (int i = 0; i < split.length; i++) {
-				list.add(split[i].trim());
+			String arg = ((String) aValue).trim();
+			
+			Set<String> res = new LinkedHashSet<String>();
+			if(!arg.isEmpty()){
+				Result<String> values = new TextInputParser(arg).parseStringValues();
+				
+				res.addAll(values.getParsedValues());
+				if(!values.getErrorValues().isEmpty()){
+					editorValues.text = arg;
+					editorValues.errors = values.getErrorValues();
+				} else {
+					editorValues.text = null;
+					editorValues.errors = Collections.emptySet();
+				}
 			}
-			settings.setInstanceNames(list);
-			fireTableCellUpdated(row, column);
+			editorValues.values = res;
+			settings.setInstanceNames(res);
 			break;
 		}
+		fireTableCellUpdated(row, column);
 	}
 
 	public StringSettings getSettings() {
 		return settings;
 	}
 
+	public void resetSavedValues() {
+		editorValues.reset();
+		editorValues.values = settings.getInstanceNames();
+	}
+	
+	public boolean inputsContainErrors(){
+		return editorValues.text != null;
+	}
+	
 }

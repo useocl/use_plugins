@@ -24,6 +24,10 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 
 	@Override
 	protected void handleArguments(String[] arguments) {
+		handleArguments(arguments, false);
+	}
+	
+	protected void handleArguments(String[] arguments, boolean skipReset) {
 		String firstArgument = arguments[0];
 		
 		if (firstArgument.equalsIgnoreCase("next")) {
@@ -45,7 +49,9 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 					validator.showSolution(index);
 				}
 			} else {
-				resetValidator();
+				if(!skipReset){
+					resetValidator();
+				}
 				super.handleArguments(arguments);
 			}
 		}

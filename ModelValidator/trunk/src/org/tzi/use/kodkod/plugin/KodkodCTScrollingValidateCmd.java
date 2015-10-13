@@ -69,7 +69,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 					return;
 				}
 				
-				super.handleArguments(arguments);
+				super.handleArguments(arguments, true);
 			}
 		}
 	}
@@ -126,12 +126,13 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 			}
 			
 			// success
-			v.addObservationTerm(result, obsTermKodkod);
+			v.addClassifyingTerm(result, obsTermKodkod);
 			terms++;
 		}
 		while(true);
 		
-		return true;
+		// set of classifying terms must contain at least one
+		return v.classifyingTermCount() > 0;
 	}
 	
 	@Override

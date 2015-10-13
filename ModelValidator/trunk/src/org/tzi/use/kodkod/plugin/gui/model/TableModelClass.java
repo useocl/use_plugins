@@ -1,5 +1,7 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,12 +12,15 @@ import org.tzi.kodkod.model.iface.IAssociationClass;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
-import org.tzi.use.util.StringUtil;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser.Result;
+import org.tzi.use.kodkod.plugin.gui.view.InputCheckingCell.Values;
 
 public class TableModelClass extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private final List<ClassSettings> classesSettings;
+	private final List<Values<String>> editorValues;
 
 	private static final String[] COLUMN_NAMES = new String[] {
 		ConfigurationTerms.CLASSES,
@@ -32,6 +37,12 @@ public class TableModelClass extends AbstractTableModel implements TooltipTableM
 	
 	public TableModelClass(List<ClassSettings> classesSettings) {
 		this.classesSettings = classesSettings;
+		editorValues = new ArrayList<Values<String>>(classesSettings.size());
+		for(ClassSettings cs : classesSettings){
+			Values<String> v = new Values<String>();
+			v.values = cs.getInstanceNames();
+			editorValues.add(v);
+		}
 	}
 
 	@Override
@@ -78,7 +89,7 @@ public class TableModelClass extends AbstractTableModel implements TooltipTableM
 		case 2:
 			return set.getUpperBound();
 		case 3:
-			return StringUtil.fmtSeq(set.getInstanceNames(), ",");
+			return editorValues.get(row);
 		}
 		return null;
 	}
@@ -90,26 +101,54 @@ public class TableModelClass extends AbstractTableModel implements TooltipTableM
 		switch (column) {
 		case 1:
 			set.setLowerBound((Integer) aValue);
-			fireTableCellUpdated(row, column);
 			break;
 		case 2:
 			set.setUpperBound((Integer) aValue);
-			fireTableCellUpdated(row, column);
 			break;
 		case 3:
-			String[] split = ((String) aValue).split(",");
-			Set<String> list = new LinkedHashSet<String>();
-			for (int i = 0; i < split.length; i++) {
-				list.add(split[i].trim());
+			String arg = ((String) aValue).trim();
+			Values<String> currentValues = editorValues.get(row);
+			
+			Set<String> res = new LinkedHashSet<String>();
+			if(!arg.isEmpty()){
+				Result<String> values = new TextInputParser(arg).parseClassValues();
+				
+				res.addAll(values.getParsedValues());
+				if(!values.getErrorValues().isEmpty()){
+					currentValues.text = arg;
+					currentValues.errors = values.getErrorValues();
+				} else {
+					currentValues.text = null;
+					currentValues.errors = Collections.emptySet();
+				}
 			}
-			set.setInstanceNames(list);
-			fireTableCellUpdated(row, column);
+			currentValues.values = res;
+			set.setInstanceNames(res);
 			break;
 		}
+		fireTableCellUpdated(row, column);
 	}
 
 	public List<ClassSettings> getClassesSettings() {
 		return classesSettings;
 	}
 
+	public void resetSavedValues() {
+		for(int i = 0; i < classesSettings.size(); i++){
+			ClassSettings settings = classesSettings.get(i);
+			Values<String> values = editorValues.get(i);
+			values.reset();
+			values.values = settings.getInstanceNames();
+		}		
+	}
+
+	public boolean inputsContainErrors(){
+		for (Values<String> values : editorValues) {
+			if(values.text != null){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }

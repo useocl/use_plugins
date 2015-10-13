@@ -67,6 +67,7 @@ public abstract class KodkodModelValidator {
 			unsatisfiable();
 			break;
 		default:
+			throw new IllegalStateException("Kodkod did not give a solution object (solution == null)");
 		}
 
 		KodkodQueryCache.INSTANCE.setEvaluator(evaluator);

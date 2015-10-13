@@ -13,8 +13,7 @@ import sun.swing.DefaultLookup;
 public class RendererNonEditable extends DefaultTableCellRenderer {
 	private static final long serialVersionUID = 1L;
 	
-	//TODO put in centralized spot
-	private static final Color NON_EDIT_BGCOLOR = new Color(223, 223, 223);
+	public static final Color NON_EDIT_BGCOLOR = new Color(223, 223, 223);
 
 	public Component getTableCellRendererComponent(JTable table, Object value,
 			boolean isSelected, boolean hasFocus, int row, int column) {

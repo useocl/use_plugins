@@ -65,8 +65,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 	// evaluation result may be corrupted => The translation returns the
 	// undefined value.
 
-	// OCL: srcExpr->any(var | bodyExpr) = srcExpr->select(var |
-	// bodyExpr)->any(true)
+	// OCL: srcExpr->any(var | bodyExpr) = srcExpr->select(var | bodyExpr)->any(true)
 
 	public final Expression any(Expression src, Formula body, Variable var) {
 		final Expression select = select(src, body, var);

@@ -17,7 +17,6 @@ import kodkod.ast.Variable;
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.ExpressionHelper;
 import org.tzi.kodkod.helper.LogMessages;
-import org.tzi.kodkod.helper.PrintHelper;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.kodkod.model.iface.IModel;
@@ -64,6 +63,7 @@ public class InvariantTransformator {
 			contextVariables.put(var.trim(), variables.get(var.trim()));
 		}
 
+		//TODO maybe give expr. visitor invariant name for better error messages (collect -> bag)
 		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, new HashMap<String, Variable>(),
 				new ArrayList<String>());
 		mClassInvariant.bodyExpression().processWithVisitor(visitor);
@@ -135,9 +135,7 @@ public class InvariantTransformator {
 	public void transformAndAdd(IModel model, List<MClassInvariant> classInvariants) {
 		for (MClassInvariant inv : classInvariants) {
 			try {
-				IInvariant invariant = transformAndAdd(model, inv);
-				debugOut(invariant);
-
+				transformAndAdd(model, inv);
 			} catch (Exception exception) {
 				printTransformationError(inv, exception);
 			}
@@ -155,7 +153,6 @@ public class InvariantTransformator {
 			try {
 				IInvariant invariant = transform(model, inv);
 				invariants.add(invariant);
-				debugOut(invariant);
 
 			} catch (TransformationException exception) {
 				printTransformationError(inv, exception);
@@ -163,11 +160,6 @@ public class InvariantTransformator {
 		}
 		LOG.info(LogMessages.invTransformSuccessful);
 		return invariants;
-	}
-
-	private void debugOut(IInvariant invariant) {
-		LOG.debug(LogMessages.invTransformSuccessful(invariant.toString()));
-		LOG.debug(PrintHelper.prettyKodkod(invariant.formula()));
 	}
 
 	private void printTransformationError(MClassInvariant inv, Exception exception) {

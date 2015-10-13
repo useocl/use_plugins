@@ -6,7 +6,7 @@ import org.tzi.kodkod.model.iface.IAttribute;
 public class AttributeSettings extends InstanceSettings {
 
 	protected final IAttribute attribute;
-	protected boolean inherited; //TODO check usefulness
+	protected boolean inherited;
 	protected int collectionSizeMin;
 	protected int collectionSizeMax;
 

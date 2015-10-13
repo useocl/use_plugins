@@ -63,7 +63,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 		//TODO remove singleton pattern usage
 		if (OperationStack.INSTANCE.contains(exp.getOperation())) {
 			OperationStack.INSTANCE.clear();
-			throw new TransformationException("Operation " + operation.name() + " is recursive!");
+			throw new TransformationException("Cannot translate recursive operation " + operation.name() + ".");
 		}
 		
 		OperationStack.INSTANCE.push(operation);

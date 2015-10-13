@@ -38,11 +38,12 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 	/**
 	 * Configuration with the default search space.
 	 */
-	protected void configureModel() throws IOException {
+	protected void configureModel(PrintWriter warningsOut) throws IOException, ConfigurationException {
 		model().reset();
 		DefaultConfigurationVisitor configurationVisitor = new DefaultConfigurationVisitor(mModel.filename());
 		model().accept(configurationVisitor);
-
+		configureModel(extractConfigFromFile(configurationVisitor.getFile()), warningsOut);
+		
 		LOG.info(LogMessages.modelConfigurationSuccessful);
 	}
 	

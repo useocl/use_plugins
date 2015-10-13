@@ -1,6 +1,7 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -45,12 +46,15 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 	 */
 	protected void noArguments() {
 		try {
-			configureModel();
+			StringWriter errorBuffer = new StringWriter();
+			configureModel(new PrintWriter(errorBuffer, true));
 			enrichModel();
 			validate(createValidator());
-		} catch (Exception e) {
+			if(errorBuffer.getBuffer().length() > 0){
+				LOG.warn(errorBuffer.toString());
+			}
+		} catch (IOException | ConfigurationException e) {
 			LOG.error(LogMessages.propertiesConfigurationCreateError + ". " + e.getMessage());
-			e.printStackTrace();
 		}
 	}
 

@@ -13,50 +13,41 @@ public interface IAssociation extends IModelElement {
 
 	/**
 	 * Adds an association end to the end of the association end list.
-	 * 
-	 * @param associationEnd
 	 */
 	public void addAssociationEnd(IAssociationEnd associationEnd);
 
 	/**
 	 * Returns all association ends of the association.
-	 * 
-	 * @return
 	 */
 	public List<IAssociationEnd> associationEnds();
 
 	/**
 	 * Sets an association class
-	 * 
-	 * @param associationClass
 	 */
 	public void setAssociationClass(IAssociationClass associationClass);
 
 	/**
 	 * Returns the association class, null if no association class is set.
-	 * 
-	 * @return
 	 */
 	public IAssociationClass associationClass();
 
 	/**
-	 * Returns true if this is a binary association.
-	 * 
-	 * @return
+	 * @return returns whether this association is an association class or not
+	 */
+	public boolean isAssociationClass();
+	
+	/**
+	 * @return Returns true if this is a binary association.
 	 */
 	public boolean isBinaryAssociation();
 
 	/**
 	 * Sets the configurator.
-	 * 
-	 * @param configurator
 	 */
 	public void setConfigurator(IConfigurator<IAssociation> configurator);
 
 	/**
 	 * Returns the configurator.
-	 * 
-	 * @return
 	 */
 	public IConfigurator<IAssociation> getConfigurator();
 }

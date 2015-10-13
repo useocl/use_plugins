@@ -93,11 +93,17 @@ public enum PluginModelFactory implements ChangeListener {
 	public void registerForSession(Session s){
 		if(session.get() == null || s != session.get()){
 			// session has changed since last register
+			if(session.get() != null){
+				session.get().removeChangeListener(this);
+			}
 			s.addChangeListener(this);
 			session = new WeakReference<Session>(s);
 		}
 		if(system.get() == null || s.system() != system.get()){
 			// system has changed since last register
+			if(system.get() != null){
+				system.get().getEventBus().unregister(this); 
+			}
 			s.system().getEventBus().register(this);
 			system = new WeakReference<MSystem>(s.system());
 		}

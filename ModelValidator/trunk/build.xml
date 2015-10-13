@@ -76,20 +76,37 @@
 		</jar>
 	</target>
 
-    <target name="release" depends="jar" description="Creates plugin release.">
+    <target name="release-jar" depends="jar" description="Creates plugin release.">
     	<zip destfile="dist/ModelValidatorPlugin${build.suffix}.zip">
 			<zipfileset dir="." filemode="755">
     			<include name="README" />
     		</zipfileset>
-			<zipfileset dir="dist/" filemode="755">
+			<zipfileset dir="dist" filemode="755">
 				<include name="${filename}" />
 			</zipfileset>
-			<zipfileset dir="doc/" filemode="755">
+			<zipfileset dir="doc" filemode="755">
     			<include name="Usage.pdf" />
 			</zipfileset>
     	</zip>
     </target>
-
+	
+    <target name="release-sources" description="Creates source code release.">
+    	<zip destfile="dist/ModelValidatorPlugin${build.suffix}-sources.zip">
+    		<zipfileset dir=".">
+    			<include name="build.xml" />
+    			<include name="README" />
+    			<include name="useplugin.xml" />
+    		</zipfileset>
+    		<zipfileset dir="src" prefix="src" />
+    		<zipfileset dir="resources" prefix="resources" />
+    		<zipfileset dir="solver" prefix="solver" />
+    		<zipfileset dir="lib" prefix="lib" />
+    		<zipfileset dir="log4j" prefix="log4j" />
+    		<zipfileset dir="META-INF" prefix="META-INF" />
+    	</zip>
+    </target>
+	
+    <target name="release" depends="release-jar,release-sources" description="Creates full release." />
 	
 	<target name="deployDebug" depends="jar">
 		<copy file="dist/${filename}" todir="${use.path}/lib/plugins"/>

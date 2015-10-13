@@ -1,5 +1,6 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -8,12 +9,15 @@ import javax.swing.table.AbstractTableModel;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.RealSettings;
-import org.tzi.use.util.StringUtil;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser.Result;
+import org.tzi.use.kodkod.plugin.gui.view.InputCheckingCell.Values;
 
 public class TableModelReal extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private final RealSettings settings;
+	private final Values<Double> editorValues;
 
 	private static final String[] COLUMN_NAMES = new String[] {
 		ConfigurationTerms.REAL_MIN,
@@ -31,6 +35,8 @@ public class TableModelReal extends AbstractTableModel implements TooltipTableMo
 	
 	public TableModelReal(RealSettings settings) {
 		this.settings = settings;
+		editorValues = new Values<Double>();
+		editorValues.values = settings.getValues();
 	}
 
 	@Override
@@ -68,7 +74,7 @@ public class TableModelReal extends AbstractTableModel implements TooltipTableMo
 		case 2:
 			return settings.getStep();
 		case 3:
-			return StringUtil.fmtSeq(settings.getValues(), ",");
+			return editorValues;
 		}
 		return null;
 	}
@@ -78,34 +84,52 @@ public class TableModelReal extends AbstractTableModel implements TooltipTableMo
 		switch (column) {
 		case 0:
 			settings.setMinimum((Double) aValue);
-			fireTableCellUpdated(row, column);
 			break;
 		case 1:
 			settings.setMaximum((Double) aValue);
-			fireTableCellUpdated(row, column);
 			break;
 		case 2:
-			settings.setStep(Double.valueOf((String) aValue));
-			fireTableCellUpdated(row, column);
+			try {
+				settings.setStep(Double.valueOf((String) aValue));
+			}
+			catch (NumberFormatException e) {
+				// ignore new value if it is not a Double
+			}
 			break;
 		case 3:
 			String arg = ((String) aValue).trim();
-			Set<Double> list = new LinkedHashSet<Double>();
+			
+			Set<Double> res = new LinkedHashSet<Double>();
 			if(!arg.isEmpty()){
-				String[] split = arg.split(",");
-				for (int i = 0; i < split.length; i++) {
-					//TODO error handling
-					list.add(Double.valueOf(split[i].trim()));
+				Result<Double> values = new TextInputParser(arg).parseRealValues();
+				
+				res.addAll(values.getParsedValues());
+				if(!values.getErrorValues().isEmpty()){
+					editorValues.text = arg;
+					editorValues.errors = values.getErrorValues();
+				} else {
+					editorValues.text = null;
+					editorValues.errors = Collections.emptySet();
 				}
 			}
-			settings.setValues(list);
-			fireTableCellUpdated(row, column);
+			editorValues.values = res;
+			settings.setValues(res);
 			break;
 		}
+		fireTableCellUpdated(row, column);
 	}
 
 	public RealSettings getSettings() {
 		return settings;
 	}
 
+	public void resetSavedValues() {
+		editorValues.reset();
+		editorValues.values = settings.getValues();
+	}
+
+	public boolean inputsContainErrors(){
+		return editorValues.text != null;
+	}
+	
 }

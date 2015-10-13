@@ -6,8 +6,6 @@ import java.util.Map;
 
 import kodkod.ast.Formula;
 
-import org.apache.log4j.Logger;
-import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.IConfigurator;
 import org.tzi.kodkod.model.config.impl.ModelConfigurator;
 import org.tzi.kodkod.model.iface.IAssociation;
@@ -27,8 +25,6 @@ import org.tzi.kodkod.model.visitor.Visitor;
  * 
  */
 public final class Model implements IModel {
-	
-	private static final Logger LOG = Logger.getLogger(Model.class);
 	
 	private final String name;
     private Map<String, EnumType> enums = new LinkedHashMap<String, EnumType>();
@@ -129,7 +125,6 @@ public final class Model implements IModel {
 	@Override
 	public void reset() {
 		accept(new ResetVisitor());
-		LOG.info(LogMessages.modelResetSuccessful);
 	}
 
 	@Override

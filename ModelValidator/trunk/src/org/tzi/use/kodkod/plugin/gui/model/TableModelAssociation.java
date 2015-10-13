@@ -1,6 +1,7 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -15,7 +16,9 @@ import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.AssociationSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
-import org.tzi.use.util.StringUtil;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser.Result;
+import org.tzi.use.kodkod.plugin.gui.view.InputCheckingCell.Values;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -25,6 +28,7 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 
 	private final List<AssociationSettings> allAssociationsSettings;
 	private List<AssociationSettings> currentAssociationsSettings = Collections.emptyList();
+	private List<Values<String>> editorValues = Collections.emptyList();
 
 	private static final String[] COLUMN_NAMES = new String[] {
 		ConfigurationTerms.ASSOCIATIONS,
@@ -42,6 +46,7 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 	
 	public TableModelAssociation(List<AssociationSettings> settings) {
 		allAssociationsSettings = settings;
+		// initializing of editorValues happens in #setClass(ClassSettings)
 	}
 
 	@Override
@@ -81,7 +86,7 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 		case 2:
 			return set.getUpperBound();
 		case 3:
-			return StringUtil.fmtSeq(set.getInstanceNames(), ",");
+			return editorValues.get(row);
 		}
 		return null;
 	}
@@ -98,15 +103,27 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 			set.setUpperBound((Integer) aValue);
 			break;
 		case 3:
-			//TODO assoc tuple parsing
-			String[] split = ((String) aValue).split(",");
-			Set<String> list = new LinkedHashSet<String>();
-			for (int i = 0; i < split.length; i++) {
-				list.add(split[i].trim());
+			String arg = ((String) aValue).trim();
+			Values<String> currentValues = editorValues.get(row);
+			
+			Set<String> res = new LinkedHashSet<String>();
+			if(!arg.isEmpty()){
+				Result<String> values = new TextInputParser(arg).parseAssociationValues(set.getAssociation());
+				
+				res.addAll(values.getParsedValues());
+				if(!values.getErrorValues().isEmpty()){
+					currentValues.text = arg;
+					currentValues.errors = values.getErrorValues();
+				} else {
+					currentValues.text = null;
+					currentValues.errors = Collections.emptySet();
+				}
 			}
-			set.setInstanceNames(list);
+			currentValues.values = res;
+			set.setInstanceNames(res);
 			break;
 		}
+		fireTableCellUpdated(row, column);
 	}
 
 	public void setClass(ClassSettings classSettings) {
@@ -114,9 +131,9 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 		List<AssociationSettings> associations = new ArrayList<AssociationSettings>(Collections2.filter(allAssociationsSettings, new Predicate<AssociationSettings>() {
 			@Override
 			public boolean apply(AssociationSettings input) {
-				//TODO inheritance?
 				for (IAssociationEnd aEnd : input.getAssociation().associationEnds()) {
-					if(aEnd.associatedClass().equals(selectedClass)){
+					// respects generalization
+					if(aEnd.associatedClass().equals(selectedClass) || selectedClass.allParents().contains(aEnd.associatedClass())){
 						return true;
 					}
 				}
@@ -127,8 +144,32 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 		Collections.sort(associations, new Comparator<AssociationSettings>() {
 			@Override
 			public int compare(AssociationSettings o1, AssociationSettings o2) {
-				boolean o1HasClassFirst = o1.getAssociation().associationEnds().get(0).associatedClass().equals(selectedClass);
-				boolean o2HasClassFirst = o2.getAssociation().associationEnds().get(0).associatedClass().equals(selectedClass);
+				/*
+				 * TODO create algorithm that respects inheritance
+				 */
+				IClass o1Class = o1.getAssociation().associationEnds().get(0).associatedClass();
+				IClass o2Class = o2.getAssociation().associationEnds().get(0).associatedClass();
+				
+				boolean o1HasClassFirst = o1Class.equals(selectedClass);
+				boolean o2HasClassFirst = o2Class.equals(selectedClass);
+				Collection<IClass> parents = selectedClass.allParents();
+				boolean o1ParentsHaveClassFirst = parents.contains(o1Class);
+				boolean o2ParentsHaveClassFirst = parents.contains(o2Class);
+				
+//				if(o1HasClassFirst && !o2HasClassFirst){
+//					return -1;
+//				} else if(o2HasClassFirst && !o1HasClassFirst){
+//					return 1;
+//				} else {
+//					if(o1ParentsHaveClassFirst && !o2ParentsHaveClassFirst){
+//						return -1;
+//					} else if(o2ParentsHaveClassFirst && !o1ParentsHaveClassFirst){
+//						return 1;
+//					} else {
+//						return 0;
+//					}
+//				}
+				
 				if((o1HasClassFirst && o2HasClassFirst) || (!o1HasClassFirst && !o2HasClassFirst)){
 					return 0;
 				} else if(o1HasClassFirst) {
@@ -140,11 +181,35 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 		});
 		
 		currentAssociationsSettings = associations;
+		editorValues = new ArrayList<Values<String>>(associations.size());
+		for(AssociationSettings as : associations){
+			Values<String> v = new Values<String>();
+			v.values = as.getInstanceNames();
+			editorValues.add(v);
+		}
 		fireTableDataChanged();
 	}
 
 	public List<AssociationSettings> getAssociationsSettings() {
 		return currentAssociationsSettings;
 	}
+	
+	public void resetSavedValues() {
+		for(int i = 0; i < currentAssociationsSettings.size(); i++){
+			AssociationSettings settings = currentAssociationsSettings.get(i);
+			Values<String> values = editorValues.get(i);
+			values.reset();
+			values.values = settings.getInstanceNames();
+		}
+	}
 
+	public boolean inputsContainErrors(){
+		for (Values<String> values : editorValues) {
+			if(values.text != null){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }

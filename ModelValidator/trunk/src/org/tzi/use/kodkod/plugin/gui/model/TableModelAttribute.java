@@ -1,6 +1,7 @@
 package org.tzi.use.kodkod.plugin.gui.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,12 +12,15 @@ import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.ClassSettings;
-import org.tzi.use.util.StringUtil;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser;
+import org.tzi.use.kodkod.plugin.gui.util.TextInputParser.Result;
+import org.tzi.use.kodkod.plugin.gui.view.InputCheckingCell.Values;
 
 public class TableModelAttribute extends AbstractTableModel implements TooltipTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private List<AttributeSettings> attributesSettings;
+	private List<Values<String>> editorValues;
 
 	private static final String[] COLUMN_NAMES = new String[] {
 		ConfigurationTerms.ATTRIBUTES,
@@ -38,6 +42,7 @@ public class TableModelAttribute extends AbstractTableModel implements TooltipTa
 	
 	public TableModelAttribute(List<AttributeSettings> settings) {
 		attributesSettings = settings;
+		// initializing of editorValues happens in #setClass(ClassSettings)
 	}
 
 	@Override
@@ -86,7 +91,7 @@ public class TableModelAttribute extends AbstractTableModel implements TooltipTa
 		case 4:
 			return set.getCollectionSizeMax();
 		case 5:
-			return StringUtil.fmtSeq(set.getInstanceNames(), ",");
+			return editorValues.get(row);
 		}
 		return null;
 	}
@@ -109,18 +114,37 @@ public class TableModelAttribute extends AbstractTableModel implements TooltipTa
 			set.setCollectionSizeMax((Integer) aValue);
 			break;
 		case 5:
-			String[] split = ((String) aValue).split(",");
-			Set<String> list = new LinkedHashSet<String>();
-			for (int i = 0; i < split.length; i++) {
-				list.add(split[i].trim());
+			String arg = ((String) aValue).trim();
+			Values<String> currentValues = editorValues.get(row);
+			
+			Set<String> res = new LinkedHashSet<String>();
+			if(!arg.isEmpty()){
+				Result<String> values = new TextInputParser(arg).parseAttributeValues();
+				
+				res.addAll(values.getParsedValues());
+				if(!values.getErrorValues().isEmpty()){
+					currentValues.text = arg;
+					currentValues.errors = values.getErrorValues();
+				} else {
+					currentValues.text = null;
+					currentValues.errors = Collections.emptySet();
+				}
 			}
-			set.setInstanceNames(list);
+			currentValues.values = res;
+			set.setInstanceNames(res);
 			break;
 		}
+		fireTableCellUpdated(row, column);
 	}
 
 	public void setClass(ClassSettings classSettings) {
 		attributesSettings = new ArrayList<>(classSettings.getAttributeSettings().values());
+		editorValues = new ArrayList<Values<String>>(attributesSettings.size());
+		for(AttributeSettings as : attributesSettings){
+			Values<String> v = new Values<String>();
+			v.values = as.getInstanceNames();
+			editorValues.add(v);
+		}
 		fireTableDataChanged();
 	}
 
@@ -128,4 +152,22 @@ public class TableModelAttribute extends AbstractTableModel implements TooltipTa
 		return attributesSettings;
 	}
 
+	public void resetSavedValues() {
+		for(int i = 0; i < attributesSettings.size(); i++){
+			AttributeSettings settings = attributesSettings.get(i);
+			Values<String> values = editorValues.get(i);
+			values.reset();
+			values.values = settings.getInstanceNames();
+		}
+	}
+	
+	public boolean inputsContainErrors(){
+		for (Values<String> values : editorValues) {
+			if(values.text != null){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }

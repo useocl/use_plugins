@@ -230,8 +230,8 @@ public final class LogMessages {
 		return "There are only " + index + " solutions.";
 	}
 
-	public static String sizeConfigWarning(String name, int defaultValue) {
-		return "The value for " + name + " is not a number! The default value " + defaultValue + " will be used.";
+	public static String sizeConfigWarning(String name) {
+		return "The value for " + name + " is not a number! The default value will be used.";
 	}
 
 	public static String setSyntaxConfigError(String syntax) {

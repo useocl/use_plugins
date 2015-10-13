@@ -34,7 +34,6 @@ public class BoundsSpinner {
 			JFormattedTextField tf = editor.getTextField();
 			tf.setFormatterFactory(new DefaultFormatterFactory(new BoundsFormatter()));
 		}
-		
 	}
 	
 	private static class BoundsFormatter extends AbstractFormatter {

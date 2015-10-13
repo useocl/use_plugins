@@ -32,11 +32,11 @@ import org.tzi.use.util.StringUtil;
  */
 public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelValidator {
 
-	protected static class ClassifierTerm {
+	protected static class ClassifyingTerm {
 		private final Expression oclExpr;
 		private final Node kodkodExpr;
 		
-		public ClassifierTerm(Expression oclExpr, Node kodkodExpr) {
+		public ClassifyingTerm(Expression oclExpr, Node kodkodExpr) {
 			this.oclExpr = oclExpr;
 			this.kodkodExpr = kodkodExpr;
 		}
@@ -50,8 +50,8 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		}
 	}
 
-	protected List<ClassifierTerm> classifierTerms = new ArrayList<ClassifierTerm>();
-	protected List<Map<ClassifierTerm, Value>> termSolutions = new ArrayList<>();
+	protected List<ClassifyingTerm> classifyingTerms = new ArrayList<ClassifyingTerm>();
+	protected List<Map<ClassifyingTerm, Value>> termSolutions = new ArrayList<>();
 
 	public UseCTScrollingKodkodModelValidator(Session session) {
 		super(session);
@@ -106,10 +106,10 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 	protected void newSolution(Map<Relation, TupleSet> relationTuples) {
 		Formula f = null;
 		
-		for (Map<ClassifierTerm, Value> solutions : termSolutions) {
+		for (Map<ClassifyingTerm, Value> solutions : termSolutions) {
 			Formula currSolution = null;
 			
-			for (ClassifierTerm ct : classifierTerms) {
+			for (ClassifyingTerm ct : classifyingTerms) {
 				Value value = solutions.get(ct);
 				Formula solFormula = encodeSolutionValue(ct.kodkodExpr, value);
 				currSolution = (currSolution == null) ? solFormula : currSolution.and( solFormula ) ;
@@ -124,10 +124,10 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 
 	protected void readSolutionTerms(MSystemState state) {
 		Evaluator eval = new Evaluator();
-		Map<ClassifierTerm, Value> solutionMap = new HashMap<>();
+		Map<ClassifyingTerm, Value> solutionMap = new HashMap<>();
 		int i = 1;
-		List<String> solutionPrints = new ArrayList<String>(classifierTerms.size());
-		for (ClassifierTerm ct : classifierTerms) {
+		List<String> solutionPrints = new ArrayList<String>(classifyingTerms.size());
+		for (ClassifyingTerm ct : classifyingTerms) {
 			Value val = eval.eval(ct.oclExpr, state);
 			solutionMap.put(ct, val);
 			solutionPrints.add("Term " + i++ + ": " + val);
@@ -136,8 +136,12 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		termSolutions.add(solutionMap);
 	}
 	
-	public void addObservationTerm(Expression term, Node termKodkod){
-		classifierTerms.add(new ClassifierTerm(term, termKodkod));
+	public void addClassifyingTerm(Expression term, Node termKodkod){
+		classifyingTerms.add(new ClassifyingTerm(term, termKodkod));
+	}
+	
+	public int classifyingTermCount(){
+		return classifyingTerms.size();
 	}
 	
 }

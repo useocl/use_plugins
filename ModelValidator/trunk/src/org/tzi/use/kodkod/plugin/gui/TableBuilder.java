@@ -8,11 +8,7 @@ import java.util.List;
 
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.RowSorter;
-import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
-import javax.swing.SwingConstants;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -35,7 +31,8 @@ import org.tzi.use.kodkod.plugin.gui.view.AttributeNameRenderer;
 import org.tzi.use.kodkod.plugin.gui.view.BoundsSpinner.BoundsSpinnerEditor;
 import org.tzi.use.kodkod.plugin.gui.view.BoundsSpinner.BoundsSpinnerRenderer;
 import org.tzi.use.kodkod.plugin.gui.view.ClassNameRenderer;
-import org.tzi.use.kodkod.plugin.gui.view.RendererNonEditable;
+import org.tzi.use.kodkod.plugin.gui.view.InputCheckingCell.InputCheckingCellEditor;
+import org.tzi.use.kodkod.plugin.gui.view.InputCheckingCell.InputCheckingCellRenderer;
 import org.tzi.use.kodkod.plugin.gui.view.TableCellSpinner.TableCellSpinnerEditor;
 import org.tzi.use.kodkod.plugin.gui.view.TableCellSpinner.TableCellSpinnerRenderer;
 import org.tzi.use.kodkod.plugin.gui.view.TableCellSpinnerEditorReal;
@@ -45,7 +42,7 @@ public class TableBuilder {
 	private static final int TABLE_ROW_HEIGHT = 20;
 	private SettingsConfiguration allSettings;
 	
-	private List<RowSorter<?>> sorters = new ArrayList<RowSorter<?>>();
+	private List<ManagedTableRowSorter<?>> sorters = new ArrayList<ManagedTableRowSorter<?>>();
 	
 	private class ManagedTableRowSorter<M extends TableModel> extends TableRowSorter<M> {
 		public ManagedTableRowSorter(M model) {
@@ -56,6 +53,22 @@ public class TableBuilder {
 			}
 			sorters.add(this);
 		}
+		
+		public void setSortOrder(SortOrder so) {
+			final List<SortKey> keys = new ArrayList<SortKey>(1);
+			switch (so) {
+			case UNSORTED:
+				break;
+			case ASCENDING:
+			case DESCENDING:
+				keys.add(new SortKey(0, so));
+				break;
+			default:
+				return;
+			}
+			
+			setSortKeys(keys);
+		}
 	}
 
 	public TableBuilder(final SettingsConfiguration allSettings){
@@ -63,27 +76,15 @@ public class TableBuilder {
 	}
 
 	/**
-	 * TODO
-	 * SortOrder.UNSORTED == USE FILE ORDER
-	 * SortOrder.ASCENDING == ALPH ASC
-	 * SortOrder.DESCENDING == ALPH DESC
+	 * Sets the sort order for all tables.
+	 * <p>
+	 * <code>SortOrder.UNSORTED == USE FILE ORDER<br>
+	 * SortOrder.ASCENDING == ALPH ASC<br>
+	 * SortOrder.DESCENDING == ALPH DESC</code>
 	 */
 	public void setSortOrder(SortOrder so){
-		
-		final List<SortKey> keys = new ArrayList<SortKey>(1);
-		switch (so) {
-		case UNSORTED:
-			break;
-		case ASCENDING:
-		case DESCENDING:
-			keys.add(new SortKey(0, so));
-			break;
-		default:
-			return;
-		}
-
-		for (RowSorter<?> s : sorters) {
-			s.setSortKeys(keys);
+		for (ManagedTableRowSorter<?> s : sorters) {
+			s.setSortOrder(so);
 		}
 	}
 	
@@ -100,11 +101,10 @@ public class TableBuilder {
 			
 			@Override
 			public String getToolTipText(MouseEvent e) {
-				Point p = e.getPoint();
-				int index = columnModel.getColumnIndexAtX(p.x);
-				int realIndex = columnModel.getColumn(index).getModelIndex();
-				
 				if(table.getModel() instanceof TooltipTableModel){
+					Point p = e.getPoint();
+					int index = columnModel.getColumnIndexAtX(p.x);
+					int realIndex = columnModel.getColumn(index).getModelIndex();
 					return ((TooltipTableModel) table.getModel()).getColumnTooltip(realIndex);
 				} else {
 					return null;
@@ -129,11 +129,11 @@ public class TableBuilder {
 		TableColumnModel cm = table.getColumnModel();
 		cm.getColumn(0).setCellRenderer(new TableCellSpinnerRenderer(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
 		cm.getColumn(1).setCellRenderer(new TableCellSpinnerRenderer(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
+		cm.getColumn(2).setCellRenderer(new InputCheckingCellRenderer());
 		
 		cm.getColumn(0).setCellEditor(new TableCellSpinnerEditor(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
 		cm.getColumn(1).setCellEditor(new TableCellSpinnerEditor(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
-		//TODO Proof of Concept error handling
-//		cm.getColumn(2).setCellEditor(new InputCheckingEditor());
+		cm.getColumn(2).setCellEditor(new InputCheckingCellEditor());
 
 		return table;
 	}
@@ -145,9 +145,11 @@ public class TableBuilder {
 		TableColumnModel cm = table.getColumnModel();
 		cm.getColumn(0).setCellRenderer(new TableCellSpinnerRenderer(0d, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0.5d));
 		cm.getColumn(1).setCellRenderer(new TableCellSpinnerRenderer(0d, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0.5d));
+		cm.getColumn(3).setCellRenderer(new InputCheckingCellRenderer());
 		
 		cm.getColumn(0).setCellEditor(new TableCellSpinnerEditorReal(0d, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0.5d));
 		cm.getColumn(1).setCellEditor(new TableCellSpinnerEditorReal(0d, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0.5d));
+		cm.getColumn(3).setCellEditor(new InputCheckingCellEditor());
 
 		return table;
 	}
@@ -159,9 +161,11 @@ public class TableBuilder {
 		TableColumnModel cm = table.getColumnModel();
 		cm.getColumn(0).setCellRenderer(new TableCellSpinnerRenderer(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
 		cm.getColumn(1).setCellRenderer(new TableCellSpinnerRenderer(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
+		cm.getColumn(2).setCellRenderer(new InputCheckingCellRenderer());
 		
 		cm.getColumn(0).setCellEditor(new TableCellSpinnerEditor(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
 		cm.getColumn(1).setCellEditor(new TableCellSpinnerEditor(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
+		cm.getColumn(2).setCellEditor(new InputCheckingCellEditor());
 
 		return table;
 	}
@@ -175,10 +179,11 @@ public class TableBuilder {
 		cm.getColumn(0).setCellRenderer(new ClassNameRenderer());
 		cm.getColumn(1).setCellRenderer(new BoundsSpinnerRenderer(0));
 		cm.getColumn(2).setCellRenderer(new BoundsSpinnerRenderer(0));
-		cm.getColumn(3).setCellRenderer(new RendererNonEditable());
+		cm.getColumn(3).setCellRenderer(new InputCheckingCellRenderer());
 		
 		cm.getColumn(1).setCellEditor(new BoundsSpinnerEditor(0));
 		cm.getColumn(2).setCellEditor(new BoundsSpinnerEditor(0));
+		cm.getColumn(3).setCellEditor(new InputCheckingCellEditor());
 		
 		TableRowSorter<TableModel> sorter = new ManagedTableRowSorter<TableModel>(model);
 		table.setRowSorter(sorter);
@@ -192,9 +197,6 @@ public class TableBuilder {
 		TableModelAttribute model = new TableModelAttribute(attributes);
 		JTable table = createBaseTable(model);
 		table.setName(ConfigurationTerms.ATTRIBUTES);
-		DefaultTableCellRenderer rightAlignment = new DefaultTableCellRenderer();
-		rightAlignment.setHorizontalAlignment( SwingConstants.RIGHT );
-		table.getColumnModel().getColumn(5).setCellRenderer(rightAlignment);
 		
 		TableColumnModel cm = table.getColumnModel();
 		cm.getColumn(0).setCellRenderer(new AttributeNameRenderer());
@@ -202,12 +204,13 @@ public class TableBuilder {
 		cm.getColumn(2).setCellRenderer(new BoundsSpinnerRenderer(-1));
 		cm.getColumn(3).setCellRenderer(new BoundsSpinnerRenderer(0));
 		cm.getColumn(4).setCellRenderer(new BoundsSpinnerRenderer(-1));
-		cm.getColumn(5).setCellRenderer(new RendererNonEditable());
+		cm.getColumn(5).setCellRenderer(new InputCheckingCellRenderer());
 		
 		cm.getColumn(1).setCellEditor(new BoundsSpinnerEditor(-1));
 		cm.getColumn(2).setCellEditor(new BoundsSpinnerEditor(-1));
 		cm.getColumn(3).setCellEditor(new BoundsSpinnerEditor(0));
 		cm.getColumn(4).setCellEditor(new BoundsSpinnerEditor(-1));
+		cm.getColumn(5).setCellEditor(new InputCheckingCellEditor());
 
 		TableRowSorter<TableModel> sorter = new ManagedTableRowSorter<TableModel>(model);
 		table.setRowSorter(sorter);
@@ -224,9 +227,11 @@ public class TableBuilder {
 		cm.getColumn(0).setCellRenderer(new AssociationNameRenderer());
 		cm.getColumn(1).setCellRenderer(new BoundsSpinnerRenderer(0));
 		cm.getColumn(2).setCellRenderer(new BoundsSpinnerRenderer(-1));
+		cm.getColumn(3).setCellRenderer(new InputCheckingCellRenderer());
 		
 		cm.getColumn(1).setCellEditor(new BoundsSpinnerEditor(0));
 		cm.getColumn(2).setCellEditor(new BoundsSpinnerEditor(-1));
+		cm.getColumn(3).setCellEditor(new InputCheckingCellEditor());
 		
 		TableRowSorter<TableModel> sorter = new ManagedTableRowSorter<TableModel>(model);
 		table.setRowSorter(sorter);

@@ -381,6 +381,11 @@ public class Association extends ModelElement implements IAssociation {
 	}
 
 	@Override
+	public boolean isAssociationClass() {
+		return associationClass != null;
+	}
+	
+	@Override
 	public boolean isBinaryAssociation() {
 		return associationEnds.size() == 2;
 	}

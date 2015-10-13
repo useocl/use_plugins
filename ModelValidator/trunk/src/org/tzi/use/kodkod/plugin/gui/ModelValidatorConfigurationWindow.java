@@ -54,6 +54,10 @@ import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.gui.util.ExtFileFilter;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAssociation;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAttribute;
+import org.tzi.use.kodkod.plugin.gui.model.TableModelClass;
+import org.tzi.use.kodkod.plugin.gui.model.TableModelInteger;
+import org.tzi.use.kodkod.plugin.gui.model.TableModelReal;
+import org.tzi.use.kodkod.plugin.gui.model.TableModelString;
 import org.tzi.use.kodkod.plugin.gui.model.data.SettingsConfiguration;
 import org.tzi.use.kodkod.plugin.gui.util.ChangeConfiguration;
 import org.tzi.use.util.StringUtil;
@@ -274,6 +278,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					propertiesConfiguration = configManager.getConfiguration(selectedSection);
 					boolean beforeChange = settingsConfiguration.isChanged();
 					ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
+					resetSavedValues();
 					settingsConfiguration.setChanged(beforeChange);
 					update();
 				}
@@ -286,6 +291,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		currentFile = new File(useFile.replaceAll("\\.use", "") + ".properties");
 		loadConfigurations(currentFile);
 		ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
+		resetSavedValues();
 
 		settingsConfiguration.setChanged(false);
 		
@@ -305,7 +311,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	private void showSaveAsDialog() {
-		JFileChooser fileChooser = new JFileChooser();
+		JFileChooser fileChooser;
 
 		if (currentFile != null) {
 			fileChooser = new JFileChooser(currentFile.getParentFile());
@@ -391,6 +397,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
 						classTable.clearSelection();
 						settingsConfiguration.setChanged(false);
+						resetSavedValues();
 						update();
 					}
 				}
@@ -445,6 +452,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 				configManager.addOrUpdateConfiguration(selectedSection, pc);
 				
 				settingsConfiguration.reset();
+				resetSavedValues();
 				configManager.addOrUpdateConfiguration(newName, ChangeConfiguration.toProperties(settingsConfiguration, model));
 				
 				settingsConfiguration.setChanged(true);
@@ -526,6 +534,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 					sectionSelectionComboBox.removeItem(removedSelection);
 				}
 				ChangeConfiguration.toSettings(model, propertiesConfiguration, settingsConfiguration);
+				resetSavedValues();
 			}
 		});
 		menuConfiguration.add(deleteMenuItem);
@@ -577,6 +586,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		return menuBar;
 	}
 
+	/**
+	 * @see #switchToConfiguration(String, boolean, boolean)
+	 */
 	private void switchToConfiguration(String newName, boolean saveCurrent) {
 		switchToConfiguration(newName, saveCurrent, false);
 	}
@@ -802,6 +814,16 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 	
 	private void saveConfigurationsToFile(File file) {
+		if(errorValuesExist()){
+			int result = JOptionPane.showConfirmDialog(ModelValidatorConfigurationWindow.this,
+					"Saving will omit uninterpretable values. Really want to save?",
+					"Inputs contain uninterpretable values!",
+					JOptionPane.YES_NO_CANCEL_OPTION);
+			if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
+				return;
+			}
+		}
+		
 		propertiesConfiguration = ChangeConfiguration.toProperties(settingsConfiguration, model);
 		configManager.addOrUpdateConfiguration(selectedSection, propertiesConfiguration);
 		
@@ -811,7 +833,9 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			JOptionPane.showMessageDialog(this, "Error while saving configuration to file!", "Error!", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		
+
+		// reset to current configuration to ensure the state is exactly as described in the saved file
+		switchToConfiguration(selectedSection, false, true);
 		settingsConfiguration.setChanged(false);
 		currentFileLabel.setText(file.getAbsolutePath());
 		setTitle(file.getName() + " - " + WINDOW_TITLE);
@@ -824,6 +848,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			sectionSelectionComboBox.addItem(cName);
 		}
 		// the first added item is automatically selected
+		resetSavedValues();
 	}
 	
 	private void update() {
@@ -839,6 +864,15 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		integerCheckbox.setSelected(settingsConfiguration.getIntegerTypeSettings().isEnabled());
 		stringCheckbox.setSelected(settingsConfiguration.getStringTypeSettings().isEnabled());
 		realCheckbox.setSelected(settingsConfiguration.getRealTypeSettings().isEnabled());
+	}
+	
+	private void resetSavedValues(){
+		((TableModelInteger) integerTable.getModel()).resetSavedValues();
+		((TableModelReal) realTable.getModel()).resetSavedValues();
+		((TableModelString) stringTable.getModel()).resetSavedValues();
+		((TableModelClass) classTable.getModel()).resetSavedValues();
+		((TableModelAttribute) attributeTable.getModel()).resetSavedValues();
+		((TableModelAssociation) associationTable.getModel()).resetSavedValues();
 	}
 	
 	private void close() {
@@ -861,6 +895,15 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		}
 	}
 	
+	private boolean errorValuesExist() {
+		return ((TableModelInteger) integerTable.getModel()).inputsContainErrors() ||
+			((TableModelReal) realTable.getModel()).inputsContainErrors() ||
+			((TableModelString) stringTable.getModel()).inputsContainErrors() ||
+			((TableModelClass) classTable.getModel()).inputsContainErrors() ||
+			((TableModelAttribute) attributeTable.getModel()).inputsContainErrors() ||
+			((TableModelAssociation) associationTable.getModel()).inputsContainErrors();
+	}	
+
 	private String abstractClassesChildren(IModel model) {
 		StringBuilder abstractText = new StringBuilder("Abstract Classes:");
 		abstractText.append(StringUtil.NEWLINE);
@@ -884,9 +927,13 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			abstractText.append("Inheriting Classes:");
 			abstractText.append(StringUtil.NEWLINE);
 
+			boolean first = true;
 			for(final IClass abstractClass : model.classes()){
 				if(abstractClass.allChildren().isEmpty()){
 					continue;
+				}
+				if(!first){
+					abstractText.append(StringUtil.NEWLINE);
 				}
 				Collection<IClass> inheritingClasses = abstractClass.allChildren();
 				StringUtil.fmtSeq(abstractText, inheritingClasses, StringUtil.NEWLINE, new StringUtil.IElementFormatter<IClass>() {
@@ -895,7 +942,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 						return abstractClass.name() + " > " + element.name();
 					}
 				});
-
+				first = false;
 			}
 		}
 
