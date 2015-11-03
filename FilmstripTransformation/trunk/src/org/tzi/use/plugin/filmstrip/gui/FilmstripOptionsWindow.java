@@ -16,6 +16,7 @@ import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -28,8 +29,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.tzi.use.config.Options;
-import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.util.ExtFileFilter;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMMVisitor;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMVCompatibleVisitor;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripOptions;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripTransformerTask;
 import org.tzi.use.uml.mm.MModel;
@@ -78,11 +80,13 @@ public class FilmstripOptionsWindow extends JDialog {
 		
 		JPanel mainPanel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
+		int row = 0;
 		
-		mainPanel.add(new JLabel("Model name:"), getGBC(0, 0));
+		mainPanel.add(new JLabel("Model name:"), getGBC(row, 0));
 		
 		modelNameField = new JTextField(model.name());
-		mainPanel.add(modelNameField, getGBC(0, 1, 2, 1));
+		mainPanel.add(modelNameField, getGBC(row, 1, 2, 1));
+		row++;
 		
 		final JLabel fileLabel = new FilePathLabel();
 		fileLabel.setPreferredSize(new Dimension(300, 20));
@@ -107,21 +111,42 @@ public class FilmstripOptionsWindow extends JDialog {
 			}
 		});
 		
-		mainPanel.add(new JLabel("Destination file:"), getGBC(1, 0));
-		mainPanel.add(fileLabel, getGBC(1, 1));
-		mainPanel.add(filechooserButton, getGBC(1, 2));
+		mainPanel.add(new JLabel("Destination file:"), getGBC(row, 0));
+		mainPanel.add(fileLabel, getGBC(row, 1));
+		mainPanel.add(filechooserButton, getGBC(row, 2));
+		row++;
+		
+		mainPanel.add(new JLabel("Transformation method:"), getGBC(row, 0));
+		final JComboBox<String> transMethod = new JComboBox<String>(new String[]{ FilmstripMMVisitor.NAME, FilmstripMVCompatibleVisitor.NAME });
+		transMethod.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(FilmstripMMVisitor.NAME.equals(transMethod.getSelectedItem())){
+					boxCopy.setEnabled(true);
+					boxSoil.setEnabled(boxCopy.isSelected());
+				}
+				else {
+					boxCopy.setEnabled(false);
+					boxSoil.setEnabled(false);
+				}
+			}
+		});
+		mainPanel.add(transMethod, getGBC(row, 1, 2, 1));
+		row++;
 		
 		JPanel addonPanel = new JPanel(new GridLayout(2, 1));
 		addonPanel.setBorder(BorderFactory.createTitledBorder("Addons"));
 		
 		boxCopy = new JCheckBox("Create Snapshot::copy() operation");
 		boxCopy.setSelected(true);
+		boxCopy.setToolTipText("<html>Creates a copy operation to copy the latest snapshot creating its successor."
+							+ "<br><i>Does not work with n-ary associations.</i></html>");
 		addonPanel.add(boxCopy);
 		
 		boxSoil = new JCheckBox("Transform SOIL operations");
 		boxSoil.setSelected(true);
 		boxSoil.setToolTipText("<html>Makes imperative operations from the input model handle the snapshot creation automatically."
-							+ "<br><i>Only available if the option for Snapshot::copy() is chosen.</i></html>");
+							+ "<br><i>Only available if the option Snapshot::copy() is chosen.</i></html>");
 		addonPanel.add(boxSoil);
 		
 		boxCopy.addChangeListener(new ChangeListener() {
@@ -144,7 +169,8 @@ public class FilmstripOptionsWindow extends JDialog {
 				}
 			}
 		});
-		mainPanel.add(addonPanel, getGBC(2, 0, 3, 1));
+		mainPanel.add(addonPanel, getGBC(row, 0, 3, 1));
+		row++;
 		
 		JPanel buttonPanel = new JPanel(new GridBagLayout());
 		okButton = new JButton("OK");
@@ -177,9 +203,10 @@ public class FilmstripOptionsWindow extends JDialog {
 					return;
 				}
 				
+				
 				dispose();
-				FilmstripOptions options = new FilmstripOptions(model, modelName, f, boxCopy.isSelected(), boxSoil.isSelected());
-				ProgressWindow pw = new ProgressWindow(MainWindow.instance(), "Please wait");
+				FilmstripOptions options = new FilmstripOptions(model, modelName, f, boxCopy.isSelected(), boxSoil.isSelected(), (String) transMethod.getSelectedItem());
+				ProgressWindow pw = new ProgressWindow(parent, "Please wait");
 				FilmstripTransformerTask task = new FilmstripTransformerTask(options, pw);
 				task.execute();
 			}
@@ -195,7 +222,7 @@ public class FilmstripOptionsWindow extends JDialog {
 		buttonPanel.add(okButton, gbc);
 		buttonPanel.add(Box.createHorizontalStrut(5));
 		buttonPanel.add(cancelButton, gbc);
-		mainPanel.add(buttonPanel, getGBC(3, 0, 3, 1));
+		mainPanel.add(buttonPanel, getGBC(row, 0, 3, 1));
 		
 		setContentPane(mainPanel);
 		

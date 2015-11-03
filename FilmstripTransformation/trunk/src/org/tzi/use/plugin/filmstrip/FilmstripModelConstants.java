@@ -8,6 +8,7 @@ import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.TupleType;
 import org.tzi.use.uml.ocl.type.TupleType.Part;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.util.StringUtil;
 
 public final class FilmstripModelConstants {
@@ -15,7 +16,7 @@ public final class FilmstripModelConstants {
 	public static final String SNAPSHOT_CLASSNAME = "Snapshot";
 	public static final String FILMSTRIP_ASSOCNAME = "Filmstrip";
 	
-	public static final String ORDERABLE_CLASSNAME = "SnapshotItem";
+	public static final String SNAPSHOTITEM_CLASSNAME = "SnapshotItem";
 	public static final String ORDERABLE_ASSOCNAME = "PredSucc";
 	public static final String SNAPSHOTELEMENT_ASSOCNAME = "SnapElement";
 	public static final String SUCC_ROLENAME = "succ";
@@ -24,7 +25,7 @@ public final class FilmstripModelConstants {
 	public static final String OPC_CLASSNAME = "OperationCall";
 	public static final String OPC_ABBREVIATION = "OpC";
 	public static final String OPC_SELF_VARNAME = "aSelf";
-	public static final String OPC_RETURNVALUE_VARNAME = "retVal";
+	public static final String OPC_RETURNVALUE_VARNAME = "result";
 	
 	public static final String SNAPSHOT_ROLENAME = FilmstripModelConstants.makeRoleName(SNAPSHOT_CLASSNAME);
 	
@@ -126,19 +127,19 @@ public final class FilmstripModelConstants {
 	}
 	
 	public static String makeParamDefinedInv(String varName, Type t, boolean inPred){
-		if(t.isTrueObjectType()){
+		if(t.isTypeOfClass()){
 			return "((not " + varName + ".oclIsUndefined()) implies " + varName
 					+ "." + SNAPSHOT_ROLENAME + " = self."
 					+ (inPred ? PRED_ROLENAME : SUCC_ROLENAME) + "())";
 		}
-		else if(t.isCollection(true)){
+		else if(t.isKindOfCollection(VoidHandling.EXCLUDE_VOID)){
 			CollectionType collType = (CollectionType) t;
 			String tmp = makeParamDefinedInv("c", collType.elemType(), inPred);
 			if(!tmp.equals("true")){
 				return varName + "->forAll( c | " + tmp + " )";
 			}
 		}
-		else if(t.isTupleType(true)){
+		else if(t.isTypeOfTupleType()){
 			TupleType tupleType = (TupleType) t;
 			
 			ArrayList<String> parts = new ArrayList<String>(tupleType.getParts().size());

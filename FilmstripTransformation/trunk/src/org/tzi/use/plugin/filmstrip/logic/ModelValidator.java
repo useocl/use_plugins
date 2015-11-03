@@ -18,6 +18,7 @@ import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.MPrePostCondition;
 import org.tzi.use.uml.mm.commonbehavior.communications.MSignal;
+import org.tzi.use.uml.ocl.type.EnumType;
 
 import com.google.common.collect.Sets;
 
@@ -25,7 +26,7 @@ public class ModelValidator implements MMVisitor {
 	
 	private static final HashSet<String> reservedClassNames = Sets.newHashSet(
 			FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-			FilmstripModelConstants.ORDERABLE_CLASSNAME,
+			FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME,
 			FilmstripModelConstants.OPC_CLASSNAME );
 	private static final HashSet<String> reservedClassPrefixes = Sets.newHashSet();
 	private static final HashSet<String> reservedClassSuffixes = Sets.newHashSet(
@@ -176,7 +177,7 @@ public class ModelValidator implements MMVisitor {
 			assoc.processWithVisitor(this);
 		}
 		
-		for(MClassInvariant inv : e.classInvariants()){
+		for(MClassInvariant inv : e.modelClassInvariants()){
 			inv.processWithVisitor(this);
 		}
 	}
@@ -191,6 +192,10 @@ public class ModelValidator implements MMVisitor {
 
 	@Override
 	public void visitSignal(MSignal mSignalImpl) {
+	}
+
+	@Override
+	public void visitEnum(EnumType enumType) {
 	}
 	
 }

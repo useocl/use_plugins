@@ -9,10 +9,12 @@ import org.tzi.use.plugin.filmstrip.FilmstripModelConstants;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNavigableElement;
+import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.ExpAsType;
 import org.tzi.use.uml.ocl.expr.ExpCollectNested;
 import org.tzi.use.uml.ocl.expr.ExpInvalidException;
 import org.tzi.use.uml.ocl.expr.ExpNavigation;
+import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpStdOp;
 import org.tzi.use.uml.ocl.expr.ExpTupleLiteral;
 import org.tzi.use.uml.ocl.expr.ExpTupleSelectOp;
@@ -21,9 +23,9 @@ import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.CollectionType;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.TupleType;
 import org.tzi.use.uml.ocl.type.Type;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 
 public class FilmstripUtil {
 	
@@ -31,28 +33,38 @@ public class FilmstripUtil {
 	}
 	
 	public static Expression handlePredSucc(Expression range, boolean goPred, Stack<VarDeclList> scope) {
-		if(range.type().isTrueObjectType()){
-			MClass cls = ((ObjectType) range.type()).cls();
-			MNavigableElement succ = cls.navigableEnd(FilmstripModelConstants.SUCC_ROLENAME);
-			MNavigableElement pred = cls.navigableEnd(FilmstripModelConstants.PRED_ROLENAME);
-			
-			try {
-				if(goPred){
-					return new ExpNavigation(range, succ, pred, Collections.<Expression>emptyList());
+		if(range.type().isTypeOfClass()){
+			MClass cls = (MClass) range.type();
+			if(FilmstripModelConstants.SNAPSHOT_CLASSNAME.equals(cls.name())){
+				MOperation op = cls.operation( goPred ? FilmstripModelConstants.PRED_ROLENAME : FilmstripModelConstants.SUCC_ROLENAME, true);
+				try {
+					return new ExpObjOp(op, new Expression[]{ range });
+				} catch (ExpInvalidException e) {
+					throw new TransformationException("handlePredSucc", e);
 				}
-				else {
-					return new ExpNavigation(range, pred, succ, Collections.<Expression>emptyList());
+			}
+			else {
+				MNavigableElement succ = cls.navigableEnd(FilmstripModelConstants.SUCC_ROLENAME);
+				MNavigableElement pred = cls.navigableEnd(FilmstripModelConstants.PRED_ROLENAME);
+				
+				try {
+					if(goPred){
+						return new ExpNavigation(range, succ, pred, Collections.<Expression>emptyList());
+					}
+					else {
+						return new ExpNavigation(range, pred, succ, Collections.<Expression>emptyList());
+					}
+				} catch (ExpInvalidException e) {
+					throw new TransformationException("handlePredSucc", e);
 				}
-			} catch (Exception e) {
-				throw new TransformationException("handlePredSucc", e);
 			}
 		}
-		else if(range.type().isCollection(true)){
+		else if(range.type().isKindOfCollection(VoidHandling.EXCLUDE_VOID)){
 			CollectionType collType = (CollectionType) range.type();
 			
 			VarDecl uniqueVar = makeUniqueVar(collType.elemType(), scope);
 			Expression e = new ExpVariable(uniqueVar.name(), uniqueVar.type());
-			scope.add(new VarDeclList(uniqueVar));
+			scope.push(new VarDeclList(uniqueVar));
 			Expression handled = handlePredSucc(e, goPred, scope);
 			scope.pop();
 			
@@ -65,10 +77,10 @@ public class FilmstripUtil {
 				handled = new ExpCollectNested(uniqueVar, range, handled);
 				
 				if(!collType.equals(handled.type())){
-					if(collType.isSet()){
+					if(collType.isKindOfSet(VoidHandling.EXCLUDE_VOID)){
 						handled = ExpStdOp.create("asSet", new Expression[]{ handled });
 					}
-					else if(collType.isOrderedSet()){
+					else if(collType.isKindOfOrderedSet(VoidHandling.EXCLUDE_VOID)){
 						handled = ExpStdOp.create("asOrderedSet", new Expression[]{ handled });
 					}
 					else {
@@ -82,7 +94,7 @@ public class FilmstripUtil {
 				throw new TransformationException("Error navigating on CollectionType", ex);
 			}
 		}
-		else if(range.type().isTupleType(true)){
+		else if(range.type().isTypeOfTupleType()){
 			TupleType tt = (TupleType) range.type();
 			
 			ExpTupleLiteral.Part[] parts = new ExpTupleLiteral.Part[tt.getParts().size()];
@@ -152,7 +164,7 @@ public class FilmstripUtil {
 	 */
 	public static boolean isFilmstripClass(MClass c){
 		return c.name().equals(FilmstripModelConstants.SNAPSHOT_CLASSNAME)
-				|| c.name().equals(FilmstripModelConstants.ORDERABLE_CLASSNAME)
+				|| c.name().equals(FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME)
 				|| c.name().endsWith(FilmstripModelConstants.OPC_ABBREVIATION);
 	}
 	

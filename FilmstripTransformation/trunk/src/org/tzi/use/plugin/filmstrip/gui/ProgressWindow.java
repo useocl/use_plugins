@@ -17,8 +17,8 @@ public class ProgressWindow extends JDialog implements WindowListener {
 
 	private static final long serialVersionUID = 1L;
 	
-	private JFrame owner;
-	private JProgressBar progressBar;
+	private final JFrame owner;
+	private final JProgressBar progressBar;
 	
 	public ProgressWindow(JFrame owner, String title){
 		super(owner, title);

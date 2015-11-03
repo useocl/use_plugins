@@ -53,9 +53,10 @@ public class CopyOperation {
 	
 	private final MClass SNAPSHOT;
 	private final UseModelApi modelApi;
-	private MModel model;
+	private final MModel model;
 	
 	public CopyOperation(MModel model) {
+		super();
 		SNAPSHOT = model.getClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME);
 		this.model = model;
 		modelApi = new UseModelApi(model);
@@ -77,11 +78,11 @@ public class CopyOperation {
 	/**
 	 * @return SOIL expression of the operation
 	 */
-	public MStatement createCopyOperation(){
+	private MStatement createCopyOperation(){
 		MSequenceStatement main = new MSequenceStatement();
 		
 		MBlockStatement ret = new MBlockStatement(Arrays.asList(
-				new VarDecl("s", SNAPSHOT.type())
+				new VarDecl("s", SNAPSHOT)
 				), main);
 		
 		// new Snapshot
@@ -113,7 +114,7 @@ public class CopyOperation {
 					List<MRValue> participants = new ArrayList<MRValue>();
 					for(MAssociationEnd end : ac.associationEnds()){
 						try {
-							participants.add(new MRValueExpression(new ExpNavigation(new ExpVariable("cl", c.type()), ac, end, Collections.<Expression>emptyList())));
+							participants.add(new MRValueExpression(new ExpNavigation(new ExpVariable("cl", c), ac, end, Collections.<Expression>emptyList())));
 						} catch (ExpInvalidException ex) {
 							// TODO Auto-generated catch block
 							ex.printStackTrace();
@@ -148,7 +149,7 @@ public class CopyOperation {
 					seq = new MSequenceStatement();
 				}
 				
-				MRValue self = new MRValueExpression(FilmstripUtil.handlePredSucc(new ExpVariable("cl", c.type()), false, new Stack<VarDeclList>())); // "cl.succ"
+				MRValue self = new MRValueExpression(FilmstripUtil.handlePredSucc(new ExpVariable("cl", c), false, new Stack<VarDeclList>())); // "cl.succ"
 				MAssociationEnd ownEnd;
 				MAssociationEnd otherEnd;
 				if(as.associationEndsAt(c).size() == 2){
@@ -167,7 +168,7 @@ public class CopyOperation {
 				Expression cond;
 				MRValue other;
 				try {
-					objects = new ExpNavigation(new ExpVariable("cl", c.type()), ownEnd, otherEnd, Collections.<Expression>emptyList());
+					objects = new ExpNavigation(new ExpVariable("cl", c), ownEnd, otherEnd, Collections.<Expression>emptyList());
 				
 					if(otherEnd.multiplicity().isCollection()){
 						cond = ExpStdOp.create("isEmpty", new Expression[]{ objects });
@@ -216,7 +217,7 @@ public class CopyOperation {
 				Expression iterExp;
 				try {
 					iterExp = new ExpNavigation(
-							new ExpVariable("self", SNAPSHOT.type()),
+							new ExpVariable("self", SNAPSHOT),
 							assoc.getAssociationEnd(SNAPSHOT, FilmstripModelConstants.makeSnapshotClsRoleName(c.name())),
 							assoc.getAssociationEnd(c, c.nameAsRolename()), Collections.<Expression>emptyList());
 					main.appendStatement(new MIterationStatement("cl", iterExp, seq));
@@ -228,7 +229,7 @@ public class CopyOperation {
 		}
 		
 		// result := s
-		main.appendStatement(new MVariableAssignmentStatement("result", new MRValueExpression(new ExpVariable("s", model.getClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME).type()))));
+		main.appendStatement(new MVariableAssignmentStatement("result", new MRValueExpression(new ExpVariable("s", model.getClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME)))));
 		
 		return ret;
 	}
@@ -238,11 +239,11 @@ public class CopyOperation {
 		
 		for(MAttribute a : c.attributes()){
 			seq.appendStatement(new MAttributeAssignmentStatement(
-					new ExpVariable("cl", c.type()), a, new MRValueExpression(
+					new ExpVariable("cl", c), a, new MRValueExpression(
 							FilmstripUtil.handlePredSucc(
 									new ExpAttrOp(a, FilmstripUtil
 											.handlePredSucc(new ExpVariable(
-													"cl", c.type()), true,
+													"cl", c), true,
 													new Stack<VarDeclList>())),
 									false, new Stack<VarDeclList>()))));
 		}
@@ -251,7 +252,7 @@ public class CopyOperation {
 		MStatement ret = null;
 		try {
 			Expression iterExp = new ExpNavigation(
-					new ExpVariable("s", SNAPSHOT.type()),
+					new ExpVariable("s", SNAPSHOT),
 					assoc.getAssociationEnd(SNAPSHOT, FilmstripModelConstants.makeSnapshotClsRoleName(c.name())),
 					assoc.getAssociationEnd(c, c.nameAsRolename()), Collections.<Expression>emptyList());
 			ret = new MIterationStatement("cl", iterExp, seq);
@@ -274,17 +275,17 @@ public class CopyOperation {
 		
 		// insert PredSucc link
 		List<MRValue> predSuccRoles = Arrays.<MRValue>asList(
-				new MRValueExpression(new ExpVariable("cl", c.type())),
-				new MRValueExpression(new ExpVariable("x", c.type())));
+				new MRValueExpression(new ExpVariable("cl", c)),
+				new MRValueExpression(new ExpVariable("x", c)));
 		seq.appendStatement(new MLinkInsertionStatement(model
 				.getAssociation(FilmstripModelConstants
 						.makeClsOrdableAssocName(c.name())), predSuccRoles, new ArrayList<List<MRValue>>()));
 		
 		// insert Snapshot link
 		List<MRValue> snapshotRoles = Arrays.<MRValue>asList(
-				new MRValueExpression(new ExpVariable("x", c.type())),
+				new MRValueExpression(new ExpVariable("x", c)),
 						new MRValueExpression(new ExpVariable(
-								"s", SNAPSHOT.type())));
+								"s", SNAPSHOT)));
 		seq.appendStatement(new MLinkInsertionStatement(model
 				.getAssociation(FilmstripModelConstants
 						.makeSnapshotClsAssocName(c.name())),
@@ -292,7 +293,7 @@ public class CopyOperation {
 		
 		// block with var x and iteration
 		MBlockStatement inB = new MBlockStatement(Arrays.asList(
-				new VarDecl("x", c.type())
+				new VarDecl("x", c)
 				), seq);
 		
 		MAssociation assoc = model.getAssociation(FilmstripModelConstants.makeSnapshotClsAssocName(c.name()));
@@ -300,7 +301,7 @@ public class CopyOperation {
 		MStatement ret = null;
 		try {
 			iterExp = new ExpNavigation(
-					new ExpVariable("self", SNAPSHOT.type()),
+					new ExpVariable("self", SNAPSHOT),
 					assoc.getAssociationEnd(SNAPSHOT, FilmstripModelConstants.makeSnapshotClsRoleName(c.name())),
 					assoc.getAssociationEnd(c, c.nameAsRolename()), Collections.<Expression>emptyList());
 			ret = new MIterationStatement("cl", iterExp, inB);

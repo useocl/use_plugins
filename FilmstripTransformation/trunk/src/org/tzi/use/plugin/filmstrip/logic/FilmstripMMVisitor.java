@@ -44,13 +44,15 @@ import org.tzi.use.util.StringUtil;
 //TODO add position in model for new model elements
 public class FilmstripMMVisitor implements MMVisitor {
 	
-	private UseModelApi model;
-	private MModelConnector mc;
+	public static final String NAME = "Maximum compatible transformation";
 	
-	private Stack<Annotatable> annotatables = new Stack<Annotatable>();
-	private final ModelFactory mFactory = new ModelFactory();
+	protected UseModelApi model;
+	protected MModelConnector mc;
 	
-	private FilmstripMMVisitor(String modelName){
+	protected Stack<Annotatable> annotatables = new Stack<Annotatable>();
+	protected final ModelFactory mFactory = new ModelFactory();
+	
+	protected FilmstripMMVisitor(String modelName){
 		model = new UseModelApi(modelName);
 		mc = new FilmstripModelConnector(model.getModel());
 	}
@@ -61,103 +63,39 @@ public class FilmstripMMVisitor implements MMVisitor {
 		return visitor.getModel();
 	}
 	
-	private MModel getModel(){
+	protected MModel getModel(){
 		return model.getModel();
 	}
 	
-	private void initModel(){
+	protected void initModel(){
 		try {
+			createFilmstripElements();
+			
+			// additional elements for the SnapshotItem interface
 			// classes
-			model.createClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME, false);
-			model.createClass(FilmstripModelConstants.OPC_CLASSNAME, true);
-			model.createClass(FilmstripModelConstants.ORDERABLE_CLASSNAME, true);
+			model.createClass(FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME, true);
 			
 			// associations
-			model.createAssociation(FilmstripModelConstants.FILMSTRIP_ASSOCNAME, 
-				new String[]{
-						FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-						FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-						FilmstripModelConstants.OPC_CLASSNAME
-				}, new String[]{
-						FilmstripModelConstants.PRED_ROLENAME,
-						FilmstripModelConstants.SUCC_ROLENAME,
-						FilmstripModelConstants.makeRoleName(FilmstripModelConstants.OPC_CLASSNAME)
-				}, new String[]{
-						"0..1",
-						"0..1",
-						"0..1"
-				}, new int[]{
-						MAggregationKind.NONE,
-						MAggregationKind.NONE,
-						MAggregationKind.NONE
-				}, new boolean[]{
-						false,
-						false,
-						false
-				}, new String[0][][]);
-			
 			model.createAssociation(FilmstripModelConstants.ORDERABLE_ASSOCNAME,
-					FilmstripModelConstants.ORDERABLE_CLASSNAME,
+					FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME,
 					FilmstripModelConstants.PRED_ROLENAME,
 					"0..1",
 					MAggregationKind.AGGREGATION,
-					FilmstripModelConstants.ORDERABLE_CLASSNAME,
+					FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME,
 					FilmstripModelConstants.SUCC_ROLENAME,
 					"0..1",
 					MAggregationKind.NONE);
 			
 			model.createAssociation(FilmstripModelConstants.SNAPSHOTELEMENT_ASSOCNAME,
-					FilmstripModelConstants.ORDERABLE_CLASSNAME,
-					FilmstripModelConstants.makeRoleName(FilmstripModelConstants.ORDERABLE_CLASSNAME),
+					FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME,
+					FilmstripModelConstants.makeRoleName(FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME),
 					"*",
 					MAggregationKind.NONE,
 					FilmstripModelConstants.SNAPSHOT_CLASSNAME,
 					FilmstripModelConstants.makeRoleName(FilmstripModelConstants.SNAPSHOT_CLASSNAME),
 					"1",
 					MAggregationKind.NONE);
-			
-			// operations
-			model.createQueryOperation(FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-					FilmstripModelConstants.PRED_ROLENAME,
-					new String[0][],
-					FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-					FilmstripModelConstants.SNAPSHOT_PRED_OP);
-			model.createQueryOperation(FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-					FilmstripModelConstants.SUCC_ROLENAME,
-					new String[0][],
-					FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-					FilmstripModelConstants.SNAPSHOT_SUCC_OP);
-			
-			model.createQueryOperation(FilmstripModelConstants.OPC_CLASSNAME,
-					FilmstripModelConstants.PRED_ROLENAME,
-					new String[0][],
-					FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-					FilmstripModelConstants.SNAPSHOT_PRED_OP);
-			model.createQueryOperation(FilmstripModelConstants.OPC_CLASSNAME,
-					FilmstripModelConstants.SUCC_ROLENAME,
-					new String[0][],
-					FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-					FilmstripModelConstants.SNAPSHOT_SUCC_OP);
-			
-			// constraints
-			model.createInvariant(
-					FilmstripModelConstants.OPC_INV_ASSOCCLASSBEHAVIOR_NAME,
-					FilmstripModelConstants.OPC_CLASSNAME,
-					FilmstripModelConstants.OPC_INV_ASSOCCLASSBEHAVIOR,
-					false);
-			
-			model.createInvariant(
-					FilmstripModelConstants.SNAPSHOT_INV_CYCLEFREE_NAME,
-					FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-					FilmstripModelConstants.SNAPSHOT_INV_CYCLEFREE,
-					false);
-			
-			model.createInvariant(
-					FilmstripModelConstants.SNAPSHOT_INV_ONEFILMSTRIP_NAME,
-					FilmstripModelConstants.SNAPSHOT_CLASSNAME,
-					FilmstripModelConstants.SNAPSHOT_INV_ONEFILMSTRIP,
-					false);
-		} catch (Exception e) {
+		} catch (UseApiException e) {
 			throw new TransformationException("Error initialising the model", e);
 		}
 	}
@@ -168,7 +106,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 	 * @param expr
 	 * @return
 	 */
-	private Expression visitExpression(Expression expr, ExpressionType type, MClass src, VarDeclList varDefs){
+	protected Expression visitExpression(Expression expr, ExpressionType type, MClass src, VarDeclList varDefs){
 		FilmstripExpressionVisitor visitor = new FilmstripExpressionVisitor(
 				model.getModel(), src, type, mc, varDefs);
 		expr.processWithVisitor(visitor);
@@ -180,7 +118,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 	 * 
 	 * @param cls
 	 */
-	private void createOpCClass(MClass cls){
+	protected void createOpCClass(MClass cls){
 		for(MOperation op : cls.operations()){
 			if(!op.preConditions().isEmpty() || !op.postConditions().isEmpty()){
 				String opcName = FilmstripModelConstants.makeOpCName(cls.name());
@@ -188,8 +126,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 				try {
 					model.createClass(opcName, true);
 					model.createAttribute(opcName,
-							FilmstripModelConstants.OPC_SELF_VARNAME, cls
-									.type().toString());
+							FilmstripModelConstants.OPC_SELF_VARNAME, cls.toString());
 					model.createGeneralization(opcName,
 							FilmstripModelConstants.OPC_CLASSNAME);
 					model.createInvariant(
@@ -218,7 +155,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 	 * 
 	 * @param cls
 	 */
-	private void createClassInv(MClass cls) {
+	protected void createClassInv(MClass cls) {
 		try {
 			// valid pred succ linking
 			model.createInvariant(
@@ -230,7 +167,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			throw new TransformationException(
 					"Error adding invariant "
 							+ StringUtil
-									.inQuotes(FilmstripModelConstants.CLASS_INV_VALIDLINKING_NAME),
+									.inQuotes(cls.name() + "::" + FilmstripModelConstants.CLASS_INV_VALIDLINKING_NAME),
 					ex);
 		}
 	}
@@ -240,10 +177,11 @@ public class FilmstripMMVisitor implements MMVisitor {
 	 * 
 	 * @param assoc
 	 */
-	private void createAssocInv(MAssociation assoc) {
+	protected void createAssocInv(MAssociation assoc) {
 		String sourceClass = null;
 		
 		String[] ends = new String[assoc.associationEnds().size()-1];
+		boolean isTernary = ends.length > 1;
 		int i = 0;
 		for(MAssociationEnd end : assoc.associationEnds()){
 			if(sourceClass == null){
@@ -253,7 +191,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			}
 			
 			ends[i++] = FilmstripModelConstants.makeValidLinkingInvPart(end.name(),
-					end.multiplicity().isCollection());
+					isTernary || end.multiplicity().isCollection());
 		}
 		
 		String inv = StringUtil.fmtSeq(ends, " and ");
@@ -266,7 +204,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 					false);
 		} catch (UseApiException ex) {
 			throw new TransformationException("Error adding invariant "
-					+ StringUtil.inQuotes(invName), ex);
+					+ StringUtil.inQuotes(sourceClass  + "::" + invName), ex);
 		}
 	}
 	
@@ -276,7 +214,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 	 * @param attr
 	 * @param inPred
 	 */
-	private void createParamInv(MAttribute attr, boolean inPred) {
+	protected void createParamInv(MAttribute attr, boolean inPred) {
 		String inv = FilmstripModelConstants.makeParamDefinedInv(
 				"self." + attr.name(), attr.type(), inPred);
 		if(inv.equals("true")){
@@ -303,7 +241,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 	 * @param from
 	 * @param to
 	 */
-	private void copyAssociationDetails(MAssociation from, MAssociation to){
+	protected void copyAssociationDetails(MAssociation from, MAssociation to){
 		for(MAssociationEnd end : from.associationEnds()){
 			MAssociationEnd newEnd = to.getAssociationEnd(mc.mapClass(end.cls()), end.name());
 
@@ -336,6 +274,78 @@ public class FilmstripMMVisitor implements MMVisitor {
 		}
 	}
 	
+	protected void createFilmstripElements() throws UseApiException {
+		// classes
+		model.createClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME, false);
+		model.createClass(FilmstripModelConstants.OPC_CLASSNAME, true);
+		
+		// associations
+		model.createAssociation(FilmstripModelConstants.FILMSTRIP_ASSOCNAME, 
+			new String[]{
+					FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+					FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+					FilmstripModelConstants.OPC_CLASSNAME
+			}, new String[]{
+					FilmstripModelConstants.PRED_ROLENAME,
+					FilmstripModelConstants.SUCC_ROLENAME,
+					FilmstripModelConstants.makeRoleName(FilmstripModelConstants.OPC_CLASSNAME)
+			}, new String[]{
+					"0..1",
+					"0..1",
+					"0..1"
+			}, new int[]{
+					MAggregationKind.NONE,
+					MAggregationKind.NONE,
+					MAggregationKind.NONE
+			}, new boolean[]{
+					false,
+					false,
+					false
+			}, new String[0][][]);
+		
+		// operations
+		model.createQueryOperation(FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+				FilmstripModelConstants.PRED_ROLENAME,
+				new String[0][],
+				FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+				FilmstripModelConstants.SNAPSHOT_PRED_OP);
+		model.createQueryOperation(FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+				FilmstripModelConstants.SUCC_ROLENAME,
+				new String[0][],
+				FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+				FilmstripModelConstants.SNAPSHOT_SUCC_OP);
+		
+		model.createQueryOperation(FilmstripModelConstants.OPC_CLASSNAME,
+				FilmstripModelConstants.PRED_ROLENAME,
+				new String[0][],
+				FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+				FilmstripModelConstants.SNAPSHOT_PRED_OP);
+		model.createQueryOperation(FilmstripModelConstants.OPC_CLASSNAME,
+				FilmstripModelConstants.SUCC_ROLENAME,
+				new String[0][],
+				FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+				FilmstripModelConstants.SNAPSHOT_SUCC_OP);
+		
+		// constraints
+		model.createInvariant(
+				FilmstripModelConstants.OPC_INV_ASSOCCLASSBEHAVIOR_NAME,
+				FilmstripModelConstants.OPC_CLASSNAME,
+				FilmstripModelConstants.OPC_INV_ASSOCCLASSBEHAVIOR,
+				false);
+		
+		model.createInvariant(
+				FilmstripModelConstants.SNAPSHOT_INV_CYCLEFREE_NAME,
+				FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+				FilmstripModelConstants.SNAPSHOT_INV_CYCLEFREE,
+				false);
+		
+		model.createInvariant(
+				FilmstripModelConstants.SNAPSHOT_INV_ONEFILMSTRIP_NAME,
+				FilmstripModelConstants.SNAPSHOT_CLASSNAME,
+				FilmstripModelConstants.SNAPSHOT_INV_ONEFILMSTRIP,
+				false);
+	}
+	
 	@Override
 	public void visitAnnotation(MElementAnnotation a) {
 		Map<String, String> annoValues = new HashMap<String, String>();
@@ -353,7 +363,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		}
 	}
 	
-	private void copyAnnotations(Annotatable from, Annotatable to){
+	protected void copyAnnotations(Annotatable from, Annotatable to){
 		for (MElementAnnotation ann : from.getAllAnnotations().values()) {
 			annotatables.push(to);
 			ann.processWithVisitor(this);
@@ -378,6 +388,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			aggregationKinds[idx] = assocEnd.aggregationKind();
 			orderedInfo[idx] = assocEnd.isOrdered();
 			
+			//TODO creates null values for associations with a thingy on them, which leads to an NPE later
 			if(assocEnd.hasQualifiers()){
 				String[][] qualifiers = new String[assocEnd.getQualifiers().size()][2];
 				int i = 0;
@@ -432,7 +443,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		try {
 			newAssocClass = model.createAssociationClass(e.name(), e.isAbstract(), assocEnds,
 					roleNames, multiplicities, aggregationKinds);
-			model.createGeneralization(e.name(), FilmstripModelConstants.ORDERABLE_CLASSNAME);
+			model.createGeneralization(e.name(), FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME);
 		} catch (Exception ex) {
 			throw new TransformationException("Error adding associationclass "
 					+ StringUtil.inQuotes(e.name()), ex);
@@ -457,7 +468,9 @@ public class FilmstripMMVisitor implements MMVisitor {
 		MAttribute attribute;
 		try {
 			attribute = model.createAttribute(e.owner().name(), e.name(), e.type().toString());
-		} catch (Exception ex) {
+			
+			// derived and init expressions might be dependent on query operations and are added later
+		} catch (UseApiException ex) {
 			throw new TransformationException("Error adding attribute "
 					+ StringUtil.inQuotes(e.name()) + " of class "
 					+ StringUtil.inQuotes(e.owner().name()), ex);
@@ -472,7 +485,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		MClass newClass;
 		try {
 			newClass = model.createClass(e.name(), e.isAbstract());
-			model.createGeneralization(e.name(), FilmstripModelConstants.ORDERABLE_CLASSNAME);
+			model.createGeneralization(e.name(), FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME);
 			
 			MAssociation snapshotAssoc = model.createAssociation(
 					FilmstripModelConstants.makeSnapshotClsAssocName(e.name()),
@@ -555,7 +568,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			varDefs = new VarDeclList(true);
 			vars = new ArrayList<String>(e.vars().size());
 			for(VarDecl var : e.vars()){
-				varDefs.add(new VarDecl(var.name(), newOwningClass.type()));
+				varDefs.add(new VarDecl(var.name(), newOwningClass));
 				vars.add(var.name());
 			}
 		}
@@ -584,7 +597,8 @@ public class FilmstripMMVisitor implements MMVisitor {
 		copyAnnotations(e, newInv);
 	}
 
-	public void visitEnumeration(EnumType e){
+	@Override
+	public void visitEnum(EnumType e){
 		EnumType newEnumeration;
 		try {
 			newEnumeration = model.createEnumeration(e.name(), new ArrayList<String>(e.getLiterals()));
@@ -617,7 +631,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		initModel();
 		
 		for(EnumType e : m.enumTypes()){
-			visitEnumeration(e);
+			visitEnum(e);
 		}
 		
 		Set<MAssociationClass> associationClasses = new HashSet<MAssociationClass>();
@@ -653,21 +667,24 @@ public class FilmstripMMVisitor implements MMVisitor {
 			gen.processWithVisitor(this);
 		}
 		
-		// visit and define all operations 
+		// visit and define all operations
 		for(MClass ca : m.classes()){
 			for(MOperation op : ca.operations()){
 				op.processWithVisitor(this);
 			}
 		}
 		
-		// visit operation bodies, that might refer other operations
+		// visit operation bodies and attribute init and derive expressions, that might refer other operations
 		for(MClass ca : m.classes()){
 			for(MOperation op : ca.operations()){
 				visitOperationBody(op);
 			}
+			for(MAttribute a : ca.attributes()){
+				visitAttrInitDeriveExpr(a);
+			}
 		}
 		
-		for(MClassInvariant inv : m.classInvariants()){
+		for(MClassInvariant inv : m.modelClassInvariants()){
 			inv.processWithVisitor(this);
 		}
 		
@@ -869,6 +886,18 @@ public class FilmstripMMVisitor implements MMVisitor {
 								+ "; Op: " + StringUtil.inQuotes(op.name()));
 			}
 		}
+	}
+	
+	private void visitAttrInitDeriveExpr(MAttribute src) {
+		MAttribute target = mc.mapAttribute(src);
+		
+		if(src.isDerived()){
+			target.setDeriveExpression(visitExpression(src.getDeriveExpression(), ExpressionType.SOIL, target.owner(), null));
+		}
+		if(src.getInitExpression().isPresent()){
+			target.setInitExpression(visitExpression(src.getInitExpression().get(), ExpressionType.SOIL, target.owner(), null));
+		}
+		
 	}
 	
 	@Override

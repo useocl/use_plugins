@@ -8,17 +8,17 @@ import java.io.PrintWriter;
 
 import org.tzi.use.parser.use.USECompiler;
 import org.tzi.use.plugin.filmstrip.gui.ErrorFormatter;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMMVisitor;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripOptions;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripTransformer;
 import org.tzi.use.plugin.filmstrip.logic.TransformationException;
 import org.tzi.use.plugin.filmstrip.logic.TransformationInputException;
 import org.tzi.use.plugin.filmstrip.logic.TransformationInputException.ModelElements;
-import org.tzi.use.runtime.IPlugin;
 import org.tzi.use.runtime.impl.Plugin;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.ModelFactory;
 
-public class FilmstripPlugin extends Plugin implements IPlugin {
+public class FilmstripPlugin extends Plugin {
 
 	protected final String PLUGIN_ID = "FilmstripPlugin";
 	
@@ -40,11 +40,9 @@ public class FilmstripPlugin extends Plugin implements IPlugin {
 		File outputFile = new File(System.getProperty("user.dir"), outputFileName);
 		
 		MModel model;
-		try {
-			FileInputStream inStream = new FileInputStream(inputFile);
+		try (FileInputStream inStream = new FileInputStream(inputFile)) {
 			model = USECompiler.compileSpecification(inStream, inputFile.getName(),
 					new PrintWriter(System.err), new ModelFactory());
-			inStream.close();
 		} catch (IOException e) {
 			System.err.println("Could not open inputfile. " + e.getMessage());
 			System.exit(1);
@@ -57,7 +55,7 @@ public class FilmstripPlugin extends Plugin implements IPlugin {
 			return;
 		}
 		
-		FilmstripOptions options = new FilmstripOptions(model, model.name(), outputFile, false, false);
+		FilmstripOptions options = new FilmstripOptions(model, model.name(), outputFile, false, false, FilmstripMMVisitor.NAME);
 		FilmstripTransformer ft = new FilmstripTransformer(options);
 		try {
 			ft.transformAndSave();

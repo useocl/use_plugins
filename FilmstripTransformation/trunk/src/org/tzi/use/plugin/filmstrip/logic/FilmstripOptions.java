@@ -6,18 +6,20 @@ import org.tzi.use.uml.mm.MModel;
 
 public class FilmstripOptions {
 
-	private MModel model;
-	private String modelName;
-	private File savepath;
-	private boolean makeCopy;
-	private boolean transformSoil;
+	private final MModel model;
+	private final String modelName;
+	private final File savepath;
+	private final boolean makeCopy;
+	private final boolean transformSoil;
+	private final String transformationMethod;
 	
-	public FilmstripOptions(MModel model, String modelName, File savepath, boolean makeCopy, boolean transformSoil) {
+	public FilmstripOptions(MModel model, String modelName, File savepath, boolean makeCopy, boolean transformSoil, String transformationMethod) {
 		this.model = model;
 		this.modelName = modelName;
 		this.savepath = savepath;
 		this.makeCopy = makeCopy;
 		this.transformSoil = transformSoil;
+		this.transformationMethod = transformationMethod;
 	}
 
 	/**
@@ -53,6 +55,13 @@ public class FilmstripOptions {
 	 */
 	public boolean transformSoil() {
 		return transformSoil;
+	}
+	
+	/**
+	 * @return transformationMethod
+	 */
+	public String getTransformationMethod() {
+		return transformationMethod;
 	}
 	
 }

@@ -232,9 +232,12 @@ public class FilmstripStatementVisitor implements MStatementVisitor {
 	@Override
 	public void visit(MNewObjectStatement s) throws Exception {
 		MClass objectClass = mc.mapClass(s.getObjectClass());
-		Expression objectName = processExpression(s.getObjectName());
+		Expression objName = s.getObjectName();
+		if(objName != null){
+			objName = processExpression(objName);
+		}
 		
-		elements.push(new MNewObjectStatement(objectClass, objectName));
+		elements.push(new MNewObjectStatement(objectClass, objName));
 	}
 
 	@Override

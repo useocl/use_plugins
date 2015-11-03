@@ -12,8 +12,8 @@ import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.type.BagType;
 import org.tzi.use.uml.ocl.type.BasicType;
+import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.EnumType;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.OrderedSetType;
 import org.tzi.use.uml.ocl.type.SequenceType;
 import org.tzi.use.uml.ocl.type.SetType;
@@ -150,36 +150,39 @@ public class FilmstripModelConnector implements MModelConnector {
 	
 	@Override
 	public Type mapType(Type t){
-		if(t.isVoidType()){
+		if(t.isTypeOfVoidType()){
 			return TypeFactory.mkVoidType();
 		}
 		else if(t instanceof BasicType){
 			// basictypes are immutable
 			return t;
 		}
-		else if(t.isTrueOclAny()){
+		else if(t.isTypeOfOclAny()){
 			return TypeFactory.mkOclAny();
 		}
-		else if(t.isEnum()){
+		else if(t.isTypeOfEnum()){
 			EnumType et = (EnumType) t;
 			return TypeFactory.mkEnum(et.name(), et.getLiterals());
 		}
-		else if(t.isTrueObjectType()){
-			return TypeFactory.mkObjectType(mapClass(((ObjectType) t).cls()));
+		else if(t.isTypeOfClass()){
+			return mapClass((MClass) t);
 		}
-		else if(t.isTrueBag()){
+		else if(t.isTypeOfBag()){
 			return TypeFactory.mkBag(mapType(((BagType) t).elemType()));
 		}
-		else if(t.isTrueSequence()){
+		else if(t.isTypeOfSequence()){
 			return TypeFactory.mkSequence(mapType(((SequenceType) t).elemType()));
 		}
-		else if(t.isTrueSet()){
+		else if(t.isTypeOfSet()){
 			return TypeFactory.mkSet(mapType(((SetType) t).elemType()));
 		}
-		else if(t.isTrueOrderedSet()){
+		else if(t.isTypeOfOrderedSet()){
 			return TypeFactory.mkOrderedSet(mapType(((OrderedSetType) t).elemType()));
 		}
-		else if(t.isTupleType(true)){
+		else if(t.isTypeOfCollection()){
+			return TypeFactory.mkCollection(mapType(((CollectionType) t).elemType()));
+		}
+		else if(t.isTypeOfTupleType()){
 			TupleType tt = (TupleType) t;
 			
 			TupleType.Part[] parts = new TupleType.Part[tt.getParts().size()];

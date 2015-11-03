@@ -42,6 +42,7 @@ import org.tzi.use.uml.ocl.expr.ExpIsUnique;
 import org.tzi.use.uml.ocl.expr.ExpIterate;
 import org.tzi.use.uml.ocl.expr.ExpLet;
 import org.tzi.use.uml.ocl.expr.ExpNavigation;
+import org.tzi.use.uml.ocl.expr.ExpNavigationClassifierSource;
 import org.tzi.use.uml.ocl.expr.ExpObjAsSet;
 import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.ExpObjRef;
@@ -70,21 +71,20 @@ import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.expr.VarInitializer;
 import org.tzi.use.uml.ocl.type.EnumType;
-import org.tzi.use.uml.ocl.type.ObjectType;
 import org.tzi.use.uml.ocl.type.TupleType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.util.StringUtil;
 
 public class FilmstripExpressionVisitor implements ExpressionVisitor {
 
-	private final MModel model;
-	private final MClass src;
-	private final ExpressionType type;
-	private final MModelConnector mc;
+	protected final MModel model;
+	protected final MClass src;
+	protected final ExpressionType type;
+	protected final MModelConnector mc;
 	
-	private final Stack<Expression> elements = new Stack<Expression>();
-	private final VarDeclList selfVariables;
-	private final Stack<VarDeclList> knownVariables = new Stack<VarDeclList>();
+	protected final Stack<Expression> elements = new Stack<Expression>();
+	protected final VarDeclList selfVariables;
+	protected final Stack<VarDeclList> knownVariables = new Stack<VarDeclList>();
 	
 	public enum ExpressionType {
 		CLASSINVARIANT, PRECONDITION, POSTCONDITION, OPERATION, SOIL
@@ -104,11 +104,11 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		case OPERATION:
 			knownVariables.push(varDefs);
 		case SOIL:
-			selfVariables = new VarDeclList(new VarDecl("self", src.type()));
+			selfVariables = new VarDeclList(new VarDecl("self", src));
 			break;
 		case PRECONDITION:
 		case POSTCONDITION:
-			selfVariables = new VarDeclList(new VarDecl("self", src.type()));
+			selfVariables = new VarDeclList(new VarDecl("self", src));
 			break;
 		default:
 			throw new TransformationException("Unkown expression type "
@@ -187,7 +187,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		return state;
 	}
 	
-	private void copyExpressionDetails(Expression from, Expression to){
+	protected void copyExpressionDetails(Expression from, Expression to){
 		to.setIsPre(false);
 		to.setSourcePosition(from.getSourcePosition());
 	}
@@ -231,22 +231,24 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		 * Transform <Class>.allInstances() into
 		 * self.snapshot.<Class.asRolename()>
 		 */
-		ObjectType expType = (ObjectType) mc.mapType(exp.getSourceType());
-		Expression self;
+		//TODO incompatible with anything other than Class.allInstances (e.g. Association.allInstances)
+		MClass expType = (MClass) mc.mapType(exp.getSourceType());
+		if(selfVariables.size() < 1){
+			throw new TransformationException("No self variable found for ExpAllInstances");
+		}
+		VarDecl selfDecl = selfVariables.varDecl(0);
+		Expression self = new ExpVariable(selfDecl.name(), selfDecl.type());
+		
 		switch (type) {
 		case CLASSINVARIANT:
 		case OPERATION:
 		case SOIL:
-			if(selfVariables.size() < 1){
-				throw new TransformationException("No self variable found for ExpAllInstances");
-			}
-			VarDecl selfDecl = selfVariables.varDecl(0);
-			self = new ExpVariable(selfDecl.name(), selfDecl.type());
+			// no changes required
 			break;
 		case PRECONDITION:
 		case POSTCONDITION:
 			self = new ExpVariable(FilmstripModelConstants.OPC_SELF_VARNAME, expType);
-			if(type == ExpressionType.POSTCONDITION){
+			if(type == ExpressionType.POSTCONDITION && !exp.isPre()){
 				self = FilmstripUtil.handlePredSucc(self, false, knownVariables);
 			}
 			break;
@@ -256,15 +258,15 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		
 		// navigate to snapshot and back to the class
 		MClass snapshot = model.getClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME);
-		MClass snapElement = model.getClass(FilmstripModelConstants.ORDERABLE_CLASSNAME);
+		MClass snapElement = model.getClass(FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME);
 		MAssociation genAssoc = model.getAssociation(FilmstripModelConstants.SNAPSHOTELEMENT_ASSOCNAME);
 		MAssociation assoc = model.getAssociation(FilmstripModelConstants
-				.makeSnapshotClsAssocName(expType.cls().name()));
+				.makeSnapshotClsAssocName(expType.name()));
 		
 		MAssociationEnd sourceEnd = genAssoc.associationEndsAt(snapElement).iterator().next();
 		MAssociationEnd snapshotEndTo = genAssoc.associationEndsAt(snapshot).iterator().next();
 		MAssociationEnd snapshotEndFrom = assoc.associationEndsAt(snapshot).iterator().next();
-		MAssociationEnd finalEnd = assoc.associationEndsAt(expType.cls()).iterator().next();
+		MAssociationEnd finalEnd = assoc.associationEndsAt(expType).iterator().next();
 		ExpNavigation toSnapshotNav;
 		ExpNavigation fromSnapshotNav;
 		try {
@@ -409,7 +411,11 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 					+ StringUtil.inQuotes(exp.getOperation().cls().name()));
 		}
 		
-		ExpObjOp objOpExp;
+		if(exp.isPre()){
+			exps[0] = FilmstripUtil.handlePredSucc(exps[0], true, knownVariables);
+		}
+		
+		Expression objOpExp;
 		try {
 			objOpExp = new ExpObjOp(op, exps);
 		} catch (ExpInvalidException ex) {
@@ -417,6 +423,10 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		}
 		
 		copyExpressionDetails(exp, objOpExp);
+		if(exp.isPre()){
+			objOpExp = FilmstripUtil.handlePredSucc(objOpExp, false, knownVariables);
+		}
+		
 		elements.push(objOpExp);
 	}
 	
@@ -519,8 +529,8 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 				variableExp = new ExpVariable(var.name(), var.type());
 			}
 			else if((var = getSelfDef(exp.getVarname())) != null){
-				ObjectType t = (ObjectType) var.type();
-				MAttribute a = t.cls().attribute(FilmstripModelConstants.OPC_SELF_VARNAME, true);
+				MClass t = (MClass) var.type();
+				MAttribute a = t.attribute(FilmstripModelConstants.OPC_SELF_VARNAME, true);
 				variableExp = new ExpVariable(FilmstripModelConstants.OPC_SELF_VARNAME, a.type());
 				
 				if(type == ExpressionType.POSTCONDITION){
@@ -534,10 +544,10 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 				boolean aSelfVar = false;
 				// handle special "result" var
 				if(exp.getVarname().equals("result")){
-					attr = ((ObjectType) aSelfAttr.type()).cls().attribute(
+					attr = src.attribute(
 							FilmstripModelConstants.OPC_RETURNVALUE_VARNAME,
 							false);
-					aSelfVar = true;
+					aSelfVar = false;
 				}
 				else {
 					// operation parameters
@@ -545,7 +555,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 					
 					if(attr == null){
 						// properties of "self" (aSelf)
-						attr = ((ObjectType) aSelfAttr.type()).cls().attribute(exp.getVarname(), true);
+						attr = ((MClass) aSelfAttr.type()).attribute(exp.getVarname(), true);
 						aSelfVar = true;
 					}
 				}
@@ -584,7 +594,7 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		
 		ExpObjectByUseId objectByUseIdExp;
 		try {
-			objectByUseIdExp = new ExpObjectByUseId(mc.mapType(expObjectByUseId.getSourceType()), idExp);
+			objectByUseIdExp = new ExpObjectByUseId((MClass) mc.mapType(expObjectByUseId.getSourceType()), idExp);
 		} catch (ExpInvalidException ex) {
 			throw new TransformationException("ExpObjectByUseId", ex);
 		}
@@ -729,6 +739,26 @@ public class FilmstripExpressionVisitor implements ExpressionVisitor {
 		elements.push(navigationExp);
 	}
 
+	@Override
+	public void visitNavigationClassifierSource(ExpNavigationClassifierSource exp) {
+		MNavigableElement destElem = mc.mapNavigableElement(exp.getDestination());
+		Type type = mc.mapType(exp.type());
+		Expression objExpr = processSubExpression(exp.getObjectExpression());
+		
+		if(exp.isPre()){
+			objExpr = FilmstripUtil.handlePredSucc(objExpr, true, knownVariables);
+		}
+		
+		Expression navigationExp = new ExpNavigationClassifierSource(type, objExpr, destElem);
+		
+		if(exp.isPre()){
+			navigationExp = FilmstripUtil.handlePredSucc(navigationExp, false, knownVariables);
+		}
+		
+		copyExpressionDetails(exp, navigationExp);
+		elements.push(navigationExp);
+	}
+	
 	@Override
 	public void visitObjAsSet(ExpObjAsSet exp) {
 		Expression objExpr = processSubExpression(exp.getObjectExpression());

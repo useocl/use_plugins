@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import org.tzi.use.config.Options;
 import org.tzi.use.main.shell.runtime.IPluginShellCmd;
 import org.tzi.use.plugin.filmstrip.gui.ErrorFormatter;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMMVisitor;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripOptions;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripTransformer;
 import org.tzi.use.plugin.filmstrip.logic.TransformationException;
@@ -32,7 +33,7 @@ public class TransformIntoFilmstripCommand implements IPluginShellCmdDelegate {
 		
 		FilmstripOptions options = new FilmstripOptions(pluginCommand
 				.getSession().system().model(), pluginCommand.getSession()
-				.system().model().name(), saveFile, false, false);
+				.system().model().name(), saveFile, false, false, FilmstripMMVisitor.NAME);
 		FilmstripTransformer ft = new FilmstripTransformer(options);
 		try {
 			ft.transformAndSave();
