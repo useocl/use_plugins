@@ -28,12 +28,16 @@ import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MElementAnnotation;
 import org.tzi.use.uml.mm.MGeneralization;
+import org.tzi.use.uml.mm.MInvalidModelException;
 import org.tzi.use.uml.mm.MMVisitor;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.mm.MPrePostCondition;
 import org.tzi.use.uml.mm.ModelFactory;
 import org.tzi.use.uml.mm.commonbehavior.communications.MSignal;
+import org.tzi.use.uml.ocl.expr.ExpAllInstances;
+import org.tzi.use.uml.ocl.expr.ExpForAll;
+import org.tzi.use.uml.ocl.expr.ExpInvalidException;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
@@ -140,7 +144,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 							FilmstripModelConstants.OPC_INV_SELFINPRED,
 							false);
 				}
-				catch (Exception ex) {
+				catch (UseApiException ex) {
 					throw new TransformationException(
 							"Error creating OpC class for "
 									+ StringUtil.inQuotes(cls.name()), ex);
@@ -229,7 +233,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 					attr.owner().name(),
 					inv,
 					false);
-		} catch (Exception ex) {
+		} catch (UseApiException ex) {
 			throw new TransformationException("Error adding invariant "
 					+ StringUtil.inQuotes(invName), ex);
 		}
@@ -378,7 +382,15 @@ public class FilmstripMMVisitor implements MMVisitor {
 		String[] multiplicities = new String[numEntries];
 		int[] aggregationKinds = new int[numEntries];
 		boolean[] orderedInfo = new boolean[numEntries];
-		String[][][] qualifier = (e.hasQualifiedEnds())?new String[numEntries][][]:new String[0][][];
+		String[][][] qualifier;
+		if(e.hasQualifiedEnds()){
+			qualifier = new String[numEntries][][];
+			for (int i = 0; i < qualifier.length; i++) {
+				qualifier[i] = new String[0][];
+			}
+		} else {
+			qualifier = new String[0][][];
+		}
 		
 		int idx = 0;
 		for(MAssociationEnd assocEnd : e.associationEnds()){
@@ -388,7 +400,6 @@ public class FilmstripMMVisitor implements MMVisitor {
 			aggregationKinds[idx] = assocEnd.aggregationKind();
 			orderedInfo[idx] = assocEnd.isOrdered();
 			
-			//TODO creates null values for associations with a thingy on them, which leads to an NPE later
 			if(assocEnd.hasQualifiers()){
 				String[][] qualifiers = new String[assocEnd.getQualifiers().size()][2];
 				int i = 0;
@@ -410,7 +421,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		try {
 			newAssoc = model.createAssociation(e.name(), assocEnds, roleNames, multiplicities,
 					aggregationKinds, orderedInfo, qualifier);
-		} catch (Exception ex) {
+		} catch (UseApiException ex) {
 			throw new TransformationException("Error adding association "
 					+ StringUtil.inQuotes(e.name()), ex);
 		}
@@ -444,7 +455,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			newAssocClass = model.createAssociationClass(e.name(), e.isAbstract(), assocEnds,
 					roleNames, multiplicities, aggregationKinds);
 			model.createGeneralization(e.name(), FilmstripModelConstants.SNAPSHOTITEM_CLASSNAME);
-		} catch (Exception ex) {
+		} catch (UseApiException ex) {
 			throw new TransformationException("Error adding associationclass "
 					+ StringUtil.inQuotes(e.name()), ex);
 		}
@@ -540,7 +551,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 				}
 			}
 		}
-		catch (Exception ex) {
+		catch (UseApiException ex) {
 			throw new TransformationException("Error transforming class "
 					+ StringUtil.inQuotes(e.name()), ex);
 		}
@@ -562,14 +573,34 @@ public class FilmstripMMVisitor implements MMVisitor {
 	public void visitClassInvariant(MClassInvariant e) {
 		MClass newOwningClass = mc.mapClass(e.cls());
 		
+		Expression expToTransform = e.bodyExpression();
+		
 		VarDeclList varDefs = null;
 		List<String> vars = null;
 		if(e.hasVar()){
 			varDefs = new VarDeclList(true);
-			vars = new ArrayList<String>(e.vars().size());
+			vars = new ArrayList<String>(1);
+			VarDeclList secondaryVarDefs = new VarDeclList(true);
+			
+			boolean first = true;
 			for(VarDecl var : e.vars()){
-				varDefs.add(new VarDecl(var.name(), newOwningClass));
-				vars.add(var.name());
+				if(first){
+					varDefs.add(new VarDecl(var.name(), newOwningClass));
+					vars.add(var.name());
+				} else {
+					secondaryVarDefs.add(new VarDecl(var.name(), newOwningClass));
+				}
+				first = false;
+			}
+			
+			if(e.vars().size() > 1){
+				// rewrite invariant with multiple variables
+				try {
+					Expression rangeExp = new ExpAllInstances(newOwningClass);
+					expToTransform = new ExpForAll(secondaryVarDefs, rangeExp, expToTransform);
+				} catch (ExpInvalidException e1) {
+					throw new TransformationException("Unable to rewrite variables for invariant " + StringUtil.inQuotes(e.qualifiedName()), e1);
+				}
 			}
 		}
 		
@@ -579,14 +610,14 @@ public class FilmstripMMVisitor implements MMVisitor {
 					e.name(),
 					vars,
 					mc.mapClass(e.cls()),
-					visitExpression(e.bodyExpression(),
+					visitExpression(expToTransform,
 							ExpressionType.CLASSINVARIANT,
 							newOwningClass, varDefs),
 					e.isExistential());
 			
 			model.getModel().addClassInvariant(newInv);
 		}
-		catch (Exception ex) {
+		catch (ExpInvalidException | MInvalidModelException ex) {
 			throw new TransformationException(
 					"Error transforming class invariant "
 							+ StringUtil.inQuotes(e.name()) + " of class "
@@ -602,7 +633,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		EnumType newEnumeration;
 		try {
 			newEnumeration = model.createEnumeration(e.name(), new ArrayList<String>(e.getLiterals()));
-		} catch (Exception ex) {
+		} catch (UseApiException ex) {
 			throw new TransformationException("Error transforming enumeration "
 					+ StringUtil.inQuotes(e.name()), ex);
 		}
@@ -616,7 +647,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		MGeneralization generalization;
 		try {
 			generalization = model.createGeneralization(e.child().name(), e.parent().name());
-		} catch (Exception ex) {
+		} catch (UseApiException ex) {
 			throw new TransformationException(
 					"Error transforming generalization between "
 							+ StringUtil.inQuotes(e.parent().name()) + " and "
@@ -804,7 +835,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 		MOperation newOp;
 		try {
 			newOp = model.createOperation(op.cls().name(), op.name(), params, resultType);
-		} catch (Exception ex) {
+		} catch (UseApiException ex) {
 			throw new TransformationException("Error creating operation "
 					+ StringUtil.inQuotes(op.name()), ex);
 		}
@@ -830,7 +861,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 					createParamInv(param, true);
 				}
 			}
-			catch(Exception ex){
+			catch(UseApiException ex){
 				throw new TransformationException(
 						"Error transforming OpC class for operation "
 								+ StringUtil.inQuotes(op.name()), ex);
@@ -855,7 +886,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 					newOp.setExpression(visitExpression(op.expression(),
 							ExpressionType.OPERATION, mc.mapClass(op.cls()), varDefs));
 				}
-				catch (Exception ex) {
+				catch (MInvalidModelException ex) {
 					throw new TransformationException(
 							"Error transforming expression for operation "
 									+ StringUtil.inQuotes(op.name())
@@ -918,7 +949,7 @@ public class FilmstripMMVisitor implements MMVisitor {
 			inv = mFactory.createClassInvariant(invName, null, cls, newExpression, false);
 			model.getModel().addClassInvariant(inv);
 		}
-		catch (Exception ex) {
+		catch (ExpInvalidException | MInvalidModelException ex) {
 			throw new TransformationException(
 					"Error transforming classinvariant for PrePostCondition "
 							+ StringUtil.inQuotes(e.name()) + " of class "
