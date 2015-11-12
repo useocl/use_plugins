@@ -65,13 +65,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	@Override
 	public void visitModel(IModel model) {
 		iterate(model.classes().iterator());
-
-		for (IClass clazz : model.classes()) {
-			iterate(clazz.attributes().iterator());
-			for (IInvariant invariant : clazz.invariants()) {
-				invariant.accept(this);
-			}
-		}
 		iterate(model.associations().iterator());
 		iterate(model.typeFactory().configurableTypes().iterator());
 
@@ -98,6 +91,9 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		ClassConfigurator configurator = setClassConfigurator(clazz, values);
 		clazz.objectType().setValues(values);
 		clazz.objectType().setValueSize(configurator.getMax());
+		
+		iterate(clazz.attributes().iterator());
+		iterate(clazz.invariants().iterator());
 	}
 
 	@Override
@@ -543,7 +539,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	private void readSpecificAttributeValues(IAttribute attribute, IClass owner, List<String[]> specificValues, Set<String[]> typeSpecificValues) {
 		Map<IClass, List<String>> specificClassValues = getClassSpecificValues(owner);
 
-		for (IClass clazz : getClassSpecificValues(owner).keySet()) {
+		for (IClass clazz : specificClassValues.keySet()) {
 			for (String object : specificClassValues.get(clazz)) {
 				String searchName = object + "_" + attribute.name();
 

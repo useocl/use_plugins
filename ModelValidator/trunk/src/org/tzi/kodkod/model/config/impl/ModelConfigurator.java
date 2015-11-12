@@ -84,6 +84,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 			List<Variable> varList = new ArrayList<Variable>(clsNum);
 			
 			for(int i = 0; i < clsNum; i++){
+				//FIXME name collision possible here?
 				Variable obj = Variable.unary(cls.name().charAt(0) + String.valueOf(i));
 				Decl decl = obj.oneOf(cls.relation());
 				

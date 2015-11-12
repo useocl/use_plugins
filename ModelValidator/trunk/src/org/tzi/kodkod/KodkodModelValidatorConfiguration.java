@@ -41,6 +41,7 @@ public enum KodkodModelValidatorConfiguration {
 	public final String BITWIDTH_KEY = "bitwidth";
 	public final String DIAGRAMEXTREACTION_KEY = "AutomaticDiagramExtraction";
 	public final String DIAGRAMEXTREACTION_KEY_SHORT = "objExtraction";
+	public final String DEBUG_BOUNDS_PRINTOUT_KEY = "dBoundPrintout";
 
 	private final SATFactory DEFAULT_SATFACTORY = SATFactory.DefaultSAT4J;
 	private final int DEFAULT_BITWIDTH = 8;
@@ -50,6 +51,7 @@ public enum KodkodModelValidatorConfiguration {
 	private int bitwidth = DEFAULT_BITWIDTH;
 
 	private boolean automaticDiagramExtraction = DEFAULT_DIAGRAMEXTRACTION;
+	private boolean debugBoundsPrint = false;
 
 	private File file;
 	private boolean read = false;
@@ -194,6 +196,15 @@ public enum KodkodModelValidatorConfiguration {
 			LOG.warn(LogMessages.wrongBitwidthWarning(DEFAULT_BITWIDTH));
 			this.bitwidth = DEFAULT_BITWIDTH;
 		}
+	}
+	
+	public void setDebugBoundsPrint(boolean debugBoundsPrint) {
+		this.debugBoundsPrint = debugBoundsPrint;
+		LOG.info("Debug bound printout is now " + (debugBoundsPrint?"on":"off"));
+	}
+	
+	public boolean isDebugBoundsPrint() {
+		return debugBoundsPrint;
 	}
 
 	/**

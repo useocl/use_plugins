@@ -144,7 +144,6 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 			TupleSet domain = tupleFactory.noneOf(1);
 			for (String domainValue : domainValues) {
 				if (type.isInteger() || type.isIntegerCollection()) {
-					//FIXME potential bug: undefined / undefined_set cannot be specified
 					domain.add(tupleFactory.tuple(Integer.valueOf(domainValue)));
 				} else {
 					if (type.isCollection()) {

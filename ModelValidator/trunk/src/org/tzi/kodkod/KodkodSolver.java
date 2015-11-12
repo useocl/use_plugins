@@ -40,6 +40,10 @@ public class KodkodSolver {
 
 		KodkodModelValidatorConfiguration configuration = KodkodModelValidatorConfiguration.INSTANCE;
 
+		if(configuration.isDebugBoundsPrint()){
+			LOG.info(bounds);
+		}
+		
 		final Solver solver = new Solver();
 		solver.options().setLogTranslation(1);
 		

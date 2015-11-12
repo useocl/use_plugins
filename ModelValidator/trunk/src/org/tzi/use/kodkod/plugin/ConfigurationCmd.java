@@ -47,12 +47,15 @@ public class ConfigurationCmd implements IPluginShellCmdDelegate {
 							}
 						} else if (name.equalsIgnoreCase(configuration.DIAGRAMEXTREACTION_KEY) || name.equalsIgnoreCase(configuration.DIAGRAMEXTREACTION_KEY_SHORT)) {
 							if (split[1].equalsIgnoreCase("on") || split[1].equalsIgnoreCase("off")) {
-								Boolean value = split[1].equalsIgnoreCase("on") ? true : false;
+								boolean value = split[1].equalsIgnoreCase("on") ? true : false;
 
 								configuration.setAutomaticDiagramExtraction(value);
 							} else {
 								LOG.error(LogMessages.configDiagramExtractionError);
 							}
+						} else if(name.equalsIgnoreCase(configuration.DEBUG_BOUNDS_PRINTOUT_KEY)){
+							boolean value = split[1].equalsIgnoreCase("on") ? true : false;
+							configuration.setDebugBoundsPrint(value);
 						} else {
 							LOG.error(LogMessages.solverConfigWrongArgumentError(name));
 						}
