@@ -84,13 +84,21 @@ public class ModelConfigurator extends Configurator<IModel> {
 			List<Variable> varList = new ArrayList<Variable>(clsNum);
 			
 			for(int i = 0; i < clsNum; i++){
-				//FIXME name collision possible here?
-				Variable obj = Variable.unary(cls.name().charAt(0) + String.valueOf(i));
+				Variable obj = Variable.unary(cls.name() + String.valueOf(i));
 				Decl decl = obj.oneOf(cls.relation());
 				
 				varList.add(obj);
 				
 				globDecl = (globDecl == null) ? decl : globDecl.and(decl);
+			}
+			
+			// each variable must be unique (A0 <> A1 && A0 <> A2 && A1 <> A2 && ...)
+			for (int i = 0; i < varList.size(); i++) {
+				Variable left = varList.get(i);
+				for (int j = i+1; j < varList.size(); j++) {
+					Variable right = varList.get(j);
+					formula = formula.and(left.eq(right).not());
+				}
 			}
 			
 			classVariables.put(cls, varList);
