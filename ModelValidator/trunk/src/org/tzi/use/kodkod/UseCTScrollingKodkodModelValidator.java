@@ -104,6 +104,12 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 	
 	@Override
 	protected void newSolution(Map<Relation, TupleSet> relationTuples) {
+		Formula f = genClassifyingTermFormula();
+		((ModelConfigurator) model.getConfigurator()).setSolutionFormula(f);
+		validate(model);
+	}
+
+	protected Formula genClassifyingTermFormula() {
 		Formula f = null;
 		
 		for (Map<ClassifyingTerm, Value> solutions : termSolutions) {
@@ -117,9 +123,7 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 			
 			f = (f == null) ? currSolution.not() : f.and(currSolution.not()) ;
 		}
-		
-		((ModelConfigurator) model.getConfigurator()).setSolutionFormula(f);
-		validate(model);
+		return f;
 	}
 
 	protected void readSolutionTerms(MSystemState state) {

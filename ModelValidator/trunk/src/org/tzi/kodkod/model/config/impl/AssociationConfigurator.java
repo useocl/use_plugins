@@ -9,6 +9,7 @@ import kodkod.ast.Formula;
 import kodkod.ast.IntConstant;
 import kodkod.ast.IntExpression;
 import kodkod.ast.Relation;
+import kodkod.instance.Tuple;
 import kodkod.instance.TupleFactory;
 import kodkod.instance.TupleSet;
 
@@ -88,6 +89,13 @@ public class AssociationConfigurator extends Configurator<IAssociation> {
 				upper = upper.product(current);
 			}
 		}
+		
+		// remove possible all-null tuple [Undefined, Undefined, ...]
+		Tuple t = tupleFactory.tuple(TypeConstants.UNDEFINED);
+		for(int i = 1; i < upper.arity(); i++){
+			t = t.product(tupleFactory.tuple(TypeConstants.UNDEFINED));
+		}
+		upper.remove(t);
 
 		if (associationClass != null) {
 			TupleSet associationClassTuples = associationClass.upperBound(tupleFactory);
