@@ -71,13 +71,10 @@ public class PropertiesWriter {
 		write("["+section+"]");
 		writeNewLine();
 		writeBasicTypes(pc);
-		write(PropertyEntry.STRONG_DIVIDE_LINE);
-		int i = 0;
 		for (IClass clazz : iModel.classes()) {
 			writeClass(clazz, pc);
 			writeNewLine();
 			writeAttributes(clazz.attributes(), pc);
-			i++;
 
 			List<IAssociation> classAssociations = new ArrayList<>();
 			for (IAssociation association : iModel.associations()) {
@@ -87,9 +84,6 @@ public class PropertiesWriter {
 			}
 			for (IAssociation association : classAssociations) {
 				writeAssociation(association, pc);
-			}
-			if (!(i >= iModel.classes().size())) {
-				write(PropertyEntry.LIGHT_DIVIDE_LINE);
 			}
 		}
 		
@@ -115,6 +109,9 @@ public class PropertiesWriter {
 			writeProperty(integerMax, pc.getInt(integerMax, DefaultConfigurationValues.integerMax));
 			needSeperator = true;
 		}
+		if(isDefaultConfiguration){
+			write(PropertyEntry.COMMENT_LABEL + TypeConstants.INTEGER + " = Set{ ... }");
+		}
 
 		if(needSeperator){
 			writeNewLine();
@@ -122,19 +119,22 @@ public class PropertiesWriter {
 		}
 		
 		String string = TypeConstants.STRING;
-		String stringMin = string + PropertyEntry.stringValuesMin;
+//		String stringMin = string + PropertyEntry.stringValuesMin;
 		String stringMax = string + PropertyEntry.stringValuesMax;
 		if (pc.containsKey(string) && pc.getProperty(string) != null) {
 			writeProperty(string, propertyToString(pc.getProperty(string)));
 			needSeperator = true;
 		}
-		if (pc.containsKey(stringMin)) {
-			writeProperty(stringMin, pc.getInt(stringMin, DefaultConfigurationValues.stringMin));
-			needSeperator = true;
-		}
+//		if (pc.containsKey(stringMin)) {
+//			writeProperty(stringMin, pc.getInt(stringMin, DefaultConfigurationValues.stringMin));
+//			needSeperator = true;
+//		}
 		if (pc.containsKey(stringMax)) {
 			writeProperty(stringMax, pc.getInt(stringMax, DefaultConfigurationValues.stringMax));
 			needSeperator = true;
+		}
+		if(isDefaultConfiguration){
+			write(PropertyEntry.COMMENT_LABEL + TypeConstants.STRING + " = Set{ ... }");
 		}
 
 		if(needSeperator){
@@ -164,6 +164,7 @@ public class PropertiesWriter {
 		String cls = clazz.name();
 		String clsMin = cls + PropertyEntry.objMin;
 		String clsMax = cls + PropertyEntry.objMax;
+		writeLabeledLine(' ' + cls, "-", false);
 		if (!clazz.isAbstract()) {
 			if ((clazz instanceof IAssociationClass) && pc.containsKey(cls + PropertyEntry.ASSOCIATIONCLASS)
 					&& pc.getProperty(cls + PropertyEntry.ASSOCIATIONCLASS) != null) {
@@ -192,8 +193,7 @@ public class PropertiesWriter {
 			String attrMaxSize = attr + PropertyEntry.attributeColSizeMax;
 
 			if(isDefaultConfiguration){
-				writer.write(PropertyEntry.COMMENT_LABEL + attr + " = Set{ ... }");
-				writeNewLine();
+				write(PropertyEntry.COMMENT_LABEL + attr + " = Set{ ... }");
 			} else {
 				if (pc.containsKey(attr) && pc.getProperty(attr) != null) {
 					writeProperty(attr, propertyToString(pc.getProperty(attr)));
@@ -218,8 +218,8 @@ public class PropertiesWriter {
 		String assoc = association.name();
 		String assocMin = assoc+PropertyEntry.linksMin;
 		String assocMax = assoc+PropertyEntry.linksMax;
-		writeAssociationHeader(association);
 		writeNewLine();
+		writeAssociationHeader(association);
 		if ((pc.containsKey(assoc) && (pc.getProperty(assoc) != null))) {
 			writeProperty(assoc, propertyToString(pc.getProperty(assoc)));
 		}
@@ -237,7 +237,7 @@ public class PropertiesWriter {
 			String inv = invariant.clazz().name()+"_"+invariant.name();
 			if (pc.containsKey(inv) && (pc.getProperty(inv) != null)) {
 				if(first){
-					write(PropertyEntry.STRONG_DIVIDE_LINE);
+					writeLabeledLine("", "-", true);
 					first = false;
 				}
 				writeProperty(inv, pc.getString(inv));
@@ -249,29 +249,25 @@ public class PropertiesWriter {
 		boolean first = true;
 		if (pc.containsKey(PropertyEntry.aggregationcyclefreeness) && (pc.getProperty(PropertyEntry.aggregationcyclefreeness) != null)) {
 			if(first){
-				write(PropertyEntry.STRONG_DIVIDE_LINE);
+				writeLabeledLine("", "-", true);
 				first = false;
 			}
 			writeProperty(PropertyEntry.aggregationcyclefreeness, pc.getString(PropertyEntry.aggregationcyclefreeness));
 		}
 		if (pc.containsKey(PropertyEntry.forbiddensharing) && (pc.getProperty(PropertyEntry.forbiddensharing) != null)) {
 			if(first){
-				write(PropertyEntry.STRONG_DIVIDE_LINE);
+				writeLabeledLine("", "-", true);
 				first = false;
 			}
 			writeProperty(PropertyEntry.forbiddensharing, pc.getString(PropertyEntry.forbiddensharing));
 		}
 	}
 
-	private String propertyToString(Object arrayList) {
-		String string;
-		if (!(arrayList instanceof String)) {
-			string = arrayList.toString().trim();
-			return string.substring(1, string.length()-1);
+	private String propertyToString(Object arg) {
+		if(arg instanceof Collection<?>){
+			return StringUtil.fmtSeq((Collection<?>) arg, ", ");
 		} else {
-			string = (String) arrayList;
-			string = string.trim();
-			return string;
+			return arg.toString().trim();
 		}
 	}
 
@@ -285,18 +281,15 @@ public class PropertiesWriter {
 	}
 
 	private void writeProperty(String name, double value) throws IOException {
-		writer.write(name + " = " + value);
-		writer.newLine();
+		write(name + " = " + value);
 	}
 
 	private void writeProperty(String name, int value) throws IOException {
-		writer.write(name + " = " + value);
-		writer.newLine();
+		write(name + " = " + value);
 	}
 
 	private void writeProperty(String name, String value) throws IOException {
-		writer.write(name + " = " + value);
-		writer.newLine();
+		write(name + " = " + value);
 	}
 
 	private void writeAssociationHeader(IAssociation association) throws IOException {
@@ -311,23 +304,45 @@ public class PropertiesWriter {
 		});
 		sb.append(")");
 
-		writeLabeledLine(sb.toString());
+		writeLabeledLine(sb.toString(), " -", true);
 	}
 
-	private void writeLabeledLine(String string) throws IOException {
+	private void writeLabeledLine(String label, String lineChars, boolean prepend) throws IOException {
+		if(lineChars.isEmpty()){
+			throw new IllegalArgumentException("Line characters may not be empty (infinite loop)");
+		}
 		StringBuilder sb = new StringBuilder();
+		final int reservedLength = label.length() + PropertyEntry.COMMENT_LABEL.length();
+		
 		sb.append(PropertyEntry.COMMENT_LABEL);
-		sb.append(string);
-		if (sb.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
-			if (sb.length() % 2 == 1) {
-				sb.append(" ");
-			}
-			while (sb.length() < PropertyEntry.PUNCHED_CARD_LENGTH) {
-				sb.append(" -");
+		if(prepend){
+			sb.append(label);
+		}
+		
+		int charsToFill = PropertyEntry.LINE_WIDTH - reservedLength;
+		if(prepend){
+			int padding = charsToFill % lineChars.length();
+			for(int i = 0; i < padding; i++){
+				sb.append(' ');
+				charsToFill--;
 			}
 		}
-
-		writer.write(sb.toString());
+		
+		while(charsToFill > 0){
+			if(charsToFill >= lineChars.length()){
+				sb.append(lineChars);
+				charsToFill -= lineChars.length();
+			} else {
+				sb.append(' ');
+				charsToFill--;
+			}
+		}
+		
+		if(!prepend){
+			sb.append(label);
+		}
+		
+		write(sb.toString());
 	}
 
 }
