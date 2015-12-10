@@ -73,7 +73,6 @@ public class PropertiesWriter {
 		writeBasicTypes(pc);
 		for (IClass clazz : iModel.classes()) {
 			writeClass(clazz, pc);
-			writeNewLine();
 			writeAttributes(clazz.attributes(), pc);
 
 			List<IAssociation> classAssociations = new ArrayList<>();
@@ -185,30 +184,33 @@ public class PropertiesWriter {
 	}
 
 	private void writeAttributes(Collection<IAttribute> attributes, Configuration pc) throws IOException {
-		for(IAttribute attribute : attributes){
-			String attr = attribute.owner().name() + "_" + attribute.name();
-			String attrMin = attr + PropertyEntry.attributeDefValuesMin;
-			String attrMax = attr + PropertyEntry.attributeDefValuesMax;
-			String attrMinSize = attr + PropertyEntry.attributeColSizeMin;
-			String attrMaxSize = attr + PropertyEntry.attributeColSizeMax;
-
-			if(isDefaultConfiguration){
-				write(PropertyEntry.COMMENT_LABEL + attr + " = Set{ ... }");
-			} else {
-				if (pc.containsKey(attr) && pc.getProperty(attr) != null) {
-					writeProperty(attr, propertyToString(pc.getProperty(attr)));
-				}
-				if (pc.containsKey(attrMin)) {
-					writeProperty(attrMin, pc.getInt(attrMin, DefaultConfigurationValues.attributesPerClassMin));
-				}
-				if (pc.containsKey(attrMax)) {
-					writeProperty(attrMax, pc.getInt(attrMax, DefaultConfigurationValues.attributesPerClassMax));
-				}
-				if (pc.containsKey(attrMinSize)) {
-					writeProperty(attrMinSize, pc.getInt(attrMinSize, DefaultConfigurationValues.attributesColSizeMin));
-				}
-				if (pc.containsKey(attrMaxSize)) {
-					writeProperty(attrMaxSize, pc.getInt(attrMaxSize, DefaultConfigurationValues.attributesColSizeMax));
+		if(attributes.size() > 0){
+			writeNewLine();
+			for(IAttribute attribute : attributes){
+				String attr = attribute.owner().name() + "_" + attribute.name();
+				String attrMin = attr + PropertyEntry.attributeDefValuesMin;
+				String attrMax = attr + PropertyEntry.attributeDefValuesMax;
+				String attrMinSize = attr + PropertyEntry.attributeColSizeMin;
+				String attrMaxSize = attr + PropertyEntry.attributeColSizeMax;
+				
+				if(isDefaultConfiguration){
+					write(PropertyEntry.COMMENT_LABEL + attr + " = Set{ ... }");
+				} else {
+					if (pc.containsKey(attr) && pc.getProperty(attr) != null) {
+						writeProperty(attr, propertyToString(pc.getProperty(attr)));
+					}
+					if (pc.containsKey(attrMin)) {
+						writeProperty(attrMin, pc.getInt(attrMin, DefaultConfigurationValues.attributesPerClassMin));
+					}
+					if (pc.containsKey(attrMax)) {
+						writeProperty(attrMax, pc.getInt(attrMax, DefaultConfigurationValues.attributesPerClassMax));
+					}
+					if (pc.containsKey(attrMinSize)) {
+						writeProperty(attrMinSize, pc.getInt(attrMinSize, DefaultConfigurationValues.attributesColSizeMin));
+					}
+					if (pc.containsKey(attrMaxSize)) {
+						writeProperty(attrMaxSize, pc.getInt(attrMaxSize, DefaultConfigurationValues.attributesColSizeMax));
+					}
 				}
 			}
 		}
