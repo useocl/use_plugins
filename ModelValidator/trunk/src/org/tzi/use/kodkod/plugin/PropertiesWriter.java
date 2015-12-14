@@ -163,6 +163,7 @@ public class PropertiesWriter {
 		String cls = clazz.name();
 		String clsMin = cls + PropertyEntry.objMin;
 		String clsMax = cls + PropertyEntry.objMax;
+		writeNewLine();
 		writeLabeledLine(' ' + cls, "-", false);
 		if (!clazz.isAbstract()) {
 			if ((clazz instanceof IAssociationClass) && pc.containsKey(cls + PropertyEntry.ASSOCIATIONCLASS)
