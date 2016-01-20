@@ -156,7 +156,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	public void visitAsType(ExpAsType exp) {
 		super.visitAsType(exp);
 		try {
-			visitTypeOperation("oclAsType", exp.getSourceExpr(), exp.getTargetType(), false);
+			visitTypeOperation("oclAsType", exp.getSourceExpr(), exp.getTargetType(), true);
 		} catch (NoSuchMethodError e) {
 			throw new TransformationException(LogMessages.noSuchMethodError, e);
 		}
@@ -470,7 +470,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	 * @param sourceExpression
 	 * @param targetType
 	 */
-	private void visitTypeOperation(String opName, org.tzi.use.uml.ocl.expr.Expression sourceExpression, Type targetType, boolean isKindOfOperation) {
+	private void visitTypeOperation(String opName, org.tzi.use.uml.ocl.expr.Expression sourceExpression, Type targetType, boolean useInheritance) {
 		List<Object> arguments = new ArrayList<Object>();
 
 		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
@@ -484,7 +484,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		Expression typeExpression;
 		if(type instanceof ObjectType){
 			IClass cls = ((ObjectType) type).clazz();
-			if(isKindOfOperation && cls.existsInheritance()){
+			if(useInheritance && cls.existsInheritance()){
 				typeExpression = cls.inheritanceRelation();
 			} else {
 				typeExpression = cls.relation();
