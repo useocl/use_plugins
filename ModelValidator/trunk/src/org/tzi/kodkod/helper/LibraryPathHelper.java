@@ -25,10 +25,10 @@ public class LibraryPathHelper {
 				}
 			}
 			String[] tmp = new String[paths.length + 1];
-			System.arraycopy(paths, 0, tmp, 0, paths.length);
-			tmp[paths.length] = directory;
+			System.arraycopy(paths, 0, tmp, 1, paths.length);
+			tmp[0] = directory;
 			field.set(null, tmp);
-			System.setProperty("java.library.path", System.getProperty("java.library.path") + File.pathSeparator + directory);
+			System.setProperty("java.library.path", directory + File.pathSeparator + System.getProperty("java.library.path"));
 		} catch (IllegalAccessException e) {
 			throw new IOException("Failed to get permissions to set library path");
 		} catch (NoSuchFieldException e) {
