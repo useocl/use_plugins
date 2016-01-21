@@ -1,6 +1,7 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -48,7 +49,7 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 	}
 	
 	protected Configuration extractConfigFromFile(File file) throws ConfigurationException {
-		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
+		HierarchicalINIConfiguration hierarchicalINIConfiguration = readConfiguration(file);
 		if(hierarchicalINIConfiguration.getSections().isEmpty()){
 			return hierarchicalINIConfiguration.getSection(null);
 		} else {
@@ -58,7 +59,7 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 	}
 	
 	protected Configuration extractConfigFromFile(File file, String section) throws ConfigurationException {
-		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration(file);
+		HierarchicalINIConfiguration hierarchicalINIConfiguration = readConfiguration(file);
 		if (section != null
 				&& !hierarchicalINIConfiguration.getSections().isEmpty()
 				&& !hierarchicalINIConfiguration.getSections().contains(section)) {
@@ -66,6 +67,16 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 			throw new ConfigurationException("Selected section does not exist in properties file.");
 		}
 		return hierarchicalINIConfiguration.getSection(section);
+	}
+	
+	private HierarchicalINIConfiguration readConfiguration(File f) throws ConfigurationException {
+		HierarchicalINIConfiguration hierarchicalINIConfiguration = new HierarchicalINIConfiguration();
+		try {
+			hierarchicalINIConfiguration.load(new USECommentFilterReader(new FileReader(f)));
+		} catch (IOException ex) {
+			throw new ConfigurationException(ex);
+		}
+		return hierarchicalINIConfiguration;
 	}
 	
 }
