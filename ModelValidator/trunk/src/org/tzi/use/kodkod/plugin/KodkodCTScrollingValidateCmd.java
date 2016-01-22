@@ -1,6 +1,7 @@
 package org.tzi.use.kodkod.plugin;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -58,6 +59,12 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 					validator.showSolution(index);
 				}
 			} else {
+				// check if properties file exists and cancel command if it does not
+				if(!new File(firstArgument).exists()){
+					LOG.error("Properties file not found.");
+					return;
+				}
+				
 				resetValidator();
 				try {
 					if(!readClassifyingTerms()){
@@ -83,6 +90,10 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		UseCTScrollingKodkodModelValidator v = (UseCTScrollingKodkodModelValidator) validator;
 		int terms = 1;
+		
+		//XXX we request the model once to issue the transformation and avoid the transformation output in between term inputs
+		model();
+		
 		System.out.println("Input classifying terms (leave empty to abort, enter `v' or `validate' to start validation)");
 		
 		do {
