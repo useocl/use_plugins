@@ -94,21 +94,32 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 		//XXX we request the model once to issue the transformation and avoid the transformation output in between term inputs
 		model();
 		
-		System.out.println("Input classifying terms (leave empty to abort, enter `v' or `validate' to start validation)");
+		System.out.println("Input classifying terms (leave empty to abort, enter `v' or `validate' to start validation, names may be empty)");
 		
 		do {
-			System.out.print("Term " + terms + ": ");
-			String line = br.readLine();
-			StringWriter err = new StringWriter();
+			System.out.print("Enter name for term " + terms + " or `v' to start validation: ");
+			String name = br.readLine().trim();
 			
-			if(line.trim().isEmpty()){
+			if(name.isEmpty()){
+				name = "Term" + terms;
+			}
+			
+			if(name.equalsIgnoreCase("v") || name.equalsIgnoreCase("validate")){
+				break;
+			}
+			
+			System.out.print("Enter term " + StringUtil.inQuotes(name) + ": ");
+			String line = br.readLine().trim();
+			
+			if(line.isEmpty()){
 				// abort
 				return false;
 			}
-			else if(line.trim().equalsIgnoreCase("v") || line.trim().equalsIgnoreCase("validate")){
+			else if(line.equalsIgnoreCase("v") || line.equalsIgnoreCase("validate")){
 				break;
 			}
 				
+			StringWriter err = new StringWriter();
 			result = OCLCompiler.compileExpression(session.system().model(), line, "<classifying term>", new PrintWriter(err), new VarBindings());
 
 			// error checking
@@ -137,7 +148,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 			}
 			
 			// success
-			v.addClassifyingTerm(result, obsTermKodkod);
+			v.addClassifyingTerm(name, result, obsTermKodkod);
 			terms++;
 		}
 		while(true);

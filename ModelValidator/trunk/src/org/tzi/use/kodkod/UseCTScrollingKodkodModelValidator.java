@@ -33,14 +33,20 @@ import org.tzi.use.util.StringUtil;
 public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelValidator {
 
 	protected static class ClassifyingTerm {
+		private final String name;
 		private final Expression oclExpr;
 		private final Node kodkodExpr;
 		
-		public ClassifyingTerm(Expression oclExpr, Node kodkodExpr) {
+		public ClassifyingTerm(String name, Expression oclExpr, Node kodkodExpr) {
+			this.name = name;
 			this.oclExpr = oclExpr;
 			this.kodkodExpr = kodkodExpr;
 		}
 
+		public String name() {
+			return name;
+		}
+		
 		public Expression oclExpression() {
 			return oclExpr;
 		}
@@ -129,19 +135,18 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 	protected void readSolutionTerms(MSystemState state) {
 		Evaluator eval = new Evaluator();
 		Map<ClassifyingTerm, Value> solutionMap = new HashMap<>();
-		int i = 1;
 		List<String> solutionPrints = new ArrayList<String>(classifyingTerms.size());
 		for (ClassifyingTerm ct : classifyingTerms) {
 			Value val = eval.eval(ct.oclExpr, state);
 			solutionMap.put(ct, val);
-			solutionPrints.add("Term " + i++ + ": " + val);
+			solutionPrints.add(ct.name + ": " + val);
 		}
-		LOG.info("Term values for this solution: " + StringUtil.fmtSeq(solutionPrints, "; "));
+		LOG.info("Term values for this solution:" + StringUtil.NEWLINE + StringUtil.fmtSeq(solutionPrints, StringUtil.NEWLINE));
 		termSolutions.add(solutionMap);
 	}
 	
-	public void addClassifyingTerm(Expression term, Node termKodkod){
-		classifyingTerms.add(new ClassifyingTerm(term, termKodkod));
+	public void addClassifyingTerm(String name, Expression term, Node termKodkod){
+		classifyingTerms.add(new ClassifyingTerm(name, term, termKodkod));
 	}
 	
 	public int classifyingTermCount(){

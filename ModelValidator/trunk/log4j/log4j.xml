@@ -5,14 +5,14 @@
 
 	<appender name="ConsoleAppender" class="org.apache.log4j.ConsoleAppender">
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%d{HH:mm:ss} %-5p %C{1}: %m%n%n" />
+			<param name="ConversionPattern" value="%d{HH:mm:ss} %p: %m%n%n" />
 		</layout>
 	</appender>
 
 	<appender name="UseLogAppender" class="org.tzi.use.kodkod.UseLogAppender">
 		<param name="Threshold" value="INFO" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%-5p: %m%n" />
+			<param name="ConversionPattern" value="%p: %m%n" />
 		</layout>
 	</appender>
 
