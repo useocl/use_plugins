@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?use version="4.1"?>
+<plugin name="ModelValidatorPlugin" version="4.1-r2" publisher="Hendrik Reitmann">
+	<actions>
+		<action label="Kodkod Validation"
+			icon="resources/kodkod.png"
+			class="org.tzi.use.kodkod.plugin.KodkodValidatePropertyAction"
+			tooltip="Choose a properties file and validate the current model."
+			menu="Model Validator"
+			menuitem="Validation"
+			toolbaritem="plugins"
+			id="org.tzi.use.kodkod.plugin.KodkodValidatePropertyAction">
+		</action>
+		<action label="Kodkod Configuration"
+			icon="resources/kodkod-gui.png"
+			class="org.tzi.use.kodkod.plugin.KodkodValidateConfigurationAction"
+			tooltip="Create a configuration and validate the current model."
+			menu="Model Validator"
+			menuitem="Configuration"
+			toolbaritem="plugins"
+			id="org.tzi.use.kodkod.plugin.KodkodValidateConfigurationAction">
+		</action>
+	</actions>
+	<commands>
+		<command id="org.tzi.use.kodkod.plugin.KodkodValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodValidateCmd"
+			help="Validates the model using the model validator. A path to a configuration file can be specified. If no path is given, a generic configuration file will be created in the directory of the current USE specification."
+			label="KodkodValidateCmd"
+			shellcmd="modelvalidator -validate"
+			alias="mv -validate">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.InvariantIndepCmd"
+			class="org.tzi.use.kodkod.plugin.InvariantIndepCmd"
+			help="Checks if each OCL invariant is independent. An optionally given invariant name restricts the check to the corresponding invariant."
+			label="InvariantIndepCmd"
+			shellcmd="modelvalidator -invIndep"
+			alias="mv -invIndep">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.ConfigurationCmd"
+			class="org.tzi.use.kodkod.plugin.ConfigurationCmd"
+			help="Configures basic Kodkod properties. Possible parameters (case sensitive): 'satsolver:=[DefaultSAT4J|LightSAT4J|MiniSat|MiniSatProver|ZChaffMincost|CryptoMiniSat|Lingeling]' selects the sat solver to be used; 'bitwidth:=i' sets the solver bitwidth; 'automaticDiagramExtraction:=[on|off]' determines if the current object diagram should be used as partial solution; 'save' saves the configuration"
+			label="ConfigurationCmd"
+			shellcmd="modelvalidator -config"
+			alias="mv -config">
+		</command>		
+		<command id="org.tzi.use.kodkod.plugin.ModelResetCmd"
+			class="org.tzi.use.kodkod.plugin.ModelResetCmd"
+			help="Resets the configuration and partial solutions."
+			label="ModelResetCmd"
+			shellcmd="modelvalidator -modelReset"
+			alias="mv -modelReset">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodScrollingValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodScrollingValidateCmd"
+			help="Paging of all solutions for a configured search space. Parameters: 'next' or 'previous' for the next or previous solution; 'show(i)' selects the ith solution."
+			label="KodkodScrollingValidateCmd"
+			shellcmd="modelvalidator -scrolling"
+			alias="mv -scrolling">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodScrollingAllValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodScrollingAllValidateCmd"
+			help="Similar to -scrolling, but collects (and counts) all available solutions in advance."
+			label="KodkodScrollingAllValidateCmd"
+			shellcmd="modelvalidator -scrollingAll"
+			alias="mv -scrollingAll">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodCTScrollingValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodCTScrollingValidateCmd"
+			help="Paging of all solutions for a configured search space. Parameters: 'next' or 'previous' for the next or previous solution; 'show(i)' selects the ith solution."
+			label="KodkodCTScrollingValidateCmd"
+			shellcmd="modelvalidator -scrollingCT"
+			alias="mv -scrollingCT">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodCTScrollingAllValidateCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodCTScrollingAllValidateCmd"
+			help="Similar to -scrollingCT, but collects (and counts) all available solutions in advance."
+			label="KodkodCTScrollingAllValidateCmd"
+			shellcmd="modelvalidator -scrollingAllCT"
+			alias="mv -scrollingAllCT">
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.KodkodQueryCmd"
+			class="org.tzi.use.kodkod.plugin.KodkodQueryCmd"
+			help="internal (OCL expressions are evaluated in the context of the relational solution.)"
+			label="KodkodQueryCmd"
+			shellcmd="modelvalidator ?"
+			alias="mv ?">
+		</command>		
+	</commands>
+</plugin>
