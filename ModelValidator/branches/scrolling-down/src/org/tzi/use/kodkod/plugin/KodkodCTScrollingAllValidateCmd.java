@@ -11,6 +11,6 @@ public class KodkodCTScrollingAllValidateCmd extends KodkodCTScrollingValidateCm
 
 	@Override
 	protected void resetValidator() {
-		validator = new UseCTScrollingAllKodkodModelValidator(session);
+		activeValidator = new UseCTScrollingAllKodkodModelValidator(session);
 	}
 }

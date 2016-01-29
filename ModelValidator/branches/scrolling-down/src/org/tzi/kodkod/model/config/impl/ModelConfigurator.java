@@ -25,6 +25,7 @@ import org.tzi.kodkod.model.type.SetType;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.kodkod.model.type.TypeLiterals;
+import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.util.StringUtil;
 
 /**
@@ -41,6 +42,8 @@ public class ModelConfigurator extends Configurator<IModel> {
 	private Formula solutionFormula;
 	private boolean aggregationcyclefree;
 	private boolean forbiddensharing;
+	
+	private Formula fixedFormula;
 
 	private Map<IClass, List<Variable>> classVariables = new HashMap<IClass, List<Variable>>();
 	private Map<String, Variable> literalMapper = new HashMap<String, Variable>();
@@ -48,6 +51,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 	public ModelConfigurator(IModel model) {
 		this.model = model;
 		solutionFormula = Formula.TRUE;
+		fixedFormula = Formula.TRUE;
 		aggregationcyclefree = DefaultConfigurationValues.AGGREGATIONCYCLEFREENESS;
 		forbiddensharing = DefaultConfigurationValues.FORBIDDENSHARING;
 	}
@@ -56,11 +60,11 @@ public class ModelConfigurator extends Configurator<IModel> {
 	public Formula constraints(IModel model) {
 		Formula formula = super.constraints(model);
 
-		return formula.and(solutionFormula);
+		return formula.and(solutionFormula).and(fixedFormula);
 	}
 
-	public void setSolutionFormula(Formula formula){
-		solutionFormula = formula;
+	public void setFixedFormula(Formula formula){
+		fixedFormula = formula;
 	}
 	
 	/**
@@ -133,7 +137,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 			}
 
 			solutionFormula = solutionFormula.and(formula.forSome(globDecl).not());
-		} catch (Exception e) {
+		} catch (TransformationException e) {
 			LOG.error(LogMessages.solutionForbidError);
 			LOG.error(e.getMessage());
 			if(LOG.isDebugEnabled()){
@@ -149,7 +153,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 	 * @return
 	 * @throws Exception
 	 */
-	private Expression createClassRelationExpression(TupleSet tupleSet) throws Exception {
+	private Expression createClassRelationExpression(TupleSet tupleSet) throws TransformationException {
 		Expression relationExpression = null;
 		for (Tuple tuple : tupleSet) {
 			Expression objectLiteral = getObjectLiteral(tuple.atom(0));
@@ -166,7 +170,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 	 * @return
 	 * @throws Exception
 	 */
-	private Expression createAttributeRelationExpression(TupleSet tupleSet, Type attributeType) throws Exception {
+	private Expression createAttributeRelationExpression(TupleSet tupleSet, Type attributeType) throws TransformationException {
 		Expression relationExpression = null;
 		for (Tuple tuple : tupleSet) {
 			Expression objectLiteral = getObjectLiteral(tuple.atom(0));
@@ -191,7 +195,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 	 * @return
 	 * @throws Exception
 	 */
-	private Expression createAssociationRelationExpression(TupleSet tupleSet, IAssociation association) throws Exception {
+	private Expression createAssociationRelationExpression(TupleSet tupleSet, IAssociation association) throws TransformationException {
 		Expression relationExpression = null;
 
 		ArrayList<IAssociationEnd> associationEnds = new ArrayList<IAssociationEnd>();
@@ -220,7 +224,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 	 * @return
 	 * @throws Exception
 	 */
-	private Expression getObjectLiteral(Object objectAtom) throws Exception {
+	private Expression getObjectLiteral(Object objectAtom) throws TransformationException {
 		if (objectAtom.toString().equals(TypeConstants.UNDEFINED)) {
 			return model.typeFactory().undefinedType().expression();
 		}
@@ -230,13 +234,13 @@ public class ModelConfigurator extends Configurator<IModel> {
 		
 		IClass clazz = extractClassFromAtom(objectAtom.toString());
 		if (clazz == null) {
-			throw new Exception("Could not map object atom "
+			throw new TransformationException("Could not map object atom "
 					+ StringUtil.inQuotes(objectAtom.toString())
 					+ " to a class from the model.");
 		}
 		
 		if(!classVariables.containsKey(clazz)){
-			throw new Exception("Class variable initialization failed during encoding of previous solutions.");
+			throw new TransformationException("Class variable initialization failed during encoding of previous solutions.");
 		}
 		
 		Variable placeHolder;
@@ -244,7 +248,7 @@ public class ModelConfigurator extends Configurator<IModel> {
 			placeHolder = classVariables.get(clazz).remove(0);
 		}
 		catch(IndexOutOfBoundsException ex){
-			throw new Exception("More solution instances than placeholders for class " + clazz.name(), ex);
+			throw new TransformationException("More solution instances than placeholders for class " + clazz.name(), ex);
 		}
 		literalMapper.put(objectAtom.toString(), placeHolder);
 		return placeHolder;

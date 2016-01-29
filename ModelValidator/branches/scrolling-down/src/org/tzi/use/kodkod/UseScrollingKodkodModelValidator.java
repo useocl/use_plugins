@@ -17,12 +17,11 @@ import org.tzi.use.main.Session;
  */
 public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 
-	protected int solutionIndex = 0;
-	protected List<Map<Relation, TupleSet>> solutions;
-
+	protected int solutionIndex = -1;
+	protected final List<Map<Relation, TupleSet>> solutions = new ArrayList<Map<Relation, TupleSet>>();
+	
 	public UseScrollingKodkodModelValidator(Session session) {
 		super(session);
-		solutions = new ArrayList<Map<Relation, TupleSet>>();
 	}
 	
 	@Override
@@ -30,6 +29,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 		boolean errors = createObjectDiagram(solution.instance().relationTuples());
 		if (!errors) {
 			solutions.add(solution.instance().relationTuples());
+			solutionIndex = solutions.size()-1;
 			LOG.info(LogMessages.pagingNext);
 			previousLog();
 		} else {
@@ -61,7 +61,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 	 */
 	public void nextSolution() {
 		solutionIndex++;
-		if (solutionIndex == solutions.size()) {
+		if (solutionIndex >= solutions.size()) {
 			newSolution(solutions.get(solutionIndex-1));
 		} else {
 			createObjectDiagram(solutions.get(solutionIndex));
@@ -84,7 +84,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 		if(index < 1){
 			LOG.info(LogMessages.showSolutionIndexToSmall);
 			return;
-		}else if(index > solutions.size()){
+		} else if(index > solutions.size()) {
 			LOG.info(LogMessages.showSolutionIndexToBig(solutions.size()));
 			return;
 		}
@@ -92,5 +92,9 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 		LOG.info(LogMessages.showSolution(index));
 		solutionIndex = index-1;
 		createObjectDiagram(solutions.get(solutionIndex));
+	}
+
+	public int getSolutionIndex() {
+		return solutionIndex;
 	}
 }

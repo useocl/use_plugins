@@ -15,7 +15,7 @@ import org.tzi.use.util.StringUtil;
  */
 public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 
-	protected static UseScrollingKodkodModelValidator validator = null;
+	protected static UseScrollingKodkodModelValidator activeValidator = null;
 
 	@Override
 	protected void noArguments() {
@@ -32,11 +32,11 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 		
 		if (firstArgument.equalsIgnoreCase("next")) {
 			if (checkValidatorPresent()) {
-				validator.nextSolution();
+				activeValidator.nextSolution();
 			}
 		} else if (firstArgument.equalsIgnoreCase("previous")) {
 			if (checkValidatorPresent()) {
-				validator.previousSolution();
+				activeValidator.previousSolution();
 			}
 		} else {
 			String argumentsAsString = StringUtil.fmtSeq(arguments, " ");
@@ -46,7 +46,7 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 			if (m.matches()) {
 				if (checkValidatorPresent()) {
 					int index = Integer.parseInt(m.group(1));
-					validator.showSolution(index);
+					activeValidator.showSolution(index);
 				}
 			} else {
 				if(!skipReset){
@@ -58,11 +58,11 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 	}
 
 	protected void resetValidator() {
-		validator = new UseScrollingKodkodModelValidator(session);
+		activeValidator = new UseScrollingKodkodModelValidator(session);
 	}
 
 	protected boolean checkValidatorPresent() {
-		if (validator == null) {
+		if (activeValidator == null) {
 			LOG.error(LogMessages.pagingCmdFileFirst);
 			return false;
 		}
@@ -71,6 +71,6 @@ public class KodkodScrollingValidateCmd extends KodkodValidateCmd {
 
 	@Override
 	protected UseScrollingKodkodModelValidator createValidator() {
-		return validator;
+		return activeValidator;
 	}
 }

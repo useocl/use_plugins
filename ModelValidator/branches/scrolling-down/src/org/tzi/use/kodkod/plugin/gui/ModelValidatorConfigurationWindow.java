@@ -373,11 +373,26 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	public Boolean isReadyToValidate() {
 		return readyToValidate;
 	}
-
+	
 	private JMenuBar buildMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
 
+		JMenuItem newFileMenuItem = new JMenuItem("New File");
+		newFileMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(settingsConfiguration.isChanged()){
+					//TODO ask user to save old file / abort operation
+				}
+				
+				//TODO setup new file
+				currentFile = new File("");
+				configManager = new ConfigurationFileManager(model, settingsConfiguration);
+			}
+		});
+		fileMenu.add(newFileMenuItem);
+		
 		JMenuItem openMenuItem = new JMenuItem("Open");
 		openMenuItem.addActionListener( new ActionListener() {
 			@Override

@@ -50,11 +50,30 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		}
 	}
 
-	protected List<ClassifyingTerm> classifyingTerms = new ArrayList<ClassifyingTerm>();
-	protected List<Map<ClassifyingTerm, Value>> termSolutions = new ArrayList<>();
+	protected final List<ClassifyingTerm> classifyingTerms = new ArrayList<ClassifyingTerm>();
+	protected final List<Map<ClassifyingTerm, Value>> termSolutions = new ArrayList<>();
 
-	public UseCTScrollingKodkodModelValidator(Session session) {
+	protected final UseCTScrollingKodkodModelValidator parent;
+	protected final Map<ClassifyingTerm, Value> termValues;
+	
+	public UseCTScrollingKodkodModelValidator(Session session, UseCTScrollingKodkodModelValidator parent) {
 		super(session);
+		this.parent = parent;
+		if(parent != null){
+			termValues = parent.termSolutions.get(parent.solutionIndex);
+		} else {
+			termValues = null;
+		}
+	}
+	
+	public UseCTScrollingKodkodModelValidator(Session session) {
+		this(session, null);
+	}
+	
+	public void copyParentSolutionAndUpdateSolutionTerms(MSystemState systemstate){
+		solutions.add(parent.solutions.get(parent.solutionIndex));
+		solutionIndex = solutions.size();
+		readSolutionTerms(systemstate);
 	}
 	
 	@Override
@@ -64,6 +83,7 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 			readSolutionTerms(session.system().state());
 			
 			solutions.add(solution.instance().relationTuples());
+			solutionIndex = solutions.size()-1;
 			LOG.info(LogMessages.pagingNext);
 			previousLog();
 		} else {
@@ -72,6 +92,45 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		}
 	}
 
+	@Override
+	protected void newSolution(Map<Relation, TupleSet> relationTuples) {
+		Formula f = genClassifyingTermFormula();
+		((ModelConfigurator) model.getConfigurator()).setFixedFormula(f);
+		validate(model);
+	}
+
+	protected Formula genClassifyingTermFormula() {
+		Formula f = genFixCTFormula();
+		
+		for (Map<ClassifyingTerm, Value> solutions : termSolutions) {
+			Formula currSolution = encodeClassifyingValues(solutions);
+			f = f.and(currSolution.not());
+		}
+		return f;
+	}
+	
+	protected Formula genFixCTFormula(){
+		UseCTScrollingKodkodModelValidator validator = this;
+		Formula f = Formula.TRUE;
+		
+		while(validator != null && validator.termValues != null){
+			f = f.and(encodeClassifyingValues(validator.termValues));
+			validator = validator.parent;
+		}
+		
+		return f;
+	}
+
+	protected Formula encodeClassifyingValues(Map<ClassifyingTerm, Value> solutions) {
+		Formula currSolution = null;
+		
+		for (Map.Entry<ClassifyingTerm, Value> ct : solutions.entrySet()){
+			Formula solFormula = encodeSolutionValue(ct.getKey().kodkodExpr, ct.getValue());
+			currSolution = (currSolution == null) ? solFormula : currSolution.and( solFormula ) ;
+		}
+		return (currSolution == null) ? Formula.TRUE : currSolution ;
+	}
+	
 	/**
 	 * Constructs a Kodkod {@link Formula} checking the equality of the given
 	 * expression and value.
@@ -101,30 +160,6 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		}
 		throw new TransformationException("Unsupported expression type found. (" + exp.getClass().toString() + " --- " + value.getClass().toString() + ")");
 	}
-	
-	@Override
-	protected void newSolution(Map<Relation, TupleSet> relationTuples) {
-		Formula f = genClassifyingTermFormula();
-		((ModelConfigurator) model.getConfigurator()).setSolutionFormula(f);
-		validate(model);
-	}
-
-	protected Formula genClassifyingTermFormula() {
-		Formula f = null;
-		
-		for (Map<ClassifyingTerm, Value> solutions : termSolutions) {
-			Formula currSolution = null;
-			
-			for (ClassifyingTerm ct : classifyingTerms) {
-				Value value = solutions.get(ct);
-				Formula solFormula = encodeSolutionValue(ct.kodkodExpr, value);
-				currSolution = (currSolution == null) ? solFormula : currSolution.and( solFormula ) ;
-			}
-			
-			f = (f == null) ? currSolution.not() : f.and(currSolution.not()) ;
-		}
-		return f;
-	}
 
 	protected void readSolutionTerms(MSystemState state) {
 		Evaluator eval = new Evaluator();
@@ -146,6 +181,21 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 	
 	public int classifyingTermCount(){
 		return classifyingTerms.size();
+	}
+
+	//FIXME
+	public void exploreMore() {
+		Map<ClassifyingTerm, Value> ctValues = termSolutions.get(solutionIndex);
+		// force ct values in solution
+		Formula theValues = encodeClassifyingValues(ctValues);
+		
+		boolean useCT = true;
+		UseScrollingKodkodModelValidator useScrollingKodkodModelValidator;
+		if(useCT){
+			useScrollingKodkodModelValidator = new UseCTScrollingKodkodModelValidator(session, this);
+		} else {
+			useScrollingKodkodModelValidator = new UseScrollingKodkodModelValidator(session);
+		}
 	}
 	
 }
