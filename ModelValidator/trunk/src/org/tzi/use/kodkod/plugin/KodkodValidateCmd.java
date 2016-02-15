@@ -24,6 +24,8 @@ import org.tzi.use.uml.mm.MClassInvariant;
  */
 public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShellCmdDelegate {
 
+	protected Shell useShell;
+	
 	@Override
 	public void performCommand(IPluginShellCmd pluginCommand) {
 		if(!pluginCommand.getSession().hasSystem()){
@@ -32,6 +34,7 @@ public class KodkodValidateCmd extends ConfigurablePlugin implements IPluginShel
 		}
 		
 		initialize(pluginCommand.getSession());
+		useShell = pluginCommand.getShell();
 		String[] arguments = pluginCommand.getCmdArgumentList();
 		
 		if (arguments.length >= 1) {

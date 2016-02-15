@@ -5,7 +5,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
+import kodkod.engine.satlab.SATAbortedException;
 import kodkod.engine.satlab.SATFactory;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -22,11 +26,12 @@ import org.tzi.use.kodkod.transform.enrich.ModelEnricher;
 import org.tzi.use.kodkod.transform.enrich.NullModelEnricher;
 import org.tzi.use.kodkod.transform.enrich.ObjectDiagramModelEnricher;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
  * Singleton to store the configuration data for the model validator.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public enum KodkodModelValidatorConfiguration {
 
@@ -53,6 +58,18 @@ public enum KodkodModelValidatorConfiguration {
 	private boolean automaticDiagramExtraction = DEFAULT_DIAGRAMEXTRACTION;
 	private boolean debugBoundsPrint = false;
 
+	private final Map<String, String> SOLVER_MAP = ImmutableMap.<String, String>builder()
+			.put("defaultsat4j", "DefaultSAT4J")
+			.put("lightsat4j", "LightSAT4J")
+			.put("lingeling", "Lingeling")
+			.put("minisat", "MiniSat")
+			.put("minisatprover", "MiniSatProver")
+			.put("cryptominisat", "CryptoMiniSat")
+			.put("zchaffmincost", "ZChaffMincost")
+			.build();
+	public static final String PLINGELING_SOLVERNAME = "plingeling";
+	private String[] availableSolvers = null;
+	
 	private File file;
 	private boolean read = false;
 
@@ -95,8 +112,7 @@ public enum KodkodModelValidatorConfiguration {
 		String arch = System.getProperty("os.arch");
 		if(arch != null && arch.contains("64")){
 			return Architecture.X64;
-		}
-		else {
+		} else {
 			return Architecture.X86;
 		}
 	}
@@ -163,24 +179,78 @@ public enum KodkodModelValidatorConfiguration {
 
 	/**
 	 * Sets the SATFactory to the given name.
-	 * 
-	 * @param solverName
 	 */
 	public void setSatFactory(String solverName) {
-		Field field;
+		boolean notFound = false;
+		boolean cantLoad = false;
+		
 		try {
-			field = SATFactory.class.getField(solverName);
-			satFactory = (SATFactory) field.get(null);
-			satFactory.instance();
-
-			LOG.info(LogMessages.newSatSolver(satFactory.toString()));
+			if(solverName.equalsIgnoreCase(PLINGELING_SOLVERNAME)){
+				satFactory = SATFactory.plingeling();
+				satFactory.instance();
+				
+				LOG.info(LogMessages.newSatSolver(satFactory.toString()));
+			} else {
+				String kodkodSolverName = SOLVER_MAP.get(solverName.toLowerCase());
+				if(kodkodSolverName != null){
+					Field field = SATFactory.class.getField(kodkodSolverName);
+					satFactory = (SATFactory) field.get(null);
+					satFactory.instance();
+					
+					LOG.info(LogMessages.newSatSolver(satFactory.toString()));
+				} else {
+					notFound = true;
+				}
+			}
 		} catch (NoSuchFieldException | SecurityException | IllegalAccessException e) {
-			LOG.warn(LogMessages.noSatSolverWarning(solverName, DEFAULT_SATFACTORY.toString()));
-			satFactory = DEFAULT_SATFACTORY;
-		} catch (UnsatisfiedLinkError e2) {
-			LOG.error(LogMessages.noSatSolverLibraryError(satFactory.toString(), DEFAULT_SATFACTORY.toString()));
-			satFactory = DEFAULT_SATFACTORY;
+			notFound = true;
+		} catch (UnsatisfiedLinkError | SATAbortedException e2) {
+			cantLoad = true;
 		}
+		
+		if(notFound){
+			LOG.warn(LogMessages.noSatSolverWarning(solverName, DEFAULT_SATFACTORY.toString()));
+		} else if(cantLoad){
+			LOG.error(LogMessages.noSatSolverLibraryError(solverName, DEFAULT_SATFACTORY.toString()));
+		}
+		if(notFound || cantLoad){
+			errorAndPrint();
+		}
+	}
+	
+	private void errorAndPrint(){
+		satFactory = DEFAULT_SATFACTORY;
+		
+		if(availableSolvers == null){
+			// analyze available solvers
+			availableSolvers = tryAvailableSolvers();
+		}
+		
+		LOG.info(LogMessages.availableSatSolvers(availableSolvers));
+	}
+	
+	private String[] tryAvailableSolvers(){
+		Set<String> res = new LinkedHashSet<String>();
+		
+		for(String solver : SOLVER_MAP.values()){
+			try {
+				((SATFactory) SATFactory.class.getField(solver).get(null)).instance();
+				// if no error occurred, add solver to the list
+				res.add(solver);
+			} catch(NoSuchFieldException | NoClassDefFoundError | SecurityException | IllegalAccessException | UnsatisfiedLinkError e){
+				// if an error occurs, solver is not available
+			}
+		}
+		
+		// try plingeling extra due to different instantiation
+		try {
+			SATFactory.plingeling();
+			res.add(PLINGELING_SOLVERNAME);
+		} catch(SATAbortedException | SecurityException | UnsatisfiedLinkError ex){
+			// if an error occurs, solver is not available
+		}
+		
+		return res.toArray(new String[res.size()]);
 	}
 
 	/**

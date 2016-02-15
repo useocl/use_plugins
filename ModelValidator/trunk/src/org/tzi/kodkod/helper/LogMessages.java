@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.tzi.kodkod.model.config.impl.DefaultConfigurationValues;
 import org.tzi.kodkod.model.iface.IInvariant;
+import org.tzi.use.util.StringUtil;
 
 import kodkod.engine.Statistics;
 import static org.tzi.use.util.StringUtil.inQuotes;
@@ -159,6 +160,10 @@ public final class LogMessages {
 
 	public static String noSatSolverWarning(String solverName, String defaultSatFacotry) {
 		return "No solver " + inQuotes(solverName) + " available. Using default SatSolver " + inQuotes(defaultSatFacotry) + ".";
+	}
+	
+	public static String availableSatSolvers(String[] solvers){
+		return "Detected instantiable SAT solvers are: " + StringUtil.fmtSeq(solvers, ", ");
 	}
 
 	public static String fileCmdError(File file) {
