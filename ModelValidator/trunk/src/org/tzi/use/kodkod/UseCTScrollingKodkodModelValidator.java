@@ -14,13 +14,16 @@ import kodkod.instance.TupleSet;
 
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.ModelConfigurator;
+import org.tzi.kodkod.model.type.TypeAtoms;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.main.Session;
 import org.tzi.use.uml.ocl.expr.Evaluator;
 import org.tzi.use.uml.ocl.expr.Expression;
+import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.BooleanValue;
 import org.tzi.use.uml.ocl.value.IntegerValue;
+import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MSystemState;
 import org.tzi.use.util.StringUtil;
@@ -95,6 +98,15 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 					return ((kodkod.ast.Expression) exp).eq(typeLiterals.get(TypeConstants.BOOLEAN_FALSE));
 				}
 			}
+			else if(value instanceof UndefinedValue){
+				TypeAtoms typeLiteral;
+				if(value.type().isKindOfCollection(VoidHandling.INCLUDE_VOID)){
+					typeLiteral = model.typeFactory().undefinedSetType();
+				} else {
+					typeLiteral = model.typeFactory().undefinedType();
+				}
+				return ((kodkod.ast.Expression) exp).eq(typeLiteral.expression());
+			}
 			else {
 				throw new TransformationException("Unsupported expression type found. (" + exp.getClass().toString() + " --- " + value.getClass().toString() + ")");
 			}
@@ -136,10 +148,53 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		Evaluator eval = new Evaluator();
 		Map<ClassifyingTerm, Value> solutionMap = new HashMap<>();
 		List<String> solutionPrints = new ArrayList<String>(classifyingTerms.size());
+		
 		for (ClassifyingTerm ct : classifyingTerms) {
-			Value val = eval.eval(ct.oclExpr, state);
-			solutionMap.put(ct, val);
-			solutionPrints.add(ct.name + ": " + val);
+			Value kodkodEval = null;
+			if(evaluator != null){
+				if(ct.kodkodExpr instanceof kodkod.ast.Expression){
+					TupleSet res = evaluator.evaluate((kodkod.ast.Expression) ct.kodkodExpr);
+					// result should always be a single value of Integer, Undefined, Undefined_Set, Boolean_True or Boolean_False
+					if(res.arity() == 1){
+						Object intermRes = evaluator.instance().universe().atom(res.iterator().next().index());
+						
+						if(intermRes instanceof Integer){
+							kodkodEval = IntegerValue.valueOf((int) intermRes);
+						} else if(intermRes instanceof String){
+							switch((String) intermRes){
+							case TypeConstants.UNDEFINED:
+							case TypeConstants.UNDEFINED_SET:
+								kodkodEval = UndefinedValue.instance;
+								break;
+							case TypeConstants.BOOLEAN_TRUE:
+								kodkodEval = BooleanValue.TRUE;
+								break;
+							case TypeConstants.BOOLEAN_FALSE:
+								kodkodEval = BooleanValue.FALSE;
+								break;
+							}
+						}
+					} else {
+						LOG.error("Arity of kodkod result is not one!" + StringUtil.NEWLINE
+								+ "Classifying term " + StringUtil.inQuotes(ct.name)
+								+ " yields: " + res.toString());
+					}
+				} else if(ct.kodkodExpr instanceof IntExpression){
+					int res  = evaluator.evaluate((IntExpression) ct.kodkodExpr);
+					kodkodEval = IntegerValue.valueOf(res);
+				} else if(ct.kodkodExpr instanceof Formula){
+					boolean res = evaluator.evaluate((Formula) ct.kodkodExpr);
+					kodkodEval = BooleanValue.get(res);
+				}
+			}
+			Value useEval = eval.eval(ct.oclExpr, state);
+			
+			if(kodkodEval != null && !kodkodEval.equals(useEval)){
+				LOG.error("Kodkod and USE evaluate classifying term " + StringUtil.inQuotes(ct.name) + " differently. Kodkod: " + kodkodEval + "; USE: " + useEval);
+				LOG.info("Using evaluated value of USE for further steps.");
+			}
+			solutionMap.put(ct, useEval);
+			solutionPrints.add(ct.name + ": " + useEval);
 		}
 		LOG.info("Term values for this solution:" + StringUtil.NEWLINE + StringUtil.fmtSeq(solutionPrints, StringUtil.NEWLINE));
 		termSolutions.add(solutionMap);

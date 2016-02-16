@@ -17,12 +17,9 @@ import kodkod.ast.Variable;
 
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
-import org.tzi.use.config.Options;
-import org.tzi.use.config.Options.WarningType;
 import org.tzi.use.kodkod.UseCTScrollingKodkodModelValidator;
 import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.kodkod.transform.ocl.DefaultExpressionVisitor;
-import org.tzi.use.kodkod.transform.ocl.UnrelatedTypeCheckVisitor;
 import org.tzi.use.parser.ocl.OCLCompiler;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.value.VarBindings;
@@ -245,7 +242,6 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 			}
 			
 			if(!result.type().isTypeOfInteger() && !result.type().isTypeOfBoolean()){
-				//TODO add the name of the term?
 				LOG.error("The expression must result in type `Boolean' or `Integer'.");
 				continue;
 			}
@@ -258,18 +254,6 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 						new HashMap<String, Variable>(), new ArrayList<String>());
 				result.processWithVisitor(ev);
 				obsTermKodkod = (Node) ev.getObject();
-				
-		    	if (!Options.checkWarningsUnrelatedTypes().equals(WarningType.IGNORE)) {
-		    		UnrelatedTypeCheckVisitor visit = new UnrelatedTypeCheckVisitor();
-		    		result.processWithVisitor(visit);
-		    		if (!visit.getErrors().isEmpty()) {
-		    			for (String contradictionWarning : visit.getErrors()) {
-		    				LOG.error(contradictionWarning);
-		    			}
-		    			LOG.error("You can change this check using the -extendedTypeSystemChecks switch.");
-		    		}
-		    	}
-				
 			}
 			catch(TransformationException ex){
 				LOG.error("The expression cannot be transformed by the model validator. Reason: " + ex.getMessage());

@@ -22,8 +22,6 @@ public class TypeConstants {
 
 	public static final String UNDEFINED = "Undefined";
 
-	public static final String EMPTY_SET = "Empty_Set";
-
 	public static final String UNDEFINED_SET = "Undefined_Set";
 
 	public static final String FALSE = "false";
