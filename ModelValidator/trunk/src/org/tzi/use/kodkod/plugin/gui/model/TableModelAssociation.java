@@ -144,9 +144,6 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 		Collections.sort(associations, new Comparator<AssociationSettings>() {
 			@Override
 			public int compare(AssociationSettings o1, AssociationSettings o2) {
-				/*
-				 * TODO create algorithm that respects inheritance
-				 */
 				IClass o1Class = o1.getAssociation().associationEnds().get(0).associatedClass();
 				IClass o2Class = o2.getAssociation().associationEnds().get(0).associatedClass();
 				
@@ -156,24 +153,16 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 				boolean o1ParentsHaveClassFirst = parents.contains(o1Class);
 				boolean o2ParentsHaveClassFirst = parents.contains(o2Class);
 				
-//				if(o1HasClassFirst && !o2HasClassFirst){
-//					return -1;
-//				} else if(o2HasClassFirst && !o1HasClassFirst){
+				if(o1HasClassFirst){
+					return o2HasClassFirst ? 0 : -1;
+				} else if(o1ParentsHaveClassFirst){
+					if(o2HasClassFirst){
+						return 1;
+					} else {
+						return o2ParentsHaveClassFirst ? 0 : -1;
+					}
+//				} else if(o2HasClassFirst){
 //					return 1;
-//				} else {
-//					if(o1ParentsHaveClassFirst && !o2ParentsHaveClassFirst){
-//						return -1;
-//					} else if(o2ParentsHaveClassFirst && !o1ParentsHaveClassFirst){
-//						return 1;
-//					} else {
-//						return 0;
-//					}
-//				}
-				
-				if((o1HasClassFirst && o2HasClassFirst) || (!o1HasClassFirst && !o2HasClassFirst)){
-					return 0;
-				} else if(o1HasClassFirst) {
-					return -1;
 				} else {
 					return 1;
 				}
