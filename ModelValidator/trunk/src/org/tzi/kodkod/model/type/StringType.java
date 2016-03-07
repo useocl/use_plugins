@@ -42,9 +42,15 @@ public class StringType extends ConfigurableType {
 
 		String literalName = name()+"_"+literal;
 		
-		if(!typeLiterals().containsKey(literalName)){			
-			Relation literalRelation = Relation.unary(literalName);		
+		if(!typeLiterals().containsKey(literalName)){
+			Relation literalRelation = Relation.unary(literalName);
 			typeLiterals().put(literalName, literalRelation);
+			/*
+			 * TODO Literals read from the model are not automatically added to
+			 * the String relation like integers are. Requires attribute in this
+			 * class to save them longer, putting the in 'sepcificValues' does
+			 * not work due to model resets
+			 */
 		}
 	}
 	

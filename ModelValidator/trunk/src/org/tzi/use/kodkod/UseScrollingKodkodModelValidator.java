@@ -84,7 +84,7 @@ public class UseScrollingKodkodModelValidator extends UseKodkodModelValidator {
 		if(index < 1){
 			LOG.info(LogMessages.showSolutionIndexToSmall);
 			return;
-		}else if(index > solutions.size()){
+		} else if(index > solutions.size()){
 			LOG.info(LogMessages.showSolutionIndexToBig(solutions.size()));
 			return;
 		}

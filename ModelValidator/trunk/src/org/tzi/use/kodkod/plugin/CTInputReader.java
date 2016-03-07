@@ -22,7 +22,7 @@ public class CTInputReader extends AbstractFilterReader {
 		text = text.replaceAll("(\r\n|\r|\n)", "");
 		StringBuilder sb = new StringBuilder();
 		
-		String[] splits = text.split("@}>--|~~~");
+		String[] splits = text.split("@}>--|--<{@|~~~");
 		
 		final Pattern ctPattern = Pattern.compile("^\\s*(?:\\[\\s*([\\w\\d_]+)\\s*\\])?(.*)$", Pattern.CASE_INSENSITIVE);
 		for (String ct : splits) {

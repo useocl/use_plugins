@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -24,6 +23,9 @@ import org.tzi.use.parser.ocl.OCLCompiler;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.value.VarBindings;
 import org.tzi.use.util.StringUtil;
+import org.tzi.use.util.input.Readline;
+import org.tzi.use.util.input.ShellReadline;
+import org.tzi.use.util.input.StreamReadline;
 
 /**
  * Cmd-Class for the scrolling in the solutions using classifier terms.
@@ -142,8 +144,8 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 	}
 
 	protected boolean readClassifyingTermsFromFile(String filename) throws IOException {
-		try(BufferedReader br = new BufferedReader(new CTInputReader(new USECommentFilterReader(new FileReader(filename))))){
-			return readClassifyingTerms(br, false);
+		try(Readline r = new StreamReadline(new BufferedReader(new CTInputReader(new USECommentFilterReader(new FileReader(filename)))), false)){
+			return readClassifyingTerms(r, false);
 		}
 	}
 	
@@ -152,28 +154,8 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 	 * @see #readClassifyingTerms(BufferedReader, boolean)
 	 */
 	protected boolean readClassifyingTerms() throws IOException {
-		//TODO ask USE shell for a readline instead of using System.in, also fixes closing problem
-		try(BufferedReader br = new BufferedReader(new InputStreamReader(System.in){
-			/*
-			 * Changed behavior of InputStreamReader to not close the stream.
-			 */
-			private boolean closed = false;
-			
-			@Override
-			public int read(char[] cbuf, int offset, int length) throws IOException {
-				if(closed){
-					return -1;
-				}
-				return super.read(cbuf, offset, length);
-			}
-			
-			@Override
-			public void close() throws IOException {
-				// do not close System.in
-				closed = true;
-			}
-		})) {
-			return readClassifyingTerms(br, true);
+		try(Readline r = new ShellReadline(useShell)){
+			return readClassifyingTerms(r, true);
 		}
 	}
 	
@@ -183,7 +165,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 	 * name is generated in the form 'Term<n>', where n is the number of this
 	 * classifying terms.
 	 */
-	protected boolean readClassifyingTerms(BufferedReader in, boolean interactive) throws IOException {
+	protected boolean readClassifyingTerms(Readline readline, boolean interactive) throws IOException {
 		UseCTScrollingKodkodModelValidator v = (UseCTScrollingKodkodModelValidator) validator;
 		int terms = 1;
 		
@@ -195,10 +177,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 		}
 		
 		do {
-			if(interactive){
-				System.out.print("Enter name for term " + terms + " or `v' to start validation: ");
-			}
-			String name = in.readLine();
+			String name = readline.readline("Enter name for term " + terms + " or `v' to start validation: ");
 			
 			if(name == null){
 				// EOF caught
@@ -214,10 +193,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 				break;
 			}
 			
-			if(interactive){
-				System.out.print("Enter term " + StringUtil.inQuotes(name) + ": ");
-			}
-			String line = in.readLine();
+			String line = readline.readline("Enter term " + StringUtil.inQuotes(name) + ": ");
 			
 			if(line == null){
 				// EOF caught

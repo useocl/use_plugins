@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import kodkod.ast.Formula;
 import kodkod.ast.IntConstant;
@@ -147,46 +148,9 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 	protected void readSolutionTerms(MSystemState state) {
 		Evaluator eval = new Evaluator();
 		Map<ClassifyingTerm, Value> solutionMap = new HashMap<>();
-		List<String> solutionPrints = new ArrayList<String>(classifyingTerms.size());
 		
 		for (ClassifyingTerm ct : classifyingTerms) {
-			Value kodkodEval = null;
-			if(evaluator != null){
-				if(ct.kodkodExpr instanceof kodkod.ast.Expression){
-					TupleSet res = evaluator.evaluate((kodkod.ast.Expression) ct.kodkodExpr);
-					// result should always be a single value of Integer, Undefined, Undefined_Set, Boolean_True or Boolean_False
-					if(res.arity() == 1){
-						Object intermRes = evaluator.instance().universe().atom(res.iterator().next().index());
-						
-						if(intermRes instanceof Integer){
-							kodkodEval = IntegerValue.valueOf((int) intermRes);
-						} else if(intermRes instanceof String){
-							switch((String) intermRes){
-							case TypeConstants.UNDEFINED:
-							case TypeConstants.UNDEFINED_SET:
-								kodkodEval = UndefinedValue.instance;
-								break;
-							case TypeConstants.BOOLEAN_TRUE:
-								kodkodEval = BooleanValue.TRUE;
-								break;
-							case TypeConstants.BOOLEAN_FALSE:
-								kodkodEval = BooleanValue.FALSE;
-								break;
-							}
-						}
-					} else {
-						LOG.error("Arity of kodkod result is not one!" + StringUtil.NEWLINE
-								+ "Classifying term " + StringUtil.inQuotes(ct.name)
-								+ " yields: " + res.toString());
-					}
-				} else if(ct.kodkodExpr instanceof IntExpression){
-					int res  = evaluator.evaluate((IntExpression) ct.kodkodExpr);
-					kodkodEval = IntegerValue.valueOf(res);
-				} else if(ct.kodkodExpr instanceof Formula){
-					boolean res = evaluator.evaluate((Formula) ct.kodkodExpr);
-					kodkodEval = BooleanValue.get(res);
-				}
-			}
+			Value kodkodEval = evaluateKodkod(ct, evaluator);
 			Value useEval = eval.eval(ct.oclExpr, state);
 			
 			if(kodkodEval != null && !kodkodEval.equals(useEval)){
@@ -194,10 +158,61 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 				LOG.info("Using evaluated value of USE for further steps.");
 			}
 			solutionMap.put(ct, useEval);
-			solutionPrints.add(ct.name + ": " + useEval);
 		}
-		LOG.info("Term values for this solution:" + StringUtil.NEWLINE + StringUtil.fmtSeq(solutionPrints, StringUtil.NEWLINE));
 		termSolutions.add(solutionMap);
+		printCurrentSolutionClassifyingTermValues();
+	}
+
+	protected void printCurrentSolutionClassifyingTermValues() {
+		List<String> solutionPrints = new ArrayList<String>(classifyingTerms.size());
+		
+		Map<ClassifyingTerm, Value> map = termSolutions.get(solutionIndex);
+		for (Entry<ClassifyingTerm, Value> entry : map.entrySet()) {
+			solutionPrints.add(entry.getKey().name + ": " + entry.getValue());
+		}
+		
+		LOG.info("Term values for this solution:" + StringUtil.NEWLINE + StringUtil.fmtSeq(solutionPrints, StringUtil.NEWLINE));
+	}
+
+	protected Value evaluateKodkod(ClassifyingTerm ct, kodkod.engine.Evaluator evaluatorEnginge) {
+		Value kodkodEval = null;
+		if(evaluatorEnginge != null){
+			if(ct.kodkodExpr instanceof kodkod.ast.Expression){
+				TupleSet res = evaluatorEnginge.evaluate((kodkod.ast.Expression) ct.kodkodExpr);
+				// result should always be a single value of Integer, Undefined, Undefined_Set, Boolean_True or Boolean_False
+				if(res.arity() == 1){
+					Object intermRes = evaluatorEnginge.instance().universe().atom(res.iterator().next().index());
+					
+					if(intermRes instanceof Integer){
+						kodkodEval = IntegerValue.valueOf((int) intermRes);
+					} else if(intermRes instanceof String){
+						switch((String) intermRes){
+						case TypeConstants.UNDEFINED:
+						case TypeConstants.UNDEFINED_SET:
+							kodkodEval = UndefinedValue.instance;
+							break;
+						case TypeConstants.BOOLEAN_TRUE:
+							kodkodEval = BooleanValue.TRUE;
+							break;
+						case TypeConstants.BOOLEAN_FALSE:
+							kodkodEval = BooleanValue.FALSE;
+							break;
+						}
+					}
+				} else {
+					LOG.error("Arity of kodkod result is not one!" + StringUtil.NEWLINE
+							+ "Classifying term " + StringUtil.inQuotes(ct.name)
+							+ " yields: " + res.toString());
+				}
+			} else if(ct.kodkodExpr instanceof IntExpression){
+				int res  = evaluatorEnginge.evaluate((IntExpression) ct.kodkodExpr);
+				kodkodEval = IntegerValue.valueOf(res);
+			} else if(ct.kodkodExpr instanceof Formula){
+				boolean res = evaluatorEnginge.evaluate((Formula) ct.kodkodExpr);
+				kodkodEval = BooleanValue.get(res);
+			}
+		}
+		return kodkodEval;
 	}
 	
 	public void addClassifyingTerm(String name, Expression term, Node termKodkod){
@@ -206,6 +221,15 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 	
 	public int classifyingTermCount(){
 		return classifyingTerms.size();
+	}
+	
+	@Override
+	public void showSolution(int index) {
+		int oldIdx = solutionIndex;
+		super.showSolution(index);
+		if(solutionIndex != oldIdx){
+			printCurrentSolutionClassifyingTermValues();
+		}
 	}
 	
 }

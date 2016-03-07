@@ -30,10 +30,9 @@ public class AttributeNameRenderer extends DefaultTableCellRenderer {
 		if(inherited){
 			attrDescription += " (" + attr.owner().name() + ")";
 		}
-		//TODO derived
-//		if(attr.isDerived()){
-//			attrDescription += " (derived)";
-//		}
+		if(attr.hasDerivedConstraint()){
+			attrDescription += " (derived)";
+		}
 		setText(attrDescription);
 	}
 	

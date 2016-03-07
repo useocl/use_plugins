@@ -2,21 +2,30 @@ package org.tzi.use.kodkod.transform;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+
+import kodkod.ast.Node;
+import kodkod.ast.Relation;
+import kodkod.ast.Variable;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationClass;
 import org.tzi.kodkod.model.iface.IAssociationEnd;
+import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.iface.IModelFactory;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeFactory;
 import org.tzi.use.graph.DirectedGraph;
+import org.tzi.use.kodkod.transform.ocl.DefaultExpressionVisitor;
 import org.tzi.use.uml.mm.MAggregationKind;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClass;
@@ -27,6 +36,7 @@ import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MClassifier;
 import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.util.uml.sorting.UseFileOrderComparator;
 
@@ -80,6 +90,9 @@ public class ModelTransformator {
 
 			transformSimpleAssociations(model, simpleAssociations);
 
+			transformDerivedAttributes(model, classes);
+			transformDerivedAttributes(model, associationClasses);
+			
 			InvariantTransformator invariantTransformator = new InvariantTransformator(factory, typeFactory);
 			List<MClassInvariant> classInvariants = new ArrayList<MClassInvariant>(mModel.classInvariants());
 			Collections.sort(classInvariants, new UseFileOrderComparator());
@@ -98,6 +111,46 @@ public class ModelTransformator {
 		}
 
 		return model;
+	}
+
+	private void transformDerivedAttributes(IModel model, List<? extends MClass> classes) {
+		for(MClass cls : classes){
+			for(MAttribute attr : cls.attributes()){
+				transformDerivedAttribute(model, attr);
+			}
+		}
+	}
+
+	private void transformDerivedAttribute(IModel model, MAttribute mAttr) {
+		if(!mAttr.isDerived()){
+			return;
+		}
+		
+		IClass kodkodCls = model.getClass(mAttr.owner().name());
+		IAttribute attr = kodkodCls.getAttribute(mAttr.name());
+		
+		// transform derived expression
+		// <owner>.allInstances()->forAll( self | self.<attribute> = derivedExpr )
+		Expression derivedExpr = mAttr.getDeriveExpression();
+		if(derivedExpr != null){
+			Relation ownerRel;
+			if(kodkodCls.existsInheritance()){
+				ownerRel = kodkodCls.inheritanceRelation();
+			} else {
+				ownerRel = kodkodCls.relation();
+			}
+			
+			Variable var = Variable.unary("self");
+			
+			Map<String, Node> variables = new TreeMap<String, Node>();
+			variables.put("self", var);
+			
+			DefaultExpressionVisitor dev = new DefaultExpressionVisitor(model, variables,
+					new HashMap<String, IClass>(), new HashMap<String, Variable>(), new ArrayList<String>());
+			derivedExpr.processWithVisitor(dev);
+			kodkod.ast.Expression derExpr = (kodkod.ast.Expression) dev.getObject();
+			attr.setDerivedConstraint(var.join(attr.relation()).eq(derExpr).forAll(var.oneOf(ownerRel)));
+		}
 	}
 
 	private void transformEnums(IModel model, Set<EnumType> enumTypes) {

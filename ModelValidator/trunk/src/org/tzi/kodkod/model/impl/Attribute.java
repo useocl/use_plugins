@@ -29,6 +29,7 @@ public class Attribute extends ModelElement implements IAttribute {
 
 	private Type type;
 	private IClass owner;
+	private Formula derivedFormula = null;
 	private IConfigurator<IAttribute> configurator;
 
 	Attribute(IModel model, String name, Type type, IClass owner) {
@@ -37,6 +38,10 @@ public class Attribute extends ModelElement implements IAttribute {
 		this.owner = owner;
 
 		relation = Relation.binary(owner.name() + "_" + name);
+	}
+	
+	public void setDerivedConstraint(Formula derivedExpr) {
+		this.derivedFormula = derivedExpr;
 	}
 
 	@Override
@@ -51,7 +56,7 @@ public class Attribute extends ModelElement implements IAttribute {
 
 	@Override
 	public Formula constraints() {
-		Formula formula = Formula.and(domainDefinition(), typeDefinition(), multiplicityDefinition());
+		Formula formula = Formula.and(domainDefinition(), typeDefinition(), multiplicityDefinition(), derivedDefinition());
 		return formula.and(configurator.constraints(this));
 	}
 
@@ -103,6 +108,10 @@ public class Attribute extends ModelElement implements IAttribute {
 		return formula;
 	}
 
+	private Formula derivedDefinition() {
+		return (derivedFormula == null) ? Formula.TRUE: derivedFormula;
+	}
+	
 	/**
 	 * Returns the relation of the owner.
 	 * 
@@ -123,6 +132,16 @@ public class Attribute extends ModelElement implements IAttribute {
 	@Override
 	public Type type() {
 		return type;
+	}
+	
+	@Override
+	public Formula derivedConstraint() {
+		return derivedFormula;
+	}
+	
+	@Override
+	public boolean hasDerivedConstraint() {
+		return derivedFormula != null;
 	}
 
 	@Override
