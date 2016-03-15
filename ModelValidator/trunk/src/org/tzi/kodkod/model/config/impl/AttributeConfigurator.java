@@ -116,14 +116,27 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 
 			if(attribute.type().isInteger()){
 				IntegerType t = (IntegerType) attribute.type();
-				final int lowerBound = t.getConfigurator().getRanges().get(0).getLower();
-				final int upperBound = t.getConfigurator().getRanges().get(0).getUpper();
+				
+				final int lowerBound;
+				final int upperBound;
+				final boolean useMinMaxBounds;
+				if(!t.getConfigurator().getRanges().isEmpty()){
+					lowerBound = t.getConfigurator().getRanges().get(0).getLower();
+					upperBound = t.getConfigurator().getRanges().get(0).getUpper();
+					useMinMaxBounds = true;
+				} else {
+					lowerBound = Integer.MIN_VALUE;
+					upperBound = Integer.MIN_VALUE;
+					useMinMaxBounds = false;
+				}
 				final Collection<Integer> sValues = Collections2.transform(t.getConfigurator().getSpecificValues(), new Function<String[], Integer>() {
 					@Override
 					public Integer apply(String[] input) {
 						return Integer.valueOf(input[0]);
 					}
 				});
+				// filter values that are not defined in properties file
+				// e.g. literals from invariants
 				TupleSet rawInput = typeUpperUndefined;
 				typeUpperUndefined = tupleFactory.noneOf(1);
 				typeUpperUndefined.addAll(Collections2.filter(rawInput, new Predicate<Tuple>() {
@@ -131,7 +144,7 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 					public boolean apply(Tuple input) {
 						if(input.atom(0) instanceof Integer){
 							int n = (Integer) input.atom(0);
-							return (n >= lowerBound && n <= upperBound) || sValues.contains(n);
+							return (useMinMaxBounds && n >= lowerBound && n <= upperBound) || sValues.contains(n);
 						}
 						return true;
 					}
