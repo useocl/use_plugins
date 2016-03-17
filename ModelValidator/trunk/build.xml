@@ -2,8 +2,8 @@
 
 	<!-- Version Format: <compatible USE version>-r<n-th release for this USE version>
 	     e.g.: 4.0-r1 -->
-	<property name="use.version" value="4.1" />
-	<property name="release.number" value="2" />
+	<property name="use.version" value="4.2" />
+	<property name="release.number" value="1" />
 	
 	<property name="version" value="${use.version}-r${release.number}" />
 	
