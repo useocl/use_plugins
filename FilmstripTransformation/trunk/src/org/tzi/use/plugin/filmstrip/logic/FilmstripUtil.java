@@ -8,6 +8,7 @@ import java.util.Stack;
 import org.tzi.use.plugin.filmstrip.FilmstripModelConstants;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
 import org.tzi.use.uml.ocl.expr.ExpAsType;
@@ -180,6 +181,12 @@ public class FilmstripUtil {
 				|| as.name().equals(FilmstripModelConstants.SNAPSHOTELEMENT_ASSOCNAME)
 				|| as.name().startsWith(FilmstripModelConstants.ORDERABLE_ASSOCNAME)
 				|| as.name().startsWith(FilmstripModelConstants.SNAPSHOT_CLASSNAME);
+	}
+	
+	public static boolean isFilmstripModel(MModel model) {
+		return model.getClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME) != null
+				&& model.getClass(FilmstripModelConstants.OPC_CLASSNAME) != null
+				&& model.getAssociation(FilmstripModelConstants.FILMSTRIP_ASSOCNAME) != null;
 	}
 	
 }
