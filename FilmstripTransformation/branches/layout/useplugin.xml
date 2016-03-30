@@ -11,6 +11,24 @@
 			toolbaritem="plugins"
 			id="org.tzi.use.plugin.filmstrip.TransformIntoFilmstripAction">
 		</action>
+		<action label="Layout Filmstrip Object Diagram (Vertical)"
+			icon="resources/filmstrip.png"
+			class="org.tzi.use.plugin.filmstrip.LayoutObjectDiagramActionVertical"
+			tooltip="Aligns the elements in a filmstrip system state vertically"
+			menu="Filmstrip"
+			menuitem="Layout Filmstrip Object Diagram (Vertical)"
+			toolbaritem="plugins"
+			id="org.tzi.use.plugin.filmstrip.LayoutObjectDiagramActionVertical">
+		</action>
+		<action label="Layout Filmstrip Object Diagram (Horizontal)"
+			icon="resources/filmstrip.png"
+			class="org.tzi.use.plugin.filmstrip.LayoutObjectDiagramActionHorizontal"
+			tooltip="Aligns the elements in a filmstrip system state horizontally"
+			menu="Filmstrip"
+			menuitem="Layout Filmstrip Object Diagram (Horizontal)"
+			toolbaritem="plugins"
+			id="org.tzi.use.plugin.filmstrip.LayoutObjectDiagramActionHorizontal">
+		</action>
 	</actions>
 	<commands>
 		<command shellcmd="filmstrip"
