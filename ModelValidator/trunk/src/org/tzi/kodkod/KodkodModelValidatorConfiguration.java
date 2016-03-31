@@ -202,7 +202,7 @@ public enum KodkodModelValidatorConfiguration {
 					notFound = true;
 				}
 			}
-		} catch (NoSuchFieldException | SecurityException | IllegalAccessException e) {
+		} catch (NoSuchFieldException | NoClassDefFoundError | SecurityException | IllegalAccessException e) {
 			notFound = true;
 		} catch (UnsatisfiedLinkError | SATAbortedException e2) {
 			cantLoad = true;
