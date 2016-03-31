@@ -244,9 +244,9 @@ public enum KodkodModelValidatorConfiguration {
 		
 		// try plingeling extra due to different instantiation
 		try {
-			SATFactory.plingeling();
+			SATFactory.plingeling().instance();
 			res.add(PLINGELING_SOLVERNAME);
-		} catch(SATAbortedException | SecurityException | UnsatisfiedLinkError ex){
+		} catch(SATAbortedException | NoClassDefFoundError | SecurityException | UnsatisfiedLinkError ex){
 			// if an error occurs, solver is not available
 		}
 		
