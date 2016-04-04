@@ -28,6 +28,7 @@ import java.util.Set;
 import org.tzi.use.gui.views.diagrams.DiagramViewWithObjectNode;
 import org.tzi.use.gui.views.diagrams.ObjectNodeActivity;
 import org.tzi.use.gui.views.diagrams.elements.PlaceableNode;
+import org.tzi.use.plugin.filmstrip.FilmstripModelConstants;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.sys.MLink;
@@ -46,30 +47,30 @@ public class FilmstripObjectDiagramLayouter {
 		this.system = system;
 	}
 
-	public void groupObjects(boolean opt)
+	public void groupObjects(boolean verticalGroup)
     {
     	Point2D.Double opcNodePosition = new Point2D.Double();
     	Point2D.Double snapshotNodePosition = new Point2D.Double();
     	Point2D.Double appNodePosition = new Point2D.Double();
-    	double offset = getObjectOffset(opt);
+    	double offset = getObjectOffset(verticalGroup);
     	int i=1;
     	MObject firstSnapshotObj = getFirstSnapshotObj();
     	if(firstSnapshotObj!=null)
     	{
 	    	//Set new position for the first snapshot object
-	    	snapshotNodePosition = getSnapshotNodePos(i, offset, opt);
+	    	snapshotNodePosition = getSnapshotNodePos(i, offset, verticalGroup);
 	    	setPosition(firstSnapshotObj,snapshotNodePosition);
 	    	//Set new random positions for all application objects belong to the first snapshot
-	    	Set<MObject> appObjs = getAssociatedObjectsbyRole(firstSnapshotObj, "snapshot");
+	    	Set<MObject> appObjs = getAssociatedObjectsbySourceRole(firstSnapshotObj, FilmstripModelConstants.SNAPSHOT_ROLENAME);
 	    	MObject nextAppObj = null;
 	    	for(MObject appObj: appObjs)
 	    	{
-	    		appNodePosition = getRandomAppNodePos(offset, opt);
+	    		appNodePosition = getRandomAppNodePos(offset, verticalGroup);
 	    		setPosition(appObj,appNodePosition);
 	    		nextAppObj = getSuccAppObj(appObj);
 	    		while(nextAppObj !=null)
 	    		{
-	    			appNodePosition =getSuccAppNodePos(appNodePosition, offset, opt);
+	    			appNodePosition =getSuccAppNodePos(appNodePosition, offset, verticalGroup);
 	    			setPosition(nextAppObj, appNodePosition);
 	    			nextAppObj = getSuccAppObj(nextAppObj);
 	    		}
@@ -79,9 +80,9 @@ public class FilmstripObjectDiagramLayouter {
 	    	MObject nextSnapshotObj = getSuccSnapshotObj(firstSnapshotObj);
 	    	while(opcObj != null && nextSnapshotObj !=null)
 	    	{
-	    		opcNodePosition = getOpcNodePos(snapshotNodePosition, offset, opt);
+	    		opcNodePosition = getOpcNodePos(snapshotNodePosition, offset, verticalGroup);
 	    		setPosition(opcObj,opcNodePosition);
-    	    	snapshotNodePosition = getSnapshotNodePos(++i, offset, opt);
+    	    	snapshotNodePosition = getSnapshotNodePos(++i, offset, verticalGroup);
     	    	setPosition(nextSnapshotObj,snapshotNodePosition);
     	    	
     	    	//loop
@@ -95,13 +96,13 @@ public class FilmstripObjectDiagramLayouter {
     private MObject getFirstSnapshotObj()
     {
     	//get all Snapshot objects
-    	MClass cls = system.model().getClass("Snapshot");
+    	MClass cls = system.model().getClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME);
     	Set<MObject> snapshotObjs = getVisibleObjects(cls);
     	//Get set of first snapshot object - 
-    	MAssociation assocFilmstrip = system.model().getAssociation("Filmstrip");
+    	MAssociation assocFilmstrip = system.model().getAssociation(FilmstripModelConstants.FILMSTRIP_ASSOCNAME);
     	for(MObject obj: snapshotObjs)
     	{	
-    		if(getAssociatedObjectsbyAssocAndRole(obj,assocFilmstrip,"pred").isEmpty())
+    		if(getAssociatedObjectsbyAssoc_TargetRole(obj,assocFilmstrip,FilmstripModelConstants.PRED_ROLENAME).isEmpty())
     			return obj;
     	}
     	return null;
@@ -109,8 +110,8 @@ public class FilmstripObjectDiagramLayouter {
     
 	private MObject getSuccSnapshotObj(MObject snapshotObj)
     {
-    	MAssociation assocFilmstrip = system.model().getAssociation("Filmstrip");
-    	Set<MObject> snapshotObjs= getAssociatedObjectsbyAssocAndRole(snapshotObj,assocFilmstrip,"succ");
+    	MAssociation assocFilmstrip = system.model().getAssociation(FilmstripModelConstants.FILMSTRIP_ASSOCNAME);
+    	Set<MObject> snapshotObjs= getAssociatedObjectsbyAssoc_TargetRole(snapshotObj,assocFilmstrip,FilmstripModelConstants.SUCC_ROLENAME);
     	if(snapshotObjs.iterator().hasNext())
     	{
     		return snapshotObjs.iterator().next();
@@ -119,19 +120,19 @@ public class FilmstripObjectDiagramLayouter {
     }
     private MObject getOPCObj(MObject snapshotObj)
     {
-    	MAssociation assocFilmstrip = system.model().getAssociation("Filmstrip");
-    	Set<MObject> opcObjs= getAssociatedObjectsbyAssocAndRole(snapshotObj,assocFilmstrip,"operationCall");
+    	MAssociation assocFilmstrip = system.model().getAssociation(FilmstripModelConstants.FILMSTRIP_ASSOCNAME);
+    	Set<MObject> opcObjs= getAssociatedObjectsbyAssoc_TargetRole(snapshotObj,assocFilmstrip,FilmstripModelConstants.makeRoleName(FilmstripModelConstants.OPC_CLASSNAME));
     	for(MObject obj: opcObjs)
     	{	
-    		if(getAssociatedObjectsbyAssocAndRole(obj,assocFilmstrip,"pred").contains(snapshotObj))
+    		if(getAssociatedObjectsbyAssoc_TargetRole(obj,assocFilmstrip,FilmstripModelConstants.PRED_ROLENAME).contains(snapshotObj))
     			return obj;
     	}
     	return null;
     }
     private MObject getSuccAppObj(MObject appObj)
     {
-    	MAssociation assocApplicationCls = system.model().getAssociation("PredSucc" + appObj.cls().name());
-    	Set<MObject> snapshotObjs= getAssociatedObjectsbyAssocAndRole(appObj,assocApplicationCls,"succ");
+    	MAssociation assocApplicationCls = system.model().getAssociation(FilmstripModelConstants.ORDERABLE_ASSOCNAME + appObj.cls().name());
+    	Set<MObject> snapshotObjs= getAssociatedObjectsbyAssoc_TargetRole(appObj,assocApplicationCls,FilmstripModelConstants.SUCC_ROLENAME);
     	if(snapshotObjs.iterator().hasNext())
     	{
     		return snapshotObjs.iterator().next();
@@ -146,7 +147,7 @@ public class FilmstripObjectDiagramLayouter {
     private double getObjectOffset(boolean b)
     {
     	//get all Snapshot objects
-    	MClass cls = system.model().getClass("Snapshot");
+    	MClass cls = system.model().getClass(FilmstripModelConstants.SNAPSHOT_CLASSNAME);
     	Set<MObject> snapshotObjs = getVisibleObjects(cls);
     	return b? diagram.getHeight()/(snapshotObjs.size()+1):diagram.getWidth()/(snapshotObjs.size()+1) ;
     }
@@ -187,7 +188,7 @@ public class FilmstripObjectDiagramLayouter {
     /**
      * Get all objects that have association with an object by association instance and associated object's rolename
      */
-	public Set<MObject> getAssociatedObjectsbyAssocAndRole(MObject obj, MAssociation assoc, String roleName)
+	public Set<MObject> getAssociatedObjectsbyAssoc_TargetRole(MObject obj, MAssociation assoc, String targetRoleName)
     {
     	Set<MObject> result = new HashSet<>();
     	MLinkSet links = system.state().linksOfAssociation(assoc);
@@ -198,7 +199,7 @@ public class FilmstripObjectDiagramLayouter {
 				for (MLinkEnd linkEnd : linkEnds)
 				{
 					String sRoleName = linkEnd.associationEnd().nameAsRolename();
-					if(sRoleName.equals(roleName) && !linkEnd.object().equals(obj))
+					if(sRoleName.equals(targetRoleName) && !linkEnd.object().equals(obj))
 						result.add(linkEnd.object());
 				}
 			}
@@ -207,7 +208,7 @@ public class FilmstripObjectDiagramLayouter {
     /**
      * Get all objects that have association with an object by the object's rolename
      */
-    public Set<MObject> getAssociatedObjectsbyRole(MObject obj, String roleName)
+    public Set<MObject> getAssociatedObjectsbySourceRole(MObject obj, String srcRoleName)
     {
     	Set<MObject> result = new HashSet<>();
     	Set<MLink> links = system.state().allLinks();
@@ -220,7 +221,7 @@ public class FilmstripObjectDiagramLayouter {
 				for (MLinkEnd linkEnd : linkEnds)
 				{
 					String sRoleName = linkEnd.associationEnd().nameAsRolename();
-					if(sRoleName.equals(roleName) && linkEnd.object().equals(obj))
+					if(sRoleName.equals(srcRoleName) && linkEnd.object().equals(obj))
 						ck=true;
 				}
 				if(ck)
