@@ -38,6 +38,7 @@ import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.EnumType;
+import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.uml.sorting.UseFileOrderComparator;
 
 /**
@@ -145,9 +146,20 @@ public class ModelTransformator {
 			Map<String, Node> variables = new TreeMap<String, Node>();
 			variables.put("self", var);
 			
-			DefaultExpressionVisitor dev = new DefaultExpressionVisitor(model, variables,
-					new HashMap<String, IClass>(), new HashMap<String, Variable>(), new ArrayList<String>());
-			derivedExpr.processWithVisitor(dev);
+			DefaultExpressionVisitor dev;
+			try {
+				dev = new DefaultExpressionVisitor(model, variables,
+						new HashMap<String, IClass>(), new HashMap<String, Variable>(), new ArrayList<String>());
+				derivedExpr.processWithVisitor(dev);
+			}
+			catch(TransformationException e){
+				LOG.error("Derived attribute "
+						+ StringUtil.inQuotes(mAttr.owner().name() + "::" + mAttr.name())
+						+ " cannot be transformed and the derived expression will be ignored. Reason: "
+						+ e.getMessage());
+				// ignore this derived attribute
+				return;
+			}
 			kodkod.ast.Expression derExpr = (kodkod.ast.Expression) dev.getObject();
 			attr.setDerivedConstraint(var.join(attr.relation()).eq(derExpr).forAll(var.oneOf(ownerRel)));
 		}
