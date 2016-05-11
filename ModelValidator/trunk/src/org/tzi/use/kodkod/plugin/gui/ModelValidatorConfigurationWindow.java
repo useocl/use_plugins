@@ -173,7 +173,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 	}
 
 	public ModelValidatorConfigurationWindow(final JFrame parent, final IModel model, final String useFile) {
-		super(parent, WINDOW_TITLE);
+		super(parent, model.name() + " - " + WINDOW_TITLE);
 		this.model = model;
 
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -346,7 +346,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 			configManager = new ConfigurationFileManager(model, settingsConfiguration, file);
 			currentFileLabel.setText(file.getAbsolutePath());
 			ret = true;
-			setTitle(file.getName() + " - " + WINDOW_TITLE);
+			setTitle(file.getName() + " - " + model.name() + " - " + WINDOW_TITLE);
 		} catch (ConfigurationException e) {
 			if(configManager == null){
 				// first open of GUI
@@ -838,7 +838,7 @@ public class ModelValidatorConfigurationWindow extends JDialog {
 		switchToConfiguration(selectedSection, false, true);
 		settingsConfiguration.setChanged(false);
 		currentFileLabel.setText(file.getAbsolutePath());
-		setTitle(file.getName() + " - " + WINDOW_TITLE);
+		setTitle(file.getName() + " - " + model.name() + " - " + WINDOW_TITLE);
 	}
 
 	private void refreshSectionSelection() {
