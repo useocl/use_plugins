@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.tzi.kodkod.model.config.impl.PropertyEntry;
+import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationClass;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
@@ -66,7 +67,7 @@ public final class ChangeConfiguration {
 		
 		for(ClassSettings classSettings : settings.getAllClassesSettings()){
 			IClass cls = classSettings.getCls();
-			if(!(cls instanceof IAssociationClass)){
+			if(!(cls instanceof IAssociationClass) && !cls.isAbstract()){
 				pc.setProperty(cls.name() + PropertyEntry.objMin, classSettings.getLowerBound());
 				pc.setProperty(cls.name() + PropertyEntry.objMax, classSettings.getUpperBound());
 			}
@@ -90,8 +91,12 @@ public final class ChangeConfiguration {
 		
 		for(AssociationSettings associationSettings : settings.getAllAssociationSettings()){
 			String association = associationSettings.getAssociation().name();
-			pc.setProperty(association + PropertyEntry.linksMin, associationSettings.getLowerBound());
-			pc.setProperty(association + PropertyEntry.linksMax, associationSettings.getUpperBound());
+			IAssociation assoc = associationSettings.getAssociation();
+			
+			if(!assoc.isAssociationClass() || !assoc.associationClass().isAbstract()){
+				pc.setProperty(association + PropertyEntry.linksMin, associationSettings.getLowerBound());
+				pc.setProperty(association + PropertyEntry.linksMax, associationSettings.getUpperBound());
+			}
 			
 			if (!associationSettings.getInstanceNames().isEmpty()) {
 				pc.setProperty(association, toListProperty(associationSettings.getInstanceNames()));
