@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Plugin-Name: FilmstripPlugin
+Plugin-Version: 1.0
+Main-Class: org.tzi.use.plugin.filmstrip.FilmstripPlugin
+Plugin-Publisher: Frank Hilken

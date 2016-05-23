@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?use version="3.1.0"?>
+<plugin name="Filmstrip Plugin" version="1.0">
+	<actions>
+		<action label="Transform Model into Filmstrip Model"
+			icon="resources/filmstrip.png"
+			class="org.tzi.use.plugin.filmstrip.TransformIntoFilmstripAction"
+			tooltip="Transform the currently loaded model into a filmstrip model and save it to disk"
+			menu="Filmstrip"
+			menuitem="Transform Model into Filmstrip Model"
+			toolbaritem="plugins"
+			id="org.tzi.use.plugin.filmstrip.TransformIntoFilmstripAction">
+		</action>
+	</actions>
+	<commands>
+		<command shellcmd="filmstrip"
+			label="filmstrip"
+			help="Usage: filmstrip 'filename'; Transforms the current model into a filmstrip model and saves it to 'filename'."
+			class="org.tzi.use.plugin.filmstrip.TransformIntoFilmstripCommand"
+			id="org.tzi.use.plugin.filmstrip.TransformIntoFilmstripCommand">
+		</command>
+	</commands>
+</plugin>
