@@ -95,10 +95,11 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 			//variableClasses.putAll(opVariableClasses);
 		}
 		finally {
-			OperationStack.INSTANCE.pop();
+			// stack might have been cleared because a recursion has been detected and we are currently handling the exception throw
+			if(!OperationStack.INSTANCE.isEmpty()){
+				OperationStack.INSTANCE.pop();
+			}
 		}
-		
-
 	}
 
 	private Expression handleOveriddenOperation(Iterator<MClass> iterator, Map<MClass, MOperation> overiddenOperations, Expression selfExpression,
