@@ -35,4 +35,8 @@ public enum OperationStack {
 	public void clear()	{
 		operationStack.clear();
 	}
+	
+	public boolean isEmpty(){
+		return operationStack.isEmpty();
+	}
 }
