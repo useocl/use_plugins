@@ -22,6 +22,7 @@ import org.tzi.use.uml.ocl.expr.ExpObjOp;
 import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.Type.VoidHandling;
+import org.tzi.use.util.StringUtil;
 
 /**
  * Extension of DefaultExpressionVisitor to visit the operations of an
@@ -63,7 +64,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 		//TODO remove singleton pattern usage
 		if (OperationStack.INSTANCE.contains(exp.getOperation())) {
 			OperationStack.INSTANCE.clear();
-			throw new TransformationException("Cannot translate recursive operation " + operation.name() + ".");
+			throw new TransformationException("Operation " + StringUtil.inQuotes(operation.name()) + " is recursive and thereby cannot be transformed.");
 		}
 		
 		OperationStack.INSTANCE.push(operation);
