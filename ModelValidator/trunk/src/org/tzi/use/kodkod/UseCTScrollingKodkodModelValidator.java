@@ -160,13 +160,13 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 			solutionMap.put(ct, useEval);
 		}
 		termSolutions.add(solutionMap);
-		printCurrentSolutionClassifyingTermValues();
+		printCurrentSolutionClassifyingTermValues(termSolutions.size()-1);
 	}
 
-	protected void printCurrentSolutionClassifyingTermValues() {
+	protected void printCurrentSolutionClassifyingTermValues(int idx) {
 		List<String> solutionPrints = new ArrayList<String>(classifyingTerms.size());
 		
-		Map<ClassifyingTerm, Value> map = termSolutions.get(solutionIndex);
+		Map<ClassifyingTerm, Value> map = termSolutions.get(idx);
 		for (Entry<ClassifyingTerm, Value> entry : map.entrySet()) {
 			solutionPrints.add(entry.getKey().name + ": " + entry.getValue());
 		}
@@ -228,7 +228,7 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 		int oldIdx = solutionIndex;
 		super.showSolution(index);
 		if(solutionIndex != oldIdx){
-			printCurrentSolutionClassifyingTermValues();
+			printCurrentSolutionClassifyingTermValues(solutionIndex);
 		}
 	}
 	
