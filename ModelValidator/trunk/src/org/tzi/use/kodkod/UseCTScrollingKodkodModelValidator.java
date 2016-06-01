@@ -197,6 +197,10 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 						case TypeConstants.BOOLEAN_FALSE:
 							kodkodEval = BooleanValue.FALSE;
 							break;
+						default:
+							LOG.error("Unexpected kodkod result when evaluating classifying term." + StringUtil.NEWLINE
+									+ "Classifying term " + StringUtil.inQuotes(ct.name) + " yields: "
+									+ res.toString());
 						}
 					}
 				} else {
