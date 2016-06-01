@@ -33,7 +33,7 @@ public class DefaultConfigurationValues {
 	public static final double realStep = 0.5d;
 	public static final boolean realEnabled = false;
 	
-	public static final boolean AGGREGATIONCYCLEFREENESS = false;
+	public static final boolean AGGREGATIONCYCLEFREENESS = true;
 	public static final boolean FORBIDDENSHARING = true;
 	
 	public static final boolean INVARIANT_ACTIVE = true;

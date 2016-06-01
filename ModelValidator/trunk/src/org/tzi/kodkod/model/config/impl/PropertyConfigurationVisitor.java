@@ -197,23 +197,21 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 						maxSpecific = curr;
 					}
 				}
-				int requiredBitwidthSpecific = calculateRequiredBitwidth(maxSpecific);
+				int requiredBitwidthSpecific = KodkodModelValidatorConfiguration.calculateRequiredBitwidth(maxSpecific);
 				if(requiredBitwidthSpecific > bitwidth){
 					warning("The configured bitwidth is too small for the specific Integer value(s). Required bitwidth: " + requiredBitwidthSpecific + " or greater.");
 				}
 			}
 			
 			if(min != Integer.MIN_VALUE){
-				// +1 for twos complement encoding
-				int requiredBitwidthMin = calculateRequiredBitwidth(min);
+				int requiredBitwidthMin = KodkodModelValidatorConfiguration.calculateRequiredBitwidth(min);
 				
 				if(requiredBitwidthMin > bitwidth){
 					warning("The configured bitwidth is too small for the property Integer min value. Required bitwidth: " + requiredBitwidthMin + " or greater.");
 				}
 			}
 			if(max != Integer.MIN_VALUE){
-				// +1 for twos complement encoding
-				int requiredBitwidthMax = calculateRequiredBitwidth(max);
+				int requiredBitwidthMax = KodkodModelValidatorConfiguration.calculateRequiredBitwidth(max);
 				
 				if(requiredBitwidthMax > bitwidth){
 					warning("The configured bitwidth is too small for the property Integer max value. Required bitwidth: " + requiredBitwidthMax + " or greater.");
@@ -258,17 +256,6 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 		super.visitConfigurableType(type);
 	}
 
-	/**
-	 * Calculates the number of bits required to represent the given values in
-	 * two complement encoding.
-	 */
-	public static int calculateRequiredBitwidth(int value) {
-		if(value < 0){
-			value = Math.abs(value)-1;
-		}
-		return (32 - Integer.numberOfLeadingZeros(value))+1;
-	}
-	
 	protected void setModelConfigurator(IModel model) {
 		ModelConfigurator configurator;
 		if (model.getConfigurator() instanceof ModelConfigurator) {

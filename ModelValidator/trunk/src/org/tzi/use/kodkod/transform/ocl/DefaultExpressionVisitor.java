@@ -139,7 +139,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 				arguments.add(clazz.inheritanceRelation());
 			}
 		}
-		// collect cannot handle vars with arity > 1, but assoc relations are arity = #(associationEnds)
+		//TODO collect cannot handle vars with arity > 1, but assoc relations have arity = #(associationEnds)
 //		else if(exp.getSourceType().isTypeOfAssociation()){
 //			// <Association>.allInstances()
 //			IAssociation assoc = model.getAssociation(exp.getSourceType().name());
@@ -419,7 +419,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		TypeLiterals integerType = model.typeFactory().integerType();
 		
 		int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
-		int requiredBitwidth = ((int) Math.ceil(Math.log(Math.abs(value))/Math.log(2))) +1;
+		int requiredBitwidth = KodkodModelValidatorConfiguration.calculateRequiredBitwidth(value);
 		if(requiredBitwidth > bitwidth){
 			LOG.error("Model contains number " + StringUtil.inQuotes(value) + " which is too big for configured bitwidth. Required bitwidth: " + requiredBitwidth + " or greater.");
 		}
@@ -504,10 +504,6 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 
 	/**
 	 * Invokes the method to transform the operation with the given name.
-	 * 
-	 * @param opName
-	 * @param arguments
-	 * @param setOperation
 	 */
 	protected void invokeMethod(String opName, List<Object> arguments, boolean setOperation) {
 		OCLMethodInvoker invoker = new OCLMethodInvoker();

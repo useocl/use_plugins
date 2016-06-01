@@ -312,4 +312,16 @@ public enum KodkodModelValidatorConfiguration {
 		}
 		return new NullModelEnricher();
 	}
+	
+	/**
+	 * Calculates the number of bits required to represent the given values in
+	 * two complement encoding.
+	 */
+	public static int calculateRequiredBitwidth(int value) {
+		if(value < 0){
+			value = Math.abs(value)-1;
+		}
+		// +1 for twos complement
+		return (32 - Integer.numberOfLeadingZeros(value))+1;
+	}
 }
