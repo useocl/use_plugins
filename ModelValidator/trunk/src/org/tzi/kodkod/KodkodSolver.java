@@ -3,14 +3,6 @@ package org.tzi.kodkod;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import kodkod.ast.Formula;
-import kodkod.engine.Evaluator;
-import kodkod.engine.Solution;
-import kodkod.engine.Solution.Outcome;
-import kodkod.engine.Solver;
-import kodkod.instance.Bounds;
-import kodkod.instance.Universe;
-
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
@@ -22,11 +14,18 @@ import org.tzi.kodkod.model.visitor.ConstraintVisitor;
 import org.tzi.use.config.Options;
 import org.tzi.use.util.Log;
 
+import kodkod.ast.Formula;
+import kodkod.engine.Evaluator;
+import kodkod.engine.Solution;
+import kodkod.engine.Solution.Outcome;
+import kodkod.engine.Solver;
+import kodkod.instance.Bounds;
+import kodkod.instance.Universe;
+
 /**
  * Encapsulation of the base algorithm for the model validation with kodkod.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class KodkodSolver {
 
@@ -37,7 +36,7 @@ public class KodkodSolver {
 	public Solution solve(IModel model) throws Exception {
 		Bounds bounds = createBounds(model);
 		Formula constraint = createConstraint(model);
-
+		
 		KodkodModelValidatorConfiguration configuration = KodkodModelValidatorConfiguration.INSTANCE;
 
 		if(configuration.isDebugBoundsPrint()){

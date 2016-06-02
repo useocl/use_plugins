@@ -7,14 +7,13 @@ import org.tzi.kodkod.model.iface.IClass;
  * Implementation of IAssociationEnd.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class AssociationEnd implements IAssociationEnd {
 
-	private String name;
-	private Multiplicity multiplicity;
-	private int aggregationKind;
-	private IClass associatedClass;
+	protected String name;
+	protected Multiplicity multiplicity;
+	protected int aggregationKind;
+	protected IClass associatedClass;
 
 	AssociationEnd(String name, Multiplicity multiplicity, int aggregationKind, IClass associatedClass) {
 		this.name = name;

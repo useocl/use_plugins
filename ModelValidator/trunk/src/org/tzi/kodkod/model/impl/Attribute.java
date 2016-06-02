@@ -1,12 +1,5 @@
 package org.tzi.kodkod.model.impl;
 
-import kodkod.ast.Expression;
-import kodkod.ast.Formula;
-import kodkod.ast.Relation;
-import kodkod.ast.Variable;
-import kodkod.instance.TupleFactory;
-import kodkod.instance.TupleSet;
-
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.PrintHelper;
 import org.tzi.kodkod.model.config.IConfigurator;
@@ -17,20 +10,25 @@ import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.visitor.Visitor;
 
+import kodkod.ast.Expression;
+import kodkod.ast.Formula;
+import kodkod.ast.Relation;
+import kodkod.ast.Variable;
+import kodkod.instance.TupleFactory;
+import kodkod.instance.TupleSet;
+
 /**
  * Implementation of IAttribute.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class Attribute extends ModelElement implements IAttribute {
 
 	private static final Logger LOG = Logger.getLogger(Attribute.class);
 
-	private Type type;
-	private IClass owner;
-	private Formula derivedFormula = null;
-	private IConfigurator<IAttribute> configurator;
+	protected Type type;
+	protected IClass owner;
+	protected IConfigurator<IAttribute> configurator;
 
 	Attribute(IModel model, String name, Type type, IClass owner) {
 		super(model, name);
@@ -40,10 +38,6 @@ public class Attribute extends ModelElement implements IAttribute {
 		relation = Relation.binary(owner.name() + "_" + name);
 	}
 	
-	public void setDerivedConstraint(Formula derivedExpr) {
-		this.derivedFormula = derivedExpr;
-	}
-
 	@Override
 	public TupleSet lowerBound(TupleFactory tupleFactory) {
 		return configurator.lowerBound(this, 2, tupleFactory);
@@ -56,14 +50,12 @@ public class Attribute extends ModelElement implements IAttribute {
 
 	@Override
 	public Formula constraints() {
-		Formula formula = Formula.and(domainDefinition(), typeDefinition(), multiplicityDefinition(), derivedDefinition());
+		Formula formula = Formula.and(domainDefinition(), typeDefinition(), multiplicityDefinition());
 		return formula.and(configurator.constraints(this));
 	}
 
 	/**
 	 * Creates the formula for the domain definition.
-	 * 
-	 * @return
 	 */
 	private Formula domainDefinition() {
 		Formula formula = relation.join(Expression.UNIV).in(getOwnerRelation());
@@ -89,8 +81,6 @@ public class Attribute extends ModelElement implements IAttribute {
 
 	/**
 	 * Creates the formula for the multiplicity definition of an attribute.
-	 * 
-	 * @return
 	 */
 	private Formula multiplicityDefinition() {
 		final Variable c = Variable.unary("c");
@@ -107,15 +97,9 @@ public class Attribute extends ModelElement implements IAttribute {
 		LOG.debug("Mult for " + name() + ": " + PrintHelper.prettyKodkod(formula));
 		return formula;
 	}
-
-	private Formula derivedDefinition() {
-		return (derivedFormula == null) ? Formula.TRUE: derivedFormula;
-	}
 	
 	/**
 	 * Returns the relation of the owner.
-	 * 
-	 * @return
 	 */
 	private Relation getOwnerRelation() {
 		if (owner.existsInheritance()) {
@@ -134,16 +118,6 @@ public class Attribute extends ModelElement implements IAttribute {
 		return type;
 	}
 	
-	@Override
-	public Formula derivedConstraint() {
-		return derivedFormula;
-	}
-	
-	@Override
-	public boolean hasDerivedConstraint() {
-		return derivedFormula != null;
-	}
-
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visitAttribute(this);

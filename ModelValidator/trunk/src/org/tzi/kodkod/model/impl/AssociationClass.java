@@ -11,7 +11,7 @@ import org.tzi.kodkod.model.iface.IModel;
  * @author Hendrik Reitmann
  * 
  */
-public class AssociationClass extends Class implements IAssociationClass{
+public class AssociationClass extends Class implements IAssociationClass {
 
 	AssociationClass(IModel model, String name, boolean abstrac) {
 		super(model, name, abstrac);

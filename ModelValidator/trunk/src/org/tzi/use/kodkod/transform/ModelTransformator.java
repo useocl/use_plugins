@@ -2,16 +2,9 @@ package org.tzi.use.kodkod.transform;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-
-import kodkod.ast.Node;
-import kodkod.ast.Relation;
-import kodkod.ast.Variable;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LogMessages;
@@ -25,7 +18,6 @@ import org.tzi.kodkod.model.iface.IModelFactory;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeFactory;
 import org.tzi.use.graph.DirectedGraph;
-import org.tzi.use.kodkod.transform.ocl.DefaultExpressionVisitor;
 import org.tzi.use.uml.mm.MAggregationKind;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationClass;
@@ -36,7 +28,6 @@ import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MClassifier;
 import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MModel;
-import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.uml.sorting.UseFileOrderComparator;
@@ -45,7 +36,7 @@ import org.tzi.use.util.uml.sorting.UseFileOrderComparator;
  * Class to transform the use model in a model of the model validator.
  * 
  * @author Hendrik Reitmann
- * 
+ * @author Frank Hilken
  */
 public class ModelTransformator {
 
@@ -91,9 +82,6 @@ public class ModelTransformator {
 
 			transformSimpleAssociations(model, simpleAssociations);
 
-			transformDerivedAttributes(model, classes);
-			transformDerivedAttributes(model, associationClasses);
-			
 			InvariantTransformator invariantTransformator = new InvariantTransformator(factory, typeFactory);
 			List<MClassInvariant> classInvariants = new ArrayList<MClassInvariant>(mModel.classInvariants());
 			Collections.sort(classInvariants, new UseFileOrderComparator());
@@ -112,57 +100,6 @@ public class ModelTransformator {
 		}
 
 		return model;
-	}
-
-	private void transformDerivedAttributes(IModel model, List<? extends MClass> classes) {
-		for(MClass cls : classes){
-			for(MAttribute attr : cls.attributes()){
-				transformDerivedAttribute(model, attr);
-			}
-		}
-	}
-
-	private void transformDerivedAttribute(IModel model, MAttribute mAttr) {
-		if(!mAttr.isDerived()){
-			return;
-		}
-		
-		IClass kodkodCls = model.getClass(mAttr.owner().name());
-		IAttribute attr = kodkodCls.getAttribute(mAttr.name());
-		
-		// transform derived expression
-		// <owner>.allInstances()->forAll( self | self.<attribute> = derivedExpr )
-		Expression derivedExpr = mAttr.getDeriveExpression();
-		if(derivedExpr != null){
-			Relation ownerRel;
-			if(kodkodCls.existsInheritance()){
-				ownerRel = kodkodCls.inheritanceRelation();
-			} else {
-				ownerRel = kodkodCls.relation();
-			}
-			
-			Variable var = Variable.unary("self");
-			
-			Map<String, Node> variables = new TreeMap<String, Node>();
-			variables.put("self", var);
-			
-			DefaultExpressionVisitor dev;
-			try {
-				dev = new DefaultExpressionVisitor(model, variables,
-						new HashMap<String, IClass>(), new HashMap<String, Variable>(), new ArrayList<String>());
-				derivedExpr.processWithVisitor(dev);
-			}
-			catch(TransformationException e){
-				LOG.error("Derived attribute "
-						+ StringUtil.inQuotes(mAttr.owner().name() + "::" + mAttr.name())
-						+ " cannot be transformed and the derived expression will be ignored. Reason: "
-						+ e.getMessage());
-				// ignore this derived attribute
-				return;
-			}
-			kodkod.ast.Expression derExpr = (kodkod.ast.Expression) dev.getObject();
-			attr.setDerivedConstraint(var.join(attr.relation()).eq(derExpr).forAll(var.oneOf(ownerRel)));
-		}
 	}
 
 	private void transformEnums(IModel model, Set<EnumType> enumTypes) {
@@ -196,11 +133,17 @@ public class ModelTransformator {
 
 	private void transformClassAttributes(IModel model, IClass clazz, List<MAttribute> attributes) {
 		TypeConverter typeConverter = new TypeConverter(model);
-		for (MAttribute mAttribute : attributes) {
 
+		for (MAttribute mAttribute : attributes) {
 			Type type = typeConverter.convert(mAttribute.type());
 			if (type != null) {
-				clazz.addAttribute(factory.createAttribute(model, mAttribute.name(), type, clazz));
+				IAttribute attr;
+				if(mAttribute.isDerived()){
+					attr = factory.createDerivedAttribute(model, mAttribute.name(), type, clazz, mAttribute.getDeriveExpression());
+				} else {
+					attr = factory.createAttribute(model, mAttribute.name(), type, clazz);
+				}
+				clazz.addAttribute(attr);
 			}
 		}
 	}
@@ -213,16 +156,32 @@ public class ModelTransformator {
 	}
 
 	private IAssociation transformAssociation(MultiplicityTransformator multTransformator, IModel model, MAssociation mAssociation) {
-		IAssociation association = factory.createAssociation(model, mAssociation.name());
-		for (MAssociationEnd mAssociationEnd : mAssociation.associationEnds()) {
+		IAssociation association;
+		if(mAssociation.isDerived()){
+			association = factory.createDerivedAssociation(model, mAssociation.name());
+		} else {
+			association = factory.createAssociation(model, mAssociation.name());
+		}
 
-			IAssociationEnd end = factory.createAssociationEnd(mAssociationEnd.name(),
-					multTransformator.transform(mAssociationEnd.multiplicity()),
-					transformAggregationKind(mAssociationEnd.aggregationKind()),
-					model.getClass(mAssociationEnd.cls().name()));
+		for (MAssociationEnd mAssociationEnd : mAssociation.associationEnds()) {
+			IAssociationEnd end;
+			if(mAssociationEnd.isDerived()){
+				//TODO derive parameter
+				end = factory.createDerivedAssociationEnd(mAssociationEnd.name(),
+						multTransformator.transform(mAssociationEnd.multiplicity()),
+						transformAggregationKind(mAssociationEnd.aggregationKind()),
+						model.getClass(mAssociationEnd.cls().name()), mAssociationEnd.getDeriveExpression());
+			} else {
+				end = factory.createAssociationEnd(mAssociationEnd.name(),
+						multTransformator.transform(mAssociationEnd.multiplicity()),
+						transformAggregationKind(mAssociationEnd.aggregationKind()),
+						model.getClass(mAssociationEnd.cls().name()));
+			}
+			
 			association.addAssociationEnd(end);
 			end.associatedClass().addAssociation(association);
 		}
+		
 		return association;
 	}
 
@@ -238,8 +197,13 @@ public class ModelTransformator {
 
 	private void transformAssociationClasses(IModel model, List<MAssociationClass> mAssociationClasses) {
 		MultiplicityTransformator multTransformator = new MultiplicityTransformator();
-		for (MAssociationClass mAssociationClass : mAssociationClasses) {
 
+		for (MAssociationClass mAssociationClass : mAssociationClasses) {
+			if(mAssociationClass.isDerived()){
+				LOG.error("Derived association classes are not supported. Ignoring " + StringUtil.inQuotes(mAssociationClass.name()) + ".");
+				continue;
+			}
+			
 			IAssociationClass associationClass = factory.createAssociationClass(model, mAssociationClass.name(), mAssociationClass.isAbstract());
 			transformClassAttributes(model, associationClass, mAssociationClass.attributes());
 			model.addClass(associationClass);

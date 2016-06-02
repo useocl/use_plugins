@@ -7,6 +7,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationEnd;
+import org.tzi.kodkod.model.impl.DerivedAssociation;
 import org.tzi.use.util.StringUtil;
 
 public class AssociationNameRenderer extends DefaultTableCellRenderer {
@@ -34,6 +35,10 @@ public class AssociationNameRenderer extends DefaultTableCellRenderer {
 			}
 		});
 		sb.append(")");
+		
+		if(assoc instanceof DerivedAssociation){
+			sb.append(" (derived)");
+		}
 		
 		setText(sb.toString());
 	}

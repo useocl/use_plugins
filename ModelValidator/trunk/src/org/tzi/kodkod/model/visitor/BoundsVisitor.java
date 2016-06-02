@@ -13,6 +13,8 @@ import kodkod.instance.TupleSet;
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
+import org.tzi.kodkod.model.impl.DerivedAssociation;
+import org.tzi.kodkod.model.impl.DerivedAttribute;
 import org.tzi.kodkod.model.type.BooleanType;
 import org.tzi.kodkod.model.type.IntegerType;
 import org.tzi.kodkod.model.type.StringType;
@@ -24,7 +26,6 @@ import org.tzi.kodkod.model.type.TypeLiterals;
  * Visitor to bind the bounds to the relations.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class BoundsVisitor extends SimpleVisitor {
 
@@ -47,11 +48,17 @@ public class BoundsVisitor extends SimpleVisitor {
 
 	@Override
 	public void visitAttribute(IAttribute attribute) {
+		if(attribute instanceof DerivedAttribute){
+			return;
+		}
 		bounds.bound(attribute.relation(), attribute.lowerBound(tupleFactory), attribute.upperBound(tupleFactory));
 	}
 
 	@Override
 	public void visitAssociation(IAssociation association) {
+		if(association instanceof DerivedAssociation){
+			return;
+		}
 		bounds.bound(association.relation(), association.lowerBound(tupleFactory), association.upperBound(tupleFactory));
 	}
 

@@ -8,6 +8,7 @@ import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
 
+import org.tzi.kodkod.model.impl.DerivedAttribute;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
@@ -68,7 +69,7 @@ public class TableModelAttribute extends AbstractTableModel implements TooltipTa
 	@Override
 	public boolean isCellEditable(int row, int column) {
 		AttributeSettings set = attributesSettings.get(row);
-		if (set.isInherited()) {
+		if (set.isInherited() || set.getAttribute() instanceof DerivedAttribute) {
 			return false;
 		} else {
 			return column > 0;

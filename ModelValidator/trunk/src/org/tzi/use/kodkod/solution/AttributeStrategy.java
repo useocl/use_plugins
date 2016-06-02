@@ -25,14 +25,14 @@ public class AttributeStrategy extends ElementStrategy {
 		super(sApi, objectStates);
 		this.attributeName = attributeName;
 	}
-
+	
 	@Override
 	public void createElement(Tuple currentTuple) throws UseApiException {
 		MObjectState mObjectState = objectStates.get(currentTuple.atom(0));
 
 		MAttribute mAttribute = findAttribute(mObjectState);
 
-		if (mAttribute != null) {
+		if (mAttribute != null && !mAttribute.isDerived()) {
 			Object atom = currentTuple.atom(1);
 			Type attributeType = mAttribute.type();
 

@@ -3,15 +3,6 @@ package org.tzi.kodkod.model.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import kodkod.ast.Decls;
-import kodkod.ast.Expression;
-import kodkod.ast.Formula;
-import kodkod.ast.IntConstant;
-import kodkod.ast.Relation;
-import kodkod.ast.Variable;
-import kodkod.instance.TupleFactory;
-import kodkod.instance.TupleSet;
-
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.ConstraintHelper;
 import org.tzi.kodkod.helper.PrintHelper;
@@ -24,20 +15,28 @@ import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.visitor.Visitor;
 
+import kodkod.ast.Decls;
+import kodkod.ast.Expression;
+import kodkod.ast.Formula;
+import kodkod.ast.IntConstant;
+import kodkod.ast.Relation;
+import kodkod.ast.Variable;
+import kodkod.instance.TupleFactory;
+import kodkod.instance.TupleSet;
+
 /**
  * Implementation of IAssociation.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class Association extends ModelElement implements IAssociation {
 
 	private static final Logger LOG = Logger.getLogger(Association.class);
 
-	private int arity = 0;
-	private IAssociationClass associationClass;
-	private List<IAssociationEnd> associationEnds;
-	private IConfigurator<IAssociation> configurator;
+	protected int arity = 0;
+	protected IAssociationClass associationClass;
+	protected List<IAssociationEnd> associationEnds;
+	protected IConfigurator<IAssociation> configurator;
 
 	Association(IModel model, String name) {
 		super(model, name);
@@ -73,7 +72,7 @@ public class Association extends ModelElement implements IAssociation {
 		return formula.and(configurator.constraints(this));
 	}
 
-	private Formula cycleFreenessDefinitions() {
+	protected Formula cycleFreenessDefinitions() {
 		if(associationClass != null || !isBinaryAssociation()){
 			return Formula.TRUE;
 		}
@@ -97,7 +96,7 @@ public class Association extends ModelElement implements IAssociation {
 				|| aggregateEnd.associatedClass().allChildren().contains(otherEnd.associatedClass())) {
 			// construct simple constraint
 			Relation startRelation = aggregateEnd.associatedClass().existsInheritance() ?
-					aggregateEnd.associatedClass().inheritanceRelation() : 
+					aggregateEnd.associatedClass().inheritanceRelation() :
 					aggregateEnd.associatedClass().relation();
 			
 			// startRelation->forAll( s | s->closure( relation )->excludes( s ))
@@ -113,16 +112,15 @@ public class Association extends ModelElement implements IAssociation {
 			
 			return forAllExp.forAll( start.oneOf(startRelation) );
 		}
+		//TODO non-reflexive case(s)
 		
 		return Formula.TRUE;
 	}
 
 	/**
 	 * Creates the formula for the type definition constraint.
-	 * 
-	 * @return
 	 */
-	private Formula typeDefinitions() {
+	protected Formula typeDefinitions() {
 		List<Formula> formulas = new ArrayList<Formula>();
 
 		ArrayList<IAssociationEnd> temporary = new ArrayList<IAssociationEnd>();
@@ -159,10 +157,8 @@ public class Association extends ModelElement implements IAssociation {
 	
 	/**
 	 * Creates the formula for the multiplicity constraints.
-	 * 
-	 * @return
 	 */
-	public Formula multiplicityDefinitions() {
+	protected Formula multiplicityDefinitions() {
 		List<Formula> formulas = new ArrayList<Formula>();
 		List<Variable> variables;
 		Multiplicity multiplicity;
@@ -221,8 +217,6 @@ public class Association extends ModelElement implements IAssociation {
 	/**
 	 * Creates the formula for the multiplicity constraint for an association
 	 * class.
-	 * 
-	 * @return
 	 */
 	private Formula associationClassMultiplicityDefinitions() {
 		List<Variable> variables = new ArrayList<Variable>(relation().arity() - 1);
@@ -260,11 +254,6 @@ public class Association extends ModelElement implements IAssociation {
 
 	/**
 	 * Creates the formula for an association end with multiplicity 0..1.
-	 * 
-	 * @param variables
-	 * @param index
-	 * @param linkedObjects
-	 * @return
 	 */
 	private Formula zeroOneMultiplicity(List<Variable> variables, int index, Expression linkedObjects) {
 		Formula formula;
@@ -286,10 +275,6 @@ public class Association extends ModelElement implements IAssociation {
 
 	/**
 	 * Creates the variable declarations for the multiplicity formulas.
-	 * 
-	 * @param variables
-	 * @param associationEnd
-	 * @return
 	 */
 	private Decls createVariableDeclaration(List<Variable> variables, IAssociationEnd associationEnd) {
 		Decls variableDeclaration = null;
@@ -310,11 +295,6 @@ public class Association extends ModelElement implements IAssociation {
 
 	/**
 	 * Returns an expression with the linked objects of an association end.
-	 * 
-	 * @param variables
-	 * @param currentEndIndex
-	 * @param univJoinRelation
-	 * @return
 	 */
 	private Expression createLinkedObjectsExpression(List<Variable> variables, int currentEndIndex, boolean univJoinRelation) {
 		Expression linkedObjects = null;
@@ -340,9 +320,6 @@ public class Association extends ModelElement implements IAssociation {
 
 	/**
 	 * Returns the relation of the given associated class.
-	 * 
-	 * @param associatedClass
-	 * @return
 	 */
 	private Relation getAssociatedClassRelation(IClass associatedClass) {
 		if (associatedClass.existsInheritance()) {

@@ -6,6 +6,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.tzi.kodkod.model.iface.IAttribute;
+import org.tzi.kodkod.model.impl.DerivedAttribute;
 import org.tzi.use.kodkod.plugin.gui.model.TableModelAttribute;
 import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
 
@@ -30,7 +31,7 @@ public class AttributeNameRenderer extends DefaultTableCellRenderer {
 		if(inherited){
 			attrDescription += " (" + attr.owner().name() + ")";
 		}
-		if(attr.hasDerivedConstraint()){
+		if(attr instanceof DerivedAttribute){
 			attrDescription += " (derived)";
 		}
 		setText(attrDescription);

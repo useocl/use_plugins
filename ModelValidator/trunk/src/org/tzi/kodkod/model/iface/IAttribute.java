@@ -1,7 +1,5 @@
 package org.tzi.kodkod.model.iface;
 
-import kodkod.ast.Formula;
-
 import org.tzi.kodkod.model.config.IConfigurator;
 import org.tzi.kodkod.model.type.Type;
 
@@ -26,10 +24,6 @@ public interface IAttribute extends IModelElement {
 	 * @return
 	 */
 	public Type type();
-
-	public void setDerivedConstraint(Formula derivedFormula);
-	public boolean hasDerivedConstraint();
-	public Formula derivedConstraint();
 	
 	/**
 	 * Sets the configurator for this attribute.

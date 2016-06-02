@@ -12,6 +12,7 @@ import javax.swing.table.AbstractTableModel;
 
 import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IClass;
+import org.tzi.kodkod.model.impl.DerivedAssociation;
 import org.tzi.use.kodkod.plugin.gui.ConfigurationTerms;
 import org.tzi.use.kodkod.plugin.gui.LegendEntry;
 import org.tzi.use.kodkod.plugin.gui.model.data.AssociationSettings;
@@ -71,6 +72,9 @@ public class TableModelAssociation extends AbstractTableModel implements Tooltip
 
 	@Override
 	public boolean isCellEditable(int row, int column) {
+		if(currentAssociationsSettings.get(row).getAssociation() instanceof DerivedAssociation){
+			return false;
+		}
 		return column > 0;
 	}
 

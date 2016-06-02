@@ -3,13 +3,13 @@ package org.tzi.kodkod.model.iface;
 import org.tzi.kodkod.model.impl.Multiplicity;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeFactory;
+import org.tzi.use.uml.ocl.expr.Expression;
 
 /**
  * An Instance of the type IModelFactory represents a factory to create a model
  * with the elements.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public interface IModelFactory {
 
@@ -27,16 +27,22 @@ public interface IModelFactory {
 	 * Creates an instance of IAttribute
 	 */
 	public IAttribute createAttribute(IModel model, String name, Type type, IClass kClass);
+	
+	public IAttribute createDerivedAttribute(IModel model, String name, Type type, IClass kClass, Expression derivedExpression);
 
 	/**
 	 * Creates an instance of IAssociation.
 	 */
 	public IAssociation createAssociation(IModel model, String name);
+	
+	public IAssociation createDerivedAssociation(IModel model, String name);
 
 	/**
 	 * Creates an instance of IAssociationEnd.
 	 */
 	public IAssociationEnd createAssociationEnd(String name, Multiplicity multiplicity, int aggregationKind, IClass associatedClass);
+	
+	public IAssociationEnd createDerivedAssociationEnd(String name, Multiplicity multiplicity, int aggregationKind, IClass associatedClass, Expression derivedExpression);
 
 	/**
 	 * Creates an instance of IAssociationClass.

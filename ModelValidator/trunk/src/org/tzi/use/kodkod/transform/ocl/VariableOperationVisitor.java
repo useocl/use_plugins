@@ -4,14 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import kodkod.ast.Node;
-import kodkod.ast.Variable;
-
 import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
+import org.tzi.kodkod.model.impl.DerivedAssociation;
+import org.tzi.kodkod.model.impl.DerivedAttribute;
 import org.tzi.kodkod.model.type.ObjectType;
 import org.tzi.kodkod.model.type.TypeLiterals;
 import org.tzi.use.kodkod.transform.TransformationException;
@@ -29,6 +28,9 @@ import org.tzi.use.uml.ocl.expr.ExpVariable;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.util.StringUtil;
+
+import kodkod.ast.Node;
+import kodkod.ast.Variable;
 
 /**
  * Extension of DefaultExpressionVisitor to visit the variable operations of an
@@ -78,15 +80,11 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		IAttribute attribute = attributeClass.getAttribute(exp.attr().name());
 		
 		if (attribute != null) {
-			set = attribute.type().isSet();
-			sourceType = exp.type();
-
-			List<Object> arguments = new ArrayList<Object>();
-			arguments.add(object);
-			arguments.add(attribute.relation());
-			arguments.add(set);
-
-			invokeMethod("access", arguments, false);
+			if(attribute instanceof DerivedAttribute){
+				handleDerivedAttribute(exp, (DerivedAttribute) attribute);
+			} else {
+				handleRegularAttribute(exp, attribute);
+			}
 			
 			// update current type
 			if(attribute.type().isObjectType()){
@@ -101,6 +99,39 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		}
 	}
 
+	private void handleDerivedAttribute(ExpAttrOp exp, DerivedAttribute attribute) {
+		//TODO recursion detector
+		Node oldSelf = variables.get("self");
+		boolean oldSet = collectionVariables.contains("self");
+		
+		variables.put("self", (Node) object);
+		if(set){
+			collectionVariables.add("self");
+		}
+		attribute.derivedExpression().processWithVisitor(this);
+		
+		if(oldSelf != null){
+			variables.put("self", oldSelf);
+		} else {
+			variables.remove("self");
+		}
+		if(!oldSet){
+			collectionVariables.remove("self");
+		}
+	}
+
+	private void handleRegularAttribute(ExpAttrOp exp, IAttribute attribute) {
+		set = attribute.type().isSet();
+		sourceType = exp.type();
+
+		List<Object> arguments = new ArrayList<Object>();
+		arguments.add(object);
+		arguments.add(attribute.relation());
+		arguments.add(set);
+
+		invokeMethod("access", arguments, false);
+	}
+
 	@Override
 	public void visitNavigation(ExpNavigation exp) {
 		exp.getObjectExpression().processWithVisitor(this);
@@ -112,39 +143,54 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		IAssociation association = model.getAssociation(mAssociation.name());
 
 		if (association != null) {
-			boolean isAssociationClass = association.associationClass() != null;
-
-			int fromRole = findAssociationEndIndex(source, association, false);
-			int toRole = findAssociationEndIndex(destination, association, true);
-
-			if (fromRole == -1) {
-				fromRole = associationClassEnd(source, association, fromRole, true);
-			} else if (toRole == -1) {
-				toRole = associationClassEnd(destination, association, fromRole, false);
+			if(association instanceof DerivedAssociation){
+				handleDerivedAssociationNavigation(exp, association, source, destination);
+			} else {
+				handleRegularAssociationNavigation(exp, association, source, destination);
 			}
-
-			object_type_nav = !set;
-			sourceType = exp.type();
-
-			if (fromRole == -1 || toRole == -1 || fromRole == toRole) {
-				throw new TransformationException("Cannot find correct associationEnd indexes for navigation from " + source.nameAsRolename()
-						+ " to " + destination.nameAsRolename() + ".");
-			}
-
-			List<Object> arguments = new ArrayList<Object>();
-			arguments.add(object);
-			arguments.add(association.relation());
-			arguments.add(fromRole);
-			arguments.add(toRole);
-			arguments.add(isAssociationClass);
-			arguments.add(object_type_nav);
-
-			invokeMethod("navigation", arguments, false);
 		} else {
 			throw new TransformationException("Cannot find association " + StringUtil.inQuotes(mAssociation.name()) + ".");
 		}
 	}
 	
+	private void handleDerivedAssociationNavigation(ExpNavigation exp, IAssociation association,
+			MNavigableElement source, MNavigableElement destination) {
+		// TODO implement derived associations
+		throw new TransformationException("Derived association ends are not supported yet.");
+	}
+
+	private void handleRegularAssociationNavigation(ExpNavigation exp, IAssociation association, MNavigableElement source,
+			MNavigableElement destination) {
+		boolean isAssociationClass = association.associationClass() != null;
+
+		int fromRole = findAssociationEndIndex(source, association, false);
+		int toRole = findAssociationEndIndex(destination, association, true);
+
+		if (fromRole == -1) {
+			fromRole = associationClassEnd(source, association, fromRole, true);
+		} else if (toRole == -1) {
+			toRole = associationClassEnd(destination, association, fromRole, false);
+		}
+
+		object_type_nav = !set;
+		sourceType = exp.type();
+
+		if (fromRole == -1 || toRole == -1 || fromRole == toRole) {
+			throw new TransformationException("Cannot find correct associationEnd indexes for navigation from " + source.nameAsRolename()
+					+ " to " + destination.nameAsRolename() + ".");
+		}
+
+		List<Object> arguments = new ArrayList<Object>();
+		arguments.add(object);
+		arguments.add(association.relation());
+		arguments.add(fromRole);
+		arguments.add(toRole);
+		arguments.add(isAssociationClass);
+		arguments.add(object_type_nav);
+
+		invokeMethod("navigation", arguments, false);
+	}
+
 	@Override
 	public void visitNavigationClassifierSource(ExpNavigationClassifierSource exp) {
 		
