@@ -44,7 +44,7 @@ public class BoundsSpinner {
 			if(text.trim().equals("*")){
 				return Integer.valueOf(-1);
 			} else {
-				return Integer.valueOf(text);
+				return Integer.valueOf(text.trim());
 			}
 		}
 
