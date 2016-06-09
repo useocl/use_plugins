@@ -103,12 +103,7 @@ public class InvariantTransformator {
 						+ " transformed into a non boolean expression.");
 			}
 
-			Relation relation;
-			if (!invariantClass.existsInheritance()) {
-				relation = invariantClass.relation();
-			} else {
-				relation = invariantClass.inheritanceRelation();
-			}
+			Relation relation = invariantClass.inheritanceOrRegularRelation();
 
 			Decls variableDeclaration = null;
 			for (Node node : variables) {

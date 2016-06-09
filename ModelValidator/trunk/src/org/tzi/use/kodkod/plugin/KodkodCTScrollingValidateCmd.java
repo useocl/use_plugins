@@ -229,7 +229,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 						new HashMap<String, Node>(), new HashMap<String, IClass>(),
 						new HashMap<String, Variable>(), new ArrayList<String>());
 				result.processWithVisitor(ev);
-				obsTermKodkod = (Node) ev.getObject();
+				obsTermKodkod = ev.getObject();
 			}
 			catch(TransformationException ex){
 				LOG.error("The expression cannot be transformed by the model validator. Reason: " + ex.getMessage());

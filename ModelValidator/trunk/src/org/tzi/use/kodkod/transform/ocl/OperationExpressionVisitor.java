@@ -177,7 +177,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 
 				currentParam = params.varDecl(i);
 				
-				opVariables.put(currentParam.name(), (Node) visitor.getObject());
+				opVariables.put(currentParam.name(), visitor.getObject());
 				
 				if(currentParam.type().isTypeOfClass()){
 					MClass type = (MClass) currentParam.type();
@@ -202,7 +202,7 @@ public class OperationExpressionVisitor extends DefaultExpressionVisitor {
 				collectionVariables);
 		operationVariable.processWithVisitor(variableVisitor);
 		
-		opVariables.put("self", (Node) variableVisitor.getObject());
+		opVariables.put("self", variableVisitor.getObject());
 
 		IClass clazz = variableVisitor.getAttributeClass();
 

@@ -1,19 +1,11 @@
 package org.tzi.kodkod.model.config.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
-
-import kodkod.ast.Expression;
-import kodkod.ast.Formula;
-import kodkod.ast.IntConstant;
-import kodkod.ast.IntExpression;
-import kodkod.ast.Relation;
-import kodkod.ast.Variable;
-import kodkod.instance.Tuple;
-import kodkod.instance.TupleFactory;
-import kodkod.instance.TupleSet;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.PrintHelper;
@@ -28,6 +20,16 @@ import org.tzi.kodkod.model.type.TypeConstants;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+
+import kodkod.ast.Expression;
+import kodkod.ast.Formula;
+import kodkod.ast.IntConstant;
+import kodkod.ast.IntExpression;
+import kodkod.ast.Relation;
+import kodkod.ast.Variable;
+import kodkod.instance.Tuple;
+import kodkod.instance.TupleFactory;
+import kodkod.instance.TupleSet;
 
 /**
  * Configurator for attributes.
@@ -230,17 +232,8 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 			}
 		}
 
-		if (max != -1) {
-			unboundedDefinedValues = false;
-		} else {
-			unboundedDefinedValues = true;
-		}
-
-		if (min == -1) {
-			allValuesDefined = true;
-		} else {
-			allValuesDefined = false;
-		}
+		unboundedDefinedValues = (max != -1);
+		allValuesDefined = (min == -1);
 	}
 
 	/**
@@ -295,6 +288,7 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 		} else {
 			numberOfDefinedObjects = relation.join(Expression.UNIV.difference(undefined)).count();
 		}
+		
 		Formula minFormula = Formula.TRUE;
 		if (allValuesDefined) {
 			if (attribute.type().isSet()) {
@@ -323,23 +317,20 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 	}
 
 	/**
-	 * Creates the formulation for the collection size,
-	 * 
-	 * @param attribute
-	 * @return
+	 * Creates the formulation for the collection size.
 	 */
 	private Formula numberOfCollectionValues(IAttribute attribute) {
-		Variable variable = Variable.unary("person");
+		List<Formula> constraints = new ArrayList<Formula>();
+		Variable variable = Variable.unary("setAttrMult");
 
 		IntExpression numberOfValues = variable.join(attribute.relation()).count();
-		Formula formula = numberOfValues.gte(IntConstant.constant(minCollectionSize));
+		if(minCollectionSize > 0){
+			constraints.add(numberOfValues.gte(IntConstant.constant(minCollectionSize)));
+		}
 		if (!unboundedCollectionSize) {
-			formula = formula.and(numberOfValues.lte(IntConstant.constant(maxCollectionSize)));
+			constraints.add(numberOfValues.lte(IntConstant.constant(maxCollectionSize)));
 		}
 
-		formula = formula.forAll(variable.oneOf(attribute.owner().relation()));
-
-		LOG.debug("Collection size of " + attribute.name() + ": " + PrintHelper.prettyKodkod(formula));
-		return formula;
+		return Formula.and(constraints).forAll(variable.oneOf(attribute.owner().relation()));
 	}
 }

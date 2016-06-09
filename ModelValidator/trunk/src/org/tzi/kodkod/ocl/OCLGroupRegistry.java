@@ -36,6 +36,7 @@ public enum OCLGroupRegistry {
 	 */
 	public void registerOperationGroup(OCLOperationGroup operationGroup) {
 		operationGroups.add(operationGroup);
+		
 		Map<String, String> groupMapping = operationGroup.getSymbolOperationMapping();
 		for (String operator : groupMapping.keySet()) {
 			if (!symbolOperationMapping.containsKey(operator)) {

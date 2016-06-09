@@ -9,13 +9,18 @@ import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
+import org.tzi.kodkod.model.impl.AssociationEnd;
 import org.tzi.kodkod.model.impl.DerivedAssociation;
+import org.tzi.kodkod.model.impl.DerivedAssociationEnd;
+import org.tzi.kodkod.model.impl.DerivedAssociationEnd.Parameter;
 import org.tzi.kodkod.model.impl.DerivedAttribute;
+import org.tzi.kodkod.model.impl.UnionAssociation;
 import org.tzi.kodkod.model.type.ObjectType;
 import org.tzi.kodkod.model.type.TypeLiterals;
 import org.tzi.use.kodkod.transform.TransformationException;
 import org.tzi.use.kodkod.transform.TypeConverter;
 import org.tzi.use.uml.mm.MAssociation;
+import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MNavigableElement;
 import org.tzi.use.uml.mm.MOperation;
@@ -29,6 +34,7 @@ import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.util.StringUtil;
 
+import kodkod.ast.Expression;
 import kodkod.ast.Node;
 import kodkod.ast.Variable;
 
@@ -37,7 +43,6 @@ import kodkod.ast.Variable;
  * expression.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class VariableOperationVisitor extends DefaultExpressionVisitor {
 
@@ -48,13 +53,6 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		super(model, variables, variableClasses, replaceVariables, collectionVariables);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * <b>Note:</b> This method is only reachable from inside the
-	 * {@code VariableOperationVisitor}. Other {@code any} expressions are
-	 * handled by {@link QueryExpressionVisitor#visitAny(ExpAny)}.
-	 */
 	@Override
 	public void visitAny(ExpAny exp) {
 		super.visitAny(exp);
@@ -104,7 +102,7 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		Node oldSelf = variables.get("self");
 		boolean oldSet = collectionVariables.contains("self");
 		
-		variables.put("self", (Node) object);
+		variables.put("self", object);
 		if(set){
 			collectionVariables.add("self");
 		}
@@ -118,6 +116,9 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		if(!oldSet){
 			collectionVariables.remove("self");
 		}
+
+		//FIXME correct?
+		set = attribute.derivedExpression().type().isKindOfCollection(VoidHandling.EXCLUDE_VOID);
 	}
 
 	private void handleRegularAttribute(ExpAttrOp exp, IAttribute attribute) {
@@ -144,7 +145,28 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 
 		if (association != null) {
 			if(association instanceof DerivedAssociation){
-				handleDerivedAssociationNavigation(exp, association, source, destination);
+				List<MAssociationEnd> useAssocEnds = mAssociation.associationEnds();
+				List<IAssociationEnd> assocEnds = association.associationEnds();
+				
+				IAssociationEnd from = null;
+				IAssociationEnd to = null;
+				
+				for (int i = 0; i < useAssocEnds.size(); i++) {
+					MAssociationEnd mAssociationEnd = useAssocEnds.get(i);
+					if(mAssociationEnd == source){
+						from = assocEnds.get(i);
+					} else if(mAssociationEnd == destination){
+						to = assocEnds.get(i);
+					}
+				}
+				
+				if(from == null || to == null){
+					throw new TransformationException("Navigation expression is broken.");
+				}
+				
+				handleDerivedAssociationNavigation(exp, (DerivedAssociation) association, from, to);
+			} else if(association instanceof UnionAssociation) {
+				handleUnionAssociationNavigation(exp, (UnionAssociation) association, source, destination);
 			} else {
 				handleRegularAssociationNavigation(exp, association, source, destination);
 			}
@@ -153,10 +175,107 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 		}
 	}
 	
-	private void handleDerivedAssociationNavigation(ExpNavigation exp, IAssociation association,
-			MNavigableElement source, MNavigableElement destination) {
-		// TODO implement derived associations
-		throw new TransformationException("Derived association ends are not supported yet.");
+	private void handleDerivedAssociationNavigation(ExpNavigation exp, DerivedAssociation assoc, IAssociationEnd from, IAssociationEnd to) {
+		//TODO recursion detector
+		IAssociationEnd[] aEnds = new AssociationEnd[assoc.associationEnds().size()];
+		DerivedAssociationEnd derEnd = null;
+		
+		for (int i = 0; i < assoc.associationEnds().size(); i++) {
+			IAssociationEnd iAssociationEnd = assoc.associationEnds().get(i);
+			aEnds[i] = iAssociationEnd;
+			if(iAssociationEnd instanceof DerivedAssociationEnd){
+				derEnd = (DerivedAssociationEnd) iAssociationEnd;
+			}
+		}
+		
+		if(derEnd == null){
+			throw new TransformationException("Derived association does not have derived association end.");
+		}
+		
+		if(assoc.isBinaryAssociation()){
+			Parameter p = derEnd.derivedParameters().get(0);
+			if(to == derEnd){
+				// apply derived expression
+				Node oldSelf = variables.get(p.getName());
+				boolean oldSet = collectionVariables.contains(p.getName());
+				
+				variables.put(p.getName(), object);
+				if(set){
+					collectionVariables.add(p.getName());
+				}
+				derEnd.derivedExpression().processWithVisitor(this);
+				set = !to.multiplicity().isObjectTypeEnd();
+				object_type_nav = to.multiplicity().isObjectTypeEnd();
+				
+				if(oldSelf != null){
+					variables.put(p.getName(), oldSelf);
+				} else {
+					variables.remove(p.getName());
+				}
+				if(!oldSet){
+					collectionVariables.remove(p.getName());
+				}
+			} else {
+				// apply derived expression backwards
+				// OCL: otherEnd.allInstances()->select( e | e.derExpr->includes( self ) )
+				// Kodkod: some other : otherEnd.relation() | self \in expr(other)
+				// self = p.getName()
+				IAssociationEnd nonDerEnd = null;
+				
+				for (IAssociationEnd iAssociationEnd : aEnds) {
+					if(iAssociationEnd != derEnd){
+						nonDerEnd = iAssociationEnd;
+					}
+				}
+				
+				if(nonDerEnd == null){
+					throw new TransformationException("Could not identify non-derived association end of binary association " + StringUtil.inQuotes(assoc.name()) + ".");
+				}
+
+				Node oldObject = object;
+
+				//TODO variable (name) generator
+				Variable x = Variable.unary("ms");
+				Node oldVar = variables.get(p.getName());
+				//TODO set property and collectionVariables list?
+				variables.put("ms", variables.get(p.getName()));
+				
+				Node oldSelf = variables.get("self");
+				variables.put("self", x);
+				
+				derEnd.derivedExpression().processWithVisitor(this);
+				
+				Expression newObject = (Expression) object;
+				object = ((Expression) oldObject).in(newObject).comprehension(x.oneOf(nonDerEnd.associatedClass().inheritanceOrRegularRelation()));
+				set = true;
+				
+				if(to.multiplicity().isObjectTypeEnd()){
+					// if calculated result is empty -> continue to work with Undefined instead of empty relation
+					Expression obj = (Expression) object;
+					object = obj.no().thenElse(undefined, obj);
+					set = false;
+				}
+				
+				object_type_nav = !set;
+				variables.remove("self");
+				variables.remove(p.getName());
+				if(oldSelf != null){
+					variables.put("self", oldSelf);
+				}
+				if(oldVar != null){
+					variables.put(p.getName(), oldVar);
+				}
+			}
+		} else {
+			// n-Ary assoc
+			// TODO implement derived associations
+			throw new TransformationException("Derived association ends for n-ary associations are not supported yet.");
+		}
+	}
+	
+	private void handleUnionAssociationNavigation(ExpNavigation exp, UnionAssociation association, MNavigableElement source, MNavigableElement destination) {
+		// TODO Auto-generated method stub
+		throw new TransformationException("Union association ends for n-ary associations are not supported yet.");
 	}
 
 	private void handleRegularAssociationNavigation(ExpNavigation exp, IAssociation association, MNavigableElement source,
@@ -220,12 +339,6 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 
 	/**
 	 * Handle the navigation to an association class end.
-	 * 
-	 * @param source
-	 * @param association
-	 * @param fromIndex
-	 * @param fromRole
-	 * @return
 	 */
 	private int associationClassEnd(MNavigableElement source, IAssociation association, int fromIndex, boolean fromRole) {
 		if (source.nameAsRolename().toLowerCase().equals(association.name().toLowerCase())) {
@@ -248,11 +361,6 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 
 	/**
 	 * Search the index of the association end.
-	 * 
-	 * @param source
-	 * @param association
-	 * @param toRole
-	 * @return
 	 */
 	private int findAssociationEndIndex(MNavigableElement source, IAssociation association, boolean toRole) {
 		List<IAssociationEnd> associationEnds = association.associationEnds();
@@ -278,22 +386,6 @@ public class VariableOperationVisitor extends DefaultExpressionVisitor {
 
 	@Override
 	public void visitVariable(ExpVariable exp) {
-		/*
-		 * if (variables.containsKey(exp.getVarname())) { object =
-		 * variables.get(exp.getVarname()); if
-		 * (collectionVariables.contains(exp.getVarname())) { set = true; }
-		 * getAttributeClass(exp.getVarname()); } else if
-		 * (replaceVariables.containsKey(exp.getVarname())) { object =
-		 * replaceVariables.get(exp.getVarname()).remove(0);
-		 * getAttributeClass(exp.getVarname()); } else if
-		 * (exp.type().isObjectType()) { IClass clazz =
-		 * model.getClass(exp.type().shortName()); TypeLiterals type =
-		 * clazz.objectType(); type.addTypeLiteral(exp.getVarname()); object =
-		 * type.getTypeLiteral(exp.getVarname()); attributeClass = clazz; } else
-		 * { throw new TransformationException("No variable " + exp.getVarname()
-		 * + "."); }
-		 */
-
 		/*
 		 * approach due to the description in the method createVariables in the
 		 * class QueryExpressionVisitor. For this replacement it is necessary to

@@ -14,6 +14,9 @@ import org.tzi.kodkod.model.iface.IAssociation;
 import org.tzi.kodkod.model.iface.IAssociationClass;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
+import org.tzi.kodkod.model.impl.DerivedAssociation;
+import org.tzi.kodkod.model.impl.DerivedAttribute;
+import org.tzi.kodkod.model.impl.UnionAssociation;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.kodkod.plugin.gui.model.data.AssociationSettings;
 import org.tzi.use.kodkod.plugin.gui.model.data.AttributeSettings;
@@ -77,6 +80,9 @@ public final class ChangeConfiguration {
 			}
 			
 			for(AttributeSettings attributeSettings : classSettings.getAttributeSettings().values()){
+				if(attributeSettings.getAttribute() instanceof DerivedAttribute){
+					continue;
+				}
 				String attribute = attributeSettings.getAttribute().owner().name() + "_" + attributeSettings.getAttribute().name();
 				pc.setProperty(attribute + PropertyEntry.attributeDefValuesMin, attributeSettings.getLowerBound());
 				pc.setProperty(attribute + PropertyEntry.attributeDefValuesMax, attributeSettings.getUpperBound());
@@ -92,6 +98,9 @@ public final class ChangeConfiguration {
 		for(AssociationSettings associationSettings : settings.getAllAssociationSettings()){
 			String association = associationSettings.getAssociation().name();
 			IAssociation assoc = associationSettings.getAssociation();
+			if(assoc instanceof DerivedAssociation || assoc instanceof UnionAssociation){
+				continue;
+			}
 			
 			if(!assoc.isAssociationClass() || !assoc.associationClass().isAbstract()){
 				pc.setProperty(association + PropertyEntry.linksMin, associationSettings.getLowerBound());
@@ -201,6 +210,9 @@ public final class ChangeConfiguration {
 			
 			// Attributes
 			for(AttributeSettings attrS : cs.getAttributeSettings().values()){
+				if(attrS.getAttribute() instanceof DerivedAttribute){
+					continue;
+				}
 				String attrName = attrS.getAttribute().owner().name() + "_" + attrS.getAttribute().name();
 				if(pc.containsKey(attrName + PropertyEntry.attributeDefValuesMin)){
 					attrS.setLowerBound(pc.getInt(attrName + PropertyEntry.attributeDefValuesMin));
@@ -222,6 +234,9 @@ public final class ChangeConfiguration {
 		
 		// Associations
 		for(AssociationSettings as : settings.getAllAssociationSettings()){
+			if(as.getAssociation() instanceof DerivedAssociation || as.getAssociation() instanceof UnionAssociation){
+				continue;
+			}
 			String assocName = as.getAssociation().name();
 			if(pc.containsKey(assocName + PropertyEntry.linksMin)){
 				as.setLowerBound(pc.getInt(assocName + PropertyEntry.linksMin));

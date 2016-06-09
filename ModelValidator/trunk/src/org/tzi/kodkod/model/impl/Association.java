@@ -1,6 +1,7 @@
 package org.tzi.kodkod.model.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -95,9 +96,7 @@ public class Association extends ModelElement implements IAssociation {
 				|| aggregateEnd.associatedClass().allParents().contains(otherEnd.associatedClass())
 				|| aggregateEnd.associatedClass().allChildren().contains(otherEnd.associatedClass())) {
 			// construct simple constraint
-			Relation startRelation = aggregateEnd.associatedClass().existsInheritance() ?
-					aggregateEnd.associatedClass().inheritanceRelation() :
-					aggregateEnd.associatedClass().relation();
+			Relation startRelation = aggregateEnd.associatedClass().inheritanceOrRegularRelation();
 			
 			// startRelation->forAll( s | s->closure( relation )->excludes( s ))
 			// all c : one startRelation { c \notin c->closure( c' | c'.relation ) }
@@ -143,10 +142,10 @@ public class Association extends ModelElement implements IAssociation {
 
 			if (associationEnd.multiplicity() != null && associationEnd.multiplicity().isZeroOne() && isBinaryAssociation()
 					|| (associationEnd.equals(associationClass) && isBinaryAssociation())) {
-				formula = expression.in(getAssociatedClassRelation(associationEnd.associatedClass()).union(
+				formula = expression.in(associationEnd.associatedClass().inheritanceOrRegularRelation().union(
 						model.typeFactory().undefinedType().relation()));
 			} else {
-				formula = expression.in(getAssociatedClassRelation(associationEnd.associatedClass()));
+				formula = expression.in(associationEnd.associatedClass().inheritanceOrRegularRelation());
 			}
 
 			formulas.add(formula);
@@ -194,7 +193,7 @@ public class Association extends ModelElement implements IAssociation {
 						}
 
 						if (formula == null) {
-							formula = (lowerFormula.and(upperFormula));
+							formula = lowerFormula.and(upperFormula);
 						} else {
 							formula = formula.or(lowerFormula.and(upperFormula));
 						}
@@ -236,11 +235,11 @@ public class Association extends ModelElement implements IAssociation {
 
 		if (isBinaryAssociation()) {
 			IClass associatedClass = associationEnds.get(0).associatedClass();
-			Expression product = getAssociatedClassRelation(associatedClass);
+			Expression product = associatedClass.inheritanceOrRegularRelation();
 
 			for (int j = 1; j < associationEnds.size(); j++) {
 				associatedClass = associationEnds.get(j).associatedClass();
-				product = product.product(getAssociatedClassRelation(associatedClass));
+				product = product.product(associatedClass.inheritanceOrRegularRelation());
 			}
 
 			formula2 = formula2.and(linkedObjects.in(product));
@@ -283,10 +282,10 @@ public class Association extends ModelElement implements IAssociation {
 				variables.add(Variable.unary("v" + (j + 1)));
 				IClass associatedClass = associationEnds.get(j).associatedClass();
 				if (variables.size() == 1) {
-					variableDeclaration = variables.get(0).oneOf(getAssociatedClassRelation(associatedClass));
+					variableDeclaration = variables.get(0).oneOf(associatedClass.inheritanceOrRegularRelation());
 				} else {
 					variableDeclaration = variableDeclaration.and(variables.get(variables.size() - 1).oneOf(
-							getAssociatedClassRelation(associatedClass)));
+							associatedClass.inheritanceOrRegularRelation()));
 				}
 			}
 		}
@@ -318,17 +317,6 @@ public class Association extends ModelElement implements IAssociation {
 		return linkedObjects;
 	}
 
-	/**
-	 * Returns the relation of the given associated class.
-	 */
-	private Relation getAssociatedClassRelation(IClass associatedClass) {
-		if (associatedClass.existsInheritance()) {
-			return associatedClass.inheritanceRelation();
-		} else {
-			return associatedClass.relation();
-		}
-	}
-
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visitAssociation(this);
@@ -341,7 +329,7 @@ public class Association extends ModelElement implements IAssociation {
 
 	@Override
 	public List<IAssociationEnd> associationEnds() {
-		return associationEnds;
+		return Collections.unmodifiableList(associationEnds);
 	}
 
 	@Override

@@ -22,8 +22,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns a list with all types with atoms.
-	 * 
-	 * @return
 	 */
 	public List<TypeAtoms> typeAtoms() {
 		List<TypeAtoms> typeAtoms = new ArrayList<TypeAtoms>();
@@ -37,8 +35,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns a list with all types with literals.
-	 * 
-	 * @return
 	 */
 	public List<TypeLiterals> typeLiterals() {
 		List<TypeLiterals> typeLiterals = new ArrayList<TypeLiterals>();
@@ -52,8 +48,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns a list with the configurable types.
-	 * 
-	 * @return
 	 */
 	public List<ConfigurableType> configurableTypes() {
 		List<ConfigurableType> configurableTypes = new ArrayList<ConfigurableType>();
@@ -68,8 +62,6 @@ public abstract class TypeFactory {
 	/**
 	 * Returns a collection with the build-in-types. A build-in-type exists only
 	 * once in the model.
-	 * 
-	 * @return
 	 */
 	public Collection<Type> buildInTypes() {
 		return buildInTypes.values();
@@ -77,9 +69,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns the build-in-type with the given name, null if it does not exist.
-	 * 
-	 * @param name
-	 * @return
 	 */
 	public Type buildInType(String name) {
 		return buildInTypes.get(name);
@@ -87,8 +76,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns the any type.
-	 * 
-	 * @return
 	 */
 	public Type anyType() {
 		return buildInTypes.get(TypeConstants.ANY);
@@ -96,8 +83,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns the undefined type.
-	 * 
-	 * @return
 	 */
 	public TypeAtoms undefinedType() {
 		return (TypeAtoms) buildInTypes.get(TypeConstants.UNDEFINED);
@@ -105,8 +90,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns the undefined set type.
-	 * 
-	 * @return
 	 */
 	public TypeAtoms undefinedSetType() {
 		return (TypeAtoms) buildInTypes.get(TypeConstants.UNDEFINED_SET);
@@ -114,8 +97,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns the string type.
-	 * 
-	 * @return
 	 */
 	public TypeLiterals stringType() {
 		return (TypeLiterals) buildInTypes.get(TypeConstants.STRING);
@@ -123,8 +104,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns the integer type.
-	 * 
-	 * @return
 	 */
 	public TypeLiterals integerType() {
 		return (TypeLiterals) buildInTypes.get(TypeConstants.INTEGER);
@@ -132,8 +111,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns the boolean type.
-	 * 
-	 * @return
 	 */
 	public TypeLiterals booleanType() {
 		return (TypeLiterals) buildInTypes.get(TypeConstants.BOOLEAN);
@@ -141,8 +118,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns the real type.
-	 * 
-	 * @return
 	 */
 	public TypeLiterals realType() {
 		return (TypeLiterals) buildInTypes.get(TypeConstants.REAL);
@@ -150,8 +125,6 @@ public abstract class TypeFactory {
 
 	/**
 	 * Returns the object type of the given class.
-	 * 
-	 * @return
 	 */
 	public Type objectType(IClass clazz) {
 		return clazz.objectType();
@@ -159,49 +132,36 @@ public abstract class TypeFactory {
 
 	/**
 	 * Creates the build-in-types.
-	 * 
-	 * @return
 	 */
 	protected abstract Map<String, Type> createBuildInTypes();
 
 	/**
 	 * Creates a new enum type.
-	 * 
-	 * @param name
-	 * @param literals
-	 * @return
 	 */
 	public abstract TypeLiterals enumType(String name, List<String> literals);
 
 	/**
 	 * Creates a set type.
-	 * 
-	 * @param elemType
-	 * @return
 	 */
 	public abstract Type setType(Type elemType);
 
 	/**
 	 * Creates a bag type.
-	 * 
-	 * @param elemType
-	 * @return
 	 */
 	public abstract Type bagType(Type elemType);
 
 	/**
 	 * Creates a ordered set type.
-	 * 
-	 * @param elemType
-	 * @return
 	 */
 	public abstract Type orderedSetType(Type elemType);
 
 	/**
 	 * Creates a sequence type.
-	 * 
-	 * @param elemType
-	 * @return
 	 */
 	public abstract Type sequenceType(Type elemType);
+
+	/**
+	 * Creates a collection type.
+	 */
+	public abstract Type collectionType(Type elemType);
 }

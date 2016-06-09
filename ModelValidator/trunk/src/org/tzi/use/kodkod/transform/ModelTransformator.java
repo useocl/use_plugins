@@ -15,6 +15,9 @@ import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.iface.IModelFactory;
+import org.tzi.kodkod.model.impl.DerivedAssociationEnd;
+import org.tzi.kodkod.model.impl.DerivedAssociationEnd.Parameter;
+import org.tzi.kodkod.model.type.ObjectType;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeFactory;
 import org.tzi.use.graph.DirectedGraph;
@@ -28,6 +31,7 @@ import org.tzi.use.uml.mm.MClassInvariant;
 import org.tzi.use.uml.mm.MClassifier;
 import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MModel;
+import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.uml.sorting.UseFileOrderComparator;
@@ -166,11 +170,26 @@ public class ModelTransformator {
 		for (MAssociationEnd mAssociationEnd : mAssociation.associationEnds()) {
 			IAssociationEnd end;
 			if(mAssociationEnd.isDerived()){
-				//TODO derive parameter
-				end = factory.createDerivedAssociationEnd(mAssociationEnd.name(),
+				DerivedAssociationEnd derivedEnd = (DerivedAssociationEnd) factory.createDerivedAssociationEnd(mAssociationEnd.name(),
 						multTransformator.transform(mAssociationEnd.multiplicity()),
 						transformAggregationKind(mAssociationEnd.aggregationKind()),
 						model.getClass(mAssociationEnd.cls().name()), mAssociationEnd.getDeriveExpression());
+				
+				TypeConverter tc = new TypeConverter(model);
+				List<DerivedAssociationEnd.Parameter> params = new ArrayList<DerivedAssociationEnd.Parameter>();
+				for (VarDecl varDecl : mAssociationEnd.getDeriveParamter()) {
+					Type convertedType = tc.convert(varDecl.type());
+					
+					if(!convertedType.isObjectType()){
+						// should not be possible in a valid UML/OCL model
+						throw new TransformationException("Parameter type of derived association expression is not a class.");
+					}
+					
+					params.add(new Parameter(varDecl.name(), ((ObjectType) convertedType).clazz()));
+				}
+				derivedEnd.setDerivedParameters(params);
+				
+				end = derivedEnd;
 			} else {
 				end = factory.createAssociationEnd(mAssociationEnd.name(),
 						multTransformator.transform(mAssociationEnd.multiplicity()),

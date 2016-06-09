@@ -2,19 +2,11 @@ package org.tzi.kodkod.model.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import kodkod.ast.Decls;
-import kodkod.ast.Expression;
-import kodkod.ast.Formula;
-import kodkod.ast.Relation;
-import kodkod.ast.Variable;
-import kodkod.instance.TupleFactory;
-import kodkod.instance.TupleSet;
 
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.PrintHelper;
@@ -29,6 +21,14 @@ import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.ObjectType;
 import org.tzi.kodkod.model.visitor.Visitor;
 
+import kodkod.ast.Decls;
+import kodkod.ast.Expression;
+import kodkod.ast.Formula;
+import kodkod.ast.Relation;
+import kodkod.ast.Variable;
+import kodkod.instance.TupleFactory;
+import kodkod.instance.TupleSet;
+
 /**
  * Implementation of IClass.
  * 
@@ -39,11 +39,11 @@ public class Class extends ModelElement implements IClass {
 	private static final Logger LOG = Logger.getLogger(Class.class);
 
 	private boolean abstractC;
-	private Map<String, IAttribute> attributes = new HashMap<String, IAttribute>();
-	private Set<IAssociation> associations = new HashSet<IAssociation>();
-	private Map<String, IInvariant> invariants = new HashMap<String, IInvariant>();
-	private Set<IClass> parents = new HashSet<IClass>();
-	private Set<IClass> children = new HashSet<IClass>();
+	private Map<String, IAttribute> attributes = new LinkedHashMap<String, IAttribute>();
+	private Set<IAssociation> associations = new LinkedHashSet<IAssociation>();
+	private Map<String, IInvariant> invariants = new LinkedHashMap<String, IInvariant>();
+	private Set<IClass> parents = new LinkedHashSet<IClass>();
+	private Set<IClass> children = new LinkedHashSet<IClass>();
 	private Relation inheritanceRelation;
 	private ObjectType objectType;
 	private IConfigurator<IClass> configurator;
@@ -79,7 +79,7 @@ public class Class extends ModelElement implements IClass {
 
 	@Override
 	public Collection<IAttribute> allAttributes() {
-		Set<IAttribute> allAttributes = new HashSet<IAttribute>(attributes.values());
+		Set<IAttribute> allAttributes = new LinkedHashSet<IAttribute>(attributes.values());
 		for (IClass parent : parents) {
 			allAttributes.addAll(parent.allAttributes());
 		}
@@ -112,7 +112,7 @@ public class Class extends ModelElement implements IClass {
 	
 	@Override
 	public Collection<IAssociation> allAssociations() {
-		Set<IAssociation> res = new HashSet<IAssociation>();
+		Set<IAssociation> res = new LinkedHashSet<IAssociation>();
 		res.addAll(associations());
 		
 		for(IClass cls : allParents()){
@@ -133,7 +133,7 @@ public class Class extends ModelElement implements IClass {
 
 	@Override
 	public Collection<IInvariant> allInvariants() {
-		Set<IInvariant> allInvariants = new HashSet<IInvariant>(invariants.values());
+		Set<IInvariant> allInvariants = new LinkedHashSet<IInvariant>(invariants.values());
 		for (IClass parent : parents) {
 			allInvariants.addAll(parent.allInvariants());
 		}
@@ -157,7 +157,7 @@ public class Class extends ModelElement implements IClass {
 	
 	@Override
 	public Collection<IClass> allParents() {
-		Set<IClass> parents = new HashSet<IClass>();
+		Set<IClass> parents = new LinkedHashSet<IClass>();
 		parents.addAll(parents());
 		
 		for(IClass p : parents()){
@@ -178,7 +178,7 @@ public class Class extends ModelElement implements IClass {
 
 	@Override
 	public Collection<IClass> allChildren() {
-		Set<IClass> children = new HashSet<IClass>();
+		Set<IClass> children = new LinkedHashSet<IClass>();
 		children.addAll(children());
 		
 		for(IClass p : children()){
@@ -218,6 +218,11 @@ public class Class extends ModelElement implements IClass {
 		}
 		return inheritanceRelation;
 	}
+	
+	@Override
+	public Relation inheritanceOrRegularRelation(){
+		return existsInheritance() ? inheritanceRelation() : relation();
+	}
 
 	@Override
 	public TupleSet inheritanceLowerBound(TupleFactory tupleFactory) {
@@ -250,11 +255,7 @@ public class Class extends ModelElement implements IClass {
 		Expression expression = relation();
 
 		for (IClass clazz : children) {
-			if (clazz.existsInheritance()) {
-				expression = expression.union(clazz.inheritanceRelation());
-			} else {
-				expression = expression.union(clazz.relation());
-			}
+			expression = expression.union(clazz.inheritanceOrRegularRelation());
 		}
 
 		Formula formula = inheritanceRelation().eq(expression);
@@ -293,7 +294,7 @@ public class Class extends ModelElement implements IClass {
 		 */
 		final Expression undefined = model.typeFactory().undefinedType().relation();
 		final Variable self = Variable.unary("self");
-		final Expression rel = existsInheritance() ? inheritanceRelation() : relation();
+		final Expression rel = inheritanceOrRegularRelation();
 		
 		Formula matrix = null;
 		

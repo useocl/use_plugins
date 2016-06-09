@@ -93,6 +93,8 @@ public class TypeConverter {
 				return typeFactory.sequenceType(elemType);
 			} else if (type.isTypeOfOrderedSet()) {
 				return typeFactory.orderedSetType(elemType);
+			} else if (type.isTypeOfCollection()){
+				return typeFactory.collectionType(elemType);
 			}
 		}
 

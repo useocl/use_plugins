@@ -28,6 +28,8 @@ public class AttributeStrategy extends ElementStrategy {
 	
 	@Override
 	public void createElement(Tuple currentTuple) throws UseApiException {
+		//TODO collection typed attributes are not supported 100%
+		
 		MObjectState mObjectState = objectStates.get(currentTuple.atom(0));
 
 		MAttribute mAttribute = findAttribute(mObjectState);

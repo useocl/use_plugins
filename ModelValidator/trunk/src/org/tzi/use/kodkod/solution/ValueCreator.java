@@ -8,10 +8,10 @@ import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.ocl.type.BagType;
+import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.EnumType;
 import org.tzi.use.uml.ocl.type.OrderedSetType;
 import org.tzi.use.uml.ocl.type.SequenceType;
-import org.tzi.use.uml.ocl.type.SetType;
 import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.uml.ocl.value.BagValue;
@@ -82,8 +82,8 @@ public class ValueCreator {
 	private Value createCollectionValue(Object atom, Type attributeType) {
 		if (atom.equals(TypeConstants.UNDEFINED_SET)) {
 			return createUndefinedValue();
-		} else if (attributeType.isTypeOfSet()) {
-			return createSetValue(atom, (SetType) attributeType);
+		} else if (attributeType.isTypeOfSet() || attributeType.isTypeOfCollection()) {
+			return createSetValue(atom, (CollectionType) attributeType);
 		} else if (attributeType.isTypeOfBag()) {
 			return createBagValue(atom, (BagType) attributeType);
 		} else if (attributeType.isTypeOfSequence()) {
@@ -91,7 +91,6 @@ public class ValueCreator {
 		} else if (attributeType.isTypeOfOrderedSet()) {
 			return createOrderedSetValue(atom, (OrderedSetType) attributeType);
 		}
-		//FIXME: Collection?
 		return null;
 	}
 
@@ -138,7 +137,7 @@ public class ValueCreator {
 		return BooleanValue.get(new Boolean((String) atom));
 	}
 
-	private Value createSetValue(Object atom, SetType attributeType) {
+	private Value createSetValue(Object atom, CollectionType attributeType) {
 		SetValue setValue;
 		if (mObjectState.attributeValue(mAttribute).isUndefined()) {
 			setValue = new SetValue(attributeType.elemType());

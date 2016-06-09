@@ -4,11 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import kodkod.ast.Expression;
-import kodkod.ast.Node;
-import kodkod.ast.Relation;
-import kodkod.ast.Variable;
-
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.KodkodModelValidatorConfiguration;
 import org.tzi.kodkod.helper.LogMessages;
@@ -55,26 +50,30 @@ import org.tzi.use.uml.ocl.type.Type;
 import org.tzi.use.uml.ocl.type.Type.VoidHandling;
 import org.tzi.use.util.StringUtil;
 
+import kodkod.ast.Expression;
+import kodkod.ast.Node;
+import kodkod.ast.Relation;
+import kodkod.ast.Variable;
+
 /**
  * Default visitor implementation for the transform use expression.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 
 	protected static final Logger LOG = Logger.getLogger(DefaultExpressionVisitor.class);
 	
 	protected IModel model;
-	protected Relation undefined;
-	protected Relation undefined_Set;
-	//TODO make variables a Map<String, Expression>
 	protected Map<String, Node> variables;
 	protected List<String> collectionVariables;
 	protected Map<String, IClass> variableClasses;
 	protected Map<String, Variable> replaceVariables;
+	
+	protected final Relation undefined;
+	protected final Relation undefined_Set;
 
-	protected Object object;
+	protected Node object;
 	protected boolean set;
 	protected boolean object_type_nav;
 	protected Type sourceType;
@@ -99,7 +98,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	 * 
 	 * @return
 	 */
-	public Object getObject() {
+	public Node getObject() {
 		return object;
 	}
 
@@ -133,11 +132,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		if(exp.getSourceType().isTypeOfClass()){
 			// <Class>.allInstances()
 			IClass clazz = model.getClass(exp.getSourceType().name());
-			if (!clazz.existsInheritance()) {
-				arguments.add(clazz.relation());
-			} else {
-				arguments.add(clazz.inheritanceRelation());
-			}
+			arguments.add(clazz.inheritanceOrRegularRelation());
 		}
 		//TODO collect cannot handle vars with arity > 1, but assoc relations have arity = #(associationEnds)
 //		else if(exp.getSourceType().isTypeOfAssociation()){
@@ -238,30 +233,26 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		super.visitLet(exp);
 		DefaultExpressionVisitor visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
 		exp.getVarExpression().processWithVisitor(visitor);
-		Object varExpression = visitor.getObject();
+		Node varExpression = visitor.getObject();
 
-		if (varExpression instanceof Node) {
-			variables.put(exp.getVarname(), (Node) varExpression);
-			
-			if(exp.getVarType().isTypeOfClass()){
-				variableClasses.put(exp.getVarname(), model.getClass(((MClass)exp.getVarType()).name()));
-			}
-			
-			if (visitor.isSet()) {
-				collectionVariables.add(exp.getVarname());
-			}
-
-			visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
-			exp.getInExpression().processWithVisitor(visitor);
-			object = visitor.getObject();
-			set = visitor.isSet();
-			object_type_nav = visitor.isObject_type_nav();
-
-			variables.remove(exp.getVarname());
-			variableClasses.remove(exp.getVarname());
-		} else {
-			LOG.warn(LogMessages.letNotReachableWarning);
+		variables.put(exp.getVarname(), varExpression);
+		
+		if(exp.getVarType().isTypeOfClass()){
+			variableClasses.put(exp.getVarname(), model.getClass(((MClass)exp.getVarType()).name()));
 		}
+		
+		if (visitor.isSet()) {
+			collectionVariables.add(exp.getVarname());
+		}
+
+		visitor = new DefaultExpressionVisitor(model, variables, variableClasses, replaceVariables, collectionVariables);
+		exp.getInExpression().processWithVisitor(visitor);
+		object = visitor.getObject();
+		set = visitor.isSet();
+		object_type_nav = visitor.isObject_type_nav();
+
+		variables.remove(exp.getVarname());
+		variableClasses.remove(exp.getVarname());
 	}
 
 	@Override
@@ -484,11 +475,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		Expression typeExpression;
 		if(type instanceof ObjectType){
 			IClass cls = ((ObjectType) type).clazz();
-			if(useInheritance && cls.existsInheritance()){
-				typeExpression = cls.inheritanceRelation();
-			} else {
-				typeExpression = cls.relation();
-			}
+			typeExpression = useInheritance ? cls.inheritanceOrRegularRelation() : cls.relation();
 		} else {
 			typeExpression = typeConverter.typeToExpression(type);
 		}

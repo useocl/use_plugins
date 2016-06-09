@@ -4,10 +4,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import kodkod.ast.Expression;
-import kodkod.ast.Variable;
-
 import org.tzi.use.kodkod.transform.TransformationException;
+
+import kodkod.ast.Expression;
+import kodkod.ast.Node;
+import kodkod.ast.Variable;
 
 /**
  * Invoker of the transformation method.
@@ -18,7 +19,7 @@ import org.tzi.use.kodkod.transform.TransformationException;
 public class OCLMethodInvoker {
 
 	private boolean set;
-	private Object object;
+	private Node object;
 
 	/**
 	 * Search the operation method using the OCLOperationLoader and calls the
@@ -49,7 +50,7 @@ public class OCLMethodInvoker {
 				replaceSublistWithExpressionArray(arguments, operationLoader.getFirstArrayIndex());
 			}
 
-			object = method.invoke(operationLoader.getOperationClass(), arguments.toArray());
+			object = (Node) method.invoke(operationLoader.getOperationClass(), arguments.toArray());
 			this.set = operationLoader.returnsSet();
 
 		} catch (Exception e) {
@@ -96,7 +97,7 @@ public class OCLMethodInvoker {
 	 * 
 	 * @return
 	 */
-	public Object getObject() {
+	public Node getObject() {
 		return object;
 	}
 

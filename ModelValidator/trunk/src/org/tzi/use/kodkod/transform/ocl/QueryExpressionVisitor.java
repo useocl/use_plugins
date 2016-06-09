@@ -5,11 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import kodkod.ast.Expression;
-import kodkod.ast.Node;
-import kodkod.ast.Relation;
-import kodkod.ast.Variable;
-
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
@@ -30,6 +25,10 @@ import org.tzi.use.uml.ocl.expr.VarDecl;
 import org.tzi.use.uml.ocl.expr.VarDeclList;
 import org.tzi.use.uml.ocl.type.CollectionType;
 import org.tzi.use.uml.ocl.type.Type.VoidHandling;
+
+import kodkod.ast.Expression;
+import kodkod.ast.Node;
+import kodkod.ast.Variable;
 
 /**
  * Extension of DefaultExpressionVisitor to visit the queries of an expression.
@@ -60,11 +59,7 @@ public class QueryExpressionVisitor extends DefaultExpressionVisitor {
 			if (((CollectionType) sourceType).elemType().isTypeOfClass()) {
 				MClass type = (MClass) ((CollectionType) sourceType).elemType();
 				IClass clazz = model.getClass(type.name());
-				Relation relation = clazz.relation();
-				if (clazz.existsInheritance()) {
-					relation = clazz.inheritanceRelation();
-				}
-				arguments.add(1, relation);
+				arguments.add(1, clazz.inheritanceOrRegularRelation());
 			} else {
 				throw new TransformationException(LogMessages.closureObjectMessage);
 			}

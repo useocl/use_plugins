@@ -102,10 +102,7 @@ public class Attribute extends ModelElement implements IAttribute {
 	 * Returns the relation of the owner.
 	 */
 	private Relation getOwnerRelation() {
-		if (owner.existsInheritance()) {
-			return owner.inheritanceRelation();
-		}
-		return owner.relation();
+		return owner.inheritanceOrRegularRelation();
 	}
 
 	@Override

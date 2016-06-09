@@ -59,4 +59,10 @@ public class PrimitiveTypeFactory extends TypeFactory {
 		LOG.warn(LogMessages.unsupportedCollectionWarning("sequences"));
 		return setType(elemType);
 	}
+	
+	@Override
+	public Type collectionType(Type elemType) {
+		LOG.warn(LogMessages.unsupportedCollectionWarning("type Collection"));
+		return setType(elemType);
+	}
 }

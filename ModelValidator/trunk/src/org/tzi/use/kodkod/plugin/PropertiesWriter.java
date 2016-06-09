@@ -20,6 +20,9 @@ import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IInvariant;
 import org.tzi.kodkod.model.iface.IModel;
+import org.tzi.kodkod.model.impl.DerivedAssociation;
+import org.tzi.kodkod.model.impl.DerivedAttribute;
+import org.tzi.kodkod.model.impl.UnionAssociation;
 import org.tzi.kodkod.model.type.TypeConstants;
 import org.tzi.use.util.StringUtil;
 
@@ -82,6 +85,9 @@ public class PropertiesWriter {
 				}
 			}
 			for (IAssociation association : classAssociations) {
+				if(association instanceof DerivedAssociation || association instanceof UnionAssociation){
+					continue;
+				}
 				writeAssociation(association, pc);
 			}
 		}
@@ -188,6 +194,9 @@ public class PropertiesWriter {
 		if(attributes.size() > 0){
 			writeNewLine();
 			for(IAttribute attribute : attributes){
+				if(attribute instanceof DerivedAttribute){
+					continue;
+				}
 				String attr = attribute.owner().name() + "_" + attribute.name();
 				String attrMin = attr + PropertyEntry.attributeDefValuesMin;
 				String attrMax = attr + PropertyEntry.attributeDefValuesMax;
