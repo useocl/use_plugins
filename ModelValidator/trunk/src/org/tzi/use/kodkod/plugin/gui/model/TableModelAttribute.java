@@ -72,7 +72,11 @@ public class TableModelAttribute extends AbstractTableModel implements TooltipTa
 		if (set.isInherited() || set.getAttribute() instanceof DerivedAttribute) {
 			return false;
 		} else {
-			return column > 0;
+			if(set.getAttribute().type().isCollection()){
+				return column > 0;
+			} else {
+				return column > 0 && (column < 3 || column > 4) ;
+			}
 		}
 	}
 

@@ -86,8 +86,10 @@ public final class ChangeConfiguration {
 				String attribute = attributeSettings.getAttribute().owner().name() + "_" + attributeSettings.getAttribute().name();
 				pc.setProperty(attribute + PropertyEntry.attributeDefValuesMin, attributeSettings.getLowerBound());
 				pc.setProperty(attribute + PropertyEntry.attributeDefValuesMax, attributeSettings.getUpperBound());
-				pc.setProperty(attribute + PropertyEntry.attributeColSizeMin, attributeSettings.getCollectionSizeMin());
-				pc.setProperty(attribute + PropertyEntry.attributeColSizeMax, attributeSettings.getCollectionSizeMax());
+				if(attributeSettings.getAttribute().type().isCollection()){
+					pc.setProperty(attribute + PropertyEntry.attributeColSizeMin, attributeSettings.getCollectionSizeMin());
+					pc.setProperty(attribute + PropertyEntry.attributeColSizeMax, attributeSettings.getCollectionSizeMax());
+				}
 				
 				if (!attributeSettings.getInstanceNames().isEmpty()) {
 					pc.setProperty(attribute, toListProperty(attributeSettings.getInstanceNames()));
@@ -220,11 +222,13 @@ public final class ChangeConfiguration {
 				if(pc.containsKey(attrName + PropertyEntry.attributeDefValuesMax)){
 					attrS.setUpperBound(pc.getInt(attrName + PropertyEntry.attributeDefValuesMax));
 				}
-				if(pc.containsKey(attrName + PropertyEntry.attributeColSizeMin)){
-					attrS.setCollectionSizeMin(pc.getInt(attrName + PropertyEntry.attributeColSizeMin));
-				}
-				if(pc.containsKey(attrName + PropertyEntry.attributeColSizeMax)){
-					attrS.setCollectionSizeMax(pc.getInt(attrName + PropertyEntry.attributeColSizeMax));
+				if(attrS.getAttribute().type().isCollection()){
+					if(pc.containsKey(attrName + PropertyEntry.attributeColSizeMin)){
+						attrS.setCollectionSizeMin(pc.getInt(attrName + PropertyEntry.attributeColSizeMin));
+					}
+					if(pc.containsKey(attrName + PropertyEntry.attributeColSizeMax)){
+						attrS.setCollectionSizeMax(pc.getInt(attrName + PropertyEntry.attributeColSizeMax));
+					}
 				}
 				if(pc.containsKey(attrName)){
 					attrS.setInstanceNames(objectToInstanceNameList(pc.getList(attrName)));

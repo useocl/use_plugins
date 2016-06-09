@@ -200,8 +200,6 @@ public class PropertiesWriter {
 				String attr = attribute.owner().name() + "_" + attribute.name();
 				String attrMin = attr + PropertyEntry.attributeDefValuesMin;
 				String attrMax = attr + PropertyEntry.attributeDefValuesMax;
-				String attrMinSize = attr + PropertyEntry.attributeColSizeMin;
-				String attrMaxSize = attr + PropertyEntry.attributeColSizeMax;
 				
 				if(isDefaultConfiguration){
 					write(PropertyEntry.COMMENT_LABEL + attr + " = Set{ ... }");
@@ -215,11 +213,15 @@ public class PropertiesWriter {
 					if (pc.containsKey(attrMax)) {
 						writeProperty(attrMax, pc.getInt(attrMax, DefaultConfigurationValues.attributesPerClassMax));
 					}
-					if (pc.containsKey(attrMinSize)) {
-						writeProperty(attrMinSize, pc.getInt(attrMinSize, DefaultConfigurationValues.attributesColSizeMin));
-					}
-					if (pc.containsKey(attrMaxSize)) {
-						writeProperty(attrMaxSize, pc.getInt(attrMaxSize, DefaultConfigurationValues.attributesColSizeMax));
+					if(attribute.type().isCollection()){
+						String attrMinSize = attr + PropertyEntry.attributeColSizeMin;
+						String attrMaxSize = attr + PropertyEntry.attributeColSizeMax;
+						if (pc.containsKey(attrMinSize)) {
+							writeProperty(attrMinSize, pc.getInt(attrMinSize, DefaultConfigurationValues.attributesColSizeMin));
+						}
+						if (pc.containsKey(attrMaxSize)) {
+							writeProperty(attrMaxSize, pc.getInt(attrMaxSize, DefaultConfigurationValues.attributesColSizeMax));
+						}
 					}
 				}
 			}
