@@ -1,17 +1,10 @@
 package org.tzi.use.kodkod;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import kodkod.ast.Formula;
-import kodkod.ast.IntConstant;
-import kodkod.ast.IntExpression;
-import kodkod.ast.Node;
-import kodkod.ast.Relation;
-import kodkod.instance.TupleSet;
 
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.config.impl.ModelConfigurator;
@@ -28,6 +21,13 @@ import org.tzi.use.uml.ocl.value.UndefinedValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MSystemState;
 import org.tzi.use.util.StringUtil;
+
+import kodkod.ast.Formula;
+import kodkod.ast.IntConstant;
+import kodkod.ast.IntExpression;
+import kodkod.ast.Node;
+import kodkod.ast.Relation;
+import kodkod.instance.TupleSet;
 
 /**
  * Class for the model validation with scrolling functionality using classifier terms.
@@ -147,7 +147,7 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 
 	protected void readSolutionTerms(MSystemState state) {
 		Evaluator eval = new Evaluator();
-		Map<ClassifyingTerm, Value> solutionMap = new HashMap<>();
+		Map<ClassifyingTerm, Value> solutionMap = new LinkedHashMap<>();
 		
 		for (ClassifyingTerm ct : classifyingTerms) {
 			Value kodkodEval = evaluateKodkod(ct, evaluator);
@@ -181,7 +181,15 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 				TupleSet res = evaluatorEnginge.evaluate((kodkod.ast.Expression) ct.kodkodExpr);
 				// result should always be a single value of Integer, Undefined, Undefined_Set, Boolean_True or Boolean_False
 				if(res.arity() == 1){
-					Object intermRes = evaluatorEnginge.instance().universe().atom(res.iterator().next().index());
+					//TODO might cause an exception if result is not in universe (for integers, see lolis mail)
+					Object intermRes;
+					try {
+						intermRes = res.iterator().next().atom(0);
+					}
+					catch(IndexOutOfBoundsException ex){
+						LOG.warn("Could not compare evaluation results of USE and Kodkod.");
+						return null;
+					}
 					
 					if(intermRes instanceof Integer){
 						kodkodEval = IntegerValue.valueOf((int) intermRes);
@@ -192,9 +200,11 @@ public class UseCTScrollingKodkodModelValidator extends UseScrollingKodkodModelV
 							kodkodEval = UndefinedValue.instance;
 							break;
 						case TypeConstants.BOOLEAN_TRUE:
+						case TypeConstants.TRUE:
 							kodkodEval = BooleanValue.TRUE;
 							break;
 						case TypeConstants.BOOLEAN_FALSE:
+						case TypeConstants.FALSE:
 							kodkodEval = BooleanValue.FALSE;
 							break;
 						default:
