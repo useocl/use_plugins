@@ -21,6 +21,8 @@ import org.tzi.kodkod.model.iface.IAssociationEnd;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
+import org.tzi.kodkod.model.impl.DerivedAssociation;
+import org.tzi.kodkod.model.impl.DerivedAttribute;
 import org.tzi.kodkod.model.type.SetType;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeConstants;
@@ -114,6 +116,9 @@ public class ModelConfigurator extends Configurator<IModel> {
 				}
 
 				for (IAttribute attribute : clazz.attributes()) {
+					if(attribute instanceof DerivedAttribute){
+						continue;
+					}
 					relation = attribute.relation();
 					tupleSet = relationTuples.get(relation);
 
@@ -124,6 +129,9 @@ public class ModelConfigurator extends Configurator<IModel> {
 			}
 
 			for (IAssociation association : model.associations()) {
+				if(association instanceof DerivedAssociation){
+					continue;
+				}
 				relation = association.relation();
 				tupleSet = relationTuples.get(relation);
 
