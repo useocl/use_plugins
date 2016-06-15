@@ -63,6 +63,9 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 	 */
 	private void extractLinks(IModel model, MSystemState systemState) {
 		for (MLink link : systemState.allLinks()) {
+			if(link.association().isDerived()){
+				continue;
+			}
 			List<MObject> linkedObjects = link.linkedObjects();
 			int index = 0;
 
@@ -121,6 +124,9 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 		IAttribute attribute;
 
 		for (MAttribute mAttribute : mObject.cls().allAttributes()) {
+			if(mAttribute.isDerived()){
+				continue;
+			}
 			attribute = clazz.getAttribute(mAttribute.name());
 			Value value = objectState.attributeValue(mAttribute);
 			if (!value.isUndefined()) {
