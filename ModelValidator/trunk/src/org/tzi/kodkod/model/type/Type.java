@@ -159,7 +159,11 @@ public abstract class Type implements IElement {
 	 * @return
 	 */
 	public Expression expression() {
-		return relation();
+		if(isObjectType()){
+			return ((ObjectType) this).clazz().inheritanceOrRegularRelation();
+		} else {
+			return relation();
+		}
 	}
 
 	/**

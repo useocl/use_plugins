@@ -12,6 +12,7 @@ import org.tzi.kodkod.helper.PrintHelper;
 import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.type.IntegerType;
+import org.tzi.kodkod.model.type.ObjectType;
 import org.tzi.kodkod.model.type.SetType;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeAtoms;
@@ -110,7 +111,11 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 		TupleSet upper = tupleFactory.noneOf(2);
 		if (domainValues.isEmpty()) {
 			TupleSet typeUpperUndefined = tupleFactory.noneOf(1);
-			typeUpperUndefined.addAll(type.upperBound(tupleFactory));
+			if(type.isObjectType() && ((ObjectType) type).clazz().existsInheritance()){
+				typeUpperUndefined.addAll(((ObjectType) type).clazz().inheritanceUpperBound(tupleFactory));
+			} else {
+				typeUpperUndefined.addAll(type.upperBound(tupleFactory));
+			}
 			typeUpperUndefined.add(tupleFactory.tuple(TypeConstants.UNDEFINED));
 			if (type.isSet()) {
 				typeUpperUndefined.add(tupleFactory.tuple(TypeConstants.UNDEFINED_SET));
