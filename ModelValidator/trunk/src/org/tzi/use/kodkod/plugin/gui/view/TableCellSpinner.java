@@ -10,11 +10,10 @@ import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-
-import sun.swing.DefaultLookup;
 
 public abstract class TableCellSpinner extends AbstractCellEditor {
 	private static final long serialVersionUID = 1L;
@@ -74,7 +73,7 @@ public abstract class TableCellSpinner extends AbstractCellEditor {
 
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-			setBorder(DefaultLookup.getBorder(spinner, spinner.getUI(), "Table.focusCellHighlightBorder"));
+			setBorder(UIManager.getBorder("Table.focusCellHighlightBorder"));
 			
 			if(value != null){
 				spinner.setValue(value);
@@ -122,10 +121,10 @@ public abstract class TableCellSpinner extends AbstractCellEditor {
 	protected Border getFocusBorder(boolean isSelected) {
 		Border border = null;
         if (isSelected) {
-            border = DefaultLookup.getBorder(spinner, spinner.getUI(), "Table.focusSelectedCellHighlightBorder");
+            border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
         }
         if (border == null) {
-            border = DefaultLookup.getBorder(spinner, spinner.getUI(), "Table.focusCellHighlightBorder");
+            border = UIManager.getBorder("Table.focusCellHighlightBorder");
         }
         return border;
 	}

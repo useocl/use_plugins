@@ -11,12 +11,11 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.tzi.use.util.StringUtil;
-
-import sun.swing.DefaultLookup;
 
 public class InputCheckingCell {
 	
@@ -83,10 +82,10 @@ public class InputCheckingCell {
 		private Border getFocusBorder(boolean isSelected) {
 			Border border = null;
 	        if (isSelected) {
-	            border = DefaultLookup.getBorder(this, this.getUI(), "Table.focusSelectedCellHighlightBorder");
+	            border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
 	        }
 	        if (border == null) {
-	            border = DefaultLookup.getBorder(this, this.getUI(), "Table.focusCellHighlightBorder");
+	            border = UIManager.getBorder("Table.focusCellHighlightBorder");
 	        }
 	        return border;
 		}

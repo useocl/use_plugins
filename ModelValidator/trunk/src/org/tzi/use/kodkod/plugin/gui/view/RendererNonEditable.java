@@ -5,10 +5,9 @@ import java.awt.Component;
 
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
-
-import sun.swing.DefaultLookup;
 
 public class RendererNonEditable extends DefaultTableCellRenderer {
 	private static final long serialVersionUID = 1L;
@@ -37,10 +36,10 @@ public class RendererNonEditable extends DefaultTableCellRenderer {
 	protected Border getFocusBorder(boolean isSelected) {
 		Border border = null;
         if (isSelected) {
-            border = DefaultLookup.getBorder(this, this.getUI(), "Table.focusSelectedCellHighlightBorder");
+            border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
         }
         if (border == null) {
-            border = DefaultLookup.getBorder(this, this.getUI(), "Table.focusCellHighlightBorder");
+            border = UIManager.getBorder("Table.focusCellHighlightBorder");
         }
         return border;
 	}
