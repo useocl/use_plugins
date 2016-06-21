@@ -11,9 +11,6 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import kodkod.ast.Node;
-import kodkod.ast.Variable;
-
 import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.use.kodkod.UseCTScrollingKodkodModelValidator;
@@ -26,6 +23,9 @@ import org.tzi.use.util.StringUtil;
 import org.tzi.use.util.input.Readline;
 import org.tzi.use.util.input.ShellReadline;
 import org.tzi.use.util.input.StreamReadline;
+
+import kodkod.ast.Node;
+import kodkod.ast.Variable;
 
 /**
  * Cmd-Class for the scrolling in the solutions using classifier terms.
@@ -78,13 +78,13 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 						// read terms from file
 						String filenameToOpen = useShell.getFilenameToOpen(ctFile, false);
 						if(!readClassifyingTermsFromFile(filenameToOpen)){
-							LOG.info("No classifying terms given. Aborting.");
+							LOG.info("None or faulty classifying terms given. Aborting.");
 							return;
 						}
 					} else {
 						// read terms from interactively
 						if(!readClassifyingTerms()){
-							LOG.info("No classifying terms given. Aborting.");
+							LOG.info("None or faulty classifying terms given. Aborting.");
 							return;
 						}
 					}
@@ -111,7 +111,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 			}
 			
 			// check if argument matches pattern
-			if(arguments[i].equalsIgnoreCase("-ct") && i +1 < arguments.length){
+			if(arguments[i].equalsIgnoreCase("-" + arg) && i +1 < arguments.length){
 				String retVal = arguments[i+1];
 				
 				// splice array (set values to null)
@@ -122,7 +122,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 			}
 			
 			// check if argument starts with pattern
-			if(arguments[i].startsWith("-" + arg)){
+			if(arguments[i].toLowerCase().startsWith("-" + arg.toLowerCase())){
 				String retVal = arguments[i].charAt(0) == '-' ? arguments[i].substring(arg.length() +1) : arguments[i].substring(arg.length());
 				arguments[i] = null;
 				return retVal;
@@ -144,7 +144,7 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 	}
 
 	protected boolean readClassifyingTermsFromFile(String filename) throws IOException {
-		try(Readline r = new StreamReadline(new BufferedReader(new CTInputReader(new USECommentFilterReader(new FileReader(filename)))), false)){
+		try(Readline r = new StreamReadline(new BufferedReader(new CTInputReader(new USECommentFilterReader(new FileReader(filename)))), false, "")){
 			return readClassifyingTerms(r, false);
 		}
 	}
@@ -209,16 +209,24 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 			}
 				
 			StringWriter err = new StringWriter();
-			Expression result = OCLCompiler.compileExpression(session.system().model(), line, "<classifying term>", new PrintWriter(err), new VarBindings());
+			Expression result = OCLCompiler.compileExpression(session.system().model(), line, "<classifying term::" + name + ">", new PrintWriter(err), new VarBindings());
 
 			// error checking
 			if(result == null){
 				LOG.error(err.toString());
+				if(!interactive){
+					// abort on error when reading from file
+					return false;
+				}
 				continue;
 			}
 			
 			if(!result.type().isTypeOfInteger() && !result.type().isTypeOfBoolean()){
-				LOG.error("The expression must result in type `Boolean' or `Integer'.");
+				LOG.error(name + ": The expression must result in type `Boolean' or `Integer'.");
+				if(!interactive){
+					// abort on error when reading from file
+					return false;
+				}
 				continue;
 			}
 			
