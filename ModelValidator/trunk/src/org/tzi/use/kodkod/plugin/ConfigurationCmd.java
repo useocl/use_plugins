@@ -25,7 +25,7 @@ public class ConfigurationCmd implements IPluginShellCmdDelegate {
 		if (arguments != null && arguments.length() > 1) {
 			arguments = arguments.substring(1);
 
-			for (String argument : arguments.split(";")) {
+			for (String argument : arguments.split("\\s*;\\s*")) {
 				if (argument.trim().equalsIgnoreCase("save")) {
 					configuration.save();
 				} else {
