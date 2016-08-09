@@ -15,14 +15,40 @@ public final class FilmstripModelConstants {
 
 	public static final String SNAPSHOT_CLASSNAME = "Snapshot";
 	public static final String FILMSTRIP_ASSOCNAME = "Filmstrip";
+	public static final String SUCC_ROLENAME = "succ";
+	public static final String PRED_ROLENAME = "pred";
+	public static final String OPC_CLASSNAME = "OperationCall";
+	
+	//element *nisha desai
+	public static final String SNAPSHOT_OPC = "SnapshotOpC";
+	public static final String OPC_SNAPSHOT = "OpCSnapshot";
+	public static final String SNAP_ROLENAME = "snapshot";
+	public static final String OPC_ROLENAME = "opc";
+	public static final String OPC_PRED_ROLENAME ="opcPred";
+	public static final String OPC_SUCC_ROLENAME ="opcSucc";
+	
+	// Operation *Nisha desai 
+	public static final String OpCSnapSNAPSHOT_PRED_OP = "self." + PRED_ROLENAME;
+	public static final String OpCSnapSNAPSHOT_SUCC_OP = "self." + SUCC_ROLENAME;
+	public static final String OpCSnapOPC_PRED_OP = "self." + SNAP_ROLENAME;
+	public static final String OpCSnapOPC_SUCC_OP = "self." + SNAP_ROLENAME + "." + SUCC_ROLENAME;
+	
+	public static final String SnapCSnapSNAPSHOT_PRED_OP = "self." + OPC_SUCC_ROLENAME + "." + PRED_ROLENAME;
+	public static final String SnapCSnapSNAPSHOT_SUCC_OP = "self." + OPC_PRED_ROLENAME + "." + SUCC_ROLENAME;
+	public static final String SnapCSnapOPC_PRED_OP = "self." + PRED_ROLENAME;
+	public static final String SnapCSnapOPC_SUCC_OP = "self." + SUCC_ROLENAME;
+	
+	//Invariants *nisha desai
+	public static final String SUCC_OPC_EXISTS_NAME = "succOpCExists";
+	public static final String SUCC_OPC_EXISTS = "(not self. " + SUCC_ROLENAME + ".oclIsUndefined() implies (not self."+OPC_ROLENAME+".oclIsUndefined()))";
+	
+	
 	
 	public static final String SNAPSHOTITEM_CLASSNAME = "SnapshotItem";
 	public static final String ORDERABLE_ASSOCNAME = "PredSucc";
 	public static final String SNAPSHOTELEMENT_ASSOCNAME = "SnapElement";
-	public static final String SUCC_ROLENAME = "succ";
-	public static final String PRED_ROLENAME = "pred";
 	
-	public static final String OPC_CLASSNAME = "OperationCall";
+
 	public static final String OPC_ABBREVIATION = "OpC";
 	public static final String OPC_SELF_VARNAME = "aSelf";
 	public static final String OPC_RETURNVALUE_VARNAME = "result";

@@ -31,6 +31,12 @@ import javax.swing.event.ChangeListener;
 import org.tzi.use.config.Options;
 import org.tzi.use.gui.util.ExtFileFilter;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripMMVisitor;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMVCOpCSnapAggVisitor;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMVCOpCSnapAssocVisitor;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMVCOpCSnapCompVisitor;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMVCSnapCSnapAggVisitor;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMVCSnapCSnapAssocVisitor;
+import org.tzi.use.plugin.filmstrip.logic.FilmstripMVCSnapCSnapCompVisitor;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripMVCompatibleVisitor;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripOptions;
 import org.tzi.use.plugin.filmstrip.logic.FilmstripTransformerTask;
@@ -117,7 +123,7 @@ public class FilmstripOptionsWindow extends JDialog {
 		row++;
 		
 		mainPanel.add(new JLabel("Transformation method:"), getGBC(row, 0));
-		final JComboBox<String> transMethod = new JComboBox<String>(new String[]{ FilmstripMMVisitor.NAME, FilmstripMVCompatibleVisitor.NAME });
+		final JComboBox<String> transMethod = new JComboBox<String>(new String[]{ FilmstripMMVisitor.NAME, FilmstripMVCompatibleVisitor.NAME, FilmstripMVCOpCSnapAssocVisitor.NAME, FilmstripMVCOpCSnapAggVisitor.NAME, FilmstripMVCOpCSnapCompVisitor.NAME, FilmstripMVCSnapCSnapAssocVisitor.NAME, FilmstripMVCSnapCSnapAggVisitor.NAME, FilmstripMVCSnapCSnapCompVisitor.NAME});
 		transMethod.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

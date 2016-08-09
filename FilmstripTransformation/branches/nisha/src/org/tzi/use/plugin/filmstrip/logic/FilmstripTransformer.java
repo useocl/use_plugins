@@ -35,6 +35,25 @@ public class FilmstripTransformer {
 		else if(FilmstripMVCompatibleVisitor.NAME.equals(options.getTransformationMethod())){
 			res = FilmstripMVCompatibleVisitor.transformModel(options.getModel(), options.getModelName());
 		}
+		else if(FilmstripMVCOpCSnapAssocVisitor.NAME.equals(options.getTransformationMethod())){
+			res = FilmstripMVCOpCSnapAssocVisitor.transformModel(options.getModel(), options.getModelName());
+		}
+		else if(FilmstripMVCOpCSnapAggVisitor.NAME.equals(options.getTransformationMethod())){
+			res = FilmstripMVCOpCSnapAggVisitor.transformModel(options.getModel(), options.getModelName());
+		}
+		else if(FilmstripMVCOpCSnapCompVisitor.NAME.equals(options.getTransformationMethod())){
+			res = FilmstripMVCOpCSnapCompVisitor.transformModel(options.getModel(), options.getModelName());
+		}
+		else if(FilmstripMVCSnapCSnapAssocVisitor.NAME.equals(options.getTransformationMethod())){
+			res = FilmstripMVCSnapCSnapAssocVisitor.transformModel(options.getModel(), options.getModelName());
+		}
+		else if(FilmstripMVCSnapCSnapAggVisitor.NAME.equals(options.getTransformationMethod())){
+			res = FilmstripMVCSnapCSnapAggVisitor.transformModel(options.getModel(), options.getModelName());
+		}
+		else if(FilmstripMVCSnapCSnapCompVisitor.NAME.equals(options.getTransformationMethod())){
+			res = FilmstripMVCSnapCSnapCompVisitor.transformModel(options.getModel(), options.getModelName());
+		}
+		
 		else {
 			throw new TransformationException("No valid transformation method chosen");
 		}
