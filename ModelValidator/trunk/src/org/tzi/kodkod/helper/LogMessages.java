@@ -50,6 +50,8 @@ public final class LogMessages {
 	public static final String solverConfigSaveError = "Error while saving KodkodSolver configuration";
 
 	public static final String solverConfigSaved = "Saved KodkodSolver configuration";
+	
+	public static final String PLINGELING_NOT_EXECUTABLE = "Solver file for plingeling is not executable and could not be made executable. The file has to be executable in order to use the solver.";
 
 	public static final String modelResetSuccessful = "Reset successful";
 
@@ -134,7 +136,7 @@ public final class LogMessages {
 	}
 
 	public static String kodkodStatistics(Statistics statistics) {
-		return "Translation time: " + statistics.translationTime() + " ms; Solving time: " + statistics.solvingTime() + " ms";
+		return "Translation time (Kodkod to SAT): " + statistics.translationTime() + " ms; Solving time: " + statistics.solvingTime() + " ms";
 	}
 
 	public static String wrongBitwidthWarning(int defaultBitwidth) {
@@ -179,7 +181,7 @@ public final class LogMessages {
 	}
 
 	public static String modelTransformTime(long timeMs) {
-		return "Translation time: " + timeMs + " ms";
+		return "Translation time (USE to Kodkod): " + timeMs + " ms";
 	}
 
 	public static String solverConfigReadWarning(String defaultSatFactory, int defaultBitwidth) {
