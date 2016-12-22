@@ -53,9 +53,6 @@
 		<copy todir="build/log4j">
 			<fileset dir="log4j" />
 		</copy>
-		<copy todir="build/solver">
-			<fileset dir="solver" />
-		</copy>
 		<javac destdir="build" source="${compiler}" target="${compiler}" debug="${javac.debug}" classpathref="classpath" includeantruntime="false">
 			<src path="src" />
 			<src path="test" />
@@ -99,7 +96,6 @@
     		</zipfileset>
     		<zipfileset dir="src" prefix="src" />
     		<zipfileset dir="resources" prefix="resources" />
-    		<zipfileset dir="solver" prefix="solver" />
     		<zipfileset dir="lib" prefix="lib" />
     		<zipfileset dir="log4j" prefix="log4j" />
     		<zipfileset dir="META-INF" prefix="META-INF" />
