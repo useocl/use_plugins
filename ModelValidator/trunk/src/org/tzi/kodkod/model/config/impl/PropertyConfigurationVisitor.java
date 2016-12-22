@@ -187,12 +187,17 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 			defaultMax = DefaultConfigurationValues.integerMax;
 			
 			// check for values exceeding bitwidth
-			int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
+			int bitwidth = KodkodModelValidatorConfiguration.getInstance().bitwidth();
 			
 			if(!specificValues.isEmpty()){
 				int maxSpecific = Integer.MIN_VALUE;
 				for(String[] s : specificValues){
-					int curr = Integer.valueOf(s[0]);
+					int curr;
+					try {
+						curr = Integer.valueOf(s[0]);
+					} catch(NumberFormatException ex){
+						continue;
+					}
 					if(curr > maxSpecific){
 						maxSpecific = curr;
 					}

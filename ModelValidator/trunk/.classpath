@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/kodkod.jar" sourcepath="lib/kodkod-1.5.2.zip"/>
+	<classpathentry kind="lib" path="lib/kodkod.jar"/>
 	<classpathentry kind="lib" path="lib/org.sat4j.core.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang-2.6.jar"/>

@@ -27,7 +27,11 @@ public final class LogMessages {
 
 	public static final String modelTransformSuccessful = "Model transformation successful";
 
+	public static final String NO_SOLVER_SETUP = "No SAT solver active.";
+	
 	public static final String solverConfigBitwidthError = "Bitwidth has to be an int value.";
+	
+	public static final String WRONG_BITWIDTH_WARNING = "The bitwidth has to be a value between 1 and 32.";
 
 	public static final String configDiagramExtractionError = "Possible values for AutomaticObjectDiagramExtraction are only " + inQuotes("on") + " or " + inQuotes("off") + ".";
 
@@ -112,15 +116,15 @@ public final class LogMessages {
 	}
 
 	public static String solverConfigWrongArgumentError(String name) {
-		return name + " is not configurable. Only SatSolver and bitwidth.";
+		return StringUtil.inQuotes(name) + " is not configurable. Only SatSolver and bitwidth.";
 	}
 
 	public static String solverConfigSyntaxError(String argument) {
-		return argument + " has not the correct syntax. Use " + inQuotes("name") + " := " + inQuotes("value") + ".";
+		return StringUtil.inQuotes(argument) + " has not the correct syntax. Use " + inQuotes("name") + " := " + inQuotes("value") + ".";
 	}
 
 	public static String invIndepSyntaxError(String argument) {
-		return argument + " does not have the correct syntax. Use " + inQuotes("class") + " - " + inQuotes("invariant") + ".";
+		return StringUtil.inQuotes(argument) + " does not have the correct syntax. Use " + inQuotes("class") + " - " + inQuotes("invariant") + ".";
 	}
 
 	public static String unsupportedCollectionWarning(String collectionName) {
@@ -139,10 +143,6 @@ public final class LogMessages {
 		return "Translation time (Kodkod to SAT): " + statistics.translationTime() + " ms; Solving time: " + statistics.solvingTime() + " ms";
 	}
 
-	public static String wrongBitwidthWarning(int defaultBitwidth) {
-		return "The bitwidth has to be a value between 1 and 32. Default bitwidth " + defaultBitwidth + " will be used!";
-	}
-
 	public static String newBitwidth(int newBitwidth) {
 		return "Set bitwidth to " + newBitwidth + ".";
 	}
@@ -156,12 +156,16 @@ public final class LogMessages {
 		return mode + " automatic extraction of an available object diagram.";
 	}
 
-	public static String noSatSolverLibraryError(String satFactory, String defaultSatFacotry) {
-		return "Could not load the library for SatSolver " + inQuotes(satFactory) + ". Using default SatSolver " + inQuotes(defaultSatFacotry) + ".";
+	public static String noSatSolverLibraryError(String satFactory) {
+		return "Could not load the library for SatSolver " + inQuotes(satFactory) + ".";
 	}
 
-	public static String noSatSolverWarning(String solverName, String defaultSatFacotry) {
-		return "No solver " + inQuotes(solverName) + " available. Using default SatSolver " + inQuotes(defaultSatFacotry) + ".";
+	public static String noSatSolverWarning(String solverName) {
+		return "No solver " + inQuotes(solverName) + " available.";
+	}
+	
+	public static String defaultSolverLibraryFallback(String solverName) {
+		return "Using solver " + inQuotes(solverName) + " as a fallback.";
 	}
 	
 	public static String availableSatSolvers(String[] solvers){
@@ -182,11 +186,6 @@ public final class LogMessages {
 
 	public static String modelTransformTime(long timeMs) {
 		return "Translation time (USE to Kodkod): " + timeMs + " ms";
-	}
-
-	public static String solverConfigReadWarning(String defaultSatFactory, int defaultBitwidth) {
-		return "Error while reading KodkodSolver configuration. Using default SatSolver " + inQuotes(defaultSatFactory) + " and default bitwidth "
-				+ defaultBitwidth + ".";
 	}
 
 	public static String noValueCreation(String type) {

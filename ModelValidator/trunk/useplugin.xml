@@ -84,6 +84,13 @@
 			label="KodkodQueryCmd"
 			shellcmd="modelvalidator ?"
 			alias="mv ?">
-		</command>		
+		</command>
+		<command id="org.tzi.use.kodkod.plugin.SolverDownloadCmd"
+			class="org.tzi.use.kodkod.plugin.SolverDownloadCmd"
+			help="Downloads and installs external solver libraries such as MiniSat and lingeling depending on the compatibilities with the system"
+			label="SolverDownloadCmd"
+			shellcmd="modelvalidator -downloadSolvers"
+			alias="mv -dl">
+		</command>
 	</commands>
 </plugin>

@@ -409,7 +409,7 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 	protected void visitConstInteger(int value) {
 		TypeLiterals integerType = model.typeFactory().integerType();
 		
-		int bitwidth = KodkodModelValidatorConfiguration.INSTANCE.bitwidth();
+		int bitwidth = KodkodModelValidatorConfiguration.getInstance().bitwidth();
 		int requiredBitwidth = KodkodModelValidatorConfiguration.calculateRequiredBitwidth(value);
 		if(requiredBitwidth > bitwidth){
 			LOG.error("Model contains number " + StringUtil.inQuotes(value) + " which is too big for configured bitwidth. Required bitwidth: " + requiredBitwidth + " or greater.");

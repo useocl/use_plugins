@@ -1,5 +1,6 @@
 package org.tzi.kodkod;
 
+import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -34,11 +35,14 @@ public class KodkodSolver {
 	private Evaluator evaluator;
 
 	public Solution solve(IModel model) throws Exception {
+		KodkodModelValidatorConfiguration configuration = KodkodModelValidatorConfiguration.getInstance();
+		if(configuration.satFactory() == null){
+			throw new IOException("No solver loaded. Load a solver using the configuration command. See command `plugins' for help.");
+		}
+		
 		Bounds bounds = createBounds(model);
 		Formula constraint = createConstraint(model);
 		
-		KodkodModelValidatorConfiguration configuration = KodkodModelValidatorConfiguration.INSTANCE;
-
 		if(configuration.isDebugBoundsPrint()){
 			LOG.info(bounds);
 		}
@@ -65,41 +69,28 @@ public class KodkodSolver {
 
 	/**
 	 * Creates the constraint for kodkod.
-	 * 
-	 * @param model
-	 * @return
 	 */
 	private Formula createConstraint(IModel model) {
 		ConstraintVisitor constraintVisitor = new ConstraintVisitor();
 		model.accept(constraintVisitor);
 		Formula constraint = constraintVisitor.getFormula();
 
-		// LOG.debug("\n" + PrintHelper.prettyKodkod(constraint));
-
 		return constraint;
 	}
 
 	/**
 	 * Sets the bounds for the relations.
-	 * 
-	 * @param model
-	 * @return
 	 */
 	private Bounds createBounds(IModel model) {
 		Universe universe = createUniverse(model);
 		Bounds bounds = new Bounds(universe);
 		model.accept(new BoundsVisitor(bounds, universe.factory()));
 
-		LOG.debug("\n" + bounds);
-
 		return bounds;
 	}
 
 	/**
 	 * Creates the kodkod universe.
-	 * 
-	 * @param model
-	 * @return
 	 */
 	private Universe createUniverse(IModel model) {
 		Set<Object> atoms = new LinkedHashSet<Object>();

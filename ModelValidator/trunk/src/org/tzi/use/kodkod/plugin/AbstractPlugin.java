@@ -40,7 +40,7 @@ public abstract class AbstractPlugin {
 	 * Enriches the model with a given object diagram (automatic diagram extraction).
 	 */
 	protected void enrichModel() {
-		ModelEnricher enricher = KodkodModelValidatorConfiguration.INSTANCE.getModelEnricher();
+		ModelEnricher enricher = KodkodModelValidatorConfiguration.getInstance().getModelEnricher();
 		enricher.enrichModel(mSystem, model());
 	}
 
