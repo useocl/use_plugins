@@ -123,7 +123,7 @@ public class InputCheckingCell {
 		if(values.text != null){
 			return values.text;
 		} else {
-			return StringUtil.fmtSeq(values.values, ",");
+			return StringUtil.fmtSeq(values.values, ", ");
 		}
 	}
 	

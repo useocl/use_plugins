@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.tzi.kodkod.KodkodModelValidatorConfiguration;
+import org.tzi.kodkod.helper.LogMessages;
 import org.tzi.kodkod.helper.SolverLibraryHelper;
 import org.tzi.kodkod.helper.SolverLibraryHelper.SolverInstallResult;
 import org.tzi.kodkod.helper.SystemInformation;
@@ -56,6 +57,8 @@ public class SolverDownloadCmd implements IPluginShellCmdDelegate {
 		final KodkodModelValidatorConfiguration CFG = KodkodModelValidatorConfiguration.getInstance();
 		String[] availableSolvers = SolverLibraryHelper.tryAvailableSolvers();
 		CFG.setAvailableSolvers(availableSolvers);
+		
+		useShell.getOut().println(LogMessages.availableSatSolvers(CFG.getAvailableSolvers()));
 		
 		List<String> solverList = Arrays.asList(availableSolvers);
 		boolean newSolverSet = false;
