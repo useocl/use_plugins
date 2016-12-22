@@ -12,10 +12,6 @@ import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.Selectors;
-import org.apache.commons.vfs2.VFS;
 import org.apache.log4j.Logger;
 import org.tzi.kodkod.helper.LibraryPathHelper;
 import org.tzi.kodkod.helper.LogMessages;
@@ -80,9 +76,7 @@ public class KodkodModelValidatorConfiguration {
 
 		LOG.info("Use `modelvalidator -downloadSolvers' to automatically download and install additional solver libraries.");
 		
-		extractSolverLibraries();
 		addSolverFolders();
-
 		readFile();
 	}
 
@@ -121,23 +115,6 @@ public class KodkodModelValidatorConfiguration {
 			return basePath + "/x86";
 		default:
 			return null;
-		}
-	}
-
-	/**
-	 * Extracts the solver libraries contained in the jar file.
-	 */
-	private void extractSolverLibraries() {
-		try {
-			FileSystemManager fsManager = VFS.getManager();
-			FileObject jarFile = fsManager.resolveFile("jar:" + PathHelper.getJarFile());
-
-			FileObject source = jarFile.getChild("solver");
-			FileObject dest = fsManager.resolveFile("file:" + PathHelper.getPluginPath() + FOLDER_NAME);
-
-			dest.copyFrom(source, Selectors.SELECT_ALL);
-		} catch (IOException e) {
-			LOG.warn(LogMessages.extractSatSolverWarning(DEFAULT_SATFACTORY.toString()));
 		}
 	}
 
