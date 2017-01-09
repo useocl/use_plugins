@@ -31,6 +31,8 @@ public class SolverDownloadCmd implements IPluginShellCmdDelegate {
 		useShell = pluginCommand.getShell();
 		SystemInformation si = SystemInformation.getSystemInformation();
 		SolverInstallResult solvers;
+		
+		useShell.getOut().println("Downloading solver libraries (this may take a while) ...");
 		try {
 			solvers = SolverLibraryHelper.downloadAndExtractSolversForSystem(si);
 			
@@ -67,19 +69,19 @@ public class SolverDownloadCmd implements IPluginShellCmdDelegate {
 		case UNIX_64BIT:
 		case UNIX_32BIT:
 			// try Lingeling
-			if(!newSolverSet && solverList.contains("Lingeling")){
-				newSolverSet = trySetSatSolver("Lingeling");
+			if(!newSolverSet && solverList.contains(KodkodModelValidatorConfiguration.LINGELING_NAME)){
+				newSolverSet = trySetSatSolver(KodkodModelValidatorConfiguration.LINGELING_NAME);
 			}
 			// try MiniSat
-			if(!newSolverSet && solverList.contains("MiniSat")){
-				newSolverSet = trySetSatSolver("MiniSat");
+			if(!newSolverSet && solverList.contains(KodkodModelValidatorConfiguration.MINISAT_NAME)){
+				newSolverSet = trySetSatSolver(KodkodModelValidatorConfiguration.MINISAT_NAME);
 			}
 			break;
 		case WINDOWS_64BIT:
 		case WINDOWS_32BIT:
-			// try minisat
-			if(!newSolverSet && solverList.contains("MiniSat")){
-				newSolverSet = trySetSatSolver("MiniSat");
+			// try MiniSat
+			if(!newSolverSet && solverList.contains(KodkodModelValidatorConfiguration.MINISAT_NAME)){
+				newSolverSet = trySetSatSolver(KodkodModelValidatorConfiguration.MINISAT_NAME);
 			}
 			break;
 		default:

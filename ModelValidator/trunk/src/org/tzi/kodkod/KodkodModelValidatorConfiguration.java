@@ -45,8 +45,32 @@ public class KodkodModelValidatorConfiguration {
 	public static final String DIAGRAMEXTREACTION_KEY = "AutomaticDiagramExtraction";
 	public static final String DIAGRAMEXTREACTION_KEY_SHORT = "objExtraction";
 	public static final String DEBUG_BOUNDS_PRINTOUT_KEY = "dBoundPrintout";
+
+	public static final String DEFAULTSAT4J_NAME = "DefaultSAT4J";
+	public static final String LIGHTSAT4J_NAME = "LightSAT4J";
+	public static final String LINGELING_NAME = "Lingeling";
+	public static final String PLINGELING_NAME = "plingeling";
+	public static final String MINISAT_NAME = "MiniSat";
+	public static final String MINISATPROVER_NAME = "MiniSatProver";
+	public static final String CRYPTOMINISAT_NAME = "CryptoMiniSat";
+	public static final String ZCHAFFMINCOST_NAME = "ZChaffMincost";
 	
-	public static final String DEFAULT_SATFACTORY = "DefaultSAT4J";
+	/**
+	 * Map of case-insensitive input names (and aliases) to the solver names used by Kodkod.
+	 */
+	public static final Map<String, String> SOLVER_MAP = ImmutableMap.<String, String>builder()
+			.put("defaultsat4j", DEFAULTSAT4J_NAME)
+			.put("sat4j", DEFAULTSAT4J_NAME)
+			.put("lightsat4j", LIGHTSAT4J_NAME)
+			.put("lingeling", LINGELING_NAME)
+			.put("minisat", MINISAT_NAME)
+			.put("minisatprover", MINISATPROVER_NAME)
+			.put("cryptominisat", CRYPTOMINISAT_NAME)
+			.put("zchaffmincost", ZCHAFFMINCOST_NAME)
+			.build();
+	private String[] availableSolvers = null;
+	
+	public static final String DEFAULT_SATFACTORY = DEFAULTSAT4J_NAME;
 	public static final int DEFAULT_BITWIDTH = 8;
 	public static final boolean DEFAULT_DIAGRAMEXTRACTION = false;
 
@@ -55,18 +79,6 @@ public class KodkodModelValidatorConfiguration {
 	private boolean automaticDiagramExtraction = DEFAULT_DIAGRAMEXTRACTION;
 	private boolean debugBoundsPrint = false;
 
-	public static final Map<String, String> SOLVER_MAP = ImmutableMap.<String, String>builder()
-			.put("defaultsat4j", "DefaultSAT4J")
-			.put("lightsat4j", "LightSAT4J")
-			.put("lingeling", "Lingeling")
-			.put("minisat", "MiniSat")
-			.put("minisatprover", "MiniSatProver")
-			.put("cryptominisat", "CryptoMiniSat")
-			.put("zchaffmincost", "ZChaffMincost")
-			.build();
-	public static final String PLINGELING_SOLVERNAME = "plingeling";
-	private String[] availableSolvers = null;
-	
 	private final File iniSaveFile;
 	private boolean read = false;
 
@@ -188,13 +200,14 @@ public class KodkodModelValidatorConfiguration {
 			return;
 		}
 		
+		// error variables
 		boolean notFound = false;
 		boolean cantLoad = false;
 		
 		try {
-			if(solverName.equalsIgnoreCase(PLINGELING_SOLVERNAME)){
+			if(solverName.equalsIgnoreCase(PLINGELING_NAME)){
 				
-				File plingeling = new File(PathHelper.getPluginPath() + FOLDER_NAME + File.separatorChar + PLINGELING_SOLVERNAME);
+				File plingeling = new File(PathHelper.getPluginPath() + FOLDER_NAME + File.separatorChar + PLINGELING_NAME);
 				if(plingeling.exists()){
 					Path solverPath = plingeling.toPath();
 					if(!Files.isExecutable(solverPath)){
@@ -305,7 +318,7 @@ public class KodkodModelValidatorConfiguration {
 			value = Math.abs(value)-1;
 		}
 		// +1 for twos complement
-		return (32 - Integer.numberOfLeadingZeros(value))+1;
+		return (Integer.SIZE - Integer.numberOfLeadingZeros(value))+1;
 	}
 	
 	public static KodkodModelValidatorConfiguration getInstance() {

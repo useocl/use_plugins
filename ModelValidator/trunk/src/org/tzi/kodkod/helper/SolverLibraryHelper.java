@@ -28,15 +28,15 @@ public final class SolverLibraryHelper {
 	private static final int MAX_DOWNLOADED_FILES = 10;
 	private static final int MAX_DOWNLOADED_INDIVIDUAL_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
-	private SolverLibraryHelper() {
-	}
-
 	private static final String SOLVER_BASE_URL = "http://www.db.informatik.uni-bremen.de/kodkod-solvers/1/";
 	private static final Map<SystemInformation, String> SOLVER_LIBRARY = ImmutableMap.<SystemInformation, String>builder()
 			.put(SystemInformation.UNIX_32BIT, "linux_x86_32.zip")
 			.put(SystemInformation.UNIX_64BIT, "linux_x86_64.zip")
 			.put(SystemInformation.WINDOWS_64BIT, "win_x86_64.zip")
 			.build();
+	
+	private SolverLibraryHelper() {
+	}
 	
 	public static SolverInstallResult downloadAndExtractSolversForSystem(SystemInformation si) throws IOException {
 		String filename = SOLVER_LIBRARY.get(si);
@@ -132,8 +132,8 @@ public final class SolverLibraryHelper {
 		Set<String> res = new LinkedHashSet<String>();
 		String currentSolver = KodkodModelValidatorConfiguration.getInstance().satFactory().toString();
 		
-		List<String> solverList = new LinkedList<String>(KodkodModelValidatorConfiguration.SOLVER_MAP.values());
-		solverList.add(KodkodModelValidatorConfiguration.PLINGELING_SOLVERNAME);
+		Set<String> solverList = new LinkedHashSet<String>(KodkodModelValidatorConfiguration.SOLVER_MAP.values());
+		solverList.add(KodkodModelValidatorConfiguration.PLINGELING_NAME);
 		
 		for(String solver : solverList){
 			try {
