@@ -44,6 +44,8 @@ import org.tzi.use.uml.ocl.expr.ExpSelectByType;
 import org.tzi.use.uml.ocl.expr.ExpSequenceLiteral;
 import org.tzi.use.uml.ocl.expr.ExpSetLiteral;
 import org.tzi.use.uml.ocl.expr.ExpStdOp;
+import org.tzi.use.uml.ocl.expr.ExpTupleLiteral;
+import org.tzi.use.uml.ocl.expr.ExpTupleSelectOp;
 import org.tzi.use.uml.ocl.expr.ExpUndefined;
 import org.tzi.use.uml.ocl.expr.ExpVariable;
 import org.tzi.use.uml.ocl.type.Type;
@@ -365,6 +367,18 @@ public class DefaultExpressionVisitor extends SimpleExpressionVisitor {
 		object_type_nav = visitor.isObject_type_nav();
 	}
 
+	@Override
+	public void visitTupleLiteral(ExpTupleLiteral exp) {
+		super.visitTupleLiteral(exp);
+		throw new TransformationException("Tuples are not supported");
+	}
+
+	@Override
+	public void visitTupleSelectOp(ExpTupleSelectOp exp) {
+		super.visitTupleSelectOp(exp);
+		throw new TransformationException("Tuples are not supported");
+	}
+	
 	@Override
 	public void visitUndefined(ExpUndefined exp) {
 		super.visitUndefined(exp);
