@@ -60,12 +60,15 @@ public abstract class ConfigurablePlugin extends AbstractPlugin {
 	
 	protected Configuration extractConfigFromFile(File file, String section) throws ConfigurationException {
 		HierarchicalINIConfiguration hierarchicalINIConfiguration = readConfiguration(file);
-		if (section != null
-				&& !hierarchicalINIConfiguration.getSections().isEmpty()
-				&& !hierarchicalINIConfiguration.getSections().contains(section)) {
-			// if there is no section in the file, null will be allowed, otherwise throw an exception
-			throw new ConfigurationException("Selected section does not exist in properties file.");
+		if(!hierarchicalINIConfiguration.getSections().contains(section)){
+			if(section == null){
+				String sName = hierarchicalINIConfiguration.getSections().iterator().next();
+				return hierarchicalINIConfiguration.getSection(sName);
+			} else {
+				throw new ConfigurationException("Selected section does not exist in properties file.");
+			}
 		}
+		
 		return hierarchicalINIConfiguration.getSection(section);
 	}
 	
