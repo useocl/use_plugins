@@ -20,7 +20,7 @@ public class USECommentFilterReader extends AbstractFilterReader {
 		// removes multi line comments
 		String x = text.replaceAll("\\/\\*([\\s\\S]*?)\\*\\/", "");
 		// removes the preceding newline and the line comment, leaving only a newline
-		return x.replaceAll("(\r\n|\r|\n)--([^\r\n]*)", "");
+		return x.replaceAll("(\r\n|\r|\n)?--([^\r\n]*)", "");
 	}
 	
 }
