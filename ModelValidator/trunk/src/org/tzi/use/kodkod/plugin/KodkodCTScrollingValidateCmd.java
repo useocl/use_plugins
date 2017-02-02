@@ -41,7 +41,10 @@ public class KodkodCTScrollingValidateCmd extends KodkodScrollingValidateCmd {
 
 	@Override
 	protected void handleArguments(String[] arguments) {
-		String ctFile = readArgument(arguments, "ct");
+		String ctFile = readArgument(arguments, "f");
+		if(ctFile == null){
+			ctFile = readArgument(arguments, "ct");
+		}
 		arguments = removeNullValues(arguments);
 		
 		String firstArgument = arguments[0];
