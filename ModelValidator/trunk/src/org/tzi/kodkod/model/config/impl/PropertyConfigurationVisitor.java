@@ -53,7 +53,7 @@ public class PropertyConfigurationVisitor extends SimpleVisitor {
 	private final PrintWriter warningsOut;
 	private final List<String> errors = new ArrayList<String>();
 
-	public PropertyConfigurationVisitor(Configuration c, PrintWriter warningsOut) throws ConfigurationException {
+	public PropertyConfigurationVisitor(Configuration c, PrintWriter warningsOut) {
 		config = c;
 		this.warningsOut = warningsOut;
 	}
