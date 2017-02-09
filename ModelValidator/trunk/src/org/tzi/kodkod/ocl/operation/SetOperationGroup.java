@@ -69,7 +69,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 
 	public final Expression any(Expression src, Formula body, Variable var) {
 		final Expression select = select(src, body, var);
-		return src.eq(undefined_Set).or(select.no()).or(select.count().gt(IntConstant.constant(1))).thenElse(undefined, select);
+		return src.eq(undefined_Set).or(select.one().not()).thenElse(undefined, select);
 	}
 
 	public final Expression any(Expression src, Expression body, Variable var) {
@@ -164,15 +164,16 @@ public class SetOperationGroup extends OCLOperationGroup {
 
 	// OCL: srcExpr->exists(v1,...,vn | bodyExpr)
 
-	public Formula exists(Expression src, Formula body, Variable... vars) {
+	public Expression exists(Expression src, Formula body, Variable... vars) {
 		Decls d = vars[0].oneOf(src);
 		for (int i = 1; i < vars.length; i++) {
 			d = d.and(vars[i].oneOf(src));
 		}
-		return src.eq(undefined_Set).not().and(body.forSome(d));
+		return src.eq(undefined_Set).thenElse(undefined, body.forSome(d).thenElse(booleanTrue, booleanFalse));
+//		return src.eq(undefined_Set).not().and(body.forSome(d));
 	}
 
-	public Formula exists(Expression src, Expression bodyExpression, Variable... vars) {
+	public Expression exists(Expression src, Expression bodyExpression, Variable... vars) {
 		return exists(src, bodyExpression.eq(booleanTrue), vars);
 	}
 
@@ -184,15 +185,16 @@ public class SetOperationGroup extends OCLOperationGroup {
 
 	// OCL: srcExpr->forAll(v1,...,vn | bodyExpr)
 
-	public Formula forAll(Expression src, Formula body, Variable... vars) {
+	public Expression forAll(Expression src, Formula body, Variable... vars) {
 		Decls d = vars[0].oneOf(src);
 		for (int i = 1; i < vars.length; i++) {
 			d = d.and(vars[i].oneOf(src));
 		}
-		return src.eq(undefined_Set).not().and(body.forAll(d));
+		return src.eq(undefined_Set).thenElse(undefined, body.forAll(d).thenElse(booleanTrue, booleanFalse));
+//		return src.eq(undefined_Set).not().and(body.forAll(d));
 	}
 
-	public Formula forAll(Expression src, Expression body, Variable... vars) {
+	public Expression forAll(Expression src, Expression body, Variable... vars) {
 		return forAll(src, body.eq(booleanTrue), vars);
 	}
 
@@ -246,14 +248,14 @@ public class SetOperationGroup extends OCLOperationGroup {
 
 	// OCL: srcExpr->isUnique(v | bodyExpr)
 
-	public Formula isUnique(Expression src, Expression body1, Expression body2, Variable var1, Variable var2) {
+	public Expression isUnique(Expression src, Expression body1, Expression body2, Variable var1, Variable var2) {
 		AnyOperationGroup anyOperation = new AnyOperationGroup(typeFactory, false);
 		BooleanOperationGroup booleanOperation = new BooleanOperationGroup(typeFactory);
 
 		return forAll(src, booleanOperation.implies(anyOperation.inequality(var1, var2), anyOperation.inequality(body1, body2)), var1, var2);
 	}
 
-	public Formula isUnique(Expression src, Formula body1, Formula body2, Variable var1, Variable var2) {
+	public Expression isUnique(Expression src, Formula body1, Formula body2, Variable var1, Variable var2) {
 		AnyOperationGroup anyOperation = new AnyOperationGroup(typeFactory, false);
 		BooleanOperationGroup booleanOperation = new BooleanOperationGroup(typeFactory);
 

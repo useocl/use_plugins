@@ -1,5 +1,6 @@
 package org.tzi.kodkod.model.impl;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.tzi.kodkod.model.iface.Derivable;
@@ -51,7 +52,7 @@ public class DerivedAssociationEnd extends AssociationEnd implements Derivable {
 	}
 	
 	public List<Parameter> derivedParameters(){
-		return derivedParameters;
+		return Collections.unmodifiableList(derivedParameters);
 	}
 
 }

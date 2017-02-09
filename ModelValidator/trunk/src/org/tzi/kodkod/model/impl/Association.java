@@ -167,43 +167,44 @@ public class Association extends ModelElement implements IAssociation {
 			variables = new ArrayList<Variable>(relation().arity() - 1);
 			multiplicity = associationEnds.get(index).multiplicity();
 
-			if (!multiplicity.isZeroMany()) {
+			if (multiplicity.isZeroMany()) {
+				continue;
+			}
 
-				Decls variableDeclarations = createVariableDeclaration(variables, associationEnds.get(index));
+			Decls variableDeclarations = createVariableDeclaration(variables, associationEnds.get(index));
 
-				Expression linkedObjects = createLinkedObjectsExpression(variables, index, false);
+			Expression linkedObjects = createLinkedObjectsExpression(variables, index, false);
 
-				Formula formula = null;
-				if (multiplicity.isZeroOne()) {
-					formula = zeroOneMultiplicity(variables, index, linkedObjects);
-				} else {
-					for (Range range : multiplicity.getRanges()) {
-						Formula lowerFormula = Formula.TRUE;
-						if (range.getLower() > 0) {
-							lowerFormula = linkedObjects.count().gte(IntConstant.constant(range.getLower()));
-							if (associationClass != null) {
-								Relation undefined = model.typeFactory().undefinedType().relation();
-								lowerFormula = lowerFormula.and(undefined.in(linkedObjects.join(Expression.UNIV)).not());
-							}
-						}
-
-						Formula upperFormula = Formula.TRUE;
-						if (range.getUpper() != Multiplicity.MANY) {
-							upperFormula = linkedObjects.count().lte(IntConstant.constant(range.getUpper()));
-						}
-
-						if (formula == null) {
-							formula = lowerFormula.and(upperFormula);
-						} else {
-							formula = formula.or(lowerFormula.and(upperFormula));
+			Formula formula = null;
+			if (multiplicity.isZeroOne()) {
+				formula = zeroOneMultiplicity(variables, index, linkedObjects);
+			} else {
+				for (Range range : multiplicity.getRanges()) {
+					Formula lowerFormula = Formula.TRUE;
+					if (range.getLower() > 0) {
+						lowerFormula = linkedObjects.count().gte(IntConstant.constant(range.getLower()));
+						if (associationClass != null) {
+							Relation undefined = model.typeFactory().undefinedType().relation();
+							lowerFormula = lowerFormula.and(undefined.in(linkedObjects.join(Expression.UNIV)).not());
 						}
 					}
-				}
-				formula = formula.forAll(variableDeclarations);
 
-				formulas.add(formula);
-				LOG.debug("Mult for " + name() + ": " + PrintHelper.prettyKodkod(formula));
+					Formula upperFormula = Formula.TRUE;
+					if (range.getUpper() != Multiplicity.MANY) {
+						upperFormula = linkedObjects.count().lte(IntConstant.constant(range.getUpper()));
+					}
+
+					if (formula == null) {
+						formula = lowerFormula.and(upperFormula);
+					} else {
+						formula = formula.or(lowerFormula.and(upperFormula));
+					}
+				}
 			}
+			formula = formula.forAll(variableDeclarations);
+
+			formulas.add(formula);
+			LOG.debug("Mult for " + name() + ": " + PrintHelper.prettyKodkod(formula));
 		}
 
 		if (associationClass != null) {
