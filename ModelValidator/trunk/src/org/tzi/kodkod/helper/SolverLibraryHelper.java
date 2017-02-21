@@ -32,6 +32,7 @@ public final class SolverLibraryHelper {
 	private static final Map<SystemInformation, String> SOLVER_LIBRARY = ImmutableMap.<SystemInformation, String>builder()
 			.put(SystemInformation.UNIX_32BIT, "linux_x86_32.zip")
 			.put(SystemInformation.UNIX_64BIT, "linux_x86_64.zip")
+			.put(SystemInformation.WINDOWS_32BIT, "win_x86_32.zip")
 			.put(SystemInformation.WINDOWS_64BIT, "win_x86_64.zip")
 			.build();
 	
