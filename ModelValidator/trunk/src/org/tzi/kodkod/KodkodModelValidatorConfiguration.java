@@ -207,7 +207,7 @@ public class KodkodModelValidatorConfiguration {
 		try {
 			if(solverName.equalsIgnoreCase(PLINGELING_NAME)){
 				
-				File plingeling = new File(PathHelper.getPluginPath() + FOLDER_NAME + File.separatorChar + PLINGELING_NAME);
+				File plingeling = new File(getSolverFolder(SystemInformation.getSystemInformation()) + File.separatorChar + PLINGELING_NAME);
 				if(plingeling.exists()){
 					Path solverPath = plingeling.toPath();
 					if(!Files.isExecutable(solverPath)){
