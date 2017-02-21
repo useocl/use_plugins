@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import kodkod.engine.Proof;
 import kodkod.engine.fol2sat.TranslationRecord;
+import kodkod.engine.satlab.ReductionStrategy;
 import kodkod.engine.ucore.HybridStrategy;
 
 public class ProofHelper {
@@ -14,7 +15,7 @@ public class ProofHelper {
 		StringBuilder sb = new StringBuilder();
 		
 		if(minimize){
-			proof.minimize(new HybridStrategy(proof.log()));
+			minimize(proof);
 		}
 		
 		sb.append("Unsatisfiable proof:\n");
@@ -26,6 +27,14 @@ public class ProofHelper {
 		}
 		
 		return sb.toString();
+	}
+	
+	public static void minimize(Proof proof) {
+		minimize(proof, new HybridStrategy(proof.log()));
+	}
+	
+	public static void minimize(Proof proof, ReductionStrategy strategy) {
+		proof.minimize(strategy);
 	}
 	
 }

@@ -28,7 +28,6 @@ import org.tzi.use.uml.sys.MSystemState;
  * validator.
  * 
  * @author Hendrik Reitmann
- * 
  */
 public class ObjectDiagramModelEnricher implements ModelEnricher{
 
@@ -36,8 +35,6 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 
 	/**
 	 * Enrich the given model with the information of the object diagram.
-	 * 
-	 * @param model
 	 */
 	@Override
 	public void enrichModel(MSystem mSystem,IModel model) {
@@ -93,9 +90,6 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 
 	/**
 	 * Extract all object of the object diagram.
-	 * 
-	 * @param model
-	 * @param systemState
 	 */
 	private void extractObjects(IModel model, MSystemState systemState) {
 		IClass clazz;
@@ -113,11 +107,6 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 
 	/**
 	 * Extraction of the attribute values.
-	 * 
-	 * @param model
-	 * @param objectState
-	 * @param clazz
-	 * @param mObject
 	 */
 	private void extractAttributeValues(IModel model, MObjectState objectState, IClass clazz, MObject mObject) {
 		TypeFactory typeFactory = model.typeFactory();
@@ -146,11 +135,6 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 
 	/**
 	 * Sets the value for the given attribute.
-	 * 
-	 * @param name
-	 * @param attribute
-	 * @param type
-	 * @param value
 	 */
 	private void setAttributeValue(String name, IAttribute attribute, Type type, String value) {
 		if (type != null) {
@@ -160,9 +144,6 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 
 	/**
 	 * Add a specific value to the type definition.
-	 * 
-	 * @param type
-	 * @param value
 	 */
 	private void addValueToType(Type type, String value) {
 		if (type != null && type instanceof ConfigurableType) {
@@ -177,6 +158,7 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 		} else {
 			typeName = value.type().shortName();
 		}
+		//TODO attributes can also reference other classes and enums
 		Type type = typeFactory.buildInType(typeName);
 		return type;
 	}

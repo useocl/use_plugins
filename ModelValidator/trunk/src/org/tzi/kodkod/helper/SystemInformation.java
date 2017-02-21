@@ -11,31 +11,28 @@ public enum SystemInformation {
 	UNIX_64BIT,
 	UNKNOWN;
 	
-	private static final SystemInformation SYSTEM_INFORMATION = assignSystemInformation();
+	private static final SystemInformation SYSTEM_INFORMATION = determineSystemInformation();
 	
 	public static SystemInformation getSystemInformation() {
 		return SYSTEM_INFORMATION;
 	}
 	
-	private static SystemInformation assignSystemInformation(){
+	private static SystemInformation determineSystemInformation(){
 		String os = System.getProperty("os.name");
-		
 		if(os == null){
 			return UNKNOWN;
 		}
 		os = os.toLowerCase();
 		
 		String arch = System.getProperty("os.arch");
-		boolean archX64;
-		if(arch != null && arch.contains("64")){
-			archX64 = true;
-		} else {
-			archX64 = false;
+		if(arch == null){
+			return UNKNOWN;
 		}
+		boolean archX64 = arch.contains("64");
 		
-		if(os.indexOf("mac") >= 0 || os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 || os.indexOf("aix") >= 0){
+		if(os.contains("mac") || os.contains("nix") || os.contains("nux") || os.contains("aix")){
 			return archX64 ? UNIX_64BIT : UNIX_32BIT;
-		} else if(os.indexOf("win") >= 0){
+		} else if(os.contains("win")){
 			return archX64 ? WINDOWS_64BIT : WINDOWS_32BIT;
 		}
 		
