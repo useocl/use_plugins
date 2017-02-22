@@ -35,20 +35,20 @@ public class SolverDownloadCmd implements IPluginShellCmdDelegate {
 		useShell.getOut().println("Downloading solver libraries (this may take a while) ...");
 		try {
 			solvers = SolverLibraryHelper.downloadAndExtractSolversForSystem(si);
-			
-			for(String solver : solvers.getInstalledSolvers()) {
-				useShell.getOut().println("Installed: " + StringUtil.inQuotes(solver));
-			}
-			for(String solver : solvers.getFailedSolvers()) {
-				useShell.getOut().println("Failed to install: " + StringUtil.inQuotes(solver));
-			}
-			for(String solver : solvers.getAlreadyInstalledSolvers()) {
-				useShell.getOut().println("Was already installed: " + StringUtil.inQuotes(solver));
-			}
 		} catch (IOException e) {
 			useShell.getErr().println("Error while downloading solvers.");
 			useShell.getErr().println(e.getMessage());
 			return;
+		}
+		
+		for(String solver : solvers.getInstalledSolvers()) {
+			useShell.getOut().println("Installed: " + StringUtil.inQuotes(solver));
+		}
+		for(String solver : solvers.getFailedSolvers()) {
+			useShell.getOut().println("Failed to install: " + StringUtil.inQuotes(solver));
+		}
+		for(String solver : solvers.getAlreadyInstalledSolvers()) {
+			useShell.getOut().println("Was already installed: " + StringUtil.inQuotes(solver));
 		}
 		
 		if(solvers.getInstalledSolvers().length == 0){
