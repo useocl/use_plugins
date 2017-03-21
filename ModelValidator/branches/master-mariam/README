@@ -1,0 +1,17 @@
+1. Requirements
+===============
+- USE (downloads available here: http://sourceforge.net/projects/useocl/)
+
+2. Installation
+===============
+Please, copy the jar-file into the lib/plugins directory of USE.
+
+The Java based solver SAT4j comes with the download. More potent external
+solvers can be downloaded from within the plugin using the command
+`modelvalidator -downloadSolvers'.
+
+3. Usage
+===============
+The shell command 'plugins' shows all available Model Validator commands.
+For further information, please feel free to use our sourceforge forums. A
+quick reference guide is included in the Model Validator ZIP archive.

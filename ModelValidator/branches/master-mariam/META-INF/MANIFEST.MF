@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Plugin-Name: KodkodPlugin
+Plugin-Version: 0.1
+Plugin-Publisher: Hendrik Reitmann
+Main-Class: org.tzi.use.kodkod.plugin.KodkodPlugin
