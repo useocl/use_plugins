@@ -92,5 +92,12 @@
 			shellcmd="modelvalidator -downloadSolvers"
 			alias="mv -dl">
 		</command>
+		<command id="org.tzi.use.kodkod.plugin.ConfigurationComaprisonCmd"
+			class="org.tzi.use.kodkod.plugin.ConfigurationComaprisonCmd"
+			help="MARIAM HAS TO WRITE SOMETHING HERE"
+			label="ConfigurationComaprisonCmd"
+			shellcmd="modelvalidator -compare"
+			alias="mv -compare">
+		</command>
 	</commands>
 </plugin>
