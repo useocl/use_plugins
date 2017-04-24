@@ -1,5 +1,6 @@
 package org.tzi.use.kodkod.transform.enrich;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -10,11 +11,14 @@ import org.tzi.kodkod.model.iface.IAttribute;
 import org.tzi.kodkod.model.iface.IClass;
 import org.tzi.kodkod.model.iface.IModel;
 import org.tzi.kodkod.model.type.ConfigurableType;
+import org.tzi.kodkod.model.type.EnumType;
 import org.tzi.kodkod.model.type.Type;
 import org.tzi.kodkod.model.type.TypeFactory;
+import org.tzi.kodkod.model.type.TypeLiterals;
 import org.tzi.use.kodkod.transform.ValueConverter;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.ocl.value.CollectionValue;
+import org.tzi.use.uml.ocl.value.EnumValue;
 import org.tzi.use.uml.ocl.value.Value;
 import org.tzi.use.uml.sys.MLink;
 import org.tzi.use.uml.sys.MLinkObject;
@@ -111,7 +115,7 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 	private void extractAttributeValues(IModel model, MObjectState objectState, IClass clazz, MObject mObject) {
 		TypeFactory typeFactory = model.typeFactory();
 		IAttribute attribute;
-
+		
 		for (MAttribute mAttribute : mObject.cls().allAttributes()) {
 			if(mAttribute.isDerived()){
 				continue;
@@ -122,8 +126,15 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 
 				ValueConverter valueConverter = new ValueConverter();
 				Set<String> values = valueConverter.convert(value);
+				
+				/*if(value.isObject()){
+						
+				}
+				else if(value instanceof EnumValue){
+					
+				}*/
 
-				Type type = getType(typeFactory, value);
+				Type type = getType(typeFactory, value, model);
 
 				for (String stringValue : values) {
 					setAttributeValue(mObject.cls().name() + "_" + mObject.name(), attribute, type, stringValue);
@@ -151,16 +162,30 @@ public class ObjectDiagramModelEnricher implements ModelEnricher{
 		}
 	}
 
-	private Type getType(TypeFactory typeFactory, Value value) {
+	private Type getType(TypeFactory typeFactory, Value value, IModel model) {
 		String typeName;
+		Type type;
 		if (value.isCollection()) {
 			typeName = ((CollectionValue) value).elemType().shortName();
 		} else {
 			typeName = value.type().shortName();
 		}
 		//TODO attributes can also reference other classes and enums
-		Type type = typeFactory.buildInType(typeName);
+		if(value.isObject()){
+			IClass clazz = model.getClass(typeName);
+			type = typeFactory.objectType(clazz);	
+		}
+		else if(value instanceof EnumValue){
+			List<String> enumTypes = new ArrayList<String>();
+			for( EnumType enumType :model.enumTypes()){
+				enumTypes.add(enumType.toString());
+			}
+			type = typeFactory.enumType(typeName,enumTypes);
+		}
+		else{
+			type = typeFactory.buildInType(typeName);
+		}
 		return type;
 	}
 
-}
+}  

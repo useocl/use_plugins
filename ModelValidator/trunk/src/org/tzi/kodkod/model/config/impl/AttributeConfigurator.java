@@ -72,7 +72,12 @@ public class AttributeConfigurator extends Configurator<IAttribute> {
 				if ((type.isInteger() || type.isIntegerCollection())
 						&& !(specific[i].equals(TypeConstants.UNDEFINED) || specific[i].equals(TypeConstants.UNDEFINED_SET))) {
 					lower.add(tupleFactory.tuple(object, Integer.valueOf(specific[i])));
-				} else {
+				} 
+				else if(type.isObjectType() || type.isEnum()){
+					lower.add(tupleFactory.tuple(object, specific[i]));
+				}
+				
+				else {
 					if (type.isCollection()) {
 						type = ((SetType) type).elemType();
 					}
