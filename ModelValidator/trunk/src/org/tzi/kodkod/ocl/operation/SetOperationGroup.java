@@ -73,7 +73,7 @@ public class SetOperationGroup extends OCLOperationGroup {
 	}
 
 	public final Expression any(Expression src, Expression body, Variable var) {
-		return src.eq(undefined_Set).not().and(src.one()).and(body.eq(booleanTrue).forSome(var.oneOf(src))).thenElse(src, undefined);
+		return any(src, body.eq(booleanTrue), var);
 	}
 
 	// OCL: srcExpr->asSet()
