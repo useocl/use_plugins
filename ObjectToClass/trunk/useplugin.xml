@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?use version="2.4.0"?>
+<plugin name="ObjectToClass" version="1.0">
+	<actions>
+		<action label="Create Object to Class View" icon="resources/ObjectToClassView.gif"
+			class="org.tzi.use.gui.plugins.ActionObjectToClass" tooltip="Create Object to Class View"
+			menu="View" menuitem="Object to Class" toolbaritem="plugins"
+			id="org.tzi.use.gui.plugins.ActionObjectToClass">
+		</action>
+	</actions>
+</plugin>

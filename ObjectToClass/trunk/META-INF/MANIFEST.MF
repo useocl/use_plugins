@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Plugin-Name: ObjectToClassPlugin
+Plugin-Version: 0.1
+Main-Class: org.tzi.use.gui.plugins.ObjectToClassPlugin
+Plugin-Publisher: Andreas Kaestner

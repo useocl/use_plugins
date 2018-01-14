@@ -1,0 +1,89 @@
+package org.tzi.use.plugin.otc.classdiagram;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
+
+import org.tzi.use.gui.views.diagrams.DiagramOptions;
+import org.tzi.use.gui.views.diagrams.classdiagram.ClassNode;
+import org.tzi.use.plugin.otc.data.TAttribute;
+import org.tzi.use.plugin.otc.data.TClass;
+import org.tzi.use.plugin.otc.data.TConstants;
+import org.tzi.use.plugin.otc.data.TStatus;
+import org.tzi.use.uml.mm.MClass;
+
+public class OutputClassNode extends ClassNode {
+
+	private final TClass tClass;
+	private final TStatus classStatus;
+	private final Color normalColor;
+	private final Color selectedColor;
+
+	OutputClassNode(MClass dummyCls, DiagramOptions opt, TClass tClass) {
+		super(dummyCls, opt);
+
+		this.tClass = tClass;
+
+		if (tClass.getClassName() == null) {
+			fLabel = TConstants.PLACEHOLDER;
+		}
+
+		classStatus = tClass.getCurrentStatus();
+		switch (classStatus) {
+		case COMPLETE:
+			normalColor = TConstants.COMPLETE_COLOR;
+			selectedColor = TConstants.COMPLETE_SELECTED_COLOR;
+			break;
+		case MISSING:
+			normalColor = TConstants.MISSING_COLOR;
+			selectedColor = TConstants.MISSING_SELECTED_COLOR;
+			break;
+		case CONFLICT:
+			normalColor = TConstants.CONFLICT_COLOR;
+			selectedColor = TConstants.CONFLICT_SELECTED_COLOR;
+			break;
+		default:
+			normalColor = TConstants.DEFAULT_COLOR;
+			selectedColor = TConstants.DEFAULT_SELECTED_COLOR;
+			break;
+
+		}
+	}
+
+	/**
+	 * this is a workaround
+	 */
+	@Override
+	protected void onDraw(Graphics2D g) {
+		if (isSelected()) {
+			fOpt.registerTypeColor(DiagramOptions.NODE_SELECTED_COLOR, selectedColor,
+					TConstants.GRAY_SELECTED_NODE_COLOR);
+		} else {
+			fOpt.registerTypeColor(DiagramOptions.NODE_COLOR, normalColor, TConstants.GRAY_NODE_COLOR);
+		}
+		super.onDraw(g);
+	}
+
+	/**
+	 * this only works for drawing attributes. results for drawing operations
+	 * would be wrong
+	 */
+	@Override
+	protected int drawCompartment(Graphics2D g, int y, String[] values, Color[] colors, Rectangle2D roundedBounds) {
+		int i = 0;
+		for (TAttribute tAttr : tClass.getAttributes()) {
+			values[i++] = tAttr.getDisplayTextForClass();
+		}
+		return super.drawCompartment(g, y, values, colors, roundedBounds);
+	}
+
+	@Override
+	protected void calculateAttributeRectSize(Graphics2D g, Rectangle2D.Double rect) {
+		String[] values = new String[tClass.getAttributes().size()];
+		int i = 0;
+		for (TAttribute a : tClass.getAttributes()) {
+			values[i++] = a.getDisplayTextForClass();
+		}
+		calculateCompartmentRectSize(g, rect, values);
+	}
+}
