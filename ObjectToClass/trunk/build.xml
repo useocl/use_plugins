@@ -2,7 +2,7 @@
 	<description>ObjectToClass plugin for USE</description>
 
 	<!-- Setup following configurations //-->
-	<property name="use.path" value="${basedir}/../.." />
+	<property name="use.path" value="${basedir}/../../../use/trunk" />
 	<property name="release.version" value="1.0" />
 
 	<!-- Do not touch following configurations //-->
