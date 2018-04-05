@@ -311,7 +311,7 @@ public class Transformation {
 					if (isBetweenSameClasses(a[i], a[j])) {
 						// a[i], a[j] guaranteed to be between the same classes
 						if (a[i].getCurrentStatus() != TStatus.CONFLICT
-								&& a[i].getCurrentStatus() != TStatus.CONFLICT) {
+								&& a[i].getCurrentStatus() != TStatus.CONFLICT) { //FIXME j?
 							// a[i], a[j] guaranteed to not be conflicted
 							boolean mergeHappened = ambiguouslyMergeAssociations(a[i], a[j]);
 							if (mergeHappened) {

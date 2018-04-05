@@ -40,6 +40,9 @@ public class OutputClassDiagram extends ClassDiagram {
 	OutputClassDiagram(OutputClassDiagramView parent, PrintWriter log, ClassDiagramOptions opt) {
 		super(parent, log, opt);
 		fParent = parent;
+		
+		opt.setShowAssocNames(true);
+		
 		modelApi = new UseModelApi("ObjectToClassModel");
 		tClassIDToMClassName = new HashMap<Integer, String>();
 		mAssocToTAssocMap = new HashMap<MAssociation, TAssociation>();

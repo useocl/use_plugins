@@ -52,6 +52,8 @@ public class InputObjectDiagram extends NewObjectDiagram {
 	InputObjectDiagram(InputObjectDiagramView parent, PrintWriter log, ObjDiagramOptions options) {
 		super(parent, log, options);
 		fParent = parent;
+		
+		options.setShowAssocNames(true);
 
 		// remove old listeners
 		fParent.removeKeyListener(inputHandling);
