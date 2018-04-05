@@ -17,7 +17,7 @@
 	
 	<property name="build.dir" value="${basedir}/build" />
 	<property name="build.classes.dir" value="${build.dir}/classes" />
-	<property name="build.jarfiledest" value="${build.dir}/ObjectToClass.jar"/>
+	<property name="build.jarfiledest" value="${build.dir}/ObjectToClassPlugin-${release.version}.jar"/>
 	<property name="resources.dir" value="${basedir}/resources"/>
 
 	<target name="build-use" description="Build the components of USE that are required for the plugin">
