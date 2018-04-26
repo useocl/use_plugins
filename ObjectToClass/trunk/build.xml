@@ -1,9 +1,12 @@
 <project name="ObjectToClass" default="build" basedir=".">
 	<description>ObjectToClass plugin for USE</description>
 
+	<property name="ant.build.javac.source" value="1.8"/>
+	<property name="ant.build.javac.target" value="1.8"/>
+	
 	<!-- Setup following configurations //-->
 	<property name="use.path" value="${basedir}/../../../use/trunk" />
-	<property name="release.version" value="1.0" />
+	<property name="release.version" value="1.1" />
 
 	<!-- Do not touch following configurations //-->
 	<property name="src.dir" value="${basedir}/src"/>

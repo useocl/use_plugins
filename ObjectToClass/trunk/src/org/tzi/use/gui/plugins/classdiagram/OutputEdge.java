@@ -72,7 +72,7 @@ public class OutputEdge extends BinaryAssociationOrLinkEdge {
 		MMultiplicity mult1 = tAssoc.getFirstEndMultiplicity();
 		String displayRoleName1;
 		if (mult1 == null) {
-			displayRoleName1 = "";
+			displayRoleName1 = " ";
 		} else {
 			displayRoleName1 = mult1.toString();
 		}
@@ -80,7 +80,7 @@ public class OutputEdge extends BinaryAssociationOrLinkEdge {
 		MMultiplicity mult2 = tAssoc.getSecondEndMultiplicity();
 		String displayRoleName2;
 		if (mult2 == null) {
-			displayRoleName2 = "";
+			displayRoleName2 = " ";
 		} else {
 			displayRoleName2 = mult2.toString();
 		}
