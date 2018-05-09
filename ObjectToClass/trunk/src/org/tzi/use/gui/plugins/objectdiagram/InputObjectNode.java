@@ -1,6 +1,5 @@
 package org.tzi.use.gui.plugins.objectdiagram;
 
-import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.font.TextAttribute;
@@ -30,8 +29,8 @@ public class InputObjectNode extends ObjectNode {
 	private String fLabel;
 	private String[] fValues;
 
-	private Color normalColor;
-	private Color selectedColor;
+//	private Color normalColor;
+//	private Color selectedColor;
 
 	public InputObjectNode(MObject obj, InputObjectDiagramView parent, ObjDiagramOptions opt) {
 		super(obj, parent, opt);
@@ -43,7 +42,9 @@ public class InputObjectNode extends ObjectNode {
 
 		updateContent();
 	}
-
+	
+	private boolean isDashed = false;
+	
 	@Override
 	protected void onDraw(Graphics2D g) {
 		Rectangle2D.Double currentBounds = getRoundedBounds();
@@ -57,19 +58,26 @@ public class InputObjectNode extends ObjectNode {
 
 		int labelWidth = g.getFontMetrics().stringWidth(fLabel);
 
-		if (fOpt.grayscale()) {
+//		if (fOpt.grayscale()) { FIXME currently always uses greyscale
 			if (isSelected()) {
 				g.setColor(TConstants.GRAY_SELECTED_NODE_COLOR);
 			} else {
 				g.setColor(TConstants.GRAY_NODE_COLOR);
 			}
-		} else if (isSelected()) {
-			g.setColor(selectedColor);
-		} else {
-			g.setColor(normalColor);
-		}
+//		} else if (isSelected()) {
+//			g.setColor(selectedColor);
+//		} else {
+//			g.setColor(normalColor);
+//		}
 		g.fill(currentBounds);
 		g.setColor(fOpt.getNODE_FRAME_COLOR());
+		
+		if(isDashed) {
+			g.setStroke(TConstants.dashedBoxBasicStroke);
+		} else {
+			g.setStroke(TConstants.defaultBasicStroke);
+		}
+		
 		g.draw(currentBounds);
 
 		x = (currentBounds.getCenterX() - labelWidth / 2);
@@ -137,20 +145,24 @@ public class InputObjectNode extends ObjectNode {
 		TStatus objectStatus = Utilities.getCurrentStatus(fParent.system().state(), fObject, slots);
 		switch (objectStatus) {
 		case COMPLETE:
-			normalColor = TConstants.COMPLETE_COLOR;
-			selectedColor = TConstants.COMPLETE_SELECTED_COLOR;
+			//normalColor = TConstants.COMPLETE_COLOR;
+			//selectedColor = TConstants.COMPLETE_SELECTED_COLOR;
+			isDashed = false;
 			break;
 		case MISSING:
-			normalColor = TConstants.MISSING_COLOR;
-			selectedColor = TConstants.MISSING_SELECTED_COLOR;
+			//normalColor = TConstants.MISSING_COLOR;
+			//selectedColor = TConstants.MISSING_SELECTED_COLOR;
+			isDashed = true;
 			break;
 		case CONFLICT:
-			normalColor = TConstants.CONFLICT_COLOR;
-			selectedColor = TConstants.CONFLICT_SELECTED_COLOR;
+			//normalColor = TConstants.CONFLICT_COLOR;
+			//selectedColor = TConstants.CONFLICT_SELECTED_COLOR;
+			isDashed = true;
 			break;
 		default:
-			normalColor = TConstants.DEFAULT_COLOR;
-			selectedColor = TConstants.DEFAULT_SELECTED_COLOR;
+			//normalColor = TConstants.DEFAULT_COLOR;
+			//selectedColor = TConstants.DEFAULT_SELECTED_COLOR;
+			isDashed = false;
 			break;
 		}
 	}

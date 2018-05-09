@@ -128,18 +128,6 @@ public class TAttribute {
 		types = allTypes;
 	}
 
-	public String getDisplayTextForObject() {
-		String nameText = name;
-		if (nameText == null) {
-			nameText = TConstants.PLACEHOLDER;
-		}
-		String valueText = value;
-		if (valueText == null) {
-			valueText = TConstants.PLACEHOLDER;
-		}
-		return nameText + " = " + valueText;
-	}
-
 	public String getDisplayTextForClass() {
 		String nameText = name;
 		if (nameText == null) {

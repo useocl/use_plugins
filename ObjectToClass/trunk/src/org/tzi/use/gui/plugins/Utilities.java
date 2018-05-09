@@ -166,7 +166,7 @@ public class Utilities {
 		Value attributeValue = slotState.attributeValue(MMConstants.CLS_SLOT_ATTR_VAL);
 		String displayName = trim(attributeName.toString());
 		if (displayName == null) {
-			displayName = TConstants.PLACEHOLDER;
+			displayName = TConstants.OPTIONAL_MARKER;
 		}
 		String displayValue = attributeValue.toString();
 		if (displayValue == null || displayValue.equals("''")) {
@@ -182,10 +182,10 @@ public class Utilities {
 		String displayIdentity = trim(identity.toString());
 		String displayClassName = trim(className.toString());
 		if (displayIdentity == null && displayClassName == null) {
-			return " : " + TConstants.PLACEHOLDER;
+			return " : " + TConstants.OPTIONAL_MARKER;
 		}
 		if (displayIdentity != null && displayClassName == null) {
-			return displayIdentity + " : " + TConstants.PLACEHOLDER;
+			return displayIdentity + " : " + TConstants.OPTIONAL_MARKER;
 		}
 		if (displayIdentity == null && displayClassName != null) {
 			return " : " + displayClassName;

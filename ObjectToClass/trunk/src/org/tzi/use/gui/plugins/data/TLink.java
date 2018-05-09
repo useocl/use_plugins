@@ -27,11 +27,11 @@ public class TLink {
 			isReflexive = true;
 		}
 	}
-	
+
 	public static TLink getNewLinkWithoutIncreasingID() {
 		return new TLink();
 	}
-	
+
 	private TLink() {
 		id = TConstants.DEFAULT_ID;
 	}
@@ -99,14 +99,11 @@ public class TLink {
 		if (linkName == null || linkName.isEmpty()) {
 			return TStatus.MISSING;
 		}
-		// reflexive link needs a direction to be complete
-		if (isReflexive) {
-			if (firstEndRoleName == null || firstEndRoleName.isEmpty()) {
-				return TStatus.MISSING;
-			}
-			if (secondEndRoleName == null || secondEndRoleName.isEmpty()) {
-				return TStatus.MISSING;
-			}
+		if (firstEndRoleName == null || firstEndRoleName.isEmpty()) {
+			return TStatus.MISSING;
+		}
+		if (secondEndRoleName == null || secondEndRoleName.isEmpty()) {
+			return TStatus.MISSING;
 		}
 
 		return TStatus.COMPLETE;
