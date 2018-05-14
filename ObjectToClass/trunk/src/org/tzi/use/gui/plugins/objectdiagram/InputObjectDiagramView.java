@@ -353,4 +353,32 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 
 		fObjectDiagram.invalidateContent(true);
 	}
+
+	void startObjectCloning(MObject originalObject) {
+		try {
+			String originalIdentity = otcApi.getIdentityOfObject(originalObject);
+			String originalClassName = otcApi.getClassNameOfObject(originalObject);
+
+			MObject clonedObject = useSystemApi.createObjectEx(objectClass, null);
+
+			useSystemApi.setAttributeValue(clonedObject.name(), MMConstants.CLS_OBJECT_ATTR_IDENT, originalIdentity);
+			useSystemApi.setAttributeValue(clonedObject.name(), MMConstants.CLS_OBJECT_ATTR_CLASSN, originalClassName);
+
+			for (MObject originalSlot : otcApi.getSlotsOfObject(originalObject, true)) {
+				String originalAttrName = otcApi.getAttrNameOfSlot(originalSlot);
+				String originalAttrValue = otcApi.getAttrValueOfSlot(originalSlot);
+
+				MObject clonedSlot = useSystemApi.createObjectEx(slotClass, null);
+
+				useSystemApi.setAttributeValue(clonedSlot.name(), MMConstants.CLS_SLOT_ATTR_ATTR, originalAttrName);
+				useSystemApi.setAttributeValue(clonedSlot.name(), MMConstants.CLS_SLOT_ATTR_VAL, originalAttrValue);
+
+				MObject[] connectedObjects = { clonedObject, clonedSlot };
+				useSystemApi.createLinkEx(obj_attrAssociation, connectedObjects);
+			}
+		} catch (UseApiException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

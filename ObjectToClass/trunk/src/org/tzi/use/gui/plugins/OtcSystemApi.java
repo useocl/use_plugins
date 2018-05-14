@@ -117,4 +117,14 @@ public class OtcSystemApi {
 		MObjectState objState = mainObject.state(fSystem.state());
 		return objState.attributeValue(MMConstants.CLS_OBJECT_ATTR_CLASSN).toString();
 	}
+	
+	public String getAttrNameOfSlot(MObject slot) {
+		MObjectState objState = slot.state(fSystem.state());
+		return objState.attributeValue(MMConstants.CLS_SLOT_ATTR_ATTR).toString();
+	}
+	
+	public String getAttrValueOfSlot(MObject slot) {
+		MObjectState objState = slot.state(fSystem.state());
+		return objState.attributeValue(MMConstants.CLS_SLOT_ATTR_VAL).toString();
+	}
 }

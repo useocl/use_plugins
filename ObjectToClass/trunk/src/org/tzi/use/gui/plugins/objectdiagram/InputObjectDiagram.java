@@ -161,6 +161,13 @@ public class InputObjectDiagram extends NewObjectDiagram {
 					fParent.startObjectDestruction(object);
 				}
 			}, pos++);
+			
+			popupMenu.insert(new AbstractAction("Clone object") {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					fParent.startObjectCloning(object);
+				}
+			}, pos++);
 
 			// popupMenu.insert(new JSeparator(), pos++);
 			// popupMenu.insert(new AbstractAction("Add attribute") {
