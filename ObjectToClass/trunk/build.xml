@@ -6,7 +6,7 @@
 	
 	<!-- Setup following configurations //-->
 	<property name="use.path" value="${basedir}/../../../use/trunk" />
-	<property name="release.version" value="1.1" />
+	<property name="release.version" value="1.2" />
 
 	<!-- Do not touch following configurations //-->
 	<property name="src.dir" value="${basedir}/src"/>
