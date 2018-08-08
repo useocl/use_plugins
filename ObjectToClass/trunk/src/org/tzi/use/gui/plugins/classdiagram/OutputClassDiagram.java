@@ -15,7 +15,6 @@ import org.tzi.use.api.UseApiException;
 import org.tzi.use.api.UseModelApi;
 import org.tzi.use.gui.views.diagrams.DiagramView;
 import org.tzi.use.gui.views.diagrams.classdiagram.ClassDiagram;
-import org.tzi.use.gui.views.diagrams.classdiagram.ClassDiagramOptions;
 import org.tzi.use.gui.views.diagrams.elements.PlaceableNode;
 import org.tzi.use.gui.views.diagrams.elements.edges.BinaryAssociationOrLinkEdge;
 import org.tzi.use.gui.main.ModelBrowserSorting;
@@ -37,7 +36,7 @@ public class OutputClassDiagram extends ClassDiagram {
 	private Map<Integer, String> tClassIDToMClassName;
 	private Map<MAssociation, TAssociation> mAssocToTAssocMap;
 
-	OutputClassDiagram(OutputClassDiagramView parent, PrintWriter log, ClassDiagramOptions opt) {
+	OutputClassDiagram(OutputClassDiagramView parent, PrintWriter log, OutputClassDiagramOptions opt) {
 		super(parent, log, opt);
 		fParent = parent;
 		
@@ -171,6 +170,7 @@ public class OutputClassDiagram extends ClassDiagram {
 		popupMenu.addSeparator();
 
 		addGroupOption(popupMenu);
+		addMultOptions(popupMenu);
 		popupMenu.addSeparator();
 		Utilities.addShowHideOptions(popupMenu, this, fOpt);
 		popupMenu.addSeparator();
@@ -191,6 +191,26 @@ public class OutputClassDiagram extends ClassDiagram {
 			}
 		});
 		popupMenu.add(cbGroupMR);
+	}
+	
+	private void addMultOptions(JPopupMenu popupMenu) {
+		OutputClassDiagramOptions ocdo;
+		if(fOpt instanceof OutputClassDiagramOptions) {
+			ocdo = (OutputClassDiagramOptions) fOpt;
+		} else {
+			return; // should not happen
+		}
+		
+		final JCheckBoxMenuItem cbMultOpt = new JCheckBoxMenuItem("Show simplified multiplicities");
+		cbMultOpt.setState(ocdo.isSimplifiedMult());
+		cbMultOpt.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent ev) {
+				ocdo.setSimplifiedMult(ev.getStateChange() == ItemEvent.SELECTED);
+				repaint();
+			}
+		});
+		popupMenu.add(cbMultOpt);
 	}
 
 	private void addCosmeticOptions(JPopupMenu popupMenu) {

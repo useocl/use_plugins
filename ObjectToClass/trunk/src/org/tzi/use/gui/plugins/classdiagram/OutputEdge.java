@@ -1,6 +1,7 @@
 package org.tzi.use.gui.plugins.classdiagram;
 
 import java.awt.Graphics2D;
+import java.util.List;
 
 import org.tzi.use.gui.views.diagrams.DiagramView;
 import org.tzi.use.gui.views.diagrams.elements.EdgeProperty;
@@ -11,6 +12,7 @@ import org.tzi.use.gui.plugins.data.TConstants;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MMultiplicity;
+import org.tzi.use.uml.mm.MMultiplicity.Range;
 
 import com.google.common.collect.Multimap;
 
@@ -51,6 +53,11 @@ public class OutputEdge extends BinaryAssociationOrLinkEdge {
 		}
 	}
 
+	private String complexSourceMult;
+	private String simpleSourceMult;
+	private String complexTargetMult;
+	private String simpleTargetMult;
+
 	@Override
 	protected void initializeProperties(Multimap<PropertyOwner, EdgeProperty> properties) {
 		super.initializeProperties(properties);
@@ -74,21 +81,48 @@ public class OutputEdge extends BinaryAssociationOrLinkEdge {
 		getTargetRolename().setName(displayText2);
 
 		MMultiplicity mult1 = tAssoc.getFirstEndMultiplicity();
-		String displayRoleName1;
-		if (mult1 == null) {
-			displayRoleName1 = " ";
-		} else {
-			displayRoleName1 = mult1.toString();
-		}
-		getSourceMultiplicity().setName(displayRoleName1);
+		complexSourceMult = getComplexSourceMult(mult1);
+		simpleSourceMult = getSimpleMult(mult1);
+
 		MMultiplicity mult2 = tAssoc.getSecondEndMultiplicity();
-		String displayRoleName2;
-		if (mult2 == null) {
-			displayRoleName2 = " ";
+		complexTargetMult = getComplexSourceMult(mult2);
+		simpleTargetMult = getSimpleMult(mult2);
+	}
+
+	private String getComplexSourceMult(MMultiplicity mult) {
+		if (mult == null) {
+			return " ";
 		} else {
-			displayRoleName2 = mult2.toString();
+			return mult.toString();
 		}
-		getTargetMultiplicity().setName(displayRoleName2);
+	}
+
+	private String getSimpleMult(MMultiplicity mult) {
+		if (mult == null) {
+			return " ";
+		}
+
+		List<Range> ranges = mult.getRanges();
+		if (ranges.size() == 1) {
+			Range range = ranges.get(0);
+			int lower = range.getLower();
+			int upper = range.getUpper();
+
+			MMultiplicity retMult;
+			if (lower == 0 && upper == 1) {
+				retMult = MMultiplicity.ZERO_ONE;
+			} else if (lower == 1 && upper == 1) {
+				retMult = MMultiplicity.ONE;
+			} else if (lower >= 1) {
+				retMult = MMultiplicity.ONE_MANY;
+			} else {
+				retMult = MMultiplicity.ZERO_MANY;
+			}
+
+			return retMult.toString();
+		} else {
+			return " ";
+		}
 	}
 
 	@Override
@@ -115,5 +149,26 @@ public class OutputEdge extends BinaryAssociationOrLinkEdge {
 		drawEdge(g);
 
 		g.setColor(fOpt.getEDGE_COLOR());
+	}
+
+	@Override
+	public void drawProperties(Graphics2D g) {
+
+		OutputClassDiagramOptions ocdo;
+		if (fOpt instanceof OutputClassDiagramOptions) {
+			ocdo = (OutputClassDiagramOptions) fOpt;
+		} else {
+			return; // should not happen
+		}
+
+		if (ocdo.isSimplifiedMult()) {
+			getSourceMultiplicity().setName(simpleSourceMult);
+			getTargetMultiplicity().setName(simpleTargetMult);
+		} else {
+			getSourceMultiplicity().setName(complexSourceMult);
+			getTargetMultiplicity().setName(complexTargetMult);
+		}
+		
+		super.drawProperties(g);
 	}
 }

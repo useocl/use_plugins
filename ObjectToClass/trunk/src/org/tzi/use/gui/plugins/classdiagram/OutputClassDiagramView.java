@@ -30,9 +30,9 @@ public class OutputClassDiagramView extends ClassDiagramView {
 
 	@Override
 	public void initDiagram(boolean loadDefaultLayout, ClassDiagramOptions opt) {
-		ClassDiagramOptions newOptions = opt;
+		OutputClassDiagramOptions newOptions = (OutputClassDiagramOptions) opt;
 		if (newOptions == null) {
-			newOptions = new ClassDiagramOptions();
+			newOptions = new OutputClassDiagramOptions();
 		}
 		newOptions.setShowRolenames(true);
 		newOptions.setShowAttributes(true);		
