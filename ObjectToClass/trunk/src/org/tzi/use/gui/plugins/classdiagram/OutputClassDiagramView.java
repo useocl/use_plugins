@@ -35,10 +35,10 @@ public class OutputClassDiagramView extends ClassDiagramView {
 			newOptions = new OutputClassDiagramOptions();
 		}
 		newOptions.setShowRolenames(true);
-		newOptions.setShowAttributes(true);		
+		newOptions.setShowAttributes(true);
 		newOptions.setShowMutliplicities(true);
-		//newOptions.setGroupMR(true); FIXME
-		
+		// newOptions.setGroupMR(true); FIXME
+
 		// save specifically as a OutputClassDiagram
 		ocd = new OutputClassDiagram(this, fMainWindow.logWriter(), newOptions);
 		// but also save it in parent class

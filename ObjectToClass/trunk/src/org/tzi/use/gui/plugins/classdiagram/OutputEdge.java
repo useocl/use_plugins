@@ -81,15 +81,15 @@ public class OutputEdge extends BinaryAssociationOrLinkEdge {
 		getTargetRolename().setName(displayText2);
 
 		MMultiplicity mult1 = tAssoc.getFirstEndMultiplicity();
-		complexSourceMult = getComplexSourceMult(mult1);
-		simpleSourceMult = getSimpleMult(mult1);
+		complexSourceMult = getComplexMultText(mult1);
+		simpleSourceMult = getSimpleMultText(mult1);
 
 		MMultiplicity mult2 = tAssoc.getSecondEndMultiplicity();
-		complexTargetMult = getComplexSourceMult(mult2);
-		simpleTargetMult = getSimpleMult(mult2);
+		complexTargetMult = getComplexMultText(mult2);
+		simpleTargetMult = getSimpleMultText(mult2);
 	}
 
-	private String getComplexSourceMult(MMultiplicity mult) {
+	private String getComplexMultText(MMultiplicity mult) {
 		if (mult == null) {
 			return " ";
 		} else {
@@ -97,7 +97,7 @@ public class OutputEdge extends BinaryAssociationOrLinkEdge {
 		}
 	}
 
-	private String getSimpleMult(MMultiplicity mult) {
+	private String getSimpleMultText(MMultiplicity mult) {
 		if (mult == null) {
 			return " ";
 		}
@@ -168,7 +168,7 @@ public class OutputEdge extends BinaryAssociationOrLinkEdge {
 			getSourceMultiplicity().setName(complexSourceMult);
 			getTargetMultiplicity().setName(complexTargetMult);
 		}
-		
+
 		super.drawProperties(g);
 	}
 }

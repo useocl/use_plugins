@@ -6,10 +6,11 @@ public class OutputClassDiagramOptions extends ClassDiagramOptions {
 	protected boolean fSimplifiedMult = false;
 
 	public boolean isSimplifiedMult() {
-        return fSimplifiedMult;
-    }
-    public void setSimplifiedMult( boolean simplifiedMult ) {
-        fSimplifiedMult = simplifiedMult;
-        onOptionChanged("SIMPLIFIEDMULT"); //FIXME implement
-    }
+		return fSimplifiedMult;
+	}
+
+	public void setSimplifiedMult(boolean simplifiedMult) {
+		fSimplifiedMult = simplifiedMult;
+		onOptionChanged("SIMPLIFIEDMULT"); // FIXME implement
+	}
 }

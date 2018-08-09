@@ -39,9 +39,9 @@ public class OutputClassDiagram extends ClassDiagram {
 	OutputClassDiagram(OutputClassDiagramView parent, PrintWriter log, OutputClassDiagramOptions opt) {
 		super(parent, log, opt);
 		fParent = parent;
-		
+
 		opt.setShowAssocNames(true);
-		
+
 		modelApi = new UseModelApi("ObjectToClassModel");
 		tClassIDToMClassName = new HashMap<Integer, String>();
 		mAssocToTAssocMap = new HashMap<MAssociation, TAssociation>();
@@ -192,15 +192,15 @@ public class OutputClassDiagram extends ClassDiagram {
 		});
 		popupMenu.add(cbGroupMR);
 	}
-	
+
 	private void addMultOptions(JPopupMenu popupMenu) {
 		OutputClassDiagramOptions ocdo;
-		if(fOpt instanceof OutputClassDiagramOptions) {
+		if (fOpt instanceof OutputClassDiagramOptions) {
 			ocdo = (OutputClassDiagramOptions) fOpt;
 		} else {
 			return; // should not happen
 		}
-		
+
 		final JCheckBoxMenuItem cbMultOpt = new JCheckBoxMenuItem("Show simplified multiplicities");
 		cbMultOpt.setState(ocdo.isSimplifiedMult());
 		cbMultOpt.addItemListener(new ItemListener() {
