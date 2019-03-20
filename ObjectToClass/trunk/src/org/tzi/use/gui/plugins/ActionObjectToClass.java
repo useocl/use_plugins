@@ -50,7 +50,7 @@ public class ActionObjectToClass implements IPluginActionDelegate {
 
 		boolean resetEverything = true;
 		if (session.hasSystem()) {
-			// a system is already loaded
+			// an o2c model is already loaded
 			if (session.system().model().filename().endsWith(MODEL_NAME)) {
 				// the loaded system is based on the OTC model
 				Object[] options = { "Reload system", "Open window", "Cancel" };
@@ -63,6 +63,17 @@ public class ActionObjectToClass implements IPluginActionDelegate {
 					resetEverything = true;
 				} else if (option == JOptionPane.NO_OPTION) {
 					resetEverything = false;
+				} else {
+					return;
+				}
+			} else { // a non-o2c model is already loaded
+				Object[] options = { "Yes", "No" };
+				int option = JOptionPane.showOptionDialog(mainWindow,
+						"Do you want to start the o2c plugin and discard your current system state?",
+						"Object to class plugin", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+						options, options[1]);
+				if (option == JOptionPane.YES_OPTION) {
+					resetEverything = true;
 				} else {
 					return;
 				}

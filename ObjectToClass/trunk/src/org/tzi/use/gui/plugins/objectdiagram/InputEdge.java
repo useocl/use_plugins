@@ -25,7 +25,7 @@ public class InputEdge extends BinaryAssociationOrLinkEdge {
 
 	public InputEdge(PlaceableNode source, PlaceableNode target, MAssociationEnd sourceEnd, MAssociationEnd targetEnd,
 			DiagramView diagram, MLink mLink, MObjectState linkObjectState) {
-		super(source, target, sourceEnd, targetEnd, diagram, mLink);
+		super(source, target, sourceEnd, targetEnd, diagram, mLink.association(), mLink);
 
 		// FIXME the adjacent objects get lost here.
 		tLink = Utilities.getTLinkWithoutId(linkObjectState);

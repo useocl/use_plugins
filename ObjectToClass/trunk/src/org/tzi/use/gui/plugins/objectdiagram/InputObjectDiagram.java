@@ -21,7 +21,6 @@ import javax.swing.JSeparator;
 
 import org.tzi.use.gui.main.MainWindow;
 import org.tzi.use.gui.main.ViewFrame;
-import org.tzi.use.gui.views.diagrams.DiagramView;
 import org.tzi.use.gui.views.diagrams.elements.AssociationName;
 import org.tzi.use.gui.views.diagrams.elements.PlaceableNode;
 import org.tzi.use.gui.views.diagrams.elements.Rolename;
@@ -34,10 +33,10 @@ import org.tzi.use.gui.views.diagrams.objectdiagram.ObjectNode;
 import org.tzi.use.parser.ocl.OCLCompiler;
 import org.tzi.use.gui.plugins.Utilities;
 import org.tzi.use.gui.plugins.data.MMConstants;
-import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.sys.MLink;
+import org.tzi.use.uml.sys.MLinkEnd;
 import org.tzi.use.uml.sys.MObject;
 import org.tzi.use.uml.sys.MObjectState;
 import org.tzi.use.uml.sys.MSystem;
@@ -52,7 +51,7 @@ public class InputObjectDiagram extends NewObjectDiagram {
 	InputObjectDiagram(InputObjectDiagramView parent, PrintWriter log, ObjDiagramOptions options) {
 		super(parent, log, options);
 		fParent = parent;
-		
+
 		options.setShowAssocNames(true);
 
 		// remove old listeners
@@ -161,7 +160,7 @@ public class InputObjectDiagram extends NewObjectDiagram {
 					fParent.startObjectDestruction(object);
 				}
 			}, pos++);
-			
+
 			popupMenu.insert(new AbstractAction("Clone object") {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -279,11 +278,11 @@ public class InputObjectDiagram extends NewObjectDiagram {
 
 	@Override
 	protected BinaryAssociationOrLinkEdge createBinaryAssociationOrLinkEdge(PlaceableNode source, PlaceableNode target,
-			MAssociationEnd sourceEnd, MAssociationEnd targetEnd, DiagramView diagram, MLink link) {
+			MLinkEnd sourceEnd, MLinkEnd targetEnd, NewObjectDiagram diagram, MLink link) {
 
 		String selectedLinkObjectName = link.association().name();
 		MObject linkObject = fParent.system().state().objectByName(selectedLinkObjectName);
-		return new InputEdge(source, target, sourceEnd, targetEnd, this, link,
+		return new InputEdge(source, target, sourceEnd.associationEnd(), targetEnd.associationEnd(), this, link,
 				linkObject.state(fParent.system().state()));
 	}
 
