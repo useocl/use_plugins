@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?use version="4.2"?>
-<plugin name="ModelValidatorPlugin" version="4.2-r1" publisher="Hendrik Reitmann">
+<?use version="5.1.0"?>
+<plugin name="ModelValidatorPlugin" version="5.1.0-r1" publisher="Hendrik Reitmann">
 	<actions>
 		<action label="Kodkod Validation"
 			icon="resources/kodkod.png"
