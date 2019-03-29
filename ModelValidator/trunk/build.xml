@@ -17,7 +17,7 @@
 	<!-- DO NOT ENABLE DEBUG HERE!
 	     To enable debug LOCALLY, run ant with argument '-Djavac.debug=true' -->
 	<property name="javac.debug" value="off" />
-	<property name="use.path" value="../../../use/trunk" />
+	<property name="use.path" value="${basedir}/../../../use/trunk" />
 	<property name="useplugin.file" value="useplugin.xml" />
 	<property name="use.classes" value="${use.path}/build/classes" />
 	<property name="plugin.lib" value="lib" />
