@@ -36,6 +36,9 @@ public abstract class KodkodModelValidator {
 		} catch (Exception e) {
 			LOG.error(LogMessages.validationException + " (" + e.getMessage() + ")");
 			return;
+		} catch (OutOfMemoryError oome) {
+			LOG.error(LogMessages.validationOutOfMemory + " (" + oome.getMessage() + ")");
+			return;
 		}
 
 		LOG.info(solution.outcome());

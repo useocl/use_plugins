@@ -60,6 +60,8 @@ public final class LogMessages {
 	public static final String modelResetSuccessful = "Reset successful";
 
 	public static final String validationException = "Error while model validation! Please check your configuration.";
+	
+	public static final String validationOutOfMemory = "Out Of Memory Error! It might be necessary to restart USE.";
 
 	public static final String valueConversionNestedCollections = "Nested collections not supported!";
 
