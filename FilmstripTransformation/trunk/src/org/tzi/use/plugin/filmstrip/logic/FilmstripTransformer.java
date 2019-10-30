@@ -35,6 +35,10 @@ public class FilmstripTransformer {
 		else if(FilmstripMVCompatibleVisitor.NAME.equals(options.getTransformationMethod())){
 			res = FilmstripMVCompatibleVisitor.transformModel(options.getModel(), options.getModelName());
 		}
+		//*Nisha desai
+		else if(FilmstripMVCOpCSnapAssocVisitor.NAME.equals(options.getTransformationMethod())){
+			res = FilmstripMVCOpCSnapAssocVisitor.transformModel(options.getModel(), options.getModelName());
+		}
 		else {
 			throw new TransformationException("No valid transformation method chosen");
 		}

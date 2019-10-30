@@ -48,7 +48,7 @@ import org.tzi.use.util.StringUtil;
 //TODO add position in model for new model elements
 public class FilmstripMMVisitor implements MMVisitor {
 	
-	public static final String NAME = "Maximum compatible transformation";
+	public static final String NAME = "Maximum compatible transformationn";
 	
 	protected UseModelApi model;
 	protected MModelConnector mc;
