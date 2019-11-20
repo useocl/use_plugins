@@ -118,7 +118,7 @@ public class FilmstripOptionsWindow extends JDialog {
 		row++;
 		
 		mainPanel.add(new JLabel("Transformation method:"), getGBC(row, 0));
-		//*Nisha desai
+		
 		final JComboBox<String> transMethod = new JComboBox<String>(new String[]{ FilmstripMMVisitor.NAME, FilmstripMVCompatibleVisitor.NAME, FilmstripMVCOpCSnapAssocVisitor.NAME });
 		transMethod.addActionListener(new ActionListener() {
 			@Override

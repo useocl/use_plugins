@@ -13,7 +13,7 @@ import org.tzi.use.util.StringUtil;
 
 public class FilmstripMVCompatibleVisitor extends FilmstripMMVisitor {
 
-	public static final String NAME = "Model validator compatible transformation";
+	public static final String NAME = "Model validator compatible transformation with ternary association";
 	
 	private FilmstripMVCompatibleVisitor(String modelName) {
 		super(modelName);

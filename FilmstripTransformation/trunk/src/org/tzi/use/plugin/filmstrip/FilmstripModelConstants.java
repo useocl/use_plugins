@@ -27,21 +27,20 @@ public final class FilmstripModelConstants {
 	public static final String OPC_SELF_VARNAME = "aSelf";
 	public static final String OPC_RETURNVALUE_VARNAME = "result";
 	
-	//element *Nisha desai
+	//element for filmstrip binary association 
+	
 	public static final String SNAPSHOT_OPC = "SnapshotOpC";
 	public static final String SNAP_ROLENAME = "snapshot";
 	public static final String OPC_ROLENAME = "opc";
-		
-	// Operation *Nisha desai 
+	
 	public static final String OpCSnapSNAPSHOT_PRED_OP = "self." + PRED_ROLENAME;
 	public static final String OpCSnapSNAPSHOT_SUCC_OP = "self." + SUCC_ROLENAME;
 	public static final String OpCSnapOPC_PRED_OP = "self." + SNAP_ROLENAME;
 	public static final String OpCSnapOPC_SUCC_OP = "self." + SNAP_ROLENAME + "." + SUCC_ROLENAME;
-		
-	//Invariants *Nisha desai
+
 	public static final String SUCC_OPC_EXISTS_NAME = "succOpCExists";
 	public static final String SUCC_OPC_EXISTS = "(not self. " + SUCC_ROLENAME + ".oclIsUndefined() implies (not self."+OPC_ROLENAME+".oclIsUndefined()))";
-		
+	/////////////
 	public static final String SNAPSHOT_ROLENAME = FilmstripModelConstants.makeRoleName(SNAPSHOT_CLASSNAME);
 	
 	public static final String SNAPSHOT_PRED_OP = "if self." + PRED_ROLENAME
