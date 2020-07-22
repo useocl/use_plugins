@@ -47,9 +47,16 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 	private final MClass objectClass;
 	private final MClass slotClass;
 	private final MClass linkClass;
+	private final MClass compositionClass;
+	private final MClass aggregationClass;
 	private final MAssociation obj_attrAssociation;
 	private final MAssociation link_obj1Association;
 	private final MAssociation link_obj2Association;
+	private final MAssociation comp_obj1Association;
+	private final MAssociation comp_obj2Association;
+	private final MAssociation aggr_obj1Association;
+	private final MAssociation aggr_obj2Association;
+	
 
 	public InputObjectDiagramView(MainWindow mainWindow, MSystem system) {
 		super(mainWindow, system);
@@ -60,10 +67,17 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 		objectClass = fSystem.model().getClass(MMConstants.CLS_OBJECT_NAME);
 		slotClass = fSystem.model().getClass(MMConstants.CLS_SLOT_NAME);
 		linkClass = fSystem.model().getClass(MMConstants.CLS_LINK_NAME);
+		compositionClass = fSystem.model().getClass(MMConstants.CLS_COMPOSITION_NAME);
+		aggregationClass = fSystem.model().getClass(MMConstants.CLS_AGGREGATION_NAME);
+		
+		
 		obj_attrAssociation = fSystem.model().getAssociation(MMConstants.ASSO_OBJECT_SLOT_NAME);
 		link_obj1Association = fSystem.model().getAssociation(MMConstants.ASSO_LINK_OBJ1_NAME);
 		link_obj2Association = fSystem.model().getAssociation(MMConstants.ASSO_LINK_OBJ2_NAME);
-
+		comp_obj1Association = fSystem.model().getAssociation(MMConstants.ASSO_COMP_OBJ1_NAME);
+		comp_obj2Association = fSystem.model().getAssociation(MMConstants.ASSO_COMP_OBJ2_NAME);
+		aggr_obj1Association = fSystem.model().getAssociation(MMConstants.ASSO_AGGR_OBJ1_NAME);
+		aggr_obj2Association = fSystem.model().getAssociation(MMConstants.ASSO_AGGR_OBJ2_NAME);
 		actuallyInitState();
 	}
 
@@ -94,6 +108,12 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 		for (MObject linkObject : otcApi.getAllLinkObjects()) {
 			createAndShowLink(linkObject);
 		}
+		for (MObject compObject : otcApi.getAllCompositionObjects()) {
+			createAndShowLink(compObject);
+		}
+		for (MObject aggrObject : otcApi.getAllCompositionObjects()) {
+			createAndShowLink(aggrObject);
+		}
 
 		// copied two lines from super.initState()
 		fObjectDiagram.initialize();
@@ -109,7 +129,6 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 	private void createAndShowLink(MObject linkObject) {
 		MObject blackEndObject = otcApi.getBlackFromLinkObject(linkObject);
 		MObject whiteEndObject = otcApi.getWhiteFromLinkObject(linkObject);
-
 		// FIXME warum tritt das bei einstein.soil auf?
 		if (blackEndObject == null || whiteEndObject == null) {
 			return;
@@ -162,6 +181,33 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 			e.printStackTrace();
 		}
 	}
+	
+	void startCompositionCreation(MObject black, MObject white) {
+		try {
+			MObject newComp = useSystemApi.createObjectEx(compositionClass, null);
+			MObject[] objectsBlack = { newComp, black };
+			MObject[] objectsWhite = { newComp, white };
+			useSystemApi.createLinkEx(comp_obj1Association, objectsBlack);
+			useSystemApi.createLinkEx(comp_obj2Association, objectsWhite);
+		} catch (UseApiException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	void startAggregationCreation(MObject black, MObject white) {
+		try {
+			MObject newAggr = useSystemApi.createObjectEx(aggregationClass, null);
+			MObject[] objectsBlack = { newAggr, black };
+			MObject[] objectsWhite = { newAggr, white };
+			useSystemApi.createLinkEx(aggr_obj1Association, objectsBlack);
+			useSystemApi.createLinkEx(aggr_obj2Association, objectsWhite);
+		} catch (UseApiException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 
 	@Override
 	@Subscribe
@@ -192,7 +238,16 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 			finishBlackCreation(createdLink);
 		} else if (createdLink.association().name().equals(MMConstants.ASSO_LINK_OBJ2_NAME)) {
 			finishWhiteCreation(createdLink);
-		} else {
+		}else if (createdLink.association().name().equals(MMConstants.ASSO_COMP_OBJ1_NAME)) {
+			finishBlackCreation(createdLink);
+		}else if (createdLink.association().name().equals(MMConstants.ASSO_COMP_OBJ2_NAME)) {
+			finishWhiteCreation(createdLink);
+		}
+		else if (createdLink.association().name().equals(MMConstants.ASSO_AGGR_OBJ1_NAME)) {
+			finishBlackCreation(createdLink);
+		}else if (createdLink.association().name().equals(MMConstants.ASSO_AGGR_OBJ2_NAME)) {
+			finishWhiteCreation(createdLink);
+		}else {
 			// this should never happen
 		}
 		fObjectDiagram.invalidateContent(true);
@@ -200,7 +255,9 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 
 	private void finishBlackCreation(MLink blackLink) {
 		// TODO
-	}
+			}
+
+	
 
 	private void finishWhiteCreation(MLink whiteLink) {
 		// assumes linkW at 0
@@ -225,6 +282,19 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 			createAndShowLink(changedObject);
 			repaint();
 		}
+		else if (changedObject.cls().name().equals(MMConstants.CLS_COMPOSITION_NAME)) {
+			// FIXME delete/add nur vorlaeufig: man verliert zB selected
+			fInputObjectDiagram.deleteDisplayLink(changedObject);
+			createAndShowLink(changedObject);
+			repaint();
+		}
+		else if (changedObject.cls().name().equals(MMConstants.CLS_AGGREGATION_NAME)) {
+			// FIXME delete/add nur vorlaeufig: man verliert zB selected
+			fInputObjectDiagram.deleteDisplayLink(changedObject);
+			createAndShowLink(changedObject);
+			repaint();
+		}
+
 
 		fObjectDiagram.invalidateContent(true);
 	}
@@ -248,16 +318,41 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 			if (black != null && white != null) {
 				// only add to linkShapes if the linkObj has two correct links
 				TLink currentLinkShape = Utilities.createNewTLink(linkObjState, mObjectToObjectShapeMap.get(black),
-						mObjectToObjectShapeMap.get(white));
+						mObjectToObjectShapeMap.get(white), 0);
 
 				linkShapes.add(currentLinkShape);
 			}
 		}
+		for (MObject compObject : otcApi.getAllCompositionObjects()) {
+			MObjectState compObjState = compObject.state(fSystem.state());
+			MObject black = otcApi.getBlackFromLinkObject(compObject);
+			MObject white = otcApi.getWhiteFromLinkObject(compObject);
+			if (black != null && white != null) {
+				// only add to linkShapes if the linkObj has two correct links
+				TLink currentLinkShape = Utilities.createNewTLinkComp(compObjState, mObjectToObjectShapeMap.get(black),
+						mObjectToObjectShapeMap.get(white), 2);
+
+				linkShapes.add(currentLinkShape);
+			}
+		}
+		for (MObject aggrObject : otcApi.getAllAggregationObjects()) {
+			MObjectState aggrObjState = aggrObject.state(fSystem.state());
+			MObject black = otcApi.getBlackFromLinkObject(aggrObject);
+			MObject white = otcApi.getWhiteFromLinkObject(aggrObject);
+			if (black != null && white != null) {
+				// only add to linkShapes if the linkObj has two correct links
+				TLink currentLinkShape = Utilities.createNewTLinkAggr(aggrObjState, mObjectToObjectShapeMap.get(black),
+						mObjectToObjectShapeMap.get(white), 1);
+
+				linkShapes.add(currentLinkShape);
+			}
+		}
+		
 
 		Transformation t = new Transformation(objectShapes, linkShapes);
 
 		OutputClassDiagramView cdv = new OutputClassDiagramView(fMainWindow, fSystem, t.getClasses(),
-				t.getAssociations());
+				t.getAssociations(), t.getGeneralization());
 		ViewFrame f = new ViewFrame("Output class diagram", cdv, "ClassDiagram.gif");
 		JComponent c = (JComponent) f.getContentPane();
 		c.setLayout(new BorderLayout());
@@ -312,7 +407,8 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 			fObjectDiagram.deleteObject(destroyedObject);
 		} else if (destroyedObject.cls().name().equals(MMConstants.CLS_SLOT_NAME)) {
 			// nothing
-		} else if (destroyedObject.cls().name().equals(MMConstants.CLS_LINK_NAME)) {
+		} else if (destroyedObject.cls().name().equals(MMConstants.CLS_LINK_NAME)||destroyedObject.cls().name().equals(MMConstants.CLS_COMPOSITION_NAME)
+				||destroyedObject.cls().name().equals(MMConstants.CLS_AGGREGATION_NAME)) {
 			fInputObjectDiagram.deleteDisplayLink(destroyedObject);
 		}
 
@@ -325,7 +421,8 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 		MLink deletedLink = e.getLink();
 		if (deletedLink.association().name().equals(MMConstants.ASSO_OBJECT_SLOT_NAME)) {
 			// nothing
-		} else if (deletedLink.association().name().equals(MMConstants.ASSO_LINK_OBJ1_NAME)) {
+		} else if (deletedLink.association().name().equals(MMConstants.ASSO_LINK_OBJ1_NAME)||deletedLink.association().name().equals(MMConstants.ASSO_COMP_OBJ1_NAME)
+				||deletedLink.association().name().equals(MMConstants.ASSO_AGGR_OBJ1_NAME)) {
 			// assumes linkB at 0
 			MObject linkObject = deletedLink.getLinkEnd(0).object();
 			try {
@@ -338,7 +435,8 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 				e1.printStackTrace();
 			}
 
-		} else if (deletedLink.association().name().equals(MMConstants.ASSO_LINK_OBJ2_NAME)) {
+		} else if (deletedLink.association().name().equals(MMConstants.ASSO_LINK_OBJ2_NAME)||deletedLink.association().name().equals(MMConstants.ASSO_COMP_OBJ2_NAME)
+				||deletedLink.association().name().equals(MMConstants.ASSO_AGGR_OBJ2_NAME)) {
 			// assumes linkW at 0
 			MObject linkObject = deletedLink.getLinkEnd(0).object();
 			try {
@@ -358,11 +456,13 @@ public class InputObjectDiagramView extends NewObjectDiagramView {
 		try {
 			String originalIdentity = otcApi.getIdentityOfObject(originalObject);
 			String originalClassName = otcApi.getClassNameOfObject(originalObject);
+			String originalSuperclassName = otcApi.getSuperclassNameOfObject(originalObject);
 
 			MObject clonedObject = useSystemApi.createObjectEx(objectClass, null);
 
 			useSystemApi.setAttributeValue(clonedObject.name(), MMConstants.CLS_OBJECT_ATTR_IDENT, originalIdentity);
 			useSystemApi.setAttributeValue(clonedObject.name(), MMConstants.CLS_OBJECT_ATTR_CLASSN, originalClassName);
+			useSystemApi.setAttributeValue(clonedObject.name(), MMConstants.CLS_OBJECT_ATTR_SUPERCLASSN, originalSuperclassName);
 
 			for (MObject originalSlot : otcApi.getSlotsOfObject(originalObject, true)) {
 				String originalAttrName = otcApi.getAttrNameOfSlot(originalSlot);

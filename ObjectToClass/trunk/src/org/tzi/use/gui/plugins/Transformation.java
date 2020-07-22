@@ -1,16 +1,24 @@
 package org.tzi.use.gui.plugins;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
 import org.tzi.use.gui.plugins.data.TAssociation;
 import org.tzi.use.gui.plugins.data.TAttribute;
 import org.tzi.use.gui.plugins.data.TClass;
+import org.tzi.use.gui.plugins.data.TGeneralization;
 import org.tzi.use.gui.plugins.data.TStatus;
 import org.tzi.use.gui.plugins.data.TLink;
 import org.tzi.use.gui.plugins.data.TLogicException;
@@ -19,25 +27,27 @@ import org.tzi.use.uml.mm.MMultiplicity;
 
 public class Transformation {
 
-	private List<TObject> objects;
-	private List<TLink> links;
-	private List<TClass> classes;
+	private HashMap<String,TClass> classes;
 	private List<TAssociation> associations;
+	private List<TGeneralization> generalizations;
 	private Map<Integer, TClass> objectIdToClass;
 	private Map<Integer, List<TObject>> classIdToObjects;
 	private Map<Integer, List<TLink>> associationIdToLinks;
+	private Map<String, TClass> tClasses;
+
+	List<TClass> classesWithoutSuperName = new LinkedList<TClass>();
 
 	public Transformation(List<TObject> objects, List<TLink> links) {
-		this.objects = objects;
-		this.links = links;
-		classes = new LinkedList<TClass>();
-		associations = new LinkedList<TAssociation>();
+		classes = new HashMap<String,TClass>();
+		associations = new LinkedList<>();
+		generalizations = new LinkedList<>();
+		tClasses = new LinkedHashMap<>();
 		objectIdToClass = new HashMap<Integer, TClass>();
 		classIdToObjects = new HashMap<Integer, List<TObject>>();
 		associationIdToLinks = new HashMap<Integer, List<TLink>>();
 
-		transformObjects();
-		transformLinks();
+		transformObjects(objects);
+		transformLinks(links);
 
 		System.out.println("objectIdToClass: " + objectIdToClass.toString());
 		System.out.println("classIdToObjects: " + classIdToObjects.toString());
@@ -45,19 +55,141 @@ public class Transformation {
 	}
 
 	public List<TClass> getClasses() {
-		return classes;
+
+		return new LinkedList<>(tClasses.values());
 	}
 
 	public List<TAssociation> getAssociations() {
 		return associations;
 	}
-
-	private void transformObjects() {
-		addOrMergeClasses();
-		solveAllAttributeConflicts();
+	
+	public List<TGeneralization> getGeneralization() {
+		return generalizations;
 	}
 
-	private void addOrMergeClasses() {
+	private void transformObjects(List<TObject> objects) {
+		addOrMergeClasses(objects);
+		addOrMergeSuperclasses(objects);
+		solveAllAttributeConflicts();
+		organizeAttributes();
+		resolveAssociations();
+	}
+
+	// ToDo
+	private void organizeAttributes() {
+		// ToDo für conflict attribut
+		
+		
+		boolean altered = true;
+		while (altered) {
+			altered = false;
+			for (TClass sc : classes.values()) {
+				List<TClass> allShareSameSuperClass = new ArrayList<TClass>();
+				for (TClass c : classes.values()) {
+					if (c.getSuperclass() == sc) {
+						allShareSameSuperClass.add(c);
+					}
+				}
+				if (allShareSameSuperClass.size() >= 2) {
+					TClass clz = allShareSameSuperClass.get(0);
+					List<TAttribute> clzAttrs = new ArrayList<TAttribute>(clz.getAttributes());
+					for(TAttribute clzAttr : clzAttrs) {
+						boolean merge = true;
+						for (TClass otherClass : allShareSameSuperClass) {
+							List<TAttribute> otherAttrs = new ArrayList<TAttribute>(otherClass.getAttributes());
+							boolean contains = false;
+							for(TAttribute attr : otherAttrs) {
+								if(clzAttr.getName() != null && attr.getName() != null && clzAttr.getName().equals(attr.getName()) && attr.getSingleType().equals(clzAttr.getSingleType())) {
+									contains = true;
+								} else {
+									// might be next one
+								}
+							}
+							if (!contains) {
+								merge = false;	
+							}
+						}
+						
+						
+						List<TAttribute> scAttrs = new ArrayList<TAttribute>(sc.getAttributes());
+						if (merge) {
+							for(TAttribute scAttr : scAttrs) {
+								assert(clzAttr.getName() != null); // cannot be null since merge is true
+								if (scAttr.getName() != null) {
+									if (clzAttr.getName().equals(scAttr.getName()) && scAttr.getSingleType().equals(clzAttr.getSingleType())) {
+										sc.getAttributes().remove(scAttr);
+									} else if (clzAttr.getName().equals(scAttr.getName()) && !scAttr.getSingleType().equals(clzAttr.getSingleType())) {
+										merge = false;
+									}
+								}
+							}
+						}
+						
+						if (merge) {
+							for (TClass otherClass : allShareSameSuperClass) {
+								List<TAttribute> otherAttrs = new ArrayList<TAttribute>(otherClass.getAttributes());
+								for(TAttribute attr : otherAttrs) {
+									if (attr.getName() != null)
+									{
+										if(clzAttr.getName().equals(attr.getName()) && attr.getSingleType().equals(clzAttr.getSingleType())) {
+											otherClass.getAttributes().remove(attr);
+										} else {
+
+										}
+									}
+								}
+							}
+							sc.getAttributes().add(clzAttr);
+							altered = true;
+						} else {
+							// no merge
+						}
+					}	
+				}
+			}
+		}
+		
+		
+		for (TClass clz : classes.values()) {
+			TClass sc = clz.getSuperclass();
+			while (sc != null) {
+				//System.out.println("sc: " + sc.getClassName());
+				List<TAttribute> clzAttrs = new ArrayList<TAttribute>(sc.getAttributes());
+				for (TAttribute attrFirst : sc.getAttributes()) {
+					for (TAttribute clzAttr : clzAttrs) {
+						if (attrFirst!= null && clzAttr != null) {
+							if (attrFirst.getName() != null && clzAttr.getName() != null) {
+								if (attrFirst.getName().equals(clzAttr.getName())) {
+									clz.getAttributes().remove(clzAttr);
+								}
+							}
+						}
+						else {
+
+						}
+					}
+				}
+				sc = sc.getSuperclass();
+			}	
+		}
+		
+	}
+
+	private void resolveAssociations() {
+
+		if (generalizations == null)
+			generalizations = new LinkedList<>();
+
+		for (TClass tClass : classes.values()) {
+			if (tClass.hasSuperClass()) {
+				TClass superClass = tClass.getSuperclass();
+				generalizations.add(new TGeneralization(tClass, superClass));
+			}
+		}
+
+	}
+
+	private void addOrMergeClasses(List<TObject> objects) {
 		Map<String, TClass> classesWithName = new HashMap<String, TClass>();
 		List<TClass> classesWithoutName = new LinkedList<TClass>();
 
@@ -77,11 +209,16 @@ public class Transformation {
 				classIdToObjects.get(existingClass.getID()).add(currentObject);
 			} else {
 				// add part
-				TClass newClass = new TClass(currentClassName);
-				newClass.addAll(currentAttributes);
+				TClass newClass = null;
 				if (currentClassName == null) {
+					newClass = new TClass("");
+					newClass.setAnonymous(true);
+					newClass.setClassName(String.valueOf(newClass.getID()));
+					newClass.addAll(currentAttributes);
 					classesWithoutName.add(newClass);
 				} else {
+					newClass = new TClass(currentClassName);
+					newClass.addAll(currentAttributes);
 					classesWithName.put(currentClassName, newClass);
 				}
 				// link objects and classes from both sides
@@ -90,13 +227,87 @@ public class Transformation {
 				sourceObjects.add(currentObject);
 				classIdToObjects.put(newClass.getID(), sourceObjects);
 			}
+			
 		}
-		classesWithName.forEach((k, v) -> classes.add(v));
-		classes.addAll(classesWithoutName);
+
+		classesWithName.forEach((className, tClass) -> {
+			if (!classes.containsKey(className)) {
+				classes.put(className, tClass);
+				tClasses.put(className, tClass);
+			} else {
+				// TODO merge
+			}
+		});
+
+		classesWithoutName.forEach(tClass -> { tClasses.put(String.valueOf(tClass.getID()), tClass); classes.put(String.valueOf(tClass.getID()), tClass); });
+	}
+
+	private void addOrMergeSuperclasses(List<TObject> objects) {
+
+		Map<String, TClass> classesWithSuperName = new HashMap<String, TClass>();
+		List<TClass> classesWithoutSuperName = new LinkedList<TClass>();
+
+		for (TObject currentObject1 : objects) {
+			String currentSuperclassName = currentObject1.getSuperclassName();
+			if (classesWithSuperName.containsKey(currentSuperclassName)) {
+				 
+				
+				// merge part
+				TClass existingSuperClass = classesWithSuperName.get(currentSuperclassName);
+
+				TClass objectClass = objectIdToClass.get(currentObject1.getID());
+				objectClass.setSuperclass(existingSuperClass);
+
+				// link objects and classes from both sides
+				// objectIdToClass.put(currentObject1.getID(), existingSuperClass);
+				classIdToObjects.get(existingSuperClass.getID()).add(currentObject1);
+			} else {
+				// add part
+				TClass newSuperClass = tClasses.getOrDefault(currentSuperclassName, new TClass(currentSuperclassName));
+
+				if (currentSuperclassName == null) {
+					// classesWithoutSuperName.add(newClass);
+				} else {
+					
+					classesWithSuperName.put(currentSuperclassName, newSuperClass);
+
+					TClass objectClass = objectIdToClass.get(currentObject1.getID());
+					objectClass.setSuperclass(newSuperClass);
+
+					// link objects and classes from both sides
+					// objectIdToClass.put(currentObject1.getID(), newSuperClass);
+					List<TObject> sourceObjects = new LinkedList<TObject>();
+					sourceObjects.add(currentObject1);
+					classIdToObjects.put(newSuperClass.getID(), sourceObjects);
+				}
+
+			}
+
+		}
+
+		classesWithSuperName.forEach((className, tClass) -> {
+			if (!classes.containsKey(className)) {
+				classes.put(className, tClass);
+				tClasses.put(className, tClass);
+			} else {
+				// TODO merge
+			}
+		});
+
+		classesWithoutSuperName.forEach(tClass -> tClasses.put(String.valueOf(tClass.getID()), tClass));
+
+		for (TClass cls : classesWithoutSuperName) {
+			if (!classes.containsKey(cls.getClassName())) {
+				classes.put(cls.getClassName(), cls);
+			} else {
+				// TODO merge
+			}
+		}
+
 	}
 
 	private void solveAllAttributeConflicts() {
-		for (TClass classs : classes) {
+		for (TClass classs : classes.values()) {
 			solveAttributeConflicts(classs);
 		}
 	}
@@ -138,19 +349,23 @@ public class Transformation {
 		return mergedTypes;
 	}
 
-	private void transformLinks() {
-		adoptAssociationsFromLinks();
+	private void transformLinks(List<TLink> links) {
+		adoptAssociationsFromLinks(links);
 		startUnambiguousMerge();
 		startAmbiguousMerge();
+		isShared();
+		startIsCyclic();
+		noNameComp();
 		setMultiplicities();
+		
 	}
 
-	private void adoptAssociationsFromLinks() {
+	private void adoptAssociationsFromLinks(List<TLink> links) {
 		for (TLink link : links) {
 			TClass firstClass = objectIdToClass.get(link.getFirstEndObject().getID());
 			TClass secondClass = objectIdToClass.get(link.getSecondEndObject().getID());
 			TAssociation association = new TAssociation(link.getLinkName(), firstClass, secondClass,
-					link.getFirstEndRoleName(), link.getSecondEndRoleName());
+					link.getFirstEndRoleName(), link.getSecondEndRoleName(), link.getKind());
 			associations.add(association);
 
 			List<TLink> newList = new LinkedList<TLink>();
@@ -166,9 +381,9 @@ public class Transformation {
 				if (a[i] != null && a[j] != null) {
 					// a[i] and a[j] were not used as source before
 					if (isBetweenSameClasses(a[i], a[j])) {
-						// a[i], a[j] guaranteed to be between the same classes
+						// a[i], a[j] guaranteed to be between the same classes and the same kind
 						if (a[i].getAssociationName() != null
-								&& a[i].getAssociationName().equals(a[j].getAssociationName())) {
+								&& a[i].getAssociationName().equals(a[j].getAssociationName())&& a[i].getKind() == a[j].getKind()) {
 							// a[i], a[j] guaranteed to have the same non-null
 							// name
 							boolean mergeHappened = false;
@@ -202,8 +417,10 @@ public class Transformation {
 	private void updateDataStructuresAfterMerge(TAssociation target, TAssociation source) {
 		associations.remove(source);
 
-		List<TLink> removedList = associationIdToLinks.remove(source.getID());
-		List<TLink> expansibleList = associationIdToLinks.get(target.getID());
+		List<TLink> removedList = Optional.ofNullable(associationIdToLinks.remove(source.getID()))
+				.orElse(new ArrayList<>());
+		List<TLink> expansibleList = Optional.ofNullable(associationIdToLinks.get(target.getID()))
+				.orElse(new ArrayList<>());
 		// if expansibleList is null, an error happened
 		expansibleList.addAll(removedList);
 	}
@@ -212,8 +429,8 @@ public class Transformation {
 	 * @param target
 	 *            The target of the merge.
 	 * @param source
-	 *            The source of the merge. Can not have multiple role names for
-	 *            a single end.
+	 *            The source of the merge. Can not have multiple role names for a
+	 *            single end.
 	 * @return Did a merge happen?
 	 */
 	private boolean unambiguouslyMergeNonReflexiveAssociations(TAssociation target, TAssociation source) {
@@ -248,8 +465,8 @@ public class Transformation {
 	 * @param target
 	 *            The target of the merge. Both role names have to be non-null.
 	 * @param source
-	 *            The source of the merge. Can not have multiple role names for
-	 *            a single end.
+	 *            The source of the merge. Can not have multiple role names for a
+	 *            single end.
 	 * @return Did a merge happen?
 	 */
 	private boolean unambiguouslyMergeReflexiveAssociations(TAssociation target, TAssociation source) {
@@ -311,7 +528,7 @@ public class Transformation {
 					if (isBetweenSameClasses(a[i], a[j])) {
 						// a[i], a[j] guaranteed to be between the same classes
 						if (a[i].getCurrentStatus() != TStatus.CONFLICT
-								&& a[i].getCurrentStatus() != TStatus.CONFLICT) { //FIXME j?
+								&& a[i].getCurrentStatus() != TStatus.CONFLICT) { // FIXME j?
 							// a[i], a[j] guaranteed to not be conflicted
 							boolean mergeHappened = ambiguouslyMergeAssociations(a[i], a[j]);
 							if (mergeHappened) {
@@ -333,21 +550,23 @@ public class Transformation {
 	/**
 	 * 
 	 * @param target
-	 *            The target of the merge. Can not have multiple role names for
-	 *            a single end.
+	 *            The target of the merge. Can not have multiple role names for a
+	 *            single end.
 	 * @param source
-	 *            The source of the merge. Can not have multiple role names for
-	 *            a single end.
+	 *            The source of the merge. Can not have multiple role names for a
+	 *            single end.
 	 * @return Did a merge happen?
 	 */
 	private boolean ambiguouslyMergeAssociations(TAssociation target, TAssociation source) {
 		String targetName = target.getAssociationName();
 		String sourceName = source.getAssociationName();
-		if (!isCompatible(targetName, sourceName)) {
-			// name is not compatible, no merge happens.
+		int targetKind = target.getKind();
+		int sourceKind = source.getKind();
+		if (!isCompatible(targetName, sourceName, targetKind, sourceKind)) {
+			// name and type is not compatible, no merge happens.
 			return false;
 		}
-		// association names guaranteed to be compatible from this point on
+		// association names and types guaranteed to be compatible from this point on
 
 		String targetRoleName1;
 		String targetRoleName2;
@@ -412,8 +631,8 @@ public class Transformation {
 	}
 
 	/**
-	 * Checks role names from the target and candidates from the source if they
-	 * are compatible. If they are, a merge happens.
+	 * Checks role names from the target and candidates from the source if they are
+	 * compatible. If they are, a merge happens.
 	 * 
 	 * @return Did a merge happen?
 	 */
@@ -445,6 +664,23 @@ public class Transformation {
 		return true;
 	}
 
+	private boolean isCompatible(String s1, String s2, int k1, int k2) {
+		if (k1 != k2) {
+			return false;
+		}
+		if (s1 == null || s1.isEmpty()) {
+			return true;
+		}
+		if (s2 == null || s2.isEmpty()) {
+			return true;
+		}
+		if (s1.equals(s2)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	private boolean isCompatible(String s1, String s2) {
 		if (s1 == null || s1.isEmpty()) {
 			return true;
@@ -472,16 +708,27 @@ public class Transformation {
 	}
 
 	private boolean isBetweenSameClasses(TAssociation a1, TAssociation a2) {
+		
 		if (a1.getFirstEndClass() == null || a1.getSecondEndClass() == null || a2.getFirstEndClass() == null
 				|| a2.getSecondEndClass() == null) {
 			// cant be between the same classes if any end is null
 			return false;
 		}
-		if (a1.getFirstEndClass() == a2.getFirstEndClass() && a1.getSecondEndClass() == a2.getSecondEndClass()) {
-			return true;
+		if (a1.getKind()<1 && a2.getKind()<1) {
+			
+		
+			if (a1.getFirstEndClass() == a2.getFirstEndClass() && a1.getSecondEndClass() == a2.getSecondEndClass()) {
+				return true;
+			}
+			if (a1.getFirstEndClass() == a2.getSecondEndClass() && a1.getSecondEndClass() == a2.getFirstEndClass()) {
+				return true;
+			}
 		}
-		if (a1.getFirstEndClass() == a2.getSecondEndClass() && a1.getSecondEndClass() == a2.getFirstEndClass()) {
-			return true;
+		else {
+			if (a1.getFirstEndClass() == a2.getFirstEndClass() && a1.getSecondEndClass() == a2.getSecondEndClass()) {
+				return true;
+			}
+			
 		}
 		return false;
 	}
@@ -507,7 +754,91 @@ public class Transformation {
 		boolean reverseSecondClass = a1.getSecondEndClass() == a2.getFirstEndClass();
 		return reverseFirstClass && reverseSecondClass;
 	}
-
+	/**
+	 * @author cyrille
+	 */
+	private void isShared() {
+			 for (int i = 0; i < associations.size()-1; i++) {
+				 for (int k=i+1 ; k<associations.size();k++) {
+					 if (associations.get(i).getKind()==2 && associations.get(k).getKind()==2 ) {	
+						 if (associations.get(i).getFirstEndClass().equals(associations.get(k).getFirstEndClass())) {
+							 associations.get(i).setIsShared(true);
+							 associations.get(k).setIsShared(true);
+							 
+						 }
+					 }
+				 }
+				 
+			}
+		
+	
+	}
+	
+	/**
+	 * @author Cyrille
+	 * 
+	 */
+	private Boolean isCyclic(TClass start,TClass current,LinkedList<TClass> visited) {
+		Boolean cCy = false;	
+	LinkedList<TAssociation> children = new LinkedList<TAssociation>();
+		
+		if(start == current) {
+			return true;
+		}
+		if (current == null) {
+		current  = start;			
+		}
+		if(visited.contains(current)){
+			return false;
+		}
+		visited.add(current);
+		for (TAssociation tAssociation : associations) {
+			if(tAssociation.getFirstEndClass()== current && (tAssociation.getKind()== 2||tAssociation.getKind()== 1)) {
+				children.add(tAssociation);
+			}
+		}
+		for(TAssociation child : children ) {
+			
+			Boolean cy = isCyclic(start, child.getSecondEndClass(),visited);
+			
+			if(cy) {
+				child.setIsCyclic(true);
+				cCy = true;
+			}
+		
+		}
+		return cCy;
+	}
+	private void startIsCyclic() {
+		for (TClass currentClass : classes.values()) {
+			isCyclic(currentClass, null, new LinkedList<TClass>());
+		}
+	}
+	
+	private void noNameComp() {
+		int n=0;
+		int m= 0;
+		for (int i = 0; i < associations.size(); i++) {
+			
+			if( associations.get(i).getKind()== 2 && (associations.get(i).getAssociationName()== null||associations.get(i).getAssociationName()== " ")) {
+				associations.get(i).setAssociationName("_C"+(n));
+				n=n+1;
+			}
+			if( associations.get(i).getKind()== 1 && (associations.get(i).getAssociationName()== null||associations.get(i).getAssociationName()== " ")) {
+				associations.get(i).setAssociationName("_A"+(m));;
+				m= m+1;
+			}
+			if (associations.get(i).getIsShared()) {
+				ActionObjectToClass.getPrintWriter().println("Error : Detected on " + associations.get(i).getAssociationName() + ". The Class " +associations.get(i).getFirstEndClass().getClassName() + " is already used as part in one or more composition relationship");
+			} 
+			if(associations.get(i).getIsCyclic()) {
+				ActionObjectToClass.getPrintWriter().println("Error : Detected on " + associations.get(i).getAssociationName() + ", include in a cycle with one or more part-whole relationship(s)");
+				
+			}
+			
+		}
+	}
+	
 	private void setMultiplicities() {
 		for (TAssociation currentAssociation : associations) {
 			if (currentAssociation.getCurrentStatus() != TStatus.CONFLICT) {
@@ -548,7 +879,10 @@ public class Transformation {
 
 	private int numberOfPlayingRole(TObject oppositeObject, String wantedRoleName, TAssociation association) {
 		int count = 0;
-		for (TLink l : associationIdToLinks.get(association.getID())) {
+		List<TLink> links = Optional.ofNullable(associationIdToLinks.get(association.getID()))
+				.orElse(Collections.emptyList());
+
+		for (TLink l : links) {
 			if (playsRole(l, oppositeObject, wantedRoleName)) {
 				++count;
 			}
@@ -581,4 +915,16 @@ public class Transformation {
 		}
 		return false;
 	}
+	
+	private boolean containsName(List<TAttribute> list, TAttribute attr) {
+		if(list != null && attr != null) {
+			for (TAttribute elem : list) {
+				if(elem != null && elem.getName().equals(attr.getName())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 }

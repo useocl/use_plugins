@@ -20,18 +20,31 @@ public class OtcSystemApi {
 
 	private final MClass OBJ_CLS;
 	private final MClass LINK_CLS;
+	private final MClass COMP_CLS;
+	private final MClass AGGR_CLS;
 	private final MAssociation OBJ_SLOT_ASSOC;
 	private final MAssociation LINK_BLACK_ASSOC;
 	private final MAssociation LINK_WHITE_ASSOC;
+	private final MAssociation COMP_WHITE_ASSOC;
+	private final MAssociation COMP_BLACK_ASSOC;
+	private final MAssociation AGGR_WHITE_ASSOC;
+	private final MAssociation AGGR_BLACK_ASSOC;
 
 	public OtcSystemApi(MSystem system) {
 		fSystem = system;
 		MModel model = fSystem.model();
 		OBJ_CLS = model.getClass(MMConstants.CLS_OBJECT_NAME);
 		LINK_CLS = model.getClass(MMConstants.CLS_LINK_NAME);
+		COMP_CLS = model.getClass(MMConstants.CLS_COMPOSITION_NAME);
+		AGGR_CLS = model.getClass(MMConstants.CLS_AGGREGATION_NAME);
 		OBJ_SLOT_ASSOC = model.getAssociation(MMConstants.ASSO_OBJECT_SLOT_NAME);
 		LINK_BLACK_ASSOC = model.getAssociation(MMConstants.ASSO_LINK_OBJ1_NAME);
 		LINK_WHITE_ASSOC = model.getAssociation(MMConstants.ASSO_LINK_OBJ2_NAME);
+		COMP_BLACK_ASSOC = model.getAssociation(MMConstants.ASSO_COMP_OBJ1_NAME);
+		COMP_WHITE_ASSOC = model.getAssociation(MMConstants.ASSO_COMP_OBJ2_NAME);
+		AGGR_BLACK_ASSOC = model.getAssociation(MMConstants.ASSO_AGGR_OBJ1_NAME);
+		AGGR_WHITE_ASSOC = model.getAssociation(MMConstants.ASSO_AGGR_OBJ2_NAME);
+		
 	}
 
 	public MObject getObjectOfSlot(MObject slotObject) {
@@ -75,28 +88,83 @@ public class OtcSystemApi {
 	}
 
 	public MObject getBlackFromLinkObject(MObject linkObject) {
-		for (MLink link : fSystem.state().linksOfAssociation(LINK_BLACK_ASSOC).links()) {
-			// assumes linkB at 0
-			MObject linkBEnd = link.getLinkEnd(0).object();
-			// assumes black at 1
-			MObject blackEnd = link.getLinkEnd(1).object();
-			if (linkBEnd.equals(linkObject)) {
-				return blackEnd;
+		if (linkObject.cls().toString().equals("CompLink")) {
+				
+			for (MLink link : fSystem.state().linksOfAssociation(COMP_BLACK_ASSOC).links()) {
+				// assumes linkB at 0
+				MObject linkBEnd = link.getLinkEnd(0).object();
+				// assumes black at 1
+				MObject blackEnd = link.getLinkEnd(1).object();
+				//System.out.println(blackEnd.name());
+				if (linkBEnd.equals(linkObject)) {
+					return blackEnd;
+				}
 			}
+		}
+			else if (linkObject.cls().toString().startsWith("AggLink")) {
+				for (MLink link : fSystem.state().linksOfAssociation(AGGR_BLACK_ASSOC).links()) {
+					// assumes linkB at 0
+					MObject linkBEnd = link.getLinkEnd(0).object();
+					// assumes black at 1
+					MObject blackEnd = link.getLinkEnd(1).object();
+					//System.out.println(blackEnd.name());
+					if (linkBEnd.equals(linkObject)) {
+						return blackEnd;
+					}
+			}
+						
+		} else if (linkObject.cls().toString().startsWith("Link")){
+			for (MLink link : fSystem.state().linksOfAssociation(LINK_BLACK_ASSOC).links()) {
+				// assumes linkB at 0
+				MObject linkBEnd = link.getLinkEnd(0).object();
+				// assumes black at 1
+				MObject blackEnd = link.getLinkEnd(1).object();
+				if (linkBEnd.equals(linkObject)) {
+					return blackEnd;
+				}
+			}
+
 		}
 		return null;
 	}
 
 	public MObject getWhiteFromLinkObject(MObject linkObject) {
-		for (MLink link : fSystem.state().linksOfAssociation(LINK_WHITE_ASSOC).links()) {
-			// assumes linkW at 0
-			MObject linkWEnd = link.getLinkEnd(0).object();
-			// assumes white at 1
-			MObject whiteEnd = link.getLinkEnd(1).object();
-			if (linkWEnd.equals(linkObject)) {
-				return whiteEnd;
+		if (linkObject.cls().toString().startsWith("CompLink")) {
+			
+			for (MLink link : fSystem.state().linksOfAssociation(COMP_WHITE_ASSOC).links()) {
+				// assumes linkW at 0
+				MObject linkWEnd = link.getLinkEnd(0).object();
+				// assumes white at 1
+				MObject whiteEnd = link.getLinkEnd(1).object();
+				if (linkWEnd.equals(linkObject)) {
+					return whiteEnd;
+				}
 			}
+			
+		}else if (linkObject.cls().toString().startsWith("AggLink")) {
+			for (MLink link : fSystem.state().linksOfAssociation(AGGR_WHITE_ASSOC).links()) {
+				// assumes linkW at 0
+				MObject linkWEnd = link.getLinkEnd(0).object();
+				// assumes white at 1
+				MObject whiteEnd = link.getLinkEnd(1).object();
+				if (linkWEnd.equals(linkObject)) {
+					return whiteEnd;
+				}
+			}
+		} 
+		else if (linkObject.cls().toString().startsWith("Link")){
+			for (MLink link : fSystem.state().linksOfAssociation(LINK_WHITE_ASSOC).links()) {
+				// assumes linkW at 0
+				MObject linkWEnd = link.getLinkEnd(0).object();
+				// assumes white at 1
+				MObject whiteEnd = link.getLinkEnd(1).object();
+				if (linkWEnd.equals(linkObject)) {
+					return whiteEnd;
+				}
+			}
+
 		}
+		
 		return null;
 	}
 
@@ -107,6 +175,12 @@ public class OtcSystemApi {
 	public Set<MObject> getAllLinkObjects() {
 		return fSystem.state().objectsOfClass(LINK_CLS);
 	}
+	public Set<MObject> getAllCompositionObjects() {
+		return fSystem.state().objectsOfClass(COMP_CLS);
+	}
+	public Set<MObject> getAllAggregationObjects() {
+		return fSystem.state().objectsOfClass(AGGR_CLS);
+	}
 
 	public String getIdentityOfObject(MObject mainObject) {
 		MObjectState objState = mainObject.state(fSystem.state());
@@ -116,6 +190,11 @@ public class OtcSystemApi {
 	public String getClassNameOfObject(MObject mainObject) {
 		MObjectState objState = mainObject.state(fSystem.state());
 		return objState.attributeValue(MMConstants.CLS_OBJECT_ATTR_CLASSN).toString();
+	}
+	
+	public String getSuperclassNameOfObject(MObject mainObject) {
+		MObjectState objState = mainObject.state(fSystem.state());
+		return objState.attributeValue(MMConstants.CLS_OBJECT_ATTR_SUPERCLASSN).toString();
 	}
 	
 	public String getAttrNameOfSlot(MObject slot) {

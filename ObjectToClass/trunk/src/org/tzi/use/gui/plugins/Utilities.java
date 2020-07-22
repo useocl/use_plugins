@@ -66,17 +66,50 @@ public class Utilities {
 		}
 
 		String associationName = linkObjectName;
-		String role1Name = MMConstants.CLS_LINK_ATTR_FIRSTR + linkObjectName;
-		String role2Name = MMConstants.CLS_LINK_ATTR_SECONDR + linkObjectName;
-
-		try {
-			return associationApi.createAssociation(associationName, MMConstants.CLS_OBJECT_NAME, role1Name, "*", 0,
-					MMConstants.CLS_OBJECT_NAME, role2Name, "*", 0);
-		} catch (UseApiException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			return null;
+		
+		if (associationName.contains("CompLink")) {
+			
+			String role1Name = MMConstants.CLS_COMPOSITION_ATTR_FIRSTR + linkObjectName;
+			String role2Name = MMConstants.CLS_COMPOSITION_ATTR_SECONDR + linkObjectName;
+			try {
+				return associationApi.createAssociation(associationName, MMConstants.CLS_OBJECT_NAME, role1Name, "*", 0,
+						MMConstants.CLS_OBJECT_NAME, role2Name, "*", 2);
+			} catch (UseApiException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				return null;
+			}
 		}
+			else if (associationName.contains("AggLink")) {
+				
+				String role1Name = MMConstants.CLS_AGGREGATION_ATTR_FIRSTR + linkObjectName;
+				String role2Name = MMConstants.CLS_AGGREGATION_ATTR_SECONDR + linkObjectName;
+				try {
+					return associationApi.createAssociation(associationName, MMConstants.CLS_OBJECT_NAME, role1Name, "*", 0,
+							MMConstants.CLS_OBJECT_NAME, role2Name, "*", 1);
+				} catch (UseApiException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					return null;
+				}	
+			
+		} else {
+			
+			String role1Name = MMConstants.CLS_LINK_ATTR_FIRSTR + linkObjectName;
+			String role2Name = MMConstants.CLS_LINK_ATTR_SECONDR + linkObjectName;
+			try {
+				return associationApi.createAssociation(associationName, MMConstants.CLS_OBJECT_NAME, role1Name, "*", 0,
+						MMConstants.CLS_OBJECT_NAME, role2Name, "*", 0);
+			} catch (UseApiException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				return null;
+			}
+
+		}
+		
+
+	
 	}
 
 	public static TStatus getCurrentStatus(MSystemState state, MObject mObject, List<MObject> slots) {
@@ -93,14 +126,16 @@ public class Utilities {
 		MObjectState objState = mObject.state(state);
 		String identity = trim(objState.attributeValue(MMConstants.CLS_OBJECT_ATTR_IDENT).toString());
 		String className = trim(objState.attributeValue(MMConstants.CLS_OBJECT_ATTR_CLASSN).toString());
+		String superclassName = trim(objState.attributeValue(MMConstants.CLS_OBJECT_ATTR_SUPERCLASSN).toString());
 
 		TObject tObject;
 		if (increaseObjectID) {
-			tObject = new TObject(identity, className);
+			tObject = new TObject(identity, className,superclassName);
 		} else {
 			tObject = TObject.getNewObjectWithoutIncreasingID();
 			tObject.setIdentityName(identity);
 			tObject.setClassName(className);
+			tObject.setsuperClassName(superclassName);
 		}
 
 		List<TAttribute> attributes = new LinkedList<TAttribute>();
@@ -140,7 +175,7 @@ public class Utilities {
 			// TODO error ausgabe
 			System.out.println("Not a valid input type: " + val.type());
 		}
-
+		
 		return new TAttribute(tAttrName, tValue, tType);
 	}
 
@@ -152,14 +187,49 @@ public class Utilities {
 
 		return tLink;
 	}
+	
+	public static TLink getTCompWithoutId(MObjectState linkObjState) {
+		TLink tLink = TLink.getNewLinkWithoutIncreasingID();
+		tLink.setLinkName(trim(linkObjState.attributeValue(MMConstants.CLS_COMPOSITION_ATTR_COMP).toString()));
+		tLink.setFirstEndRoleName(trim(linkObjState.attributeValue(MMConstants.CLS_COMPOSITION_ATTR_FIRSTR).toString()));
+		tLink.setSecondEndRoleName(trim(linkObjState.attributeValue(MMConstants.CLS_COMPOSITION_ATTR_SECONDR).toString()));
 
-	public static TLink createNewTLink(MObjectState linkObjState, TObject o1, TObject o2) {
+		return tLink;
+	}
+	
+	public static TLink getTAggrWithoutId(MObjectState linkObjState) {
+		TLink tLink = TLink.getNewLinkWithoutIncreasingID();
+		tLink.setLinkName(trim(linkObjState.attributeValue(MMConstants.CLS_AGGREGATION_ATTR_AGGR).toString()));
+		tLink.setFirstEndRoleName(trim(linkObjState.attributeValue(MMConstants.CLS_AGGREGATION_ATTR_FIRSTR).toString()));
+		tLink.setSecondEndRoleName(trim(linkObjState.attributeValue(MMConstants.CLS_AGGREGATION_ATTR_SECONDR).toString()));
+
+		return tLink;
+	}
+
+	public static TLink createNewTLink(MObjectState linkObjState, TObject o1, TObject o2,int kind) {
 		String associationName = trim(linkObjState.attributeValue(MMConstants.CLS_LINK_ATTR_ASSOC).toString());
 		String blackRole = trim(linkObjState.attributeValue(MMConstants.CLS_LINK_ATTR_FIRSTR).toString());
 		String whiteRole = trim(linkObjState.attributeValue(MMConstants.CLS_LINK_ATTR_SECONDR).toString());
-
-		return new TLink(associationName, o1, o2, blackRole, whiteRole);
+		kind = 0;
+		return new TLink(associationName, o1, o2, blackRole, whiteRole,kind);
 	}
+	
+	public static TLink createNewTLinkComp(MObjectState linkObjState, TObject o1, TObject o2, int kind) {
+		String associationName = trim(linkObjState.attributeValue(MMConstants.CLS_COMPOSITION_ATTR_COMP).toString());
+		String blackRole = trim(linkObjState.attributeValue(MMConstants.CLS_COMPOSITION_ATTR_FIRSTR).toString());
+		String whiteRole = trim(linkObjState.attributeValue(MMConstants.CLS_COMPOSITION_ATTR_SECONDR).toString());
+		kind = 2;
+		return new TLink(associationName, o1, o2, blackRole, whiteRole, kind);
+	}
+	
+	public static TLink createNewTLinkAggr(MObjectState linkObjState, TObject o1, TObject o2, int kind) {
+		String associationName = trim(linkObjState.attributeValue(MMConstants.CLS_AGGREGATION_ATTR_AGGR).toString());
+		String blackRole = trim(linkObjState.attributeValue(MMConstants.CLS_AGGREGATION_ATTR_FIRSTR).toString());
+		String whiteRole = trim(linkObjState.attributeValue(MMConstants.CLS_AGGREGATION_ATTR_SECONDR).toString());
+		kind = 1;
+		return new TLink(associationName, o1, o2, blackRole, whiteRole, kind);
+	}
+
 
 	public static String getObjectDisplayNameFromSlot(MObjectState slotState) {
 		Value attributeName = slotState.attributeValue(MMConstants.CLS_SLOT_ATTR_ATTR);
@@ -179,8 +249,20 @@ public class Utilities {
 	public static String getMainDisplayFromObject(MObjectState objState) {
 		Value identity = objState.attributeValue(MMConstants.CLS_OBJECT_ATTR_IDENT);
 		Value className = objState.attributeValue(MMConstants.CLS_OBJECT_ATTR_CLASSN);
+		Value superClassName = objState.attributeValue(MMConstants.CLS_OBJECT_ATTR_SUPERCLASSN);
+		
+		String postfix = "";
+		System.out.println(superClassName.toString().length());
+		if (superClassName != null && superClassName.toString().length() != 2) {
+			
+			postfix = " < " + trim(superClassName.toString());
+		}
+				 
 		String displayIdentity = trim(identity.toString());
 		String displayClassName = trim(className.toString());
+		if (displayClassName != null) {
+			displayClassName += postfix;
+		}
 		if (displayIdentity == null && displayClassName == null) {
 			return " : " + TConstants.OPTIONAL_MARKER;
 		}

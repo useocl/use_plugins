@@ -60,11 +60,13 @@ public class InputObjectPropertiesView extends JPanel implements View {
 
 	private final MAttribute IDENTITY_ATTRIBUTE;
 	private final MAttribute CLASS_NAME_ATTRIBUTE;
+	private final MAttribute SUPER_CLASS_NAME_ATTRIBUTE;
 	private final MAttribute ATTR_NAME_ATTRIBUTE;
 	private final MAttribute ATTR_VALUE_ATTRIBUTE;
 
 	private JTextField fIdentityTextField;
 	private JTextField fClassNameTextField;
+	private JTextField fSuperClassNameTextField;
 	private JTable fTable;
 	private JScrollPane fTablePane;
 	private JButton fBtnApply;
@@ -75,6 +77,7 @@ public class InputObjectPropertiesView extends JPanel implements View {
 
 	private class TableModel extends AbstractTableModel {
 		private final String[] columnNames = { "Attribute name", "Attribute value" };
+		
 		private List<TAttribute> tableData;
 
 		private TableModel() {
@@ -92,6 +95,7 @@ public class InputObjectPropertiesView extends JPanel implements View {
 		public String getColumnName(int col) {
 			return columnNames[col];
 		}
+		
 
 		public int getColumnCount() {
 			return 2;
@@ -143,6 +147,8 @@ public class InputObjectPropertiesView extends JPanel implements View {
 				false);
 		CLASS_NAME_ATTRIBUTE = model.getClass(MMConstants.CLS_OBJECT_NAME).attribute(MMConstants.CLS_OBJECT_ATTR_CLASSN,
 				false);
+		SUPER_CLASS_NAME_ATTRIBUTE = model.getClass(MMConstants.CLS_OBJECT_NAME).attribute(MMConstants.CLS_OBJECT_ATTR_SUPERCLASSN,
+				false);
 		ATTR_NAME_ATTRIBUTE = model.getClass(MMConstants.CLS_SLOT_NAME).attribute(MMConstants.CLS_SLOT_ATTR_ATTR,
 				false);
 		ATTR_VALUE_ATTRIBUTE = model.getClass(MMConstants.CLS_SLOT_NAME).attribute(MMConstants.CLS_SLOT_ATTR_VAL,
@@ -153,6 +159,8 @@ public class InputObjectPropertiesView extends JPanel implements View {
 		fIdentityTextField.getDocument().addDocumentListener(new DocumentChangeListener());
 		fClassNameTextField = new JTextField();
 		fClassNameTextField.getDocument().addDocumentListener(new DocumentChangeListener());
+		fSuperClassNameTextField = new JTextField();
+		fSuperClassNameTextField.getDocument().addDocumentListener(new DocumentChangeListener());
 
 		// create table of attribute/value pairs
 		fTableModel = new TableModel();
@@ -220,10 +228,35 @@ public class InputObjectPropertiesView extends JPanel implements View {
 		// layout for the textField area
 		JPanel textFieldPane = new JPanel();
 		textFieldPane.setLayout(new BoxLayout(textFieldPane, BoxLayout.Y_AXIS));
-		textFieldPane.add(new JLabel("Object name"));
+		
+		JLabel label= new JLabel("Object name");
+		label.setHorizontalAlignment(JLabel.LEFT);
+		textFieldPane.add(label);
+		textFieldPane.add(fIdentityTextField);
+		
+		JPanel labelClassNamePane = new JPanel();
+		labelClassNamePane.setLayout(new BoxLayout(labelClassNamePane, BoxLayout.X_AXIS));
+		labelClassNamePane.add(Box.createHorizontalGlue());
+		labelClassNamePane.add(new JLabel("Class name"));
+		labelClassNamePane.add(Box.createHorizontalGlue());
+		labelClassNamePane.add(new JLabel("SuperClass name"));
+		labelClassNamePane.add(Box.createHorizontalGlue());
+		textFieldPane.add(labelClassNamePane);
+		JPanel textFieldClassPane = new JPanel();
+		textFieldClassPane.setLayout(new BoxLayout(textFieldClassPane, BoxLayout.X_AXIS));
+		textFieldClassPane.add(fClassNameTextField);
+		textFieldClassPane.add(fSuperClassNameTextField);
+		textFieldPane.add(textFieldClassPane);
+		
+		
+		
+		/*textFieldPane.add(new JLabel("Object name"));
 		textFieldPane.add(fIdentityTextField);
 		textFieldPane.add(new JLabel("Class name"));
 		textFieldPane.add(fClassNameTextField);
+		textFieldPane.add(Box.createHorizontalGlue());
+		textFieldPane.add(new JLabel("Superclass "));
+		textFieldPane.add(SuperClassNameTextField);*/
 		// textFieldPane.add(identityPane);
 		// textFieldPane.add(classNamePane);
 
@@ -314,6 +347,11 @@ public class InputObjectPropertiesView extends JPanel implements View {
 		if (!Utilities.equalsWithoutApostrophes(otcApi.getClassNameOfObject(fObject), classNameText)) {
 			error = applyStringAttributeChanges(fObject, CLASS_NAME_ATTRIBUTE, classNameText, printWriter, error);
 		}
+		
+		String superclassNameText = fSuperClassNameTextField.getText();
+		if (!Utilities.equalsWithoutApostrophes(otcApi.getSuperclassNameOfObject(fObject), superclassNameText)) {
+			error = applyStringAttributeChanges(fObject, SUPER_CLASS_NAME_ATTRIBUTE, superclassNameText, printWriter, error);
+		}
 
 		for (int i = 0; !error && i < fSystemAttributes.size(); ++i) {
 			TAttribute newValue = fTableModel.tableData.get(i);
@@ -390,6 +428,7 @@ public class InputObjectPropertiesView extends JPanel implements View {
 		// identity/className part
 		fIdentityTextField.setText(Utilities.trim(otcApi.getIdentityOfObject(fObject)));
 		fClassNameTextField.setText(Utilities.trim(otcApi.getClassNameOfObject(fObject)));
+		fSuperClassNameTextField.setText(Utilities.trim(otcApi.getSuperclassNameOfObject(fObject)));
 
 		// attribute part
 		fSystemAttributes = otcApi.getSlotsOfObject(fObject, true);

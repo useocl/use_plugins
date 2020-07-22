@@ -9,15 +9,15 @@ public class TLink {
 	private String firstEndRoleName;
 	private String secondEndRoleName;
 	private boolean isReflexive;
-
+	private int kind ;
 	public TLink(String linkName, TObject firstEndObject, TObject secondEndObject, String firstEndRoleName,
-			String secondEndRoleName) {
+			String secondEndRoleName, int kind) {
 		id = currentLinkID++;
 		if (id > TConstants.MAX_ID_LINK) {
 			// TODO error output or exception
 			System.out.println("Too many links");
 		}
-
+		this.kind = kind;
 		this.linkName = linkName;
 		this.firstEndObject = firstEndObject;
 		this.secondEndObject = secondEndObject;
@@ -45,7 +45,11 @@ public class TLink {
 	public int getID() {
 		return id;
 	}
-
+	
+	public int getKind() {
+		return kind;
+	}
+	
 	public String getLinkName() {
 		return linkName;
 	}

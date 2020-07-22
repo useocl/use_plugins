@@ -10,6 +10,7 @@ final class OTCModel {
 		b.append("attributes");								b.append("\n");
 		b.append("  identity:String init:''");				b.append("\n");
 		b.append("  className:String init:''");				b.append("\n");
+		b.append("  superClassName:String init:''");			b.append("\n");
 		b.append("end");									b.append("\n");
 															b.append("\n");
 		b.append("class Attribute");						b.append("\n");
@@ -25,6 +26,23 @@ final class OTCModel {
 		b.append("  wRoleName:String init:''");				b.append("\n");
 		b.append("end");									b.append("\n");
 															b.append("\n");
+															b.append("\n");
+		b.append("class CompLink");						b.append("\n");
+		b.append("attributes");								b.append("\n");
+		b.append("  compLinkName:String init:''");		b.append("\n");
+		b.append("  sRoleName:String init:''");				b.append("\n");
+		b.append("  wRoleName:String init:''");				b.append("\n");
+		b.append("end");									b.append("\n");
+		                                                    b.append("\n");
+															b.append("\n");
+															b.append("\n");
+		b.append("class AggLink");						b.append("\n");
+		b.append("attributes");								b.append("\n");
+		b.append("  aggLinkName:String init:''");		b.append("\n");
+		b.append("  sRoleName:String init:''");				b.append("\n");
+		b.append("  wRoleName:String init:''");				b.append("\n");
+		b.append("end");									b.append("\n");                                                   
+															b.append("\n");
 		b.append("association Object_Attribute between");	b.append("\n");
 		b.append("  Object[1]  role object");				b.append("\n");
 		b.append("  Attribute[0..*] role attribute");		b.append("\n");
@@ -39,7 +57,27 @@ final class OTCModel {
 		b.append("  Link[0..*] role wLink");				b.append("\n");
 		b.append("  Object[1]  role wObject");				b.append("\n");
 		b.append("end");									b.append("\n");
-		
+		                                                    b.append("\n");
+		                                                    b.append("\n");
+		b.append("association OwnedAggRelation between");			b.append("\n");
+		b.append(" AggLink [0..*] role ownedAggregation");b.append("\n");
+		b.append("  Object[1]  role ownedObject");			b.append("\n");
+		b.append("end");									b.append("\n");
+															b.append("\n");
+		b.append("association OwnerAggRelation between");			b.append("\n");
+		b.append(" AggLink [0..*] role ownerAggregation");b.append("\n");
+		b.append("  Object[1]  role ownerObject");			b.append("\n");
+		b.append("end");									b.append("\n");
+															b.append("\n");
+		b.append("association OwnerRelation between");		b.append("\n");
+		b.append("  CompLink[0..*] role ownerComposition");b.append("\n");
+		b.append("  Object[1]  role ownerObject");			b.append("\n");
+		b.append("end");									b.append("\n");
+															b.append("\n");
+		b.append("association OwnedRelation between");		b.append("\n");
+		b.append("  CompLink[1] role ownedComposition");	b.append("\n");
+		b.append("  Object[1]  role ownedObject");			b.append("\n");
+		b.append("end");									b.append("\n");
 		return b.toString();
 	}
 }

@@ -22,10 +22,12 @@ import org.tzi.use.gui.plugins.Utilities;
 import org.tzi.use.gui.plugins.data.TAssociation;
 import org.tzi.use.gui.plugins.data.TAttribute;
 import org.tzi.use.gui.plugins.data.TClass;
+import org.tzi.use.gui.plugins.data.TGeneralization;
 import org.tzi.use.gui.plugins.data.TLogicException;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAssociationEnd;
 import org.tzi.use.uml.mm.MClass;
+import org.tzi.use.uml.mm.MGeneralization;
 import org.tzi.use.uml.mm.MMultiplicity;
 
 @SuppressWarnings("serial")
@@ -68,7 +70,7 @@ public class OutputClassDiagram extends ClassDiagram {
 	private MClass getTentativeClass(TClass cls) {
 		try {
 			String clsName = cls.getClassName();
-			if (clsName == null) {
+			if (clsName == null || clsName == "") {
 				clsName = "nullClassName" + cls.getID();
 			}
 			MClass ret = modelApi.createClass(clsName, false);
@@ -144,15 +146,31 @@ public class OutputClassDiagram extends ClassDiagram {
 			} else {
 				mult2Text = mult2.toString();
 			}
-
+			System.out.println(asso.getClass().toString());
+			
 			MAssociation mAssoc = modelApi.createAssociation(assoName,
 					tClassIDToMClassName.get(asso.getFirstEndClass().getID()), roleName1, mult1Text, 0,
-					tClassIDToMClassName.get(asso.getSecondEndClass().getID()), roleName2, mult2Text, 0);
+					tClassIDToMClassName.get(asso.getSecondEndClass().getID()), roleName2, mult2Text, asso.getKind());			
 			mAssocToTAssocMap.put(mAssoc, asso);
+			
 			return mAssoc;
 		} catch (UseApiException e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+	
+	public void addGeneralization(TGeneralization gener) {
+		try {
+			MGeneralization generalization = modelApi.createGeneralizationEx(
+					modelApi.getClass(gener.getFirstEndClass().getClassName()), 
+					modelApi.getClass(gener.getSecondEndClass().getClassName())
+			);
+			
+			super.addGeneralization(generalization);
+			// showGeneralization(generalization);
+		} catch (UseApiException e) {
+			e.printStackTrace();
 		}
 	}
 

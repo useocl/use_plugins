@@ -8,9 +8,10 @@ public class TObject {
 	private final int id;
 	private String identityName;
 	private String className;
+	private String superclassName;
 	private List<TAttribute> attributes;
 
-	public TObject(String identityName, String className) {
+	public TObject(String identityName, String className,String superclassName) {
 		id = currentObjectID++;
 		if (id > TConstants.MAX_ID_OBJECT) {
 			// TODO error output or exception
@@ -20,6 +21,7 @@ public class TObject {
 		attributes = new LinkedList<TAttribute>();
 		this.identityName = identityName;
 		this.className = className;
+		this.superclassName = superclassName;
 	}
 
 	public static TObject getNewObjectWithoutIncreasingID() {
@@ -33,7 +35,7 @@ public class TObject {
 
 	@Override
 	public String toString() {
-		return "(ID: " + id + ", Identity: " + identityName + ", ClassName: " + className + ", Attributes: "
+		return "(ID: " + id + ", Identity: " + identityName + ", ClassName: " + className + ", SuperclassName :" + superclassName +",Attributes: "
 				+ getAttributes().toString() + ")";
 	}
 
@@ -48,13 +50,19 @@ public class TObject {
 	public String getClassName() {
 		return className;
 	}
-
+	public String getSuperclassName() {
+		return superclassName;
+	}
 	public void setIdentityName(String identityName) {
 		this.identityName = identityName;
 	}
 
 	public void setClassName(String className) {
 		this.className = className;
+	}
+	
+	public void setsuperClassName(String superclassName) {
+		this.superclassName = superclassName;
 	}
 
 	public List<TAttribute> getAttributes() {
@@ -72,9 +80,9 @@ public class TObject {
 	public TStatus getCurrentStatus() {
 		TStatus status;
 		// initialize with the help of className
-		if (className == null) {
+		if ((className  == null) ){
 			status = TStatus.MISSING;
-		} else {
+		} else  {
 			status = TStatus.COMPLETE;
 		}
 		for (TAttribute a : getAttributes()) {

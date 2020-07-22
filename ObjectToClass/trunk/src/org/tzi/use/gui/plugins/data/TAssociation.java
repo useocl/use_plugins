@@ -10,6 +10,7 @@ public class TAssociation {
 	static int currentAssocID = TConstants.MIN_ID_ASSOCIATION;
 	private final int id;
 	private String assocName;
+	private int kind;
 	private TClass firstEndClass;
 	private TClass secondEndClass;
 	private Set<String> firstEndRoleNames;
@@ -17,9 +18,11 @@ public class TAssociation {
 	private MMultiplicity firstEndMult;
 	private MMultiplicity secondEndMult;
 	private boolean isReflexive;
+	private boolean isShared;
+	private boolean isCyclic;
 
 	public TAssociation(String assocName, TClass firstEndClass, TClass secondEndClass, String firstEndRoleName,
-			String secondEndRoleName) {
+			String secondEndRoleName, int kind) {
 		id = currentAssocID++;
 		if (id > TConstants.MAX_ID_ASSOCIATION) {
 			// TODO error output or exception
@@ -29,6 +32,7 @@ public class TAssociation {
 		this.assocName = assocName;
 		this.firstEndClass = firstEndClass;
 		this.secondEndClass = secondEndClass;
+		this.kind = kind;
 
 		setFirstRoleName(firstEndRoleName);
 		setSecondRoleName(secondEndRoleName);
@@ -50,6 +54,10 @@ public class TAssociation {
 
 	public String getAssociationName() {
 		return assocName;
+	}
+	
+	public int getKind() {
+		return kind;
 	}
 
 	public void setAssociationName(String assocName) {
@@ -202,13 +210,27 @@ public class TAssociation {
 	public void setAsAmbiguouslyMerged() {
 		wasAmbiguouslyMerged = true;
 	}
-
+	public void setIsShared(Boolean isShared) {
+		this.isShared = isShared;
+	}
+	public Boolean getIsShared() {
+		return isShared;
+	}
+	public void setIsCyclic(boolean isCyclic) {
+		this.isCyclic = isCyclic;
+	}
+	
+	public Boolean getIsCyclic() {
+		return isCyclic;
+	}
 	public TStatus getCurrentStatus() {
 		// conflict
 		if (firstEndRoleNames.size() > 1 || secondEndRoleNames.size() > 1) {
 			return TStatus.CONFLICT;
 		}
-
+		if (isShared||isCyclic ) {
+			return TStatus.CONFLICT;
+		}
 		// missing
 		if (assocName == null || assocName.isEmpty()) {
 			return TStatus.MISSING;
@@ -220,6 +242,7 @@ public class TAssociation {
 			return TStatus.MISSING;
 		}
 
+		
 		// complete
 		return TStatus.COMPLETE;
 	}

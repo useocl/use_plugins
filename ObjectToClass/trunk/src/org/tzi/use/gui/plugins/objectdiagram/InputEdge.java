@@ -28,7 +28,19 @@ public class InputEdge extends BinaryAssociationOrLinkEdge {
 		super(source, target, sourceEnd, targetEnd, diagram, mLink.association(), mLink);
 
 		// FIXME the adjacent objects get lost here.
-		tLink = Utilities.getTLinkWithoutId(linkObjectState);
+		
+		if (mLink.association().toString().contains("CompLink")) {
+			//Composition type
+			tLink = Utilities.getTCompWithoutId(linkObjectState);
+		}else if ((mLink.association().toString().contains("AggLink"))) {
+			tLink = Utilities.getTAggrWithoutId(linkObjectState);
+		}
+		else {
+			//Link type
+			tLink = Utilities.getTLinkWithoutId(linkObjectState);
+
+		}
+		
 
 		switch (tLink.getCurrentStatus()) {
 		case COMPLETE:

@@ -25,7 +25,7 @@ public class OutputClassNode extends ClassNode {
 
 		this.tClass = tClass;
 
-		if (tClass.getClassName() == null) {
+		if (tClass.isAnonymous()) {
 			fLabel = TConstants.PLACEHOLDER;
 		}
 

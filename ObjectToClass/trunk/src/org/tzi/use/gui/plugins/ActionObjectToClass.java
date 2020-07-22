@@ -32,6 +32,7 @@ import org.tzi.use.uml.sys.MSystem;
 public class ActionObjectToClass implements IPluginActionDelegate {
 
 	final String MODEL_NAME = "ObjectToClassModel";
+	public static MainWindow mainWind = null ;
 
 	/**
 	 * Default constructor
@@ -47,6 +48,7 @@ public class ActionObjectToClass implements IPluginActionDelegate {
 		Session session = pluginAction.getSession();
 		// Getting MainWindow object from Proxy
 		final MainWindow mainWindow = pluginAction.getParent();
+		mainWind = mainWindow;
 
 		boolean resetEverything = true;
 		if (session.hasSystem()) {
@@ -114,5 +116,8 @@ public class ActionObjectToClass implements IPluginActionDelegate {
 		}
 		fSession.setSystem(new MSystem(model));
 		fLogWriter.println(MODEL_NAME + " loaded");
+	}
+	public static PrintWriter getPrintWriter() {
+		return mainWind.logWriter();
 	}
 }

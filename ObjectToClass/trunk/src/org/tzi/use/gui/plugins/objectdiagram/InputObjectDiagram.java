@@ -43,6 +43,7 @@ import org.tzi.use.uml.sys.MSystem;
 import org.tzi.use.uml.sys.MSystemException;
 import org.tzi.use.uml.sys.soil.MAttributeAssignmentStatement;
 
+
 @SuppressWarnings("serial")
 public class InputObjectDiagram extends NewObjectDiagram {
 
@@ -203,7 +204,31 @@ public class InputObjectDiagram extends NewObjectDiagram {
 			}, pos++);
 		}
 
-		if (selectedObjects.isEmpty() && selectedLinks.size() == 1) {
+		if (selectedObjects.size() == 2 && selectedLinks.isEmpty()) {
+			Iterator<MObject> iterator = selectedObjects.iterator();
+			MObject object1 = iterator.next();
+			MObject object2 = iterator.next();
+			popupMenu.insert(new AbstractAction("Insert Composition") {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					fParent.startCompositionCreation(object2, object1);
+				}
+			}, pos++);
+		}
+		
+		if (selectedObjects.size() == 2 && selectedLinks.isEmpty()) {
+			Iterator<MObject> iterator = selectedObjects.iterator();
+			MObject object1 = iterator.next();
+			MObject object2 = iterator.next();
+			popupMenu.insert(new AbstractAction("Insert Aggregation") {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					fParent.startAggregationCreation(object2, object1);
+				}
+			}, pos++);
+		}
+		
+		if (selectedObjects.isEmpty() && selectedLinks.size() == 1 && selectedLinks.iterator().next().name().startsWith("Link") ) {
 			MObject linkObject = selectedLinks.iterator().next();
 			// popupMenu.insert(new ActionShowProperties("Edit link",
 			// linkObject), pos++);
@@ -213,10 +238,39 @@ public class InputObjectDiagram extends NewObjectDiagram {
 					// remove selection
 					fEdgeSelection.clear();
 					fParent.startLinkDestruction(linkObject);
+					
 				}
 			}, pos++);
 		}
 
+		if (selectedObjects.isEmpty() && selectedLinks.size() == 1 && selectedLinks.iterator().next().name().startsWith("CompLink")) {
+			MObject compositionObject = selectedLinks.iterator().next();
+			// popupMenu.insert(new ActionShowProperties("Edit link",
+			// linkObject), pos++);
+			popupMenu.insert(new AbstractAction("Destroy composition") {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// remove selection
+					fEdgeSelection.clear();
+					fParent.startLinkDestruction(compositionObject);
+				}
+			}, pos++);
+		}
+		
+		
+		if (selectedObjects.isEmpty() && selectedLinks.size() == 1 && selectedLinks.iterator().next().name().startsWith("AggLink")) {
+			MObject aggregationObject = selectedLinks.iterator().next();
+			// popupMenu.insert(new ActionShowProperties("Edit link",
+			// linkObject), pos++);
+			popupMenu.insert(new AbstractAction("Destroy Aggregation") {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// remove selection
+					fEdgeSelection.clear();
+					fParent.startLinkDestruction(aggregationObject);
+				}
+			}, pos++);
+		}
 		if (pos > 0) {
 			popupMenu.insert(new JSeparator(), pos++);
 		}
@@ -279,23 +333,46 @@ public class InputObjectDiagram extends NewObjectDiagram {
 	@Override
 	protected BinaryAssociationOrLinkEdge createBinaryAssociationOrLinkEdge(PlaceableNode source, PlaceableNode target,
 			MLinkEnd sourceEnd, MLinkEnd targetEnd, NewObjectDiagram diagram, MLink link) {
-
+		
 		String selectedLinkObjectName = link.association().name();
 		MObject linkObject = fParent.system().state().objectByName(selectedLinkObjectName);
 		return new InputEdge(source, target, sourceEnd.associationEnd(), targetEnd.associationEnd(), this, link,
 				linkObject.state(fParent.system().state()));
+		
 	}
 
 	void editLinkName(MObject linkObject) {
+		if (linkObject.name().contains("CompLink") ) {
+			editCompositionAttribute(linkObject, "Edit Composition name", MMConstants.CLS_COMPOSITION_ATTR_COMP);
+		}else if (linkObject.name().contains("AggLink")) {
+			editAggregationAttribute(linkObject, "Edit Aggregation name", MMConstants.CLS_AGGREGATION_ATTR_AGGR);
+		}
+		else if (linkObject.name().contains("Link")) {
 		editLinkAttribute(linkObject, "Edit link name", MMConstants.CLS_LINK_ATTR_ASSOC);
+		}
 	}
 
 	void editLinkFirstRoleName(MObject linkObject) {
-		editLinkAttribute(linkObject, "Edit role name", MMConstants.CLS_LINK_ATTR_FIRSTR);
+		if (linkObject.name().startsWith("CompLink")) {
+			editCompositionAttribute(linkObject, "Edit role name", MMConstants.CLS_COMPOSITION_ATTR_FIRSTR);
+		}else if (linkObject.name().startsWith("AggLink")) {
+			editAggregationAttribute(linkObject, "Edit role name", MMConstants.CLS_AGGREGATION_ATTR_FIRSTR);
+		}else  if (linkObject.name().startsWith("Link")) {
+			editLinkAttribute(linkObject, "Edit role name", MMConstants.CLS_LINK_ATTR_FIRSTR);
+		}
+		
 	}
 
 	void editLinkSecondRoleName(MObject linkObject) {
-		editLinkAttribute(linkObject, "Edit role name", MMConstants.CLS_LINK_ATTR_SECONDR);
+		if (linkObject.name().startsWith("CompLink")) {
+			editCompositionAttribute(linkObject, "Edit role name", MMConstants.CLS_COMPOSITION_ATTR_SECONDR);
+		}else if (linkObject.name().startsWith("AggLink")) {
+			editAggregationAttribute(linkObject, "Edit role name", MMConstants.CLS_AGGREGATION_ATTR_SECONDR);
+		} 
+		else {
+			editLinkAttribute(linkObject, "Edit role name", MMConstants.CLS_LINK_ATTR_SECONDR);
+		}
+		
 	}
 
 	private void editLinkAttribute(MObject linkObject, String title, String attributeName) {
@@ -325,6 +402,60 @@ public class InputObjectDiagram extends NewObjectDiagram {
 		}
 	}
 
+	private void editCompositionAttribute(MObject compositionObject, String title, String attributeName) {
+		MSystem system = fParent.system();
+		MObjectState linkObjState = compositionObject.state(system.state());
+		String initialSelectionValue = Utilities.trim(linkObjState.attributeValue(attributeName).toString());
+		String newValue = (String) JOptionPane.showInputDialog(this, null, title, JOptionPane.PLAIN_MESSAGE, null, null,
+				initialSelectionValue);
+		if (newValue == null) {
+			// dialog cancelled
+			return;
+		}
+		newValue = Utilities.setApostrophes(newValue);
+		MAttribute attribute = system.model().getClass(MMConstants.CLS_COMPOSITION_NAME).attribute(attributeName, false);
+		StringWriter errorOutput = new StringWriter();
+		Expression valueAsExpression = OCLCompiler.compileExpression(system.model(), system.state(), newValue,
+				"<input>", new PrintWriter(errorOutput, true), system.varBindings());
+		if (valueAsExpression == null) {
+			JOptionPane.showMessageDialog(this, errorOutput, "Error compiling expression " + newValue,
+					JOptionPane.ERROR_MESSAGE);
+		} else {
+			try {
+				system.execute(new MAttributeAssignmentStatement(compositionObject, attribute, valueAsExpression));
+			} catch (MSystemException e) {
+				JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	}
+	
+	private void editAggregationAttribute(MObject aggregationObject, String title, String attributeName) {
+		MSystem system = fParent.system();
+		MObjectState linkObjState = aggregationObject.state(system.state());
+		String initialSelectionValue = Utilities.trim(linkObjState.attributeValue(attributeName).toString());
+		String newValue = (String) JOptionPane.showInputDialog(this, null, title, JOptionPane.PLAIN_MESSAGE, null, null,
+				initialSelectionValue);
+		if (newValue == null) {
+			// dialog cancelled
+			return;
+		}
+		newValue = Utilities.setApostrophes(newValue);
+		MAttribute attribute = system.model().getClass(MMConstants.CLS_AGGREGATION_NAME).attribute(attributeName, false);
+		StringWriter errorOutput = new StringWriter();
+		Expression valueAsExpression = OCLCompiler.compileExpression(system.model(), system.state(), newValue,
+				"<input>", new PrintWriter(errorOutput, true), system.varBindings());
+		if (valueAsExpression == null) {
+			JOptionPane.showMessageDialog(this, errorOutput, "Error compiling expression " + newValue,
+					JOptionPane.ERROR_MESSAGE);
+		} else {
+			try {
+				system.execute(new MAttributeAssignmentStatement(aggregationObject, attribute, valueAsExpression));
+			} catch (MSystemException e) {
+				JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	}
+	
 	private class ObjectMouseListener extends MouseAdapter {
 		@Override
 		public void mouseClicked(MouseEvent e) {

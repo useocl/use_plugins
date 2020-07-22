@@ -7,6 +7,7 @@ import org.tzi.use.gui.views.diagrams.DiagramView;
 import org.tzi.use.gui.views.diagrams.elements.EdgeProperty;
 import org.tzi.use.gui.views.diagrams.elements.PlaceableNode;
 import org.tzi.use.gui.views.diagrams.elements.edges.BinaryAssociationOrLinkEdge;
+import org.tzi.use.gui.plugins.ActionObjectToClass;
 import org.tzi.use.gui.plugins.data.TAssociation;
 import org.tzi.use.gui.plugins.data.TConstants;
 import org.tzi.use.uml.mm.MAssociation;
@@ -16,13 +17,14 @@ import org.tzi.use.uml.mm.MMultiplicity.Range;
 
 import com.google.common.collect.Multimap;
 
+import jline.internal.Log;
+
 public class OutputEdge extends BinaryAssociationOrLinkEdge {
 
 	private final TAssociation tAssoc;
 	// private final Color edgeColor;
 	// private final Color edgeSelectedColor;
 	private final boolean isDashed;
-
 	public OutputEdge(PlaceableNode source, PlaceableNode target, MAssociationEnd sourceEnd, MAssociationEnd targetEnd,
 			DiagramView diagram, MAssociation mAssoc, TAssociation tAssoc) {
 		super(source, target, sourceEnd, targetEnd, diagram, mAssoc);
@@ -44,6 +46,7 @@ public class OutputEdge extends BinaryAssociationOrLinkEdge {
 			// edgeColor = TConstants.CONFLICT_COLOR;
 			// edgeSelectedColor = TConstants.CONFLICT_SELECTED_COLOR;
 			isDashed = true;
+			
 			break;
 		default:
 			// edgeColor = Color.BLACK;

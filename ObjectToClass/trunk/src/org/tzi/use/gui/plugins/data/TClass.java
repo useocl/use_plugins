@@ -8,6 +8,17 @@ public class TClass {
 	private final int id;
 	private String className;
 	private List<TAttribute> attributes;
+	private boolean isAnonymous= false;
+	
+	public boolean isAnonymous() {
+		return isAnonymous;
+	}
+
+	public void setAnonymous(boolean isAnonymous) {
+		this.isAnonymous = isAnonymous;
+	}
+
+	private TClass superclass;
 
 	public TClass(String className) {
 		id = currentClassID++;
@@ -23,6 +34,10 @@ public class TClass {
 	@Override
 	public String toString() {
 		return "(ID: " + id + ", ClassName: " + className + ", Attributes: " + getAttributes().toString() + ")";
+	}
+	
+	public boolean hasSuperClass() {
+		return superclass != null;
 	}
 
 	public int getID() {
@@ -49,12 +64,20 @@ public class TClass {
 		attributes.addAll(as);
 	}
 
+	public TClass getSuperclass() {
+		return superclass;
+	}
+
+	public void setSuperclass(TClass superclass) {
+		this.superclass = superclass;
+	}
+
 	public TStatus getCurrentStatus() {
 		TStatus status;
 		// initialize with the help of className
-		if (className == null) {
+		if ((className == null)) {
 			status = TStatus.MISSING;
-		} else {
+		} else  {
 			status = TStatus.COMPLETE;
 		}
 		for (TAttribute a : getAttributes()) {
