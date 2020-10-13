@@ -1,0 +1,12 @@
+model Inheritance
+
+class Person
+attributes
+  name: String
+end
+
+class Programmer < Person
+end
+
+class Designer < Person
+end

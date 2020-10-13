@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?use version="5.1.0"?>
+<plugin name="OCLComplexityPlugin$" version="5.1.0" publisher="Timo Stüber">
+	<actions>
+		<action label="OCL Complexity"
+			icon="resources/OCLComplexity_transparent.png"
+			class="org.tzi.use.gui.plugins.ActionOCLComplexity"
+			tooltip="Choose a Metric to calculate the complexity of the current model."
+			menu="View"
+			menuitem="OCLComplexity"
+			toolbaritem="plugins"
+			id="org.tzi.use.gui.plugins.ActionOCLComplexity">
+		</action>
+	</actions>
+</plugin>

@@ -1,0 +1,56 @@
+model Person
+
+class Person
+attributes
+  name:String
+  yearBirth:Integer
+operations
+  setPartner(aPartner:Person)
+end
+
+association Parenthood between
+  Person [0..2] role parent
+  Person [0..*] role child
+end
+
+association Partnership between
+  Person [0..1] role proposer
+  Person [0..1] role accepter
+end
+
+constraints
+
+context p1,p2:Person inv uniqueName_STRAIGHT:
+  p1<>p2 implies p1.name<>p2.name
+
+context Person inv uniqueName_ISUNIQUE:
+  Person.allInstances->isUnique(p | p.name)
+
+context p1:Person inv uniqueName_SELECT:
+  Person.allInstances->
+    select(p2 | p1<>p2 and p1.name=p2.name)->isEmpty()
+
+context p:Person inv parentsOlderChildren:
+  p.child->forAll(c | p.yearBirth+15<c.yearBirth)
+
+context gp:Person inv grandparentsMuchOlderGrandchildren:
+  gp.child->forAll(p | p.child->forAll(gc |
+    gp.yearBirth+40<gc.yearBirth))
+
+context p:Person inv noBigamy:
+  not(p.proposer->notEmpty() and p.accepter->notEmpty())
+
+context p:Person inv partnerAboutSameAge:
+  p.accepter->notEmpty() implies
+  (p.yearBirth-p.accepter.yearBirth).abs<10
+
+context Person inv grandparentExists:
+  Person.allInstances->exists(gp,p,gc |
+    gp.child->includes(p) and p.child->includes(gc))
+
+-- konstanten, variablen, operationen
+
+context Person::setPartner(aPartner:Person)
+pre unpartnered: self.proposer->isEmpty and self.accepter->isEmpty and
+                 aPartner.proposer->isEmpty and aPartner.accepter->isEmpty
+post partnered: self.accepter=aPartner and aPartner.proposer=self

@@ -1,0 +1,26 @@
+model NavigatedClasses
+
+class A
+end
+
+class B
+end
+
+class C
+end
+
+association AB between
+    A [0..*] role a
+    B [0..*] role b
+end
+
+
+association AC between
+    A [0..*] role a
+    C [0..*] role c
+end
+
+association CB between
+    C [0..*] role c
+    B [0..*] role b
+end

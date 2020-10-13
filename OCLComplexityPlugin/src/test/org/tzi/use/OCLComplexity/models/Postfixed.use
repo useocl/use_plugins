@@ -1,0 +1,16 @@
+model Postfixed
+
+class Postfixed
+attributes
+  counter:Integer
+  counter1:Integer
+  counter2:Integer
+operations
+  inc():Boolean=self.counter=counter+1
+  post post_inc: counter@pre+1 = counter
+  double_and_square(): Boolean=
+    self.counter1=counter1*2 and
+    self.counter2=counter2*counter2
+  post post_dobule_and_square: counter1@pre+1=counter1*2 and counter2@pre+1=counter2*counter2
+end
+

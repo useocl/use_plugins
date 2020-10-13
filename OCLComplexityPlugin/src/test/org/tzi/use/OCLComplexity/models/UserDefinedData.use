@@ -1,0 +1,30 @@
+model UserDefinedData
+
+class Secret
+attributes
+    id: String
+operations
+    verifyID(): Boolean=true
+end
+
+class Person
+attributes
+  firstName:String
+  lastName:String
+  secret:Secret
+end
+
+class Company
+attributes
+  name:String
+operations
+  startProject(): Boolean=true
+end
+
+
+association Employee between
+    Person [0..*] role employee
+    Company [0..*] role employer
+end
+
+

@@ -1,0 +1,21 @@
+model OperationThroughNav
+
+class Person
+attributes
+  firstName:String
+  lastName:String
+end
+
+class Service
+attributes
+  name:String
+operations
+  doStuff(i1: Integer, i2: Integer):Integer=Tuple{result=1, out=2}
+end
+
+association Employee between
+    Person [0..*] role user
+    Service [0..*] role service
+end
+
+

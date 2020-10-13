@@ -1,0 +1,28 @@
+NumberOfOCLKeywords; Number of OCL KeyWords; NKW
+NumberOfExplicitSelf; Number of times Self used in Explicit form; NES
+NumberOfIfExpressions; Number of if expressions; NIE
+NumberOfVariablesDefinedByLet; Number of variables defined with let; NVL
+NumberOfSet; Number of set literals; NSL
+NumberOfOrderedSet; Number of ordered set literals; NOSL
+NumberOfBag; Number of bag literals; NBL
+NumberOfSequence; Number of sequence literals; NSQL
+NumberOfTuple; Number of tuple literals; NTL
+NumberOfBooleanOperators; Number of boolean operators; NBO
+NumberOfComparisonOperators; Number of comparison operators: < <= > >= = <>; NCO
+NumberOfExplicitIterators; Number of iterator variables specified explicitly; NEI
+NumberOfImplicitIterators; Number of iterator variables specified implicitly; NII
+NumberOfAttributesClassifierSelf; Number of attributes belonging to classifier of Self; NAS
+NumberOfOperationsClassifierSelf; Number of operations belonging to classifier of Self; NOS
+NumberOfTypeOf; Number of oclIsKindOf or oclAsType operations; NIO
+NumberOfPropertiesPostfixed; Number of @pre; N@P
+NumberOfNavigatedRelationships; Number of different relationship navigated. If association class attached, association used; NNR
+NumberOfAttributesThroughNavigations; Number of attributes referred through navigation; NAN
+WeightedNumberOfReferredOperationsThroughNavigations; Number of operations referred through navigation; WNON
+NumberOfNavigatedClasses; Number of different classes navigated; NNC
+NumberOfParametersTypeClass; Number of parameters whose classes defined in model; NPT
+NumberOfUserDefinedDataTypeAttributes; Number of attributes belonging to user defined data type; NUDTA
+NumberOfUserDefinedDataTypeOperations; Number of operations belonging to user defined data type; NUDTO
+WeightedNumberOfNavigations; Degree of nested collection operations used as weight. For each level number of navigations multiplied with weight of level; WNN
+DepthOfNavigation; Maximum depth of navigations using a tree. Root is self. Navigations are branches. Navigated classes are nodes. Navigations evaluated in collection operations produce a new tree which is connected using a definition connection. When obtained the depth of the tree definition connection are counted twice; DN
+WeightedNumberOfCollectionOperations; Degree of nested collection operations used as weight. For each level number of collections operations multiplied with weight of that level; WNCO
+OverallWeightedComplexity; Expressions categorized and given a weight. Degree of nested operations used as level. For each level weight of expressions multiplied with weight of that level; OWC

@@ -1,0 +1,82 @@
+<project name="OCLComplexityPlugin" default="jar" basedir=".">
+
+	<!-- Version Format: <compatible USE version>-r<n-th release for this USE version>
+	     e.g.: 4.0-r1 -->
+	<property name="use.version" value="5.1.0" />
+
+	<property name="compiler" value="1.8" />
+
+	<property name="javac.debug" value="true" />
+	<property name="use.path" value="${basedir}/../use-5.1.0" />
+	<property name="useplugin.file" value="useplugin.xml" />
+	<property name="use.classes" value="${use.path}/build/classes" />
+	<property name="filename" value="OCLComplexityPlugin${use.version}.jar" />
+
+	<path id="classpath">
+		<fileset dir="${use.path}/lib" includes="*.jar" excludes="use*" />
+		<pathelement location="${use.classes}"/>
+	</path>
+
+	<target name="setversion">
+		<replaceregexp file="${useplugin.file}" match='&lt;\?use version=".*?"' replace='&lt;\?use version="${use.version}"'/>
+		<replaceregexp file="${useplugin.file}" match='&lt;plugin(.+?)version=".*?"' replace='&lt;plugin\1version="${use.version}"'/>
+	</target>
+	
+	<target name="compile-use">
+		<subant target="compile-use" buildpath="${use.path}">
+			<property name="javac.debug" value="${javac.debug}"/>
+		</subant>
+	</target>
+
+	<target name="clean">
+		<delete dir="build" />
+		<delete dir="dist" />
+	</target>
+
+	<target name="compile" depends="compile-use, setversion">
+		<mkdir dir="build" />
+		<copy todir="build/resources">
+			<fileset dir="resources" />
+		</copy>
+		<javac destdir="build" source="${compiler}" target="${compiler}" debug="${javac.debug}" classpathref="classpath" includeantruntime="false">
+			<src path="src/test" />
+			<src path="src/main" />
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="dist/${filename}" basedir="build" manifest="META-INF/MANIFEST.MF">
+			<fileset dir="." includes="useplugin.xml" />
+		</jar>
+	</target>
+
+    <target name="release-jar" depends="jar" description="Creates plugin release.">
+    	<zip destfile="dist/OCLComplexityPlugin${use.version}.zip">
+			<zipfileset dir="." filemode="755">
+    			<include name="README" />
+    		</zipfileset>
+			<zipfileset dir="dist" filemode="755">
+				<include name="${filename}" />
+			</zipfileset>
+    	</zip>
+    </target>
+	
+    <target name="release-sources" description="Creates source code release.">
+    	<zip destfile="dist/OCLComplexityPlugin${use.version}-sources.zip">
+    		<zipfileset dir=".">
+    			<include name="build.xml" />
+    			<include name="README" />
+    			<include name="useplugin.xml" />
+    		</zipfileset>
+    		<zipfileset dir="src" prefix="src" />
+    		<zipfileset dir="resources" prefix="resources" />
+    		<zipfileset dir="META-INF" prefix="META-INF" />
+    	</zip>
+    </target>
+	
+    <target name="release" depends="release-jar,release-sources" description="Creates full release." />
+	
+	<target name="deployDebug" depends="jar" description="Build and copy to use folder.">
+		<copy file="dist/${filename}" todir="${use.path}/lib/plugins"/>
+	</target>
+</project>

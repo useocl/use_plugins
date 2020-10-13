@@ -1,0 +1,36 @@
+model NavigatedRelationships
+
+class Customer
+attributes
+  firstName:String
+  lastName:String
+end
+
+
+class Product
+attributes
+  name:String
+end
+
+class Seller
+attributes
+  firstName:String
+  lastName:String
+end
+
+associationclass Order between
+    Customer [0..*]
+    Product [0..*]
+attributes
+        name : String
+end
+
+association SellerOrder between
+    Seller [0..*]
+    Order [0..*]
+end
+
+association SellerProduct between
+    Seller [0..*]
+    Product [0..*]
+end

@@ -1,0 +1,28 @@
+model PersonCompany
+
+class Person
+attributes
+  firstName:String
+  lastName:String
+  birthDay:String
+operations
+  fullName():String=firstName.concat(' ').concat(lastName)
+  isBirthday():Boolean= false
+  income(): Tuple(result: Integer, bonus: Integer)= Tuple {result=9001, bonus=42}
+  income_history(aDate: String): Tuple(result: Integer, bonus: Integer)= Tuple {result=9001, bonus=42}
+end
+
+class Company
+attributes
+  name:String
+operations
+    fire(p:Person):Boolean=true
+    hire(p:Person):Boolean=true
+end
+
+association Employee between
+    Person [0..*] role employee
+    Company [0..*] role employer
+end
+
+

@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Plugin-Name: OCLComplexity
+Plugin-Version: 0.1
+Plugin-Publisher: Timo Stüber
+Main-Class: org.tzi.use.gui.plugins.OCLComplexityPlugin

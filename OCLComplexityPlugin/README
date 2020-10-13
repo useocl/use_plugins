@@ -1,0 +1,11 @@
+1. Requirements
+===============
+- USE (downloads available here: https://sourceforge.net/projects/useocl/)
+
+2. Installation
+===============
+Please, copy OCLComplexityPlugin-X.X.X.jar into the lib/plugins directory of USE.
+
+3. Usage
+===============
+You can click the icon in menu bar or you can find it in the menu under Plugins/View/OCLComplexity.
