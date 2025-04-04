@@ -81,6 +81,8 @@ import com.sun.tools.jdi.SocketAttachingConnector;
  */
 public class JVMAdapter extends AbstractVMAdapter {
 
+	public static final String JVM_ADAPTER_NAME = "JVMAdapter";
+
 	private static final int SETTING_HOST = 0;
 	
 	private static final int SETTING_PORT = 1;
@@ -449,7 +451,7 @@ public class JVMAdapter extends AbstractVMAdapter {
     	
     	if (controller.existsVMObject(javaValue)) {
     		VMObject obj = controller.getVMObject(javaValue);
-    		v = new ObjectValue(obj.getUSEObject().type(), obj.getUSEObject());
+    		v = new ObjectValue(obj.getUSEObject().cls(), obj.getUSEObject());
     	} else if (javaValue instanceof ArrayReference) {
     		ArrayReference javaArray = (ArrayReference)javaValue;
     		List<com.sun.jdi.Value> javaValues = javaArray.getValues();

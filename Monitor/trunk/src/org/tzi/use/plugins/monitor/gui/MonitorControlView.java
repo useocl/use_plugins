@@ -72,18 +72,15 @@ import org.tzi.use.plugins.monitor.ProgressListener;
 import org.tzi.use.plugins.monitor.vm.adapter.InvalidAdapterConfiguration;
 import org.tzi.use.plugins.monitor.vm.adapter.VMAdapter;
 import org.tzi.use.plugins.monitor.vm.adapter.VMAdapterSetting;
-import org.tzi.use.plugins.monitor.vm.adapter.jvm.JVMAdapter;
 import org.tzi.use.uml.mm.MAssociation;
 import org.tzi.use.uml.mm.MAttribute;
 import org.tzi.use.uml.mm.MClass;
 import org.tzi.use.uml.mm.MModel;
 import org.tzi.use.uml.mm.MOperation;
-import org.tzi.use.uml.sys.StateChangeEvent;
-import org.tzi.use.uml.sys.StateChangeListener;
 import org.tzi.use.util.StringUtil;
 
 @SuppressWarnings("serial")
-public class MonitorControlView extends JDialog implements StateChangeListener, ChangeListener, ProgressListener, LogListener {
+public class MonitorControlView extends JDialog implements ChangeListener, ProgressListener, LogListener {
 
 	private Session session;
 	
@@ -164,7 +161,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 						if (check_suspend.isSelected() && check_determineStates.isSelected())
 							session.system()
 									.state()
-									.determineStates(
+									.checkStateInvariants(
 											new PrintWriter(new LogAreaWriter(
 													"Determining states..."),
 													true));
@@ -195,7 +192,7 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 									&& check_determineStates.isSelected())
 								session.system()
 										.state()
-										.determineStates(
+										.checkStateInvariants(
 												new PrintWriter(
 														new LogAreaWriter(
 																"Determining states..."),
@@ -510,11 +507,6 @@ public class MonitorControlView extends JDialog implements StateChangeListener, 
 		this.button_Pause.setEnabled(isMonitoring);
 		this.button_Pause.setSelected(isPaused);
 		this.button_Stop.setEnabled(isMonitoring);
-	}
-	
-	@Override
-	public void stateChanged(StateChangeEvent e) {
-		
 	}
 
 	/* (non-Javadoc)

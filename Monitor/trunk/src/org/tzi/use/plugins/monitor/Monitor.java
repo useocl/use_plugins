@@ -207,13 +207,13 @@ public class Monitor implements ChangeListener {
     
     /**
      * Internal mapping for the adapters from a VM specific key
-     * to the intermediate representation as a {@link VMOperation}.
+     * to the intermediate representation as a {@link VMMethod}.
      */
     private BiMap<Object, VMMethod> adapterMethodMapping;
     
     /**
      * Internal mapping for the adapters from a VM specific key
-     * to the intermediate representation as a {@link VMOperation}.
+     * to the intermediate representation as a {@link VMMethod}.
      */
     private BiMap<Object, VMField> adapterFieldMapping;
     
@@ -310,7 +310,7 @@ public class Monitor implements ChangeListener {
      * In detail the following steps are executed:
      * <ol>
      *   <li>Reset of the USE session.</li>
-     *   <li>Connect to the VM with the settings provided to {@link #configure(Session, String, String)}. </li>
+     *   <li>Connect to the VM with the settings provided to {@link #configure(Session, VMAdapter)}. </li>
      *   <li>Register for important events in the VM</li>
      *   <li>Resume the VM</li>
      *   <li>If <code>suspend</code> is <code>true</code> call {@link #pause(boolean)} without reseting.</li>
@@ -448,8 +448,7 @@ public class Monitor implements ChangeListener {
     /**
      * Generates and executes a USE operation call from the provided values.
      * @param self The MObject representing self for the operation call. 
-     * @param useOperation
-     * @param frame
+     * @param call
      * @param validatePreConditions
      */
 	private boolean createOperationCall(MObject self, VMMethodCall call, boolean validatePreConditions) {
@@ -476,7 +475,7 @@ public class Monitor implements ChangeListener {
     	PPCHandler handler = (validatePreConditions ? ppcHandler : DoNothingPPCHandler.getInstance());
     	
 		MEnterOperationStatement operationCall = new MEnterOperationStatement(
-				new ExpObjRef(self), useOperation, arguments, handler );
+				new ExpObjRef(self), useOperation, arguments.values().toArray(new Expression[0]), handler);
     	
     	try {
     		StatementEvaluationResult result = getSystem().execute(operationCall);
@@ -640,7 +639,7 @@ public class Monitor implements ChangeListener {
 		
 		fireNewLogMessage(Level.FINE, "Registering link modification interest for class " + cls.name());
 		// Association ends with multiplicity 1 can be handled also
-		for (Map.Entry<String, MNavigableElement> end : cls.navigableEnds().entrySet()) {
+		for (Entry<String, ? extends MNavigableElement> end : cls.navigableEnds().entrySet()) {
 			
 			if (!end.getValue().isCollection() && end.getValue() instanceof MAssociationEnd) {
 				MAssociationEnd assEnd = (MAssociationEnd)end.getValue();
@@ -728,7 +727,7 @@ public class Monitor implements ChangeListener {
 			}
 			
 			VMType vmType = getVMType(useClass);
-			if (!vmType.isClassType()) {
+			if (vmType != null && !vmType.isClassType()) {
 				fireNewLogMessage(Level.FINE, String.format("Found VM type for class %s, but the returned type is not a class", useClass.name()));
 			}
 			
@@ -838,8 +837,8 @@ public class Monitor implements ChangeListener {
 		
 		if (useSoil) {
 			MNewObjectStatement stmt = new MNewObjectStatement(cls, (String)null);
-			getSystem().execute(stmt);
-			useObject = stmt.getCreatedObject();
+			StatementEvaluationResult result = getSystem().execute(stmt);
+			useObject = getSystem().createObject(result, stmt.getObjectClass(), stmt.getObjectName().name());
 		} else {
 			String name = getSystem().state().uniqueObjectNameForClass(cls);
 			useObject = getSystem().state().createObject(cls, name);
@@ -865,7 +864,7 @@ public class Monitor implements ChangeListener {
 			if (!refObject.isAlive()) {
 				MObject useObj = refObject.getUSEObject();
 				
-				ObjectValue valObject = new ObjectValue(useObj.type(), useObj); 
+				ObjectValue valObject = new ObjectValue(useObj.cls(), useObj);
 				MObjectDestructionStatement delStmt = new MObjectDestructionStatement(valObject);
 				try {
 					this.getSystem().execute(delStmt);
@@ -1066,7 +1065,7 @@ public class Monitor implements ChangeListener {
 			} catch (Exception e) {
 				fireNewLogMessage(Level.SEVERE, "ERROR: " + e.getMessage()); 
 			}
-    	} else if (fieldValue.isSet() && ((SetValue)fieldValue).elemType().isTupleType(true)) {
+    	} else if (fieldValue.isSet() && ((SetValue)fieldValue).elemType().isTypeOfTupleType()) {
     		// Qualified association
     		SetValue setValue = (SetValue)fieldValue;
     			
@@ -1090,8 +1089,7 @@ public class Monitor implements ChangeListener {
      * Reads qualified links from a Set(Tuple(key,value))
      * @param source
      * @param end
-     * @param seqValue
-     * @param qualifierValues
+     * @param setValue
      */
     private void readQualifiedLinks(MObject source, MAssociationEnd end, SetValue setValue) {
     	List<Value> qualifier = new LinkedList<Value>();
@@ -1114,9 +1112,10 @@ public class Monitor implements ChangeListener {
     }
     
 	/**
-	 * @param i
+	 * @param source
+	 * @param end
+	 * @param seqValue
 	 * @param qualifierValues
-	 * @return
 	 */
 	private void readQualifiedLinks(MObject source, MAssociationEnd end, SequenceValue seqValue, List<Value> qualifierValues) {
 		for (int i = 0; i < seqValue.size(); ++i) {
@@ -1299,7 +1298,17 @@ public class Monitor implements ChangeListener {
 			if (oneFailed) {
 				throw new PostConditionCheckFailedException(operationCall);
 			}
-			
+
+		}
+
+		@Override
+		public void handleTransitionsPre(MSystem system, MOperationCall operationCall) throws PreConditionCheckFailedException {
+
+		}
+
+		@Override
+		public void handleTransitionsPost(MSystem system, MOperationCall operationCall) throws PostConditionCheckFailedException {
+
 		}
     }
     
@@ -1466,10 +1475,9 @@ public class Monitor implements ChangeListener {
 		}
 		
 		/**
-		 * Needs to be called if a method is called
-		 * which the monitor registered for.
-		 * The monitor will call all other adapter methods.  
-		 * @param vmMethodId The id of the method returned by {@link VMMethod#getId()}
+		 * Needs to be called if a method is called, which the monitor registered for.
+		 * The monitor will call all other adapter methods.
+		 * @param vmMethodCall The method called
 		 */
 		public void onMethodCall(VMMethodCall vmMethodCall) {
 			/*
@@ -1566,7 +1574,7 @@ public class Monitor implements ChangeListener {
 				result = new ExpressionWithValue(resultValue);
 			}
 
-			MExitOperationStatement stmt = new MExitOperationStatement(result, ppcHandler, currentUseOperationCall);
+			MExitOperationStatement stmt = new MExitOperationStatement(result, ppcHandler);
 			
 			try {
 				StatementEvaluationResult statResult = getSystem().execute(stmt);
@@ -1594,6 +1602,7 @@ public class Monitor implements ChangeListener {
 
 		
 		/**
+		 * @param adapterEventInformation
 		 * @param type
 		 */
 		public void onNewVMTypeLoaded(Object adapterEventInformation, JVMType type) {
@@ -1626,8 +1635,8 @@ public class Monitor implements ChangeListener {
 		}
 
 		/**
-		 * @param obj
-		 * @param field
+		 * @param objId
+		 * @param fieldId
 		 * @param useValue
 		 */
 		public void onUpdateAttribute(Object objId, Object fieldId, Value useValue) {
